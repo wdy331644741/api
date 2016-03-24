@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddColumnsToUsersTable extends Migration
+class CreateRulesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,11 +12,14 @@ class AddColumnsToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->integer('group_id');
+        Schema::create('rules', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('activity_id');
+            $table->tinyInteger('rule_type', true);
             $table->integer('rule_id');
-            $table->char('ip',15);
+            $table->timestamps();
         });
+        //
     }
 
     /**
@@ -26,8 +29,7 @@ class AddColumnsToUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['group_id', 'rule_id', 'ip']);
-        });
+        Schema::drop('rules');
+        //
     }
 }
