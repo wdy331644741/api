@@ -81,6 +81,14 @@ class CreateRulesTable extends Migration
     public function down()
     {
         Schema::drop('rules');
+        Schema::drop('rule_register');
+        Schema::drop('rule_userlevel');
+        Schema::drop('rule_invite');
+        Schema::drop('rule_userlevel');
+        Schema::drop('rule_usercredit');
+        Schema::drop('rule_balance');
+        Schema::drop('rule_firstcast');
+        Schema::drop('rule_cast');
         //
     }
 }
