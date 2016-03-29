@@ -18,6 +18,7 @@ class CreateAwardsTable extends Migration
             $table->integer('award_id');
             $table->timestamps();
         });
+
     }
 
     /**

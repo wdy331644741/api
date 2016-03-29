@@ -49,15 +49,12 @@ class ActivityController extends Controller
 
     public function getDel(Request $request){
         if(isset($request->one)){
-            DB::transaction(function($request){
-                Activity::destroy($request->one);
-
-                //删除子规则
-            });
-
+            $res = Activity::destroy($request->one);
+            if($res){
                 return $this->outputJson(0,array('error_msg'=>'Success!'));
-
+            }else{
                 return $this->outputJson(10001,array('error_msg'=>'Delete Failed!'));
+            }
 
         }
     }

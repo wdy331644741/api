@@ -22,6 +22,10 @@ class CreateActivitiesTable extends Migration
             $table->boolean('enable');
             $table->timestamps();
         });
+
+        Schema::table('activities', function ($table) {
+            $table->softDeletes();
+        });
     }
 
     /**

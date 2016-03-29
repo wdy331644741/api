@@ -21,6 +21,12 @@ class CreateRulesTable extends Migration
             $table->timestamps();
         });
         //子规则表
+        Schema::create('rule_channel', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('channels');//多个渠道用';'分隔
+            $table->timestamps();
+        });
+
         //注册
         Schema::create('rule_register', function (Blueprint $table) {
             $table->increments('id');
@@ -82,6 +88,7 @@ class CreateRulesTable extends Migration
     public function down()
     {
         Schema::drop('rules');
+        Schema::drop('rule_channel');
         Schema::drop('rule_register');
         Schema::drop('rule_userlevel');
         Schema::drop('rule_invite');
