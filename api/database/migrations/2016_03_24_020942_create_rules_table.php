@@ -14,6 +14,7 @@ class CreateRulesTable extends Migration
     {
         Schema::create('rules', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('trigger_id');
             $table->integer('activity_id');
             $table->tinyInteger('rule_type', false, true);
             $table->integer('rule_id');
