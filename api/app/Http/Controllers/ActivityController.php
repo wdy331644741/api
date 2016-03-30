@@ -19,7 +19,7 @@ class ActivityController extends Controller
             'name' => 'required|min:2|max:255',
             'start_at'=> 'date',
             'end_at' => 'date',
-            'trigger_id'=>'required',/*|exists:triggers.id*/
+            'trigger_id'=>'required|exists:triggers,id',
             'des'=>'required',
             'enable'=> 'required|in:0,1'
         ]);
@@ -66,7 +66,7 @@ class ActivityController extends Controller
             'name' => 'required|min:2|max:255',
             'start_at'=> 'required|date',
             'end_at' => 'required|date',
-            'trigger_id'=>'required',/*|exists:triggers.id*/
+            'trigger_id'=>'required|exists:triggers,id',
             'des'=>'required',
             'enable'=> 'required|in:0,1'
         ]);

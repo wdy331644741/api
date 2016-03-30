@@ -14,4 +14,9 @@ class Activity extends Model
     public function rules(){
         return $this->hasMany('App\Models\Rule');
     }
+
+    public function triggers(){
+        return $this->hasOne('App\Models\Trigger');
+    }
+
 }
