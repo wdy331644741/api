@@ -49,9 +49,10 @@ class ActivityController extends Controller
 
     public function getDel(Request $request){
         if(isset($request->one)){
-            $res = Activity::destroy($request->one);
+            $activity = Activity::find($request->one);
+            $res = $activity->delete();
             if($res){
-                return $this->outputJson(0,array('error_msg'=>'Success!'));
+                return $this->outputJson(0,array('error_msg'=>'ok'));
             }else{
                 return $this->outputJson(10001,array('error_msg'=>'Delete Failed!'));
             }
@@ -65,7 +66,7 @@ class ActivityController extends Controller
             'name' => 'required|min:2|max:255',
             'start_at'=> 'required|date',
             'end_at' => 'required|date',
-            'trigger_id'=>'required|exists:triggers.id',
+            'trigger_id'=>'required',/*|exists:triggers.id*/
             'des'=>'required',
             'enable'=> 'required|in:0,1'
         ]);
@@ -73,7 +74,7 @@ class ActivityController extends Controller
             return $this->outputJson(10000,$validator->errors());
         }
 
-        $res = Activity::where('id',1)->update([
+        $res = Activity::where('id',$request->id)->update([
             'name'=>$request->name,
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
@@ -82,7 +83,7 @@ class ActivityController extends Controller
             'enable'=>$request->enable,
         ]);
         if($res){
-            return $this->outputJson(0,array('error_msg'=>'Success!'));
+            return $this->outputJson(0,array('error_msg'=>'ok'));
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Update Failed!'));
         }

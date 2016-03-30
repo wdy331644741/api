@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
 {
-    protected $dates = ['deleted_at'];
+    use SoftDeletes;
+
+    protected $dates = ['delete_at'];
 
     public function rules(){
         return $this->hasMany('App\Models\Rule');

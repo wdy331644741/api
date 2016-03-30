@@ -23,7 +23,7 @@ class CreateActivitiesTable extends Migration
             $table->timestamps();
         });
 
-        Schema::table('activities', function ($table) {
+        Schema::table('activities', function (Blueprint $table) {
             $table->softDeletes();
         });
     }
