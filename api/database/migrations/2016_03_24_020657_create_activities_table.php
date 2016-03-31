@@ -15,9 +15,10 @@ class CreateActivitiesTable extends Migration
         Schema::create('activities', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->string('alias_name');
             $table->timestamp('start_at')->nullable();
             $table->timestamp('end_at')->nullable();
-            $table->tinyInteger('trigger_id', false, true);
+            $table->tinyInteger('trigger_type', false, true);
             $table->text('des');
             $table->boolean('enable');
             $table->timestamps();
