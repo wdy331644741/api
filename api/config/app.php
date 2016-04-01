@@ -203,5 +203,13 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
     ],
-
+    //发送奖品配置
+    'awards' => [
+        '1' => '_rateIncreases',
+        '2' => '_redMoney',
+        '3' => '_rateRedMoney',
+        '4' => '_experienceAmount',
+        '5' => '_integral',
+        '6' => '_objects',
+    ]
 ];

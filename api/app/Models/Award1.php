@@ -5,13 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Activity extends Model
+class Award1 extends Model
 {
-    use SoftDeletes;
-
-    protected $dates = ['delete_at'];
-
-    public function rules(){
-        return $this->hasMany('App\Models\Rule');
-    }
+    public $table = 'award_1';
 }

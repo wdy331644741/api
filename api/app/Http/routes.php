@@ -25,3 +25,9 @@ Route::group(['middleware' => 'web'], function () {
 
 
 Route::controller('activity', 'ActivityController');
+
+Route::post('/award/add', 'AwardController@add');
+
+Route::post('/award/getOne', 'AwardController@getOne');
+
+Route::post('/award/getList', 'AwardController@getList');
