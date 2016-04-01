@@ -653,7 +653,7 @@ class AwardController extends Controller
         $data['award_id'] = $award_id;
         $data['created_at'] = time();
         $data['updated_at'] = time();
-        $id = Award::insertGetId($data);
+        $id = Award::insertGetId($data); 
         return $id;
     }
 
