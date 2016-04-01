@@ -68,8 +68,7 @@ class CreateRulesTable extends Migration
         });
 
         Schema::create('rule_firstcast', function (Blueprint $table) {
-            $table->increments('id');
-            $table->tinyInteger('min_firstcast');
+            $table->increments('id'); $table->tinyInteger('min_firstcast');
             $table->tinyInteger('max_firstcast');
             $table->timestamps();
         });
