@@ -25,3 +25,4 @@ Route::group(['middleware' => 'web'], function () {
 
 
 Route::controller('activity', 'ActivityController');
+    Route::controller('rule', 'RuleController');

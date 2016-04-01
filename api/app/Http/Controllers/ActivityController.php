@@ -37,7 +37,7 @@ class ActivityController extends Controller
         if($res){
             return $this->outputJson(0,array('insert_id'=>$activity->id));
         }else{
-            return $this->outputJson(10000,array('error_msg'=>'Insert Failed!'));
+            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
         }
     }
     //排序，分页
