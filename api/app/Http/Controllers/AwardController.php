@@ -30,11 +30,9 @@ class AwardController extends Controller
         $award_type = intval($request->award_type);
         //活动ID
         $activityID = intval($request->activity_id);
-        //奖品ID（如果存在说明是修改）
-        $award_id =  intval($request->award_id);
         foreach($awards as $k=>$v){
             if($award_type == $k){
-                $return = $this->$v($request,$award_id);
+                $return = $this->$v($request);
             }
         }
         if($return['code'] == 200){
@@ -50,11 +48,34 @@ class AwardController extends Controller
         }
     }
     /**
+     * 奖品添加
+     * @param Request $request
+     * @return mixed
+     */
+    function update(Request $request){
+        //获取配置信息
+        $awards = Config::get('app.awards');
+        //奖品类型
+        $award_type = isset($request->award_type) ? intval($request->award_type) : 0;
+        //奖品ID（如果存在说明是修改）
+        $award_id = isset($request->award_id) ? intval($request->award_id) : 0;
+        foreach($awards as $k=>$v){
+            if($award_type == $k){
+                $return = $this->$v($request,$award_id,$award_type);
+            }
+        }
+        if($return['code'] == 200){
+            return $this->outputJson(200,array('error_msg'=>'修改成功！'));
+        }else{
+            return $this->outputJson(404,array('error_msg'=>$return['error_msg']));
+        }
+    }
+    /**
      * 加息券
      * @param $request
      * @return bool
      */
-    function _rateIncreases($request,$award_id){
+    function _rateIncreases($request,$award_id,$award_type){
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
@@ -158,13 +179,32 @@ class AwardController extends Controller
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
         //判断是添加还是修改
-        if($award_id != 0 && )
-        //添加时间
-        $data['created_at'] = time();
-        //修改时间
-        $data['updated_at'] = time();
-        $id = Award1::insertGetId($data);
-        return array('code'=>'200','insert_id' => $id);
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = time();
+            if($isExist){
+                $status = Award1::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>'200','error_msg'=>'修改成功!');
+                }else{
+                    return array('code'=>'404','error_msg'=>'修改失败!');
+                }
+            }else{
+                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+            }
+        }else{
+            //添加时间
+            $data['created_at'] = time();
+            //修改时间
+            $data['updated_at'] = time();
+            $id = Award1::insertGetId($data);
+            return array('code'=>'200','insert_id' => $id);
+        }
     }
 
     /**
@@ -172,7 +212,7 @@ class AwardController extends Controller
      * @param $request
      * @return bool
      */
-    function _redMoney($request,$award_id){
+    function _redMoney($request,$award_id,$award_type){
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
@@ -259,19 +299,40 @@ class AwardController extends Controller
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
-        //添加时间
-        $data['created_at'] = time();
-        //修改时间
-        $data['updated_at'] = time();
-        $id = Award2::insertGetId($data);
-        return array('code'=>'200','insert_id' => $id);
+        //判断是添加还是修改
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = time();
+            if($isExist){
+                $status = Award2::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>'200','error_msg'=>'修改成功!');
+                }else{
+                    return array('code'=>'404','error_msg'=>'修改失败!');
+                }
+            }else{
+                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+            }
+        }else {
+            //添加时间
+            $data['created_at'] = time();
+            //修改时间
+            $data['updated_at'] = time();
+            $id = Award2::insertGetId($data);
+            return array('code' => '200', 'insert_id' => $id);
+        }
     }
     /**
      * 百分比红包
      * @param $request
      * @return bool
      */
-    function _rateRedMoney($request,$award_id){
+    function _rateRedMoney($request,$award_id,$award_type){
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
@@ -363,19 +424,40 @@ class AwardController extends Controller
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
-        //添加时间
-        $data['created_at'] = time();
-        //修改时间
-        $data['updated_at'] = time();
-        $id = Award3::insertGetId($data);
-        return array('code'=>'200','insert_id' => $id);
+        //判断是添加还是修改
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = time();
+            if($isExist){
+                $status = Award3::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>'200','error_msg'=>'修改成功!');
+                }else{
+                    return array('code'=>'404','error_msg'=>'修改失败!');
+                }
+            }else{
+                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+            }
+        }else {
+            //添加时间
+            $data['created_at'] = time();
+            //修改时间
+            $data['updated_at'] = time();
+            $id = Award3::insertGetId($data);
+            return array('code' => '200', 'insert_id' => $id);
+        }
     }
     /**
      * 体验金
      * @param $request
      * @return bool
      */
-    function _experienceAmount($request,$award_id){
+    function _experienceAmount($request,$award_id,$award_type){
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
@@ -431,19 +513,40 @@ class AwardController extends Controller
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
-        //添加时间
-        $data['created_at'] = time();
-        //修改时间
-        $data['updated_at'] = time();
-        $id = Award4::insertGetId($data);
-        return array('code'=>'200','insert_id' => $id);
+        //判断是添加还是修改
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = time();
+            if($isExist){
+                $status = Award4::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>'200','error_msg'=>'修改成功!');
+                }else{
+                    return array('code'=>'404','error_msg'=>'修改失败!');
+                }
+            }else{
+                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+            }
+        }else {
+            //添加时间
+            $data['created_at'] = time();
+            //修改时间
+            $data['updated_at'] = time();
+            $id = Award4::insertGetId($data);
+            return array('code' => '200', 'insert_id' => $id);
+        }
     }
     /**
      * 用户积分
      * @param $request
      * @return bool
      */
-    function _integral($request,$award_id){
+    function _integral($request,$award_id,$award_type){
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
@@ -470,30 +573,72 @@ class AwardController extends Controller
             $integral_info = $integral_multiple;
         }
         $data['integral_info'] = $integral_info;
-        //添加时间
-        $data['created_at'] = time();
-        //修改时间
-        $data['updated_at'] = time();
-        $id = Award5::insertGetId($data);
-        return array('code'=>'200','insert_id' => $id);
+        //判断是添加还是修改
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = time();
+            if($isExist){
+                $status = Award5::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>'200','error_msg'=>'修改成功!');
+                }else{
+                    return array('code'=>'404','error_msg'=>'修改失败!');
+                }
+            }else{
+                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+            }
+        }else {
+            //添加时间
+            $data['created_at'] = time();
+            //修改时间
+            $data['updated_at'] = time();
+            $id = Award5::insertGetId($data);
+            return array('code' => '200', 'insert_id' => $id);
+        }
     }
     /**
      * 用户积分
      * @param $request
      * @return bool
      */
-    function _objects($request,$award_id){
+    function _objects($request,$award_id,$award_type){
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
             return array('code'=>'404','error_msg'=>'名称不能为空!');
         }
-        //添加时间
-        $data['created_at'] = time();
-        //修改时间
-        $data['updated_at'] = time();
-        $id = Award6::insertGetId($data);
-        return array('code'=>'200','insert_id' => $id);
+        //判断是添加还是修改
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = time();
+            if($isExist){
+                $status = Award6::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>'200','error_msg'=>'修改成功!');
+                }else{
+                    return array('code'=>'404','error_msg'=>'修改失败!');
+                }
+            }else{
+                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+            }
+        }else {
+            //添加时间
+            $data['created_at'] = time();
+            //修改时间
+            $data['updated_at'] = time();
+            $id = Award6::insertGetId($data);
+            return array('code' => '200', 'insert_id' => $id);
+        }
     }
     /**
      * 添加到awards
@@ -603,7 +748,7 @@ class AwardController extends Controller
             //获取单条信息
             $table = $this->_getAwardTable($params['award_type']);
             $returnArray = $table::where('id', $params['award_id'])->get()->toArray();
-            return $returnArray[0];
+            return !empty($returnArray) ? $returnArray[0] : false;
         } else {
             return false;
         }
