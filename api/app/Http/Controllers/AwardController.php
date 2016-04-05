@@ -32,7 +32,7 @@ class AwardController extends Controller
         $activityID = intval($request->activity_id);
         foreach($awards as $k=>$v){
             if($award_type == $k){
-                $return = $this->$v($request);
+                $return = $this->$v($request,0,0);
             }
         }
         if($return['code'] == 200){
@@ -602,7 +602,7 @@ class AwardController extends Controller
         }
     }
     /**
-     * 用户积分
+     * 实物
      * @param $request
      * @return bool
      */
@@ -723,7 +723,7 @@ class AwardController extends Controller
         }
     }
     /**
-     * 获取全部列表
+     * 删除奖品
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
