@@ -56,6 +56,11 @@ class RuleController extends Controller
         return $this->outputJson(0,$new_rules);
     }
 
+    //更新
+    public function postPut(){
+
+    }
+
     //获取活动规则
     public function getRulelist($activity_id){
         $rule_child = Rule::where('activity_id',$activity_id)->get();
