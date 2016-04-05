@@ -2,23 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\Http\Requests;
 use App\Models\Rule;
-/*use App\Models\Rule\Register;
-use App\Models\Rule\Channel;
-use App\Models\Rule\Invite;
-use App\Models\Rule\Invitenum;
-use App\Models\Rule\Userlevel;
-use App\Models\Rule\Invite;
-use App\Models\Rule\Invite;
-use App\Models\Rule\Invite;
-use App\Models\Rule\Invite;
-use App\Models\Rule\Invite;*/
-
 
 use Validator;
 
@@ -69,34 +57,19 @@ class RuleController extends Controller
     }
 
     //获取活动规则
-    public function getRulebyid($activity_id){
+    public function getRulelist($activity_id){
         $rule_child = Rule::where('activity_id',$activity_id)->get();
         $rules = array();
         foreach($rule_child  as $val){
-            switch($val->rule_id){
-                case 0:
-                    break;
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                case 7:
-                    break;
-                case 8:
-                    break;
-            }
+            $model_name = config('activity.rule_child.'.$val->rule_type.'.model_name');
+            $func_name  = 'get'.$model_name.'Rule';
+            $child_rule = $this->$func_name($val->rule_id);
+            $rules[$val->rule_type] = $child_rule;
         }
-        print_r($rules);exit;
+        return $this->outputJson(0,$rules);
     }
 
+    //添加规则
     private function rule_register($type,$request){
         $validator = Validator::make($request->all(), [
             'min_time' => 'required',
@@ -157,6 +130,19 @@ class RuleController extends Controller
             DB::rollback();
             return false;
         }
+    }
+
+    //获取规则
+    private function getRegisterRule($rule_id){
+        $register = new Rule\Register();
+        $res = $register::where('id',$rule_id)->first();
+        return $res;
+    }
+
+    private function getChannelRule($rule_id){
+        $register = new Rule\Channel();
+        $res = $register::where('id',$rule_id)->first();
+        return $res;
     }
 
     private function getStorageTypeByName($type_name){
