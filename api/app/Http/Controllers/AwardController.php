@@ -104,7 +104,7 @@ class AwardController extends Controller
         $data['rate_increases_info'] = $rate_increases_info;
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
-        if($data['effective_time_type'] == null){
+        if($data['effective_time_type'] == null){ 
             return array('code'=>'404','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
