@@ -11,11 +11,12 @@
 |
 */
 
+/*
 Route::get('/', function () {
     return view('welcome');
 });
 
-/*
+
 Route::group(['middleware' => 'web'], function () {
     Route::auth();
 
@@ -25,4 +26,15 @@ Route::group(['middleware' => 'web'], function () {
 
 
 Route::controller('activity', 'ActivityController');
-    Route::controller('rule', 'RuleController');
+Route::controller('rule', 'RuleController');
+
+Route::post('/award/add', 'AwardController@add');
+
+Route::post('/award/update', 'AwardController@update');
+
+Route::post('/award/getOne', 'AwardController@getOne');
+
+Route::post('/award/getList', 'AwardController@getList');
+
+Route::post('/award/delete', 'AwardController@delete');
+
