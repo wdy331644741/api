@@ -41,7 +41,7 @@ class AwardController extends Controller
             if($awardID){
                 return $this->outputJson(200,array('insert_id'=>$awardID));
             }else{
-                return $this->outputJson(404,array('error_msg'=>'插入奖品中间表失败！'));
+                return $this->outputJson(404,array('error_msg'=>'插入奖品中间表失败'));
             }
         }else{
             return $this->outputJson(404,array('error_msg'=>$return['error_msg']));
@@ -65,7 +65,7 @@ class AwardController extends Controller
             }
         }
         if($return['code'] == 200){
-            return $this->outputJson(200,array('error_msg'=>'修改成功！'));
+            return $this->outputJson(200,array('error_msg'=>'修改成功'));
         }else{
             return $this->outputJson(404,array('error_msg'=>$return['error_msg']));
         }
@@ -79,17 +79,17 @@ class AwardController extends Controller
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
-            return array('code'=>'404','error_msg'=>'名称不能为空!');
+            return array('code'=>'404','error_msg'=>'名称不能为空');
         }
         //加息值
         $data['rate_increases'] = isset($request->rate_increases) ? intval($request->rate_increases) : 0;
         if($data['rate_increases'] == 0){
-            return array('code'=>'404','error_msg'=>'加息值不能为空!');
+            return array('code'=>'404','error_msg'=>'加息值不能为空');
         }
         //加息时长类型
         $data['rate_increases_type'] = $request->rate_increases_type;
         if($data['rate_increases_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择加息时长类型!');
+            return array('code'=>'404','error_msg'=>'请选择加息时长类型');
         }
         //加息时长信息
         $rate_increases_info = '';
@@ -97,7 +97,7 @@ class AwardController extends Controller
             $start = $this->FormValidation($request,'rate_increases_start','required','date');
             $end = $this->FormValidation($request,'rate_increases_end','required','date');
             if($start == false || $end == false){
-                return array('code'=>'300','error_msg'=>'加息时间格式不对！');
+                return array('code'=>'300','error_msg'=>'加息时间格式不对');
             }
             $rate_increases_info = strtotime($start)."-".strtotime($end);
         }
@@ -105,21 +105,21 @@ class AwardController extends Controller
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
         if($data['effective_time_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择有效时间!');
+            return array('code'=>'404','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
         $effective_time_info = '';
         if($data['effective_time_type'] == 2){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
-                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空！');
+                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空');
             }
             $effective_time_info = $day;
         }elseif($data['effective_time_type'] == 3){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
-                return array('code'=>'300','error_msg'=>'有效时间格式不对！');
+                return array('code'=>'300','error_msg'=>'有效时间格式不对');
             }
             $effective_time_info = strtotime($start)."-".strtotime($end);
         }
@@ -127,12 +127,12 @@ class AwardController extends Controller
         //投资门槛
         $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
         if($data['investment_threshold'] == 0){
-            return array('code'=>'404','error_msg'=>'投资门槛不能为空!');
+            return array('code'=>'404','error_msg'=>'投资门槛不能为空');
         }
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
         if($data['project_duration_type'] == 0){
-            return array('code'=>'404','error_msg'=>'请选择项目期限类型!');
+            return array('code'=>'404','error_msg'=>'请选择项目期限类型');
         }
         //项目期限信息
         $project_duration_info = '';
@@ -143,7 +143,7 @@ class AwardController extends Controller
             $start = isset($request->project_duration_start) ? intval($request->project_duration_start) : 0;
             $end = isset($request->project_duration_end) ? intval($request->project_duration_end) : 0;
             if($start == 0 || $end == 0){
-                return array('code'=>'300','error_msg'=>'项目期限时间格式不对！');
+                return array('code'=>'300','error_msg'=>'项目期限时间格式不对');
             }
             $project_duration_info = $start."-".$end;
         }
@@ -157,7 +157,7 @@ class AwardController extends Controller
         //产品类型
         $data['product_type'] = $request->product_type;
         if($data['product_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择产品类型!');
+            return array('code'=>'404','error_msg'=>'请选择产品类型');
         }
         //产品类型信息
         $product_type_info = '';
@@ -166,7 +166,7 @@ class AwardController extends Controller
         }elseif($data['product_type'] == 2){
             $ids = $request->product_typeid;
             if($ids == ''){
-                return array('code'=>'300','error_msg'=>'产品类型指定ID不能为空！');
+                return array('code'=>'300','error_msg'=>'产品类型指定ID不能为空');
             }
             $product_type_info = $ids;
         }
@@ -174,7 +174,7 @@ class AwardController extends Controller
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择平台端!');
+            return array('code'=>'404','error_msg'=>'请选择平台端');
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
@@ -190,12 +190,12 @@ class AwardController extends Controller
             if($isExist){
                 $status = Award1::where('id',$award_id)->update($data);
                 if($status){
-                    return array('code'=>'200','error_msg'=>'修改成功!');
+                    return array('code'=>'200','error_msg'=>'修改成功');
                 }else{
-                    return array('code'=>'404','error_msg'=>'修改失败!');
+                    return array('code'=>'404','error_msg'=>'修改失败');
                 }
             }else{
-                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+                return array('code'=>'404','error_msg'=>'该奖品不存在');
             }
         }else{
             //添加时间
@@ -216,31 +216,31 @@ class AwardController extends Controller
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
-            return array('code'=>'404','error_msg'=>'名称不能为空!');
+            return array('code'=>'404','error_msg'=>'名称不能为空');
         }
         //红包金额
         $data['red_money'] = isset($request->red_money) ? intval($request->red_money) : 0;
         if($data['red_money'] == ''){
-            return array('code'=>'404','error_msg'=>'红包金额不能为空!');
+            return array('code'=>'404','error_msg'=>'红包金额不能为空');
         }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
         if($data['effective_time_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择有效时间!');
+            return array('code'=>'404','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
         $effective_time_info = '';
         if($data['effective_time_type'] == 2){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
-                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空！');
+                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空');
             }
             $effective_time_info = $day;
         }elseif($data['effective_time_type'] == 3){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
-                return array('code'=>'300','error_msg'=>'有效时间格式不对！');
+                return array('code'=>'300','error_msg'=>'有效时间格式不对');
             }
             $effective_time_info = strtotime($start)."-".strtotime($end);
         }
@@ -248,12 +248,12 @@ class AwardController extends Controller
         //投资门槛
         $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
         if($data['investment_threshold'] == 0){
-            return array('code'=>'404','error_msg'=>'投资门槛不能为空!');
+            return array('code'=>'404','error_msg'=>'投资门槛不能为空');
         }
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
         if($data['project_duration_type'] == 0){
-            return array('code'=>'404','error_msg'=>'请选择项目期限类型!');
+            return array('code'=>'404','error_msg'=>'请选择项目期限类型');
         }
         //项目期限信息
         $project_duration_info = '';
@@ -264,7 +264,7 @@ class AwardController extends Controller
             $start = isset($request->project_duration_start) ? intval($request->project_duration_start) : 0;
             $end = isset($request->project_duration_end) ? intval($request->project_duration_end) : 0;
             if($start == 0 || $end == 0){
-                return array('code'=>'300','error_msg'=>'项目期限时间格式不对！');
+                return array('code'=>'300','error_msg'=>'项目期限时间格式不对');
             }
             $project_duration_info = $start."-".$end;
         }
@@ -278,7 +278,7 @@ class AwardController extends Controller
         //产品类型
         $data['product_type'] = $request->product_type;
         if($data['product_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择产品类型!');
+            return array('code'=>'404','error_msg'=>'请选择产品类型');
         }
         //产品类型信息
         $product_type_info = '';
@@ -287,7 +287,7 @@ class AwardController extends Controller
         }elseif($data['product_type'] == 2){
             $ids = $request->product_typeid;
             if($ids == ''){
-                return array('code'=>'300','error_msg'=>'产品类型指定ID不能为空！');
+                return array('code'=>'300','error_msg'=>'产品类型指定ID不能为空');
             }
             $product_type_info = $ids;
         }
@@ -295,7 +295,7 @@ class AwardController extends Controller
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择平台端!');
+            return array('code'=>'404','error_msg'=>'请选择平台端');
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
@@ -311,12 +311,12 @@ class AwardController extends Controller
             if($isExist){
                 $status = Award2::where('id',$award_id)->update($data);
                 if($status){
-                    return array('code'=>'200','error_msg'=>'修改成功!');
+                    return array('code'=>'200','error_msg'=>'修改成功');
                 }else{
-                    return array('code'=>'404','error_msg'=>'修改失败!');
+                    return array('code'=>'404','error_msg'=>'修改失败');
                 }
             }else{
-                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+                return array('code'=>'404','error_msg'=>'该奖品不存在');
             }
         }else {
             //添加时间
@@ -336,36 +336,36 @@ class AwardController extends Controller
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
-            return array('code'=>'404','error_msg'=>'名称不能为空!');
+            return array('code'=>'404','error_msg'=>'名称不能为空');
         }
         //红包最高金额
         $data['red_max_money'] = isset($request->red_max_money) ? intval($request->red_max_money) : 0;
         if($data['red_max_money'] == ''){
-            return array('code'=>'404','error_msg'=>'红包最高金额不能为空!');
+            return array('code'=>'404','error_msg'=>'红包最高金额不能为空');
         }
         //百分比例
         $data['percentage'] = isset($request->percentage) ? intval($request->percentage) : 0;
         if($data['percentage'] == ''){
-            return array('code'=>'404','error_msg'=>'百分比例不能为空!');
+            return array('code'=>'404','error_msg'=>'百分比例不能为空');
         }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
         if($data['effective_time_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择有效时间!');
+            return array('code'=>'404','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
         $effective_time_info = '';
         if($data['effective_time_type'] == 2){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
-                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空！');
+                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空');
             }
             $effective_time_info = $day;
         }elseif($data['effective_time_type'] == 3){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
-                return array('code'=>'300','error_msg'=>'有效时间格式不对！');
+                return array('code'=>'300','error_msg'=>'有效时间格式不对');
             }
             $effective_time_info = strtotime($start)."-".strtotime($end);
         }
@@ -373,12 +373,12 @@ class AwardController extends Controller
         //投资门槛
         $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
         if($data['investment_threshold'] == 0){
-            return array('code'=>'404','error_msg'=>'投资门槛不能为空!');
+            return array('code'=>'404','error_msg'=>'投资门槛不能为空');
         }
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
         if($data['project_duration_type'] == 0){
-            return array('code'=>'404','error_msg'=>'请选择项目期限类型!');
+            return array('code'=>'404','error_msg'=>'请选择项目期限类型');
         }
         //项目期限信息
         $project_duration_info = '';
@@ -389,7 +389,7 @@ class AwardController extends Controller
             $start = isset($request->project_duration_start) ? intval($request->project_duration_start) : 0;
             $end = isset($request->project_duration_end) ? intval($request->project_duration_end) : 0;
             if($start == 0 || $end == 0){
-                return array('code'=>'300','error_msg'=>'项目期限时间格式不对！');
+                return array('code'=>'300','error_msg'=>'项目期限时间格式不对');
             }
             $project_duration_info = $start."-".$end;
         }
@@ -403,7 +403,7 @@ class AwardController extends Controller
         //产品类型
         $data['product_type'] = $request->product_type;
         if($data['product_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择产品类型!');
+            return array('code'=>'404','error_msg'=>'请选择产品类型');
         }
         //产品类型信息
         $product_type_info = '';
@@ -412,7 +412,7 @@ class AwardController extends Controller
         }elseif($data['product_type'] == 2){
             $ids = $request->product_typeid;
             if($ids == ''){
-                return array('code'=>'300','error_msg'=>'产品类型指定ID不能为空！');
+                return array('code'=>'300','error_msg'=>'产品类型指定ID不能为空');
             }
             $product_type_info = $ids;
         }
@@ -420,7 +420,7 @@ class AwardController extends Controller
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择平台端!');
+            return array('code'=>'404','error_msg'=>'请选择平台端');
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
@@ -436,12 +436,12 @@ class AwardController extends Controller
             if($isExist){
                 $status = Award3::where('id',$award_id)->update($data);
                 if($status){
-                    return array('code'=>'200','error_msg'=>'修改成功!');
+                    return array('code'=>'200','error_msg'=>'修改成功');
                 }else{
-                    return array('code'=>'404','error_msg'=>'修改失败!');
+                    return array('code'=>'404','error_msg'=>'修改失败');
                 }
             }else{
-                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+                return array('code'=>'404','error_msg'=>'该奖品不存在');
             }
         }else {
             //添加时间
@@ -461,25 +461,25 @@ class AwardController extends Controller
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
-            return array('code'=>'404','error_msg'=>'名称不能为空!');
+            return array('code'=>'404','error_msg'=>'名称不能为空');
         }
         //体验金额
         $data['experience_amount_type'] = isset($request->experience_amount_type) ? intval($request->experience_amount_type) : 0;
         if($data['experience_amount_type'] == 0){
-            return array('code'=>'404','error_msg'=>'体验金额不能为空!');
+            return array('code'=>'404','error_msg'=>'体验金额不能为空');
         }
         //体验金额信息
         $experience_amount_info = '';
         if($data['experience_amount_type'] == 1){
             $experience_amount_money = $this->FormValidation($request,'experience_amount_money','required','integer');
             if($experience_amount_money == false){
-                return array('code'=>'404','error_msg'=>'固定金额不能为空!');
+                return array('code'=>'404','error_msg'=>'固定金额不能为空');
             }
             $experience_amount_info = $experience_amount_money;
         }elseif($data['experience_amount_type'] == 2){
             $experience_amount_multiple = $this->FormValidation($request,'experience_amount_multiple','required','integer');
             if($experience_amount_multiple == false){
-                return array('code'=>'404','error_msg'=>'投资额倍数不能为空!');
+                return array('code'=>'404','error_msg'=>'投资额倍数不能为空');
             }
             $experience_amount_info = $experience_amount_multiple;
         }
@@ -487,21 +487,21 @@ class AwardController extends Controller
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
         if($data['effective_time_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择有效时间!');
+            return array('code'=>'404','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
         $effective_time_info = '';
         if($data['effective_time_type'] == 2){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
-                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空！');
+                return array('code'=>'300','error_msg'=>'发放顺延天数不能为空');
             }
             $effective_time_info = $day;
         }elseif($data['effective_time_type'] == 3){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
-                return array('code'=>'300','error_msg'=>'有效时间格式不对！');
+                return array('code'=>'300','error_msg'=>'有效时间格式不对');
             }
             $effective_time_info = strtotime($start)."-".strtotime($end);
         }
@@ -509,7 +509,7 @@ class AwardController extends Controller
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
-            return array('code'=>'404','error_msg'=>'请选择平台端!');
+            return array('code'=>'404','error_msg'=>'请选择平台端');
         }
         //活动渠道
         $data['activity_channel'] = $request->activity_channel;
@@ -525,12 +525,12 @@ class AwardController extends Controller
             if($isExist){
                 $status = Award4::where('id',$award_id)->update($data);
                 if($status){
-                    return array('code'=>'200','error_msg'=>'修改成功!');
+                    return array('code'=>'200','error_msg'=>'修改成功');
                 }else{
-                    return array('code'=>'404','error_msg'=>'修改失败!');
+                    return array('code'=>'404','error_msg'=>'修改失败');
                 }
             }else{
-                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+                return array('code'=>'404','error_msg'=>'该奖品不存在');
             }
         }else {
             //添加时间
@@ -550,25 +550,25 @@ class AwardController extends Controller
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
-            return array('code'=>'404','error_msg'=>'名称不能为空!');
+            return array('code'=>'404','error_msg'=>'名称不能为空');
         }
         //积分值
         $data['integral_type'] = isset($request->integral_type) ? intval($request->integral_type) : 0;
         if($data['integral_type'] == 0){
-            return array('code'=>'404','error_msg'=>'请选择积分值!');
+            return array('code'=>'404','error_msg'=>'请选择积分值');
         }
         //积分值信息
         $integral_info = '';
         if($data['integral_type'] == 1){
             $integral_money = $this->FormValidation($request,'integral_money','required','integer');
             if($integral_money == false){
-                return array('code'=>'404','error_msg'=>'固定金额不能为空!');
+                return array('code'=>'404','error_msg'=>'固定金额不能为空');
             }
             $integral_info = $integral_money;
         }elseif($data['integral_type'] == 2){
             $integral_multiple = $this->FormValidation($request,'integral_multiple','required','integer');
             if($integral_multiple == false){
-                return array('code'=>'404','error_msg'=>'投资额倍数不能为空!');
+                return array('code'=>'404','error_msg'=>'投资额倍数不能为空');
             }
             $integral_info = $integral_multiple;
         }
@@ -585,12 +585,12 @@ class AwardController extends Controller
             if($isExist){
                 $status = Award5::where('id',$award_id)->update($data);
                 if($status){
-                    return array('code'=>'200','error_msg'=>'修改成功!');
+                    return array('code'=>'200','error_msg'=>'修改成功');
                 }else{
-                    return array('code'=>'404','error_msg'=>'修改失败!');
+                    return array('code'=>'404','error_msg'=>'修改失败');
                 }
             }else{
-                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+                return array('code'=>'404','error_msg'=>'该奖品不存在');
             }
         }else {
             //添加时间
@@ -610,7 +610,7 @@ class AwardController extends Controller
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
-            return array('code'=>'404','error_msg'=>'名称不能为空!');
+            return array('code'=>'404','error_msg'=>'名称不能为空');
         }
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
@@ -624,12 +624,12 @@ class AwardController extends Controller
             if($isExist){
                 $status = Award6::where('id',$award_id)->update($data);
                 if($status){
-                    return array('code'=>'200','error_msg'=>'修改成功!');
+                    return array('code'=>'200','error_msg'=>'修改成功');
                 }else{
-                    return array('code'=>'404','error_msg'=>'修改失败!');
+                    return array('code'=>'404','error_msg'=>'修改失败');
                 }
             }else{
-                return array('code'=>'404','error_msg'=>'该奖品不存在!');
+                return array('code'=>'404','error_msg'=>'该奖品不存在');
             }
         }else {
             //添加时间
@@ -653,7 +653,7 @@ class AwardController extends Controller
         $data['award_id'] = $award_id;
         $data['created_at'] = time();
         $data['updated_at'] = time();
-        $id = Award::insertGetId($data); 
+        $id = Award::insertGetId($data);
         return $id;
     }
 
@@ -721,6 +721,34 @@ class AwardController extends Controller
         }else{
             return $this->outputJson(404,array('error_msg'=>'参数错误'));
         }
+    }
+    /**
+     * 获取全部列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function delete(Request $request){
+        //奖品类型
+        $params['award_type'] = isset($request->award_type) ? intval($request->award_type) : 0;
+        //奖品ID
+        $params['award_id'] = isset($request->award_id) ? intval($request->award_id) : 0;
+        //删除中间表
+        $midStatus = Award::where($params)->delete();
+        var_dump($midStatus);
+        if($midStatus){
+            //删除奖品表
+            $table = $this->_getAwardTable($params['award_type']);
+            $status = $table::where('id',$params['award_id'])->delete();
+            var_dump($midStatus);
+            if($status){
+                return $this->outputJson(200,array('error_msg'=>'删除成功'));
+            }else{
+                return $this->outputJson(404,array('error_msg'=>'删除失败'));
+            }
+        }else{
+            return $this->outputJson(404,array('error_msg'=>'删除失败'));
+        }
+
     }
     /**
      * 查询奖品方法

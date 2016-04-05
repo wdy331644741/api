@@ -34,3 +34,5 @@ Route::post('/award/getOne', 'AwardController@getOne');
 
 Route::post('/award/getList', 'AwardController@getList');
 
+Route::post('/award/delete', 'AwardController@delete');
+
