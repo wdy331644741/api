@@ -74,6 +74,20 @@ class RuleController extends Controller
         return $this->outputJson(0,$rules);
     }
 
+    //手动触发调用
+    public function getReceive($activity_id){
+        if($activity_id){
+            return $this->outpuJson(10005,array('error_msg'=>'Params Cannot Be Empty!'));
+        }
+        $rules = $this->getRulelist($activity_id);
+        $rule_obj = json_decode($rules);
+        if($rule_obj->error_code  == 0){
+            $rule_list = $rule_obj->data;
+            //1、获取用户信息
+            //2、发奖励，存储参与记录
+
+        }
+    }
     //添加规则
     private function rule_register($type,$request){
         $validator = Validator::make($request->all(), [
@@ -158,6 +172,14 @@ class RuleController extends Controller
             }
         }
     }
+    private function getUserInfo(){
+
+    }
+
+    private function getUserCastInfo(){
+
+    }
+
     /*case 2:
             $validator = Validator::make($request->all(), [
                 'is_invite' => 'required',
