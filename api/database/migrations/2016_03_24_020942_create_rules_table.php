@@ -96,11 +96,9 @@ class CreateRulesTable extends Migration
         Schema::drop('rule_userlevel');
         Schema::drop('rule_invite');
         Schema::drop('rule_invitenum');
-        Schema::drop('rule_userlevel');
         Schema::drop('rule_usercredit');
         Schema::drop('rule_balance');
         Schema::drop('rule_firstcast');
         Schema::drop('rule_cast');
-        //
     }
 }
