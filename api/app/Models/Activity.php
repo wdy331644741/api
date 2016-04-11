@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
 {
+
+    protected $hidden = [
+        'deleted_at',
+    ];
+
     use SoftDeletes;
 
     protected $dates = ['delete_at'];

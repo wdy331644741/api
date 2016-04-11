@@ -40,7 +40,7 @@ class OpenController extends Controller
         $model = new $model_name;
         $isbind = $model->where('openid',$request->openid)->get();
         if(!empty($isbind)){
-            return $this->getTokenByUserId($isbind->user_id);
+            return $this->outputJson(0,array('token'=>$this->getTokenByUserId($isbind->user_id)));
         }else{
             return $this->outputJson(10006,array('error_msg'=>'The User Is UnBind!'));
         }

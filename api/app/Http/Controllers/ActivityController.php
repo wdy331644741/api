@@ -42,13 +42,13 @@ class ActivityController extends Controller
     }
     //排序，分页
     public function getIndex() {
-        $data = Activity::where('enable',1)->orderBy('id','desc')->paginate(20);
+        $data = Activity::orderBy('id','desc')->paginate(20);
         return $this->outputJson(0,$data);
     }
 
-    public function getDel(Request $request){
-        if(isset($request->one)){
-            $activity = Activity::find($request->one);
+    public function postDel(Request $request){
+        if(isset($request->id)){
+            $activity = Activity::find($request->id);
             $res = $activity->delete();
             if($res){
                 return $this->outputJson(0,array('error_msg'=>'ok'));
@@ -89,7 +89,7 @@ class ActivityController extends Controller
     }
 
     //发布活动
-    public function getRelease($activity_id){
+    public function postRelease($activity_id){
         if(!$activity_id){
             return $this->outputJson(10003,array('error_msg'=>"Params Error!"));
         }
