@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CouponCode;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -13,8 +14,11 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
+use App\Models\Coupon;
 use Config;
 use Validator;
+use App\Jobs\FileImport;
+use DB;
 
 class AwardController extends Controller
 {
@@ -641,6 +645,103 @@ class AwardController extends Controller
         }
     }
     /**
+     * 优惠券添加
+     * @param $request
+     * @return bool
+     */
+    function couponAdd(Request $request){
+        //优惠券名称
+        $data['name'] = isset($request->name) ? trim($request->name) : '';
+        //优惠券简介
+        $data['desc'] = isset($request->desc) ? trim($request->desc) : '';
+        //优惠券码文件上传
+        $path = app_path().'/uploads/coupon/';
+        if ($request->hasFile('file')) {
+            //验证文件上传中是否出错
+            if ($request->file('file')->isValid()){
+                $mimeTye = $request->file('file')->getClientOriginalExtension();
+                if($mimeTye == 'txt'){
+                    $fileName = date('YmdHis').mt_rand(1000,9999).'.txt';
+                    //保存文件到路径
+                    $request->file('file')->move($path,$fileName);
+                    $file = $path.$fileName;
+                }else{
+                    return $this->outputJson(404,array('error_msg'=>'优惠券文件格式错误'));
+                }
+            }else{
+                return $this->outputJson(404,array('error_msg'=>'优惠券文件错误'));
+            }
+        }else{
+            return $this->outputJson(404,array('error_msg'=>'优惠券文件不能为空'));
+        }
+        $data['file'] = $file;
+        if(!file_exists($data['file'])){
+            return $this->outputJson(404,array('error_msg'=>'优惠券文件错误'));
+        }
+        $data['created_at'] = time();
+        //插入数据
+        $insertID = Coupon::insertGetId($data);
+        if($insertID){
+            //放到后台导入文件
+            $this->dispatch(new FileImport($insertID,$file));
+            return $this->outputJson(200,array('error_msg'=>'添加成功'));
+        }else{
+            return $this->outputJson(404,array('error_msg'=>'添加失败'));
+        }
+    }
+
+    /**
+     * 获取全部优惠券
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function getCouponList(){
+        $where['is_del'] = 0;
+        $list = Coupon::where($where)->get()->toArray();
+        return $this->outputJson(200,array('data'=>$list));
+    }
+
+    function getCouponCodeTotal(Request $request){
+        $where['coupon_id'] = $request['id'];
+        $total = CouponCode::where($where)->select('is_use',DB::raw('COUNT(*) AS count'))->GroupBy('is_use')->get()->toArray();
+        if(empty($total)){
+            return $this->outputJson(404,array('error_msg'=>'没有找到该优惠券的码'));
+        }else{
+            if(count($total) >= 1){
+                $return = array();
+                foreach($total as $item){
+                    if($item['is_use'] == 0){
+                        $return['notUse'] = $item['count'];
+                    }
+                    if($item['is_use'] == 1){
+                        $return['use'] = $item['count'];
+                    }
+                }
+            }
+            return $this->outputJson(200,array('data'=>$return));
+        }
+    }
+    function getCouponCode(Request $request){
+        $where['coupon_id'] = isset($request->coupon_id) ? intval($request->coupon_id) : 0;
+        if($where['coupon_id'] == 0){
+            return $this->outputJson('404',array('error_msg'=>'优惠券id参数有误'));
+        }
+        $where['is_use'] = 0;
+        //获取一个可用的优惠券
+        $first = CouponCode::where($where)->first()->toArray();
+        if(isset($first['id']) && !empty($first['id']) && !empty($first['code'])){
+            $data['is_use'] = 1;
+            //修改为已使用状态
+            $status = CouponCode::where('id',$first['id'])->update($data);
+            if($status === 1){
+                return $this->outputJson('200',array('data'=>array('code'=>$first['code'])));
+            }else{
+                return $this->outputJson('404',array('error_msg'=>'该优惠券不存在或已被使用'));
+            }
+        }else{
+            return $this->outputJson('404',array('error_msg'=>'该优惠券已使用完'));
+        }
+    }
+    /**
      * 添加到awards
      * @param $award_type
      * @param $award_id
@@ -734,7 +835,6 @@ class AwardController extends Controller
         $params['award_id'] = isset($request->award_id) ? intval($request->award_id) : 0;
         //删除中间表
         $midStatus = Award::where($params)->delete();
-        var_dump($midStatus);
         if($midStatus){
             //删除奖品表
             $table = $this->_getAwardTable($params['award_type']);

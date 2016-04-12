@@ -205,11 +205,11 @@ return [
     ],
     //发送奖品配置
     'awards' => [
-        '1' => '_rateIncreases',
-        '2' => '_redMoney',
-        '3' => '_rateRedMoney',
-        '4' => '_experienceAmount',
-        '5' => '_integral',
-        '6' => '_objects',
+        '1' => '_rateIncreases',//加息券
+        '2' => '_redMoney',//直抵红包
+        '3' => '_rateRedMoney',//百分比红包
+        '4' => '_experienceAmount',//体验金
+        '5' => '_integral',//用户积分
+        '6' => '_objects',//实物
     ]
 ];

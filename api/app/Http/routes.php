@@ -36,3 +36,12 @@ Route::post('/award/getList', 'AwardController@getList');
 
 Route::post('/award/delete', 'AwardController@delete');
 
+Route::post('/award/coupon', 'AwardController@coupon');
+
+Route::post('/award/couponAdd', 'AwardController@couponAdd');
+
+Route::post('/award/getCouponList', 'AwardController@getCouponList');
+
+Route::post('/award/getCouponCodeTotal', 'AwardController@getCouponCodeTotal');
+
+Route::post('/award/getCouponCode', 'AwardController@getCouponCode');
