@@ -14,7 +14,7 @@ class Activity extends Model
 
     use SoftDeletes;
 
-    protected $dates = ['delete_at'];
+    protected $dates = ['deleted_at'];
 
     public function rules(){
         return $this->hasMany('App\Models\Rule');

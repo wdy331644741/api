@@ -28,7 +28,7 @@ class CreateActivitiesTable extends Migration
             $table->softDeletes();
         });
     }
-
+//测试git
     /**
      * Reverse the migrations.
      *
