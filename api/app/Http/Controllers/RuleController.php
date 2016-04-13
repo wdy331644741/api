@@ -23,10 +23,15 @@ class RuleController extends Controller
         $type = $this->getStorageTypeByName($model_name);
         $func_name = 'rule_'.strtolower($model_name);
         $res = $this->$func_name($type,$request);
-        if($res['insert_id']){
-            return $this->outputJson(0,$res);
+        if(!$res['error_code']){
+            return $this->outputJson(0,array('insert_id'=>$res['insert_id']));
         }else{
-            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
+            if(is_object($res['error_msg'])){
+                return $this->outputJson(10000,$res['error_msg']);
+            }else{
+                return $this->outputJson(10004,array('error_msg'=>$res['error_msg']));
+            }
+
         }
     }
 
@@ -95,7 +100,7 @@ class RuleController extends Controller
             'max_time' => 'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10000,$validator->errors());
+            return array('error_code'=>10000,'error_msg'=>$validator->errors());
         }
         DB::beginTransaction();
         $obj =  new Rule\Register();
@@ -110,14 +115,14 @@ class RuleController extends Controller
             $rule->save();
             if($rule->id){
                 DB::commit();
-                return array('insert_id'=>$rule->id);
+                return array('error_code'=>0,'insert_id'=>$rule->id);
             }else{
                 DB::rollback();
-                return false;
+                return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
             }
         }else{
             DB::rollback();
-            return false;
+            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
         }
     }
 
@@ -126,7 +131,7 @@ class RuleController extends Controller
             'channels' => 'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10000,$validator->errors());
+            return array('error_code'=>10000,'error_msg'=>$validator->errors());
         }
         DB::beginTransaction();
         $obj = new Rule\Channel();
@@ -143,11 +148,11 @@ class RuleController extends Controller
                 return array('insert_id'=>$rule->id);
             }else{
                 DB::rollback();
-                return false;
+                return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
             }
         }else{
             DB::rollback();
-            return false;
+            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
         }
     }
 
