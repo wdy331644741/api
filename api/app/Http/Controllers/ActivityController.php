@@ -42,7 +42,7 @@ class ActivityController extends Controller
     }
     //排序，分页
     public function getIndex() {
-        $data = Activity::orderBy('id','desc')->paginate(20);
+        $data = Activity::orderBy('id','desc')->paginate(1);
         return $this->outputJson(0,$data);
     }
 
