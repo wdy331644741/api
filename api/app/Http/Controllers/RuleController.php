@@ -26,27 +26,23 @@ class RuleController extends Controller
         if(!$res['error_code']){
             return $this->outputJson(0,array('insert_id'=>$res['insert_id']));
         }else{
-            if(is_object($res['error_msg'])){
-                return $this->outputJson(10000,$res['error_msg']);
-            }else{
-                return $this->outputJson(10004,array('error_msg'=>$res['error_msg']));
-            }
-
+            return $this->outputJson(10001,array('error_msg'=>$res['error_msg']));
         }
     }
 
     //删除
     public function getDel($rule_id){
-        if($rule_id){
-            $rule_model = Rule::findOrFail($rule_id);
-            Rule::destroy($rule_id);
-            $type = $rule_model->rule_type;
-            $res = $rule_model->getRuleByType($type)->delete();
-            if($res){
-                return $this->outputJson(0,array('error_msg'=>'ok'));
-            }else{
-                return $this->outputJson(10001,array('error_msg'=>'Delete Failed!'));
-            }
+        if(!$rule_id){
+            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
+        }
+        $rule_model = Rule::findOrFail($rule_id);
+        Rule::destroy($rule_id);
+        $type = $rule_model->rule_type;
+        $res = $rule_model->getRuleByType($type)->delete();
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
@@ -82,7 +78,7 @@ class RuleController extends Controller
     //手动触发调用
     public function getReceive($activity_id){
         if($activity_id){
-            return $this->outpuJson(10005,array('error_msg'=>'Params Cannot Be Empty!'));
+            return $this->outpuJson(10001,array('error_msg'=>'Parames Error'));
         }
         $rules = $this->getRulelist($activity_id);
         $rule_obj = json_decode($rules);
@@ -100,29 +96,28 @@ class RuleController extends Controller
             'max_time' => 'required',
         ]);
         if($validator->fails()){
-            return array('error_code'=>10000,'error_msg'=>$validator->errors());
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
         DB::beginTransaction();
         $obj =  new Rule\Register();
         $obj->min_time = $request->min_time;
         $obj->max_time = $request->max_time;
         $obj->save();
-        if($obj->id){
-            $rule = new Rule();
-            $rule->activity_id = $request->activity_id;
-            $rule->rule_type = $type;
-            $rule->rule_id = $obj->id;
-            $rule->save();
-            if($rule->id){
-                DB::commit();
-                return array('error_code'=>0,'insert_id'=>$rule->id);
-            }else{
-                DB::rollback();
-                return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
-            }
+        if(!$obj->id){
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_id = $obj->id;
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
         }else{
             DB::rollback();
-            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
@@ -131,28 +126,27 @@ class RuleController extends Controller
             'channels' => 'required',
         ]);
         if($validator->fails()){
-            return array('error_code'=>10000,'error_msg'=>$validator->errors());
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
         DB::beginTransaction();
         $obj = new Rule\Channel();
         $obj->channels = $request->channels;
         $obj->save();
-        if($obj->id){
-            $rule = new Rule();
-            $rule->activity_id = $request->activity_id;
-            $rule->rule_type = $type;
-            $rule->rule_id = $obj->id;
-            $rule->save();
-            if($rule->id){
-                DB::commit();
-                return array('insert_id'=>$rule->id);
-            }else{
-                DB::rollback();
-                return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
-            }
+        if(!$obj->id){
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_id = $obj->id;
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('insert_id'=>$rule->id);
         }else{
             DB::rollback();
-            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 

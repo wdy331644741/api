@@ -34,7 +34,7 @@ class OpenController extends Controller
             'openid' => 'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10005,array('error_msg'=>'Params Cannot Be Empty!'));
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $model_name = config('open.'.$request->open_src.'.model');
         $model = new $model_name;
@@ -42,9 +42,8 @@ class OpenController extends Controller
         if(!empty($isbind)){
             return $this->outputJson(0,array('token'=>$this->getTokenByUserId($isbind->user_id)));
         }else{
-            return $this->outputJson(10006,array('error_msg'=>'The User Is UnBind!'));
+            return $this->outputJson(10004,array('error_msg'=>'The User Is UnBind'));
         }
-
     }
 
     public function postUnbind(Request $request){
@@ -53,15 +52,15 @@ class OpenController extends Controller
             'openid' => 'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10005,array('error_msg'=>'Params Cannot Be Empty!'));
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $model_name = config('open.'.$request->open_src.'.model');
         $model = new $model_name;
         $res = $model->where('openid',$request->openid)->delete();
         if($res){
-            return $this->outputJson(0,array('error_msg'=>'ok'));
+            return $this->outputJson(0);
         }else{
-            return $this->outputJson(10001,array('error_msg'=>'Delete Failed!'));
+            return $this->outputJson(10001,array('error_msg'=>'Database Error'));
         }
     }
 

@@ -23,7 +23,7 @@ class ActivityController extends Controller
             'des'=>'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10000,$validator->errors());
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $activity = new Activity;
         $activity->name = $request->name;
@@ -37,7 +37,7 @@ class ActivityController extends Controller
         if($res){
             return $this->outputJson(0,array('insert_id'=>$activity->id));
         }else{
-            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
     //排序，分页
@@ -47,15 +47,18 @@ class ActivityController extends Controller
     }
 
     public function postDel(Request $request){
-        if(isset($request->id)){
-            $activity = Activity::find($request->id);
-            $res = $activity->delete();
-            if($res){
-                return $this->outputJson(0,array('error_msg'=>'ok'));
-            }else{
-                return $this->outputJson(10001,array('error_msg'=>'Delete Failed!'));
-            }
-
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|alpha_num|exists:activity,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $activity = Activity::find($request->id);
+        $res = $activity->delete();
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
@@ -70,7 +73,7 @@ class ActivityController extends Controller
             'des'=>'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10000,$validator->errors());
+            return $this->outputJson(10001,$validator->errors()->first());
         }
 
         $res = Activity::where('id',$request->id)->update([
@@ -82,29 +85,29 @@ class ActivityController extends Controller
             'des'=>$request->des,
         ]);
         if($res){
-            return $this->outputJson(0,array('error_msg'=>'ok'));
+            return $this->outputJson(0);
         }else{
-            return $this->outputJson(10002,array('error_msg'=>'Update Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
     //发布活动
     public function postRelease($activity_id){
         if(!$activity_id){
-            return $this->outputJson(10003,array('error_msg'=>"Params Error!"));
+            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
         }
         $res = Activity::where('id',$activity_id)->where('enable',0)->update(['enable'=>1]);
         if($res){
-            return $this->outputJson(0,array('error_msg'=>"ok"));
+            return $this->outputJson(0);
         }else{
-            return $this->outputJson(10002,array('error_msg'=>"Update Failed!"));
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
         }
     }
 
     //活动详情
     public function getInfo($activity_id){
         if(!$activity_id){
-            return $this->outputJson(10003,array('error_msg'=>"Params Error!"));
+            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
         }
         $res = Activity::where('id',$activity_id)->where('enable',1)->findOrFail($activity_id);
         return $this->outPutJson(0,$res);
