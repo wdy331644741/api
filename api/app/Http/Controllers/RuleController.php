@@ -74,7 +74,7 @@ class RuleController extends Controller
             $model_name = config('activity.rule_child.'.$val->rule_type.'.model_name');
             $func_name  = 'get'.$model_name.'Rule';
             $child_rule = $this->$func_name($val->rule_id);
-            $rules[$val->rule_type] = $child_rule;
+            $rules[] = array_merge($child_rule,array('rule_type'=>strtolower($model_name)));
         }
         return $this->outputJson(0,$rules);
     }
