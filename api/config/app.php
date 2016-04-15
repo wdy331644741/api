@@ -1,4 +1,13 @@
 <?php
+//参数错误
+define('PARAMS_ERROR',10001);
+define('PARAMS_ERROR_MSG','parames error');
+//数据库错误
+define('DATABASE_ERROR',10002);
+define('DATABASE_ERROR_MSG','database error');
+//服务器错误
+define('REMOTE_SERVER_ERROR',10003);
+define('REMOTE_SERVER_ERROR_MSG','remote server error');
 
 return [
 
