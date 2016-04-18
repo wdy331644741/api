@@ -33,4 +33,12 @@ class apiTest extends TestCase
                 'data' =>['insert_id'],
             ]);
     }
+
+    public function testRelease(){
+        $this->post('/rule/release',['id'=>3])
+            ->seeJsonStructure([
+                'error_code',
+                'data' =>null,
+            ]);
+    }
 }
