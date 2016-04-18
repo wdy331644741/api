@@ -42,7 +42,7 @@ class ActivityController extends Controller
     }
     //排序，分页
     public function getIndex() {
-        $data = Activity::orderBy('id','desc')->paginate(1);
+        $data = Activity::orderBy('id','desc')->paginate(20);
         return $this->outputJson(0,$data);
     }
 
@@ -73,7 +73,7 @@ class ActivityController extends Controller
             'des'=>'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10001,$validator->errors()->first());
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
 
         $res = Activity::where('id',$request->id)->update([
@@ -97,7 +97,7 @@ class ActivityController extends Controller
             'id' => 'alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10001,$validator->errors()->first());
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $res = Activity::where('id',$request->id)->update(['enable'=>1]);
         if($res){
@@ -113,6 +113,9 @@ class ActivityController extends Controller
             return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
         }
         $res = Activity::where('id',$activity_id)->where('enable',1)->findOrFail($activity_id);
+        if(!$res){
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
         return $this->outPutJson(0,$res);
     }
 }
