@@ -100,7 +100,7 @@ class RuleController extends Controller
         $validator = Validator::make($request->all(), [
             'min_time' => 'required',
             'max_time' => 'required',
-            'activity_id'=>'alpha_num',
+            'activity_id'=>'alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
@@ -131,7 +131,7 @@ class RuleController extends Controller
     private function rule_channel($type,$request){
         $validator = Validator::make($request->all(), [
             'channels' => 'required',
-            'activity_id'=>'alpha_num',
+            'activity_id'=>'alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
