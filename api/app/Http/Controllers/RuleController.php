@@ -35,7 +35,10 @@ class RuleController extends Controller
         if(!$rule_id){
             return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
         }
-        $rule_model = Rule::findOrFail($rule_id);
+        $rule_model = Rule::find($rule_id);
+        if(!$rule_model){
+            return $this->outputJson(10004,array('error_msg'=>"Target resource does not exist"));
+        }
         Rule::destroy($rule_id);
         $type = $rule_model->rule_type;
         $res = $rule_model->getRuleByType($type)->delete();
