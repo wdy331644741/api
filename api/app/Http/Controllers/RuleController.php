@@ -69,6 +69,9 @@ class RuleController extends Controller
         foreach($rule_child  as $val){
             $model_name = config('activity.rule_child.'.$val->rule_type.'.model_name');
             $func_name  = 'get'.$model_name.'Rule';
+            /*if(function_exists($func_name)){
+                return $this->outputJson(10000,array('error_msg'=>'Server Error'));
+            }*/
             $child_rule = $this->$func_name($val->rule_id);
             $rules[] = array_merge($child_rule,array('rule_type'=>strtolower($model_name)));
         }
@@ -78,7 +81,7 @@ class RuleController extends Controller
     //手动触发调用
     public function getReceive($activity_id){
         if($activity_id){
-            return $this->outpuJson(10001,array('error_msg'=>'Parames Error'));
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $rules = $this->getRulelist($activity_id);
         $rule_obj = json_decode($rules);
@@ -153,13 +156,13 @@ class RuleController extends Controller
     //获取规则
     private function getRegisterRule($rule_id){
         $register = new Rule\Register();
-        $res = $register::where('id',$rule_id)->first();
+        $res = $register::where('id',$rule_id)->first()->toArray();
         return $res;
     }
 
     private function getChannelRule($rule_id){
         $register = new Rule\Channel();
-        $res = $register::where('id',$rule_id)->first();
+        $res = $register::where('id',$rule_id)->first()->toArray();
         return $res;
     }
 
