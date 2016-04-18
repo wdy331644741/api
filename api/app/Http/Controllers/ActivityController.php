@@ -92,11 +92,14 @@ class ActivityController extends Controller
     }
 
     //发布活动
-    public function postRelease($activity_id){
-        if(!$activity_id){
-            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
+    public function postRelease(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'alpha_num|exists:activities,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,$validator->errors()->first());
         }
-        $res = Activity::where('id',$activity_id)->where('enable',0)->update(['enable'=>1]);
+        $res = Activity::where('id',$request->id)->update(['enable'=>1]);
         if($res){
             return $this->outputJson(0);
         }else{
