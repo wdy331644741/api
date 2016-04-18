@@ -35,10 +35,9 @@ class apiTest extends TestCase
     }
 
     public function testRelease(){
-        $this->post('/rule/release',['id'=>3])
-            ->seeJsonStructure([
-                'error_code',
-                'data' =>null,
+        $this->post('/activity/release',['id'=>3])
+            ->seeJson([
+                'error_code'=>0,
             ]);
     }
 }
