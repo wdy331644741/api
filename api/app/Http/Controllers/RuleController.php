@@ -37,7 +37,7 @@ class RuleController extends Controller
         }
         $rule_model = Rule::find($rule_id);
         if(!$rule_model){
-            return $this->outputJson(10004,array('error_msg'=>"Target resource does not exist"));
+            return $this->outputJson(10005,array('error_msg'=>"Target Resource Does Not Exist"));
         }
         Rule::destroy($rule_id);
         $type = $rule_model->rule_type;
