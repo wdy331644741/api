@@ -48,7 +48,7 @@ class ActivityController extends Controller
 
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'required|alpha_num|exists:activity,id',
+            'id' => 'required|alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));

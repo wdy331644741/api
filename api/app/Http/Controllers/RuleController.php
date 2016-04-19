@@ -82,11 +82,14 @@ class RuleController extends Controller
     }
 
     //手动触发调用
-    public function getReceive($activity_id){
-        if($activity_id){
-            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+    public function postReceive(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'alpha_num|exists:activities,id',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
-        $rules = $this->getRulelist($activity_id);
+        $rules = $this->getRulelist($request->id);
         $rule_obj = json_decode($rules);
         if($rule_obj->error_code  == 0){
             $rule_list = $rule_obj->data;
