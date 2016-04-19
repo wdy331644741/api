@@ -22,6 +22,23 @@ use DB;
 
 class AwardController extends Controller
 {
+    private $awards = [];
+
+    public function __construct()
+    {
+        //发送奖品配置
+        $this->awards = [
+            'awards' => [
+                '1' => '_rateIncreases',//加息券
+                '2' => '_redMoney',//直抵红包
+                '3' => '_rateRedMoney',//百分比红包
+                '4' => '_experienceAmount',//体验金
+                '5' => '_integral',//用户积分
+                '6' => '_objects',//实物
+            ]
+        ];
+    }
+
     /**
      * 奖品添加
      * @param Request $request
@@ -29,11 +46,17 @@ class AwardController extends Controller
      */
     function add(Request $request){
         //获取配置信息
-        $awards = Config::get('app.awards');
+        $awards = $this->awards['awards'];
         //奖品类型
         $award_type = intval($request->award_type);
+        if(empty($award_type)){
+            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
+        }
         //活动ID
         $activityID = intval($request->activity_id);
+        if(empty($activityID)){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
         foreach($awards as $k=>$v){
             if($award_type == $k){
                 $return = $this->$v($request,0,0);
@@ -53,6 +76,26 @@ class AwardController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>$return['error_msg']));
         }
     }
+    function addMap(Request $request){
+        //奖品类型
+        $award_type = intval($request->award_type);
+        if(empty($award_type)){
+            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
+        }
+        //活动ID
+        $activityID = intval($request->activity_id);
+        if(empty($activityID)){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
+        //优惠券id
+        $couponID = intval($request->coupon_id);
+        $awardID = $this->_awardAdd($award_type,$couponID,$activityID);
+        if($awardID){
+            return $this->outputJson(0,array('insert_id'=>$awardID));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品中间表失败'));
+        }
+    }
     /**
      * 奖品添加
      * @param Request $request
@@ -63,8 +106,14 @@ class AwardController extends Controller
         $awards = Config::get('app.awards');
         //奖品类型
         $award_type = isset($request->award_type) ? intval($request->award_type) : 0;
+        if(empty($award_type)){
+            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
+        }
         //奖品ID（如果存在说明是修改）
         $award_id = isset($request->award_id) ? intval($request->award_id) : 0;
+        if(empty($award_id)){
+            return $this->outputJson(PARAMS_ERROR,array('award_id'=>'奖品id不能为空'));
+        }
         foreach($awards as $k=>$v){
             if($award_type == $k){
                 $return = $this->$v($request,$award_id,$award_type);
@@ -938,19 +987,21 @@ class AwardController extends Controller
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6){
-            if($awardType == 1){
+        if($awardType >= 1 && $awardType <= 7) {
+            if ($awardType == 1) {
                 return new Award1;
-            }elseif($awardType == 2){
+            } elseif ($awardType == 2) {
                 return new Award2;
-            }elseif($awardType == 3){
+            } elseif ($awardType == 3) {
                 return new Award3;
-            }elseif($awardType == 4){
+            } elseif ($awardType == 4) {
                 return new Award4;
-            }elseif($awardType == 5){
+            } elseif ($awardType == 5) {
                 return new Award5;
-            }elseif($awardType == 6){
+            } elseif ($awardType == 6) {
                 return new Award6;
+            } elseif ($awardType == 7){
+                return new Coupon;
             }else{
                 return false;
             }

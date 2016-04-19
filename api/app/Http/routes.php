@@ -27,6 +27,8 @@ Route::group(['middleware' => 'web'], function () {
 Route::controller('activity', 'ActivityController');
 //奖品添加
 Route::post('/award/add', 'AwardController@add');
+//奖品映射添加
+Route::post('/award/addMap', 'AwardController@addMap');
 //奖品修改
 Route::post('/award/update', 'AwardController@update');
 //奖品获取单个信息
