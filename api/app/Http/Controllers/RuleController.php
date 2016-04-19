@@ -31,15 +31,15 @@ class RuleController extends Controller
     }
 
     //删除
-    public function getDel($rule_id){
-        if(!$rule_id){
-            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
+    public function postDel(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'alpha_num|exists:rules,id',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
-        $rule_model = Rule::find($rule_id);
-        if(!$rule_model){
-            return $this->outputJson(10005,array('error_msg'=>"Target Resource Does Not Exist"));
-        }
-        Rule::destroy($rule_id);
+        $rule_model = Rule::find($request->id);
+        Rule::destroy($request->id);
         $type = $rule_model->rule_type;
         $res = $rule_model->getRuleByType($type)->delete();
         if($res){
