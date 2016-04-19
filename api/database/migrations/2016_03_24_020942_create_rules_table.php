@@ -14,7 +14,6 @@ class CreateRulesTable extends Migration
     {
         Schema::create('rules', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('trigger_id');
             $table->integer('activity_id');
             $table->tinyInteger('rule_type', false, true);
             $table->integer('rule_id');
@@ -23,7 +22,7 @@ class CreateRulesTable extends Migration
         //子规则表
         Schema::create('rule_channel', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('channels');//多个渠道用';'分隔
+            $table->string('channels')->default(0);//多个渠道用';'分隔
             $table->timestamps();
         });
 
@@ -38,7 +37,12 @@ class CreateRulesTable extends Migration
         Schema::create('rule_invite', function (Blueprint $table) {
             $table->increments('id');
             $table->tinyInteger('is_invite');
-            $table->tinyInteger('invites');
+            $table->timestamps();
+        });
+
+        Schema::create('rule_invitenum', function (Blueprint $table) {
+            $table->increments('id');
+            $table->tinyInteger('invitenum');
             $table->timestamps();
         });
 
@@ -77,7 +81,6 @@ class CreateRulesTable extends Migration
             $table->timestamps();
         });
 
-
     }
 
     /**
@@ -92,11 +95,10 @@ class CreateRulesTable extends Migration
         Schema::drop('rule_register');
         Schema::drop('rule_userlevel');
         Schema::drop('rule_invite');
-        Schema::drop('rule_userlevel');
+        Schema::drop('rule_invitenum');
         Schema::drop('rule_usercredit');
         Schema::drop('rule_balance');
         Schema::drop('rule_firstcast');
         Schema::drop('rule_cast');
-        //
     }
 }

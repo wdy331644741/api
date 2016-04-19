@@ -11,6 +11,7 @@
 |
 */
 
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -26,6 +27,8 @@ Route::group(['middleware' => 'web'], function () {
 
 Route::controller('activity', 'ActivityController');
 //奖品添加
+Route::controller('rule', 'RuleController');
+
 Route::post('/award/add', 'AwardController@add');
 //奖品映射添加
 Route::post('/award/addMap', 'AwardController@addMap');

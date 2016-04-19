@@ -13,50 +13,52 @@ use Validator;
 class ActivityController extends Controller
 {
     //
-
     public function postAdd(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
+            'alias_name'=>'required|alpha_dash|unique:activities,alias_name',
             'start_at'=> 'date',
             'end_at' => 'date',
-            'trigger_id'=>'required',/*|exists:triggers.id*/
+            'trigger_type'=>'required',
             'des'=>'required',
-            'enable'=> 'required|in:0,1'
         ]);
         if($validator->fails()){
-            return $this->outputJson(10000,$validator->errors());
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $activity = new Activity;
         $activity->name = $request->name;
         $activity->start_at = $request->start_at;
         $activity->end_at = $request->end_at;
-        $activity->name = $request->name;
-        $activity->trigger_id = $request->trigger_id;
+        $activity->alias_name = $request->alias_name;
+        $activity->trigger_type = $request->trigger_type;
         $activity->des = $request->des;
-        $activity->enable = $request->enable;
+        $activity->enable = 0;
         $res = $activity->save();
         if($res){
             return $this->outputJson(0,array('insert_id'=>$activity->id));
         }else{
-            return $this->outputJson(10000,array('error_msg'=>'Insert Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
-
+    //排序，分页
     public function getIndex() {
-       $data = Activity::all();
-       return $this->outputJson(0,$data);
+        $data = Activity::orderBy('id','desc')->paginate(20);
+        return $this->outputJson(0,$data);
     }
 
-    public function getDel(Request $request){
-        if(isset($request->one)){
-            $activity = Activity::find($request->one);
-            $res = $activity->delete();
-            if($res){
-                return $this->outputJson(0,array('error_msg'=>'ok'));
-            }else{
-                return $this->outputJson(10001,array('error_msg'=>'Delete Failed!'));
-            }
-
+    public function postDel(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|alpha_num|exists:activity,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $activity = Activity::find($request->id);
+        $res = $activity->delete();
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
@@ -64,28 +66,56 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
+            'alias_name'=>'required|alpha_dash|unique:activities,alias_name',
             'start_at'=> 'required|date',
             'end_at' => 'required|date',
-            'trigger_id'=>'required',/*|exists:triggers.id*/
+            'trigger_type'=>'required',
             'des'=>'required',
-            'enable'=> 'required|in:0,1'
         ]);
         if($validator->fails()){
-            return $this->outputJson(10000,$validator->errors());
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
 
         $res = Activity::where('id',$request->id)->update([
             'name'=>$request->name,
+            'alias_name'=>$request->alias_name,
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
-            'trigger_id'=>$request->trigger_id,
+            'trigger_type'=>$request->trigger_type,
             'des'=>$request->des,
-            'enable'=>$request->enable,
         ]);
         if($res){
-            return $this->outputJson(0,array('error_msg'=>'ok'));
+            return $this->outputJson(0);
         }else{
-            return $this->outputJson(10002,array('error_msg'=>'Update Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
+    }
+
+    //发布活动
+    public function postRelease(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'alpha_num|exists:activities,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Activity::where('id',$request->id)->update(['enable'=>1]);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+    }
+
+    //活动详情
+    public function getInfo($activity_id){
+        if(!$activity_id){
+            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
+        }
+        $res = Activity::where('id',$activity_id)->where('enable',1)->findOrFail($activity_id);
+        if(!$res){
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+        return $this->outPutJson(0,$res);
     }
 }

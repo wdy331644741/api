@@ -74,7 +74,8 @@ return [
     |
     */
 
-    'locale' => 'en',
+    //原生：'locale' => 'en',
+    'locale' => 'zh-CN',//非原生
 
     /*
     |--------------------------------------------------------------------------
@@ -153,7 +154,8 @@ return [
         Illuminate\Redis\RedisServiceProvider::class,
         Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
         Illuminate\Session\SessionServiceProvider::class,
-        Illuminate\Translation\TranslationServiceProvider::class,
+        //英文语言包，未修改之前---Illuminate\Translation\TranslationServiceProvider::class,
+        Overtrue\LaravelLang\TranslationServiceProvider::class,//中文，非原生
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
