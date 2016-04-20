@@ -660,23 +660,6 @@ class AwardCommonController extends Controller{
         }
     }
     /**
-     * 添加到awards
-     * @param $award_type
-     * @param $award_id
-     * @param $activityID
-     * @return mixed
-     */
-    function _awardAdd($award_type,$award_id,$activityID){
-        $data['activity_id'] = $activityID;
-        $data['award_type'] = $award_type;
-        $data['award_id'] = $award_id;
-        $data['created_at'] = time();
-        $data['updated_at'] = time();
-        $id = Award::insertGetId($data);
-        return $id;
-    }
-
-    /**
      * 验证必填项
      * @param $request
      * @param $field
