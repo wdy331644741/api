@@ -8,6 +8,7 @@ use App\Http\Requests;
 
 use App\Models\Activity;
 use App\Models\Rule;
+use App\Models\Award;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -295,7 +296,103 @@ class ActivityController extends Controller
     private function getUserCastInfo(){
 
     }
+    /**
+     * 添加奖品映射关系
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAddMapping(Request $request){
+        //奖品类型
+        $award_type = intval($request->award_type);
+        if(empty($award_type)){
+            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
+        }
+        //活动ID
+        $activity_id = intval($request->activity_id);
+        if(empty($activity_id)){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
+        //优惠券id
+        $award_id = intval($request->award_id);
+        if(empty($award_id)){
+            return $this->outputJson(PARAMS_ERROR,array('award_id'=>'奖品id不能为空'));
+        }
+        $awardID = $this->_awardAdd($award_type,$award_id,$activity_id);
+        if($awardID){
+            return $this->outputJson(0,array('insert_id'=>$awardID));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品关系表失败'));
+        }
+    }
 
+    /**
+     * 获取奖品映射关系列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postMappingList(Request $request){
+        //奖品类型
+        $where['award_type'] = intval($request->award_type);
+        if(empty($where['award_type'])){
+            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
+        }
+        //活动ID
+        $where['activity_id'] = intval($request->activity_id);
+        if(empty($where['activity_id'])){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
+        $list = Award::where($where)->get()->toArray();
+        return $this->outputJson(0,$list);
+    }
+    /**
+     * 删除奖品映射关系
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postDeleteMapping(Request $request){
+        //奖品类型
+        $where['award_type'] = intval($request->award_type);
+        if(empty($where['award_type'])){
+            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
+        }
+        //活动ID
+        $where['activity_id'] = intval($request->activity_id);
+        if(empty($where['activity_id'])){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
+        //优惠券id
+        $where['award_id'] = intval($request->award_id);
+        if(empty($where['award_id'])){
+            return $this->outputJson(PARAMS_ERROR,array('award_id'=>'奖品id不能为空'));
+        }
+        $status = Award::where($where)->delete();
+        if($status){
+            return $this->outputJson(0,array('error_msg'=>'删除成功'));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
+        }
+    }
+    /**
+     * 添加到awards
+     * @param $award_type
+     * @param $award_id
+     * @param $activityID
+     * @return mixed
+     */
+    function _awardAdd($award_type,$award_id,$activityID){
+        $data['activity_id'] = $activityID;
+        $data['award_type'] = $award_type;
+        $data['award_id'] = $award_id;
+        //查看是否重复
+        $count = Award::where($data)->count();
+        if($count > 0){
+            return false;
+        }
+        $data['created_at'] = time();
+        $data['updated_at'] = time();
+        $id = Award::insertGetId($data);
+        return $id;
+    }
     /*case 2:
             $validator = Validator::make($request->all(), [
                 'is_invite' => 'required',
