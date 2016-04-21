@@ -1,6 +1,5 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\Award;
 use App\Models\Award1;
 use App\Models\Award2;
 use App\Models\Award3;
