@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\CouponCode;
 use Illuminate\Http\Request;
 use App\Http\Requests;
-use App\Models\Coupon;
 use Validator;
 use App\Jobs\FileImport;
 use DB;
