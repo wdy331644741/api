@@ -300,7 +300,7 @@ class ActivityController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    function postAddMapping(Request $request){
+    function postAwardAdd(Request $request){
         //奖品类型
         $award_type = intval($request->award_type);
         if(empty($award_type)){
@@ -329,7 +329,7 @@ class ActivityController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    function postMappingList(Request $request){
+    function postAwardList(Request $request){
         //奖品类型
         $where['award_type'] = intval($request->award_type);
         if(empty($where['award_type'])){
@@ -348,7 +348,7 @@ class ActivityController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    function postDeleteMapping(Request $request){
+    function postAwardDelete(Request $request){
         //奖品类型
         $where['award_type'] = intval($request->award_type);
         if(empty($where['award_type'])){
