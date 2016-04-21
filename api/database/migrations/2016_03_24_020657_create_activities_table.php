@@ -19,7 +19,7 @@ class CreateActivitiesTable extends Migration
             $table->timestamp('start_at')->nullable()->defaule(NULL);
             $table->timestamp('end_at')->nullable()->defaule(NULL);
             $table->tinyInteger('trigger_type', false, true);
-            $table->text('des');
+            $table->text('des')->nullable()->default(NULL);
             $table->boolean('enable');
             $table->timestamps();
         });
