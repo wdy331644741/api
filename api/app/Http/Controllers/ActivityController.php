@@ -24,7 +24,6 @@ class ActivityController extends Controller
             'start_at'=> 'date',
             'end_at' => 'date',
             'trigger_type'=>'required',
-            'des'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -104,7 +103,7 @@ class ActivityController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = Activity::where('id',$request->id)->update(['enable'=>1]);
+        $res = Activity::where('id',$request->id)->update(['enable'=>1,'publish_time'=>date('Y-m-d H:i:s')]);
         if($res){
             return $this->outputJson(0);
         }else{
