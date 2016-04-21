@@ -21,8 +21,8 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
             'alias_name'=>'required|alpha_dash|unique:activities,alias_name',
-            'start_at'=> 'required|date',
-            'end_at' => 'required|date',
+            'start_at'=> 'date',
+            'end_at' => 'date',
             'trigger_type'=>'required',
         ]);
         if($validator->fails()){
@@ -30,8 +30,12 @@ class ActivityController extends Controller
         }
         $activity = new Activity;
         $activity->name = $request->name;
-        $activity->start_at = $request->start_at;
-        $activity->end_at = $request->end_at;
+        if($request->start_at){
+            $activity->start_at = $request->start_at;
+        }
+        if($request->end_at){
+            $activity->end_at  = $request->end_at;
+        }
         $activity->alias_name = $request->alias_name;
         $activity->trigger_type = $request->trigger_type;
         $activity->des = $request->des;
