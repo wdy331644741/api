@@ -121,6 +121,22 @@ class ActivityController extends Controller
         }
     }
 
+    //下线活动
+    public function postOffline(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'alpha_num|exists:activities,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Activity::where('id',$request->id)->update(['enable'=>0]);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+    }
+
     //活动详情
     public function getInfo($activity_id){
         if(!$activity_id){
