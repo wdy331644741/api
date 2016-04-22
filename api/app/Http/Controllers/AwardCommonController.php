@@ -8,6 +8,7 @@ use App\Models\Award5;
 use App\Models\Award6;
 use App\Models\Coupon;
 use Validator;
+use App\Jobs\FileImport;
 /**
  * Created by PhpStorm.
  * User: Administrator
@@ -641,22 +642,28 @@ class AwardCommonController extends Controller{
                         $request->file('file')->move($path,$fileName);
                         $file = $path.$fileName;
                     }else{
-                        return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'优惠券文件格式错误'));
+                        return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件格式错误');
                     }
                 }else{
-                    return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'优惠券文件错误'));
+                    return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
                 }
             }else{
-                return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'优惠券文件不能为空'));
+                return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件不能为空');
             }
             $data['file'] = $file;
             if(!file_exists($data['file'])){
-                return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'优惠券文件错误'));
+                return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
             }
             $data['created_at'] = time();
             //插入数据
             $insertID = Coupon::insertGetId($data);
-            return array('code' => 200, 'insert_id' => $insertID);
+            if($insertID){
+                $this->dispatch(new FileImport($insertID,$file));
+                return array('code' => 200, 'insert_id' => $insertID);
+            }else{
+                return array('code' => 500, 'error_msg' => '插入失败');
+            }
+
         }
     }
     /**
