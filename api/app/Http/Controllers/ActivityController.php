@@ -12,6 +12,7 @@ use App\Models\Award;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
+use Monolog\Handler\NullHandlerTest;
 use Validator;
 
 class ActivityController extends Controller
@@ -75,8 +76,8 @@ class ActivityController extends Controller
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
             'alias_name'=>'required|alpha_dash|unique:activities,alias_name,'.$request->id,
-            'start_at'=> 'required|date',
-            'end_at' => 'required|date',
+            'start_at'=> 'date',
+            'end_at' => 'date',
             'trigger_type'=>'required',
         ]);
         if($validator->fails()){
