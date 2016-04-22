@@ -74,11 +74,10 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_dash|unique:activities,alias_name',
+            'alias_name'=>'required|alpha_dash|unique:activities,alias_name,'.$request->id,
             'start_at'=> 'required|date',
             'end_at' => 'required|date',
             'trigger_type'=>'required',
-            'des'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
