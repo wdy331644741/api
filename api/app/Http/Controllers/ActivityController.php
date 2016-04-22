@@ -379,20 +379,10 @@ class ActivityController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     function postAwardDelete(Request $request){
-        //奖品类型
-        $where['award_type'] = intval($request->award_type);
-        if(empty($where['award_type'])){
-            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
-        }
-        //活动ID
-        $where['activity_id'] = intval($request->activity_id);
-        if(empty($where['activity_id'])){
-            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
-        }
-        //优惠券id
-        $where['award_id'] = intval($request->award_id);
-        if(empty($where['award_id'])){
-            return $this->outputJson(PARAMS_ERROR,array('award_id'=>'奖品id不能为空'));
+        //记录id
+        $where['id'] = intval($request->id);
+        if(empty($where['id'])){
+            return $this->outputJson(PARAMS_ERROR,array('id'=>'记录id不能为空'));
         }
         $status = Award::where($where)->delete();
         if($status){
