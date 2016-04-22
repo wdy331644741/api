@@ -7,6 +7,7 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
 use App\Models\Coupon;
+use Validator;
 /**
  * Created by PhpStorm.
  * User: Administrator

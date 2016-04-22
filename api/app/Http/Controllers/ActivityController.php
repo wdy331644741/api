@@ -9,7 +9,13 @@ use App\Http\Requests;
 use App\Models\Activity;
 use App\Models\Rule;
 use App\Models\Award;
-
+use App\Models\Award1;
+use App\Models\Award2;
+use App\Models\Award3;
+use App\Models\Award4;
+use App\Models\Award5;
+use App\Models\Award6;
+use App\Models\Coupon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Monolog\Handler\NullHandlerTest;
@@ -334,17 +340,21 @@ class ActivityController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     function postAwardList(Request $request){
-        //奖品类型
-        $where['award_type'] = intval($request->award_type);
-        if(empty($where['award_type'])){
-            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
-        }
         //活动ID
         $where['activity_id'] = intval($request->activity_id);
         if(empty($where['activity_id'])){
             return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
         }
-        $list = Award::where($where)->get()->toArray();
+        $list = Award::where($where)->orderBy('updated_at','desc')->get()->toArray();
+        foreach($list as &$item){
+            $table = $this->_getAwardTable($item['award_type']);
+            $name = $table::where('id',$item['award_id'])->select('name')->get()->toArray();
+            if(count($name) >= 1 && isset($name[0]['name'])){
+                $item['name'] = $name[0]['name'];
+            }else{
+                $item['name'] = '';
+            }
+        }
         return $this->outputJson(0,$list);
     }
     /**
@@ -395,6 +405,34 @@ class ActivityController extends Controller
         $data['updated_at'] = time();
         $id = Award::insertGetId($data);
         return $id;
+    }
+    /**
+     * 获取表对象
+     * @param $awardType
+     * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
+     */
+    function _getAwardTable($awardType){
+        if($awardType >= 1 && $awardType <= 7) {
+            if ($awardType == 1) {
+                return new Award1;
+            } elseif ($awardType == 2) {
+                return new Award2;
+            } elseif ($awardType == 3) {
+                return new Award3;
+            } elseif ($awardType == 4) {
+                return new Award4;
+            } elseif ($awardType == 5) {
+                return new Award5;
+            } elseif ($awardType == 6) {
+                return new Award6;
+            } elseif ($awardType == 7){
+                return new Coupon;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
     }
     /*case 2:
             $validator = Validator::make($request->all(), [
