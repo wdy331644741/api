@@ -233,8 +233,8 @@ class ActivityController extends Controller
     //添加规则
     private function rule_register($type,$request){
         $validator = Validator::make($request->all(), [
-            'min_time' => 'required|date',
-            'max_time' => 'required|date|after:min_time',
+            'min_time' => 'date',
+            'max_time' => 'date|after:min_time',
             'activity_id'=>'alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
@@ -242,8 +242,8 @@ class ActivityController extends Controller
         }
         DB::beginTransaction();
         $obj =  new Rule\Register();
-        $obj->min_time = $request->min_time;
-        $obj->max_time = $request->max_time;
+        $obj->min_time = $request->min_time ? $request->min_time : NULL;
+        $obj->max_time = $request->max_time ? $request->max_time : NULL;
         $obj->save();
         if(!$obj->id){
             DB::rollback();
