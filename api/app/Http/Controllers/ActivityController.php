@@ -89,7 +89,7 @@ class ActivityController extends Controller
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
             'trigger_type'=>$request->trigger_type,
-            'des'=>$request->des,
+            'des'=>$request->des ? $request->des : NULL,
         ]);
         if($res){
             return $this->outputJson(0);
@@ -119,7 +119,7 @@ class ActivityController extends Controller
         if(!$activity_id){
             return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
         }
-        $res = Activity::where('id',$activity_id)->where('enable',1)->findOrFail($activity_id);
+        $res = Activity::where('id',$activity_id)->findOrFail($activity_id);
         if(!$res){
             return $this->outputJson(10002,array('error_msg'=>"Database Error"));
         }
