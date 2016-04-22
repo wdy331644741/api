@@ -29,8 +29,8 @@ class CreateRulesTable extends Migration
         //注册
         Schema::create('rule_register', function (Blueprint $table) {
             $table->increments('id');
-            $table->timestamp('min_time')->default(NULL);
-            $table->timestamp('max_time')->default(NULL);
+            $table->timestamp('min_time')->nullable()->default(NULL);
+            $table->timestamp('max_time')->nullable()->default(NULL);
             $table->timestamps();
         });
 
@@ -48,36 +48,36 @@ class CreateRulesTable extends Migration
 
         Schema::create('rule_userlevel', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('min_level')->default(NULL);
-            $table->tinyInteger('max_level')->default(NULL);
+            $table->tinyInteger('min_level')->nullable()->default(NULL);
+            $table->tinyInteger('max_level')->nullable()->default(NULL);
             $table->timestamps();
         });
 
         Schema::create('rule_usercredit', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('min_credit')->default(NULL);
-            $table->tinyInteger('max_credit')->default(NULL);
+            $table->tinyInteger('min_credit')->nullable()->default(NULL);
+            $table->tinyInteger('max_credit')->nullable()->default(NULL);
             $table->timestamps();
         });
 
         Schema::create('rule_balance', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('min_balance')->default(NULL);
-            $table->tinyInteger('max_balance')->default(NULL);
+            $table->tinyInteger('min_balance')->nullable()->default(NULL);
+            $table->tinyInteger('max_balance')->nullable()->default(NULL);
             $table->timestamps();
         });
 
         Schema::create('rule_firstcast', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('min_firstcast')->default(NULL);
-            $table->tinyInteger('max_firstcast')->default(NULL);
+            $table->tinyInteger('min_firstcast')->nullable()->default(NULL);
+            $table->tinyInteger('max_firstcast')->nullable()->default(NULL);
             $table->timestamps();
         });
 
         Schema::create('rule_cast', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('min_cast')->default(NULL);
-            $table->tinyInteger('max_cast')->default(NULL);
+            $table->tinyInteger('min_cast')->nullable()->default(NULL);
+            $table->tinyInteger('max_cast')->nullable()->default(NULL);
             $table->timestamps();
         });
 
