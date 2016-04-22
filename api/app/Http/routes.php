@@ -29,3 +29,6 @@ Route::controller('activity', 'ActivityController');
 
 //奖品路由
 Route::controller('award', 'AwardController');
+
+//触发发奖路由
+Route::controller('sendReward', 'SendRewardController');
