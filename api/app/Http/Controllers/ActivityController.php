@@ -18,6 +18,7 @@ use App\Models\Award6;
 use App\Models\Coupon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
+use Monolog\Handler\NullHandlerTest;
 use Validator;
 
 class ActivityController extends Controller
@@ -30,15 +31,18 @@ class ActivityController extends Controller
             'start_at'=> 'date',
             'end_at' => 'date',
             'trigger_type'=>'required',
-            'des'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $activity = new Activity;
         $activity->name = $request->name;
-        $activity->start_at = $request->start_at;
-        $activity->end_at = $request->end_at;
+        if($request->start_at){
+            $activity->start_at = $request->start_at;
+        }
+        if($request->end_at){
+            $activity->end_at  = $request->end_at;
+        }
         $activity->alias_name = $request->alias_name;
         $activity->trigger_type = $request->trigger_type;
         $activity->des = $request->des;
@@ -77,11 +81,10 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_dash|unique:activities,alias_name',
-            'start_at'=> 'required|date',
-            'end_at' => 'required|date',
+            'alias_name'=>'required|alpha_dash|unique:activities,alias_name,'.$request->id,
+            'start_at'=> 'date',
+            'end_at' => 'date',
             'trigger_type'=>'required',
-            'des'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -93,7 +96,7 @@ class ActivityController extends Controller
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
             'trigger_type'=>$request->trigger_type,
-            'des'=>$request->des,
+            'des'=>$request->des ? $request->des : NULL,
         ]);
         if($res){
             return $this->outputJson(0);
@@ -110,7 +113,7 @@ class ActivityController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = Activity::where('id',$request->id)->update(['enable'=>1]);
+        $res = Activity::where('id',$request->id)->update(['enable'=>1,'publish_time'=>date('Y-m-d H:i:s')]);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -123,7 +126,7 @@ class ActivityController extends Controller
         if(!$activity_id){
             return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
         }
-        $res = Activity::where('id',$activity_id)->where('enable',1)->findOrFail($activity_id);
+        $res = Activity::where('id',$activity_id)->findOrFail($activity_id);
         if(!$res){
             return $this->outputJson(10002,array('error_msg'=>"Database Error"));
         }
