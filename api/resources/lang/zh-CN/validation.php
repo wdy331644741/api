@@ -138,7 +138,15 @@ return [
         'time'                  => '时间',
         'available'             => '可用的',
         'size'                  => '大小',
-        'alias_name'            => '别名'
+        'alias_name'            => '别名',
+        'start_at'              => '开始时间',
+        'end_at'                => '结束时间',
+        'trigger_type'          => '触发类型',
+        'min_time'              => '开始时间',
+        'max_time'              => '结束时间',
+        'activity_id'           => '活动ID',
+        'channels'              => '渠道',
+
     ],
 
 ];
