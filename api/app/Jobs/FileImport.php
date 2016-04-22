@@ -37,15 +37,15 @@ class FileImport extends Job implements ShouldQueue
             while(!feof($handle)){
                 $conn = fgets($handle, 1024);
                 //替换字符串
-                $conn = str_replace("rn","<br/>",$conn);
+                $conn = trim(str_replace("rn","<br/>",$conn));
                 //判断是否添加过
-                $isExist = CouponCode::where('code',$conn)->count();
+                $isExist = CouponCode::where('code',$conn)->get()->count();
                 if($isExist){
                     continue;
                 }else{
                     //添加到数据库
                     $data['coupon_id'] = intval($this->insertID);
-                    $data['code'] = trim($conn);
+                    $data['code'] = $conn;
                     CouponCode::insertGetId($data);
                 }
             }
