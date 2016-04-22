@@ -217,8 +217,8 @@ class ActivityController extends Controller
     //添加规则
     private function rule_register($type,$request){
         $validator = Validator::make($request->all(), [
-            'min_time' => 'required',
-            'max_time' => 'required',
+            'min_time' => 'required|date',
+            'max_time' => 'required|date|after:min_time',
             'activity_id'=>'alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
