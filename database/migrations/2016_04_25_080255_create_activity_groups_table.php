@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateActivityGroupTable extends Migration
+class CreateActivityGroupsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,11 +12,10 @@ class CreateActivityGroupTable extends Migration
      */
     public function up()
     {
-        Schema::create('activity_group', function (Blueprint $table) {
+        Schema::create('activity_groups', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
             $table->tinyInteger('type_id');
-            $table->tinyInteger('trigger_index');
             $table->text('des')->nullable()->default(NULL);
             $table->softDeletes();//模型需要定义删除
             $table->timestamps();
@@ -30,6 +29,6 @@ class CreateActivityGroupTable extends Migration
      */
     public function down()
     {
-        Schema::drop('activity_group');
+        Schema::drop('activity_groups');
     }
 }

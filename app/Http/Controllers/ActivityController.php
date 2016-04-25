@@ -8,6 +8,7 @@ use App\Http\Requests;
 
 use App\Models\Activity;
 use App\Models\Rule;
+use App\Models\ActivityGroup;
 use App\Models\Award;
 use App\Models\Award1;
 use App\Models\Award2;
@@ -149,6 +150,93 @@ class ActivityController extends Controller
         return $this->outPutJson(0,$res);
     }
 
+    //添加主活动
+    public function postGroupAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|required',
+            'type_id'=>'required|integer',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $group = new ActivityGroup();
+        $group->name = $request->name;
+        $group->type_id = $request->type_id;
+        $group->des = $request->des ? $request->des : NULL;
+        $res = $group->save();
+        if($res){
+            return $this->outputJson(0,array('insert_id'=>$group->id));
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //获取活动类型
+    public function getActivityTypeList(){
+        $data = config('activity.activity_type');
+        return $this->outputJson(0,$data);
+    }
+
+    //修改主活动
+    public function putMainGroup(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'exists:activity_groups,id',
+            'name' => 'string|required',
+            'type_id'=>'required|integer',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $updata = [
+            'name' => $request->name,
+            'type_id' => $request->type_id,
+        ];
+        if($request->des){
+            $updata['des'] = $request->des;
+        }
+
+        $res = ActivityGroup::where('id',$request->id)->update($updata);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+    }
+
+    //组列表
+    public function getActivityGroupList(){
+        $data = ActivityGroup::with('activity')->orderBy('id','desc')->paginate(20);
+        return $this->outputJson(0,$data);
+    }
+
+    //删除主活动
+    public function deleteActivityGroup(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'exists:activity_groups,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = ActivityGroup::destroy($request->id);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+    }
+
+    //查询单个组活动
+    public function getActivityGroupInfo($main_activity_id){
+        $get['main_activity_id'] = $main_activity_id;
+        $validator = Validator::make($get, [
+            'main_activity_id' => 'exists:activity_groups,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $data = ActivityGroup::with('activity')->find($main_activity_id);
+        return $this->outputJson(0,$data);
+    }
 
 
     //---------------------------- 规则相关 ----------------------------------//
@@ -230,6 +318,8 @@ class ActivityController extends Controller
 
         }
     }
+
+
     //添加规则
     private function rule_register($type,$request){
         $validator = Validator::make($request->all(), [
@@ -314,6 +404,7 @@ class ActivityController extends Controller
             }
         }
     }
+
     private function getUserInfo(){
 
     }

@@ -47,6 +47,24 @@ return [
             'model_name'=>'Cast',
             'model_path'=>'App\Models\Rule\Cast',
         ],
+    ],
+    'activity_type'=>[
+        0=>[
+            'type_id'=>0,
+            'type_name'=>'常规活动'
+        ],
+        1=>[
+            'type_id'=>1,
+            'type_name'=>'节日活动'
+        ],
+        2=>[
+            'type_id'=>2,
+            'type_name'=>'加急活动'
+        ],
+        3=>[
+            'type_id'=>3,
+            'type_name'=>'渠道活动'
+        ],
     ]
 
 ];
