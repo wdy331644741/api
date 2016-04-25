@@ -20,6 +20,7 @@ class CreateAward4Table extends Migration
             $table->tinyInteger('effective_time_type',false,true);//有效时间类型
             $table->string('effective_time_info',32);//有效时间信息
             $table->tinyInteger('platform_type',false,true);//平台端
+            $table->string('limit_desc',32);//限制说明
             $table->integer('created_at',false,true);//创建时间
             $table->integer('updated_at',false,true);//修改时间
         });
