@@ -82,51 +82,13 @@ class AwardCommonController extends Controller{
         if($data['project_duration_type'] == 0){
             return array('code'=>404,'params'=>'project_duration_type','error_msg'=>'请选择项目期限类型');
         }
-        //项目期限信息
-        $project_duration_info = '';
-        if($data['project_duration_type'] == 1){
-            $month = $request->project_duration_month;
-            $project_duration_info = $month;
-        }elseif($data['project_duration_type'] == 2){
-            $start = isset($request->project_duration_start) ? intval($request->project_duration_start) : 0;
-            $end = isset($request->project_duration_end) ? intval($request->project_duration_end) : 0;
-            if($start == 0 || $end == 0){
-                $params = $start == 0 ? 'project_duration_start' : 'project_duration_end';
-                return array('code'=>404,'params'=>$params,'error_msg'=>'项目期限时间格式不对');
-            }
-            $project_duration_info = $start."-".$end;
-        }
-        $data['project_duration_info'] = $project_duration_info;
         //项目类型
         $data['project_type'] = $request->project_type;
-        //还款方式
-        $data['repayment_type'] = $request->repayment_type;
-        //计算方式
-        $data['calculation_type'] = $request->calculation_type;
-        //产品类型
-        $data['product_type'] = $request->product_type;
-        if($data['product_type'] == null){
-            return array('code'=>404,'params'=>'product_type','error_msg'=>'请选择产品类型');
-        }
-        //产品类型信息
-        $product_type_info = '';
-        if($data['product_type'] == 1){
-            $product_type_info = $request->product_types;
-        }elseif($data['product_type'] == 2){
-            $ids = $request->product_typeid;
-            if($ids == ''){
-                return array('code'=>404,'params'=>'product_typeid','error_msg'=>'产品类型指定ID不能为空');
-            }
-            $product_type_info = $ids;
-        }
-        $data['product_type_info'] = $product_type_info;
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
-        //活动渠道
-        $data['activity_channel'] = $request->activity_channel;
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
@@ -205,51 +167,13 @@ class AwardCommonController extends Controller{
         if($data['project_duration_type'] == 0){
             return array('code'=>404,'params'=>'project_duration_type','error_msg'=>'请选择项目期限类型');
         }
-        //项目期限信息
-        $project_duration_info = '';
-        if($data['project_duration_type'] == 1){
-            $month = $request->project_duration_month;
-            $project_duration_info = $month;
-        }elseif($data['project_duration_type'] == 2){
-            $start = isset($request->project_duration_start) ? intval($request->project_duration_start) : 0;
-            $end = isset($request->project_duration_end) ? intval($request->project_duration_end) : 0;
-            if($start == 0 || $end == 0){
-                $params = $start == 0 ? 'project_duration_start' : 'project_duration_end' ;
-                return array('code'=>404,'params'=>$params,'error_msg'=>'项目期限时间格式不对');
-            }
-            $project_duration_info = $start."-".$end;
-        }
-        $data['project_duration_info'] = $project_duration_info;
         //项目类型
         $data['project_type'] = $request->project_type;
-        //还款方式
-        $data['repayment_type'] = $request->repayment_type;
-        //计算方式
-        $data['calculation_type'] = $request->calculation_type;
-        //产品类型
-        $data['product_type'] = $request->product_type;
-        if($data['product_type'] == null){
-            return array('code'=>404,'params'=>'product_type','error_msg'=>'请选择产品类型');
-        }
-        //产品类型信息
-        $product_type_info = '';
-        if($data['product_type'] == 1){
-            $product_type_info = $request->product_types;
-        }elseif($data['product_type'] == 2){
-            $ids = $request->product_typeid;
-            if($ids == ''){
-                return array('code'=>404,'params'=>'product_typeid','error_msg'=>'产品类型指定ID不能为空');
-            }
-            $product_type_info = $ids;
-        }
-        $data['product_type_info'] = $product_type_info;
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
-        //活动渠道
-        $data['activity_channel'] = $request->activity_channel;
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
@@ -332,51 +256,13 @@ class AwardCommonController extends Controller{
         if($data['project_duration_type'] == 0){
             return array('code'=>404,'params'=>'project_duration_type','error_msg'=>'请选择项目期限类型');
         }
-        //项目期限信息
-        $project_duration_info = '';
-        if($data['project_duration_type'] == 1){
-            $month = $request->project_duration_month;
-            $project_duration_info = $month;
-        }elseif($data['project_duration_type'] == 2){
-            $start = isset($request->project_duration_start) ? intval($request->project_duration_start) : 0;
-            $end = isset($request->project_duration_end) ? intval($request->project_duration_end) : 0;
-            if($start == 0 || $end == 0){
-                $params = $start == 0 ? 'project_duration_start' : 'project_duration_end' ;
-                return array('code'=>404,'params'=>$params,'error_msg'=>'项目期限时间格式不对');
-            }
-            $project_duration_info = $start."-".$end;
-        }
-        $data['project_duration_info'] = $project_duration_info;
         //项目类型
         $data['project_type'] = $request->project_type;
-        //还款方式
-        $data['repayment_type'] = $request->repayment_type;
-        //计算方式
-        $data['calculation_type'] = $request->calculation_type;
-        //产品类型
-        $data['product_type'] = $request->product_type;
-        if($data['product_type'] == null){
-            return array('code'=>404,'params'=>'product_type','error_msg'=>'请选择产品类型');
-        }
-        //产品类型信息
-        $product_type_info = '';
-        if($data['product_type'] == 1){
-            $product_type_info = $request->product_types;
-        }elseif($data['product_type'] == 2){
-            $ids = $request->product_typeid;
-            if($ids == ''){
-                return array('code'=>404,'params'=>'product_typeid','error_msg'=>'产品类型指定ID不能为空');
-            }
-            $product_type_info = $ids;
-        }
-        $data['product_type_info'] = $product_type_info;
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
-        //活动渠道
-        $data['activity_channel'] = $request->activity_channel;
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
@@ -465,8 +351,6 @@ class AwardCommonController extends Controller{
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
-        //活动渠道
-        $data['activity_channel'] = $request->activity_channel;
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
