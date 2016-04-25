@@ -14,7 +14,7 @@ class OpenController extends Controller
             'open_src' => 'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10005,array('error_msg'=>'Params Cannot Be Empty!'));
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $model_name = config('open.'.$request->open_src.'.model');
         $model = new $model_name;
@@ -22,9 +22,9 @@ class OpenController extends Controller
         $model->open_id = $request->open_id;
         $res = $model->save();
         if($res->id){
-            return $this->outputJson(0,array('error_msg'=>'ok'));
+            return $this->outputJson(0);
         }else{
-            return $this->outputJson(10004,array('error_msg'=>'Insert Failed!'));
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
