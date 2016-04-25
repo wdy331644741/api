@@ -22,6 +22,7 @@ class CreateAward2Table extends Migration
             $table->tinyInteger('project_duration_type',false,true);//项目期限
             $table->tinyInteger('project_type',false,true);//项目类型
             $table->tinyInteger('platform_type',false,true);//平台端
+            $table->string('limit_desc',32);//限制说明
             $table->integer('created_at',false,true);//创建时间
             $table->integer('updated_at',false,true);//修改时间
         });

@@ -89,6 +89,8 @@ class AwardCommonController extends Controller{
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
+        //限制说明
+        $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
@@ -174,6 +176,8 @@ class AwardCommonController extends Controller{
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
+        //限制说明
+        $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
@@ -263,6 +267,8 @@ class AwardCommonController extends Controller{
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
+        //限制说明
+        $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
@@ -351,6 +357,8 @@ class AwardCommonController extends Controller{
         if($data['platform_type'] == null){
             return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
         }
+        //限制说明
+        $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
