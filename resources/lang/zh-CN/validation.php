@@ -146,7 +146,9 @@ return [
         'max_time'              => '结束时间',
         'activity_id'           => '活动ID',
         'channels'              => '渠道',
-
+        'type_id'               => '类型',
+        'trigger_index'         => '触发优先级',
+        'group_id'              => '组活动'
     ],
 
 ];

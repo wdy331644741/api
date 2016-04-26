@@ -28,9 +28,10 @@ class ActivityController extends Controller
     public function postAdd(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_dash|unique:activities,alias_name',
+            'group_id'=>'required|exists:activity_groups,id',
             'start_at'=> 'date',
             'end_at' => 'date',
+            'trigger_index'=>'required|integer',
             'trigger_type'=>'required',
         ]);
         if($validator->fails()){
@@ -44,7 +45,8 @@ class ActivityController extends Controller
         if($request->end_at){
             $activity->end_at  = $request->end_at;
         }
-        $activity->alias_name = $request->alias_name;
+        $activity->group_id = $request->group_id;
+        $activity->trigger_index = $request->trigger_index;
         $activity->trigger_type = $request->trigger_type;
         $activity->des = $request->des;
         $activity->enable = 0;
@@ -82,9 +84,10 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_dash|unique:activities,alias_name,'.$request->id,
+            'group_id'=>'required|exists:activity_groups,id',
             'start_at'=> 'date',
             'end_at' => 'date',
+            'trigger_index'=>'required|integer',
             'trigger_type'=>'required',
         ]);
         if($validator->fails()){
@@ -93,9 +96,10 @@ class ActivityController extends Controller
 
         $res = Activity::where('id',$request->id)->update([
             'name'=>$request->name,
-            'alias_name'=>$request->alias_name,
+            'group_id'=>$request->group_id,
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
+            'trigger_index'=>$request->trigger_index,
             'trigger_type'=>$request->trigger_type,
             'des'=>$request->des ? $request->des : NULL,
         ]);
@@ -172,16 +176,16 @@ class ActivityController extends Controller
     }
 
     //获取活动类型
-    public function getActivityTypeList(){
+    public function getTypeList(){
         $data = config('activity.activity_type');
         return $this->outputJson(0,$data);
     }
 
     //修改主活动
-    public function putMainGroup(Request $request){
+    public function postGroupPut(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'exists:activity_groups,id',
-            'name' => 'string|required',
+            'id' => 'required|exists:activity_groups,id',
+            'name' => 'required|string',
             'type_id'=>'required|integer',
         ]);
         if($validator->fails()){
@@ -204,15 +208,15 @@ class ActivityController extends Controller
     }
 
     //组列表
-    public function getActivityGroupList(){
-        $data = ActivityGroup::with('activity')->orderBy('id','desc')->paginate(20);
+    public function getGroupList(){
+        $data = ActivityGroup::with('activities')->orderBy('id','desc')->paginate(20);
         return $this->outputJson(0,$data);
     }
 
     //删除主活动
-    public function deleteActivityGroup(Request $request){
+    public function postGroupDel(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'exists:activity_groups,id',
+            'id' => 'required|exists:activity_groups,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -226,15 +230,15 @@ class ActivityController extends Controller
     }
 
     //查询单个组活动
-    public function getActivityGroupInfo($main_activity_id){
-        $get['main_activity_id'] = $main_activity_id;
+    public function getGroupInfo($group_id){
+        $get['group_id'] = $group_id;
         $validator = Validator::make($get, [
-            'main_activity_id' => 'exists:activity_groups,id',
+            'group_id' => 'exists:activity_groups,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $data = ActivityGroup::with('activity')->find($main_activity_id);
+        $data = ActivityGroup::with('activities')->find($group_id);
         return $this->outputJson(0,$data);
     }
 
