@@ -26,6 +26,7 @@ Route::group(['middleware' => 'web'], function () {
 
 
 Route::controller('activity', 'ActivityController');
+Route::controller('channel', 'ChannelController');
 
 //奖品路由
 Route::controller('award', 'AwardController');

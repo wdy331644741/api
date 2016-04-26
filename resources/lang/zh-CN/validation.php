@@ -148,7 +148,8 @@ return [
         'channels'              => '渠道',
         'type_id'               => '类型',
         'trigger_index'         => '触发优先级',
-        'group_id'              => '组活动'
+        'group_id'              => '组活动',
+        'pre'                   => '渠道组'
     ],
 
 ];
