@@ -20,7 +20,7 @@ class AwardController extends AwardCommonController
             'awards' => [
                 '1' => '_rateIncreases',//加息券
                 '2' => '_redMoney',//直抵红包
-                '3' => '_rateRedMoney',//百分比红包
+                '3' => '_redMoney',//百分比红包
                 '4' => '_experienceAmount',//体验金
                 '5' => '_integral',//用户积分
                 '6' => '_objects',//实物
