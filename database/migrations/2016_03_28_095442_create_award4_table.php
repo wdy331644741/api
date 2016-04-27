@@ -15,12 +15,9 @@ class CreateAward4Table extends Migration
         Schema::create('award_4', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name',64);//关联活动
-            $table->tinyInteger('experience_amount_type',false,true);//体验类型
-            $table->string('experience_amount_info',10);//体验类型信息
-            $table->tinyInteger('effective_time_type',false,true);//有效时间类型
-            $table->string('effective_time_info',32);//有效时间信息
-            $table->tinyInteger('platform_type',false,true);//平台端
-            $table->string('limit_desc',32);//限制说明
+            $table->tinyInteger('integral_type',false,true);//积分值类型
+            $table->integer('integral_value',false,true);//积分固定值
+            $table->tinyInteger('integral_multiple',false,true);//积分值倍数
             $table->integer('created_at',false,true);//创建时间
             $table->integer('updated_at',false,true);//修改时间
         });
