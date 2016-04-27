@@ -14,7 +14,7 @@ class CreateAward3Table extends Migration
     {
         Schema::create('award_3', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name',64);//关联活动
+            $table->string('name',64);//体验金额名称
             $table->tinyInteger('experience_amount_type',false,true);//体验类型
             $table->integer('experience_amount_money',false,true);//体验金额
             $table->tinyInteger('experience_amount_multiple',false,true);//体验金额倍数
