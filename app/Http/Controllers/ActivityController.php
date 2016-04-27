@@ -267,10 +267,7 @@ class ActivityController extends Controller
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
-        $rule_model = Rule::find($request->id);
-        Rule::destroy($request->id);
-        $type = $rule_model->rule_type;
-        $res = $rule_model->getRuleByType($type)->delete();
+        $res = Rule::destroy($request->id);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -295,12 +292,9 @@ class ActivityController extends Controller
         $rules = array();
         foreach($rule_child  as $val){
             $model_name = config('activity.rule_child.'.$val->rule_type.'.model_name');
-            $func_name  = 'get'.$model_name.'Rule';
-            /*if(function_exists($func_name)){
-                return $this->outputJson(10000,array('error_msg'=>'Server Error'));
-            }*/
-            $child_rule = $this->$func_name($val->rule_id);
-            $rules[] = array_merge($child_rule,array('rule_type'=>strtolower($model_name)));
+            $val->rule_info = json_decode($val->rule_info);
+            $val->rule_type = strtolower($model_name);
+            $rules[] = $val;
         }
         return $this->outputJson(0,$rules);
     }
@@ -334,19 +328,14 @@ class ActivityController extends Controller
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
+        $request->min_time = $request->min_time ? $request->min_time : NULL;
+        $request->min_time = $request->max_time ? $request->max_time : NULL;
+
         DB::beginTransaction();
-        $obj =  new Rule\Register();
-        $obj->min_time = $request->min_time ? $request->min_time : NULL;
-        $obj->max_time = $request->max_time ? $request->max_time : NULL;
-        $obj->save();
-        if(!$obj->id){
-            DB::rollback();
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_id = $obj->id;
+        $rule->rule_info = $this->Params2json($request,array('min_time','max_time'));
         $rule->save();
         if($rule->id){
             DB::commit();
@@ -366,21 +355,14 @@ class ActivityController extends Controller
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
         DB::beginTransaction();
-        $obj = new Rule\Channel();
-        $obj->channels = $request->channels;
-        $obj->save();
-        if(!$obj->id){
-            DB::rollback();
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_id = $obj->id;
+        $rule->rule_info = $this->Params2json($request,array('channels'));
         $rule->save();
         if($rule->id){
             DB::commit();
-            return array('insert_id'=>$rule->id);
+            return array('error_code'=>0,'insert_id'=>$rule->id);
         }else{
             DB::rollback();
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
@@ -409,6 +391,14 @@ class ActivityController extends Controller
         }
     }
 
+
+    private function Params2json($request,$params){
+        $arr = array();
+        foreach($params as $val){
+            $arr[$val] = $request->$val;
+        }
+        return json_encode($arr);
+    }
     private function getUserInfo(){
 
     }
