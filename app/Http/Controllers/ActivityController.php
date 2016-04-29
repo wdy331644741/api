@@ -509,13 +509,13 @@ class ActivityController extends Controller
             } elseif ($awardType == 2) {
                 return new Award2;
             } elseif ($awardType == 3) {
-                return new Award3;
+                return new Award2;
             } elseif ($awardType == 4) {
-                return new Award4;
+                return new Award3;
             } elseif ($awardType == 5) {
-                return new Award5;
+                return new Award4;
             } elseif ($awardType == 6) {
-                return new Award6;
+                return new Award5;
             } elseif ($awardType == 7){
                 return new Coupon;
             }else{
