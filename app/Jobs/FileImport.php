@@ -43,6 +43,9 @@ class FileImport extends Job implements ShouldQueue
                 if($isExist){
                     continue;
                 }else{
+                    if(empty($conn)){
+                        continue;
+                    }
                     //添加到数据库
                     $data['coupon_id'] = intval($this->insertID);
                     $data['code'] = $conn;

@@ -466,7 +466,7 @@ class AwardCommonController extends Controller{
             }
         }else {
             //优惠券码文件上传
-            $path = app_path().'/uploads/coupon/';
+            $path = base_path().'/storage/coupon/';
             if ($request->hasFile('file')) {
                 //验证文件上传中是否出错
                 if ($request->file('file')->isValid()){
