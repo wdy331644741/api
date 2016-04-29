@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use App\Http\Requests;
+use App\Jobs\SendReward;
 
 /**
  * Created by PhpStorm.
@@ -25,10 +26,12 @@ class SendRewardController extends Controller{
         //查询出该用户触发匹配的活动信息
         $where['name'] = $triggerName;
         $activityInfo = Activity::where($where)->get()->toArray();
-        if(!empty($activityInfo)){
-            //判断规则是否符合
 
-            //如果符合那么就将活动下的所有符合触发条件的奖品发送到
+        //队列
+        if(!empty($activityInfo)){
+            foreach($activityInfo as $item){
+                $this->dispatch(new SendReward($item['id'],$userID,$triggerName));
+            }
         }
         print_r($activityInfo);exit;
     }
