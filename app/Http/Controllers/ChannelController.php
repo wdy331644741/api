@@ -27,7 +27,7 @@ class ChannelController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $request->pre = $request->pre ? $request->pre : 'DEF';
+        $request->pre = $request->pre ? $request->pre : 'def';
         $is_exists = Channel::where(['pre'=>$request->pre,'alias_name'=>$request->alias_name])->count();
         if($is_exists){
             return $this->outputJson(10001,array('error_msg'=>'渠道别名不能重复'));
@@ -71,7 +71,7 @@ class ChannelController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $request->pre = $request->pre ? $request->pre : 'DEF';
+        $request->pre = $request->pre ? $request->pre : 'def';
         $is_exists = Channel::where(['pre'=>$request->pre,'alias_name'=>$request->alias_name])->count();
         if($is_exists>1){
             return $this->outputJson(10001,array('error_msg'=>'相同类渠道别名不能重复'));
