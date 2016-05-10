@@ -221,6 +221,11 @@ class ActivityController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+
+        $actNum = Activity::where(['group_id'=>$request->id,'enable'=>1])->count();
+        if($actNum){
+            return $this->outputJson(10006,array('error_msg'=>'Related Activity Is Running'));
+        }
         $res = ActivityGroup::destroy($request->id);
         if($res){
             return $this->outputJson(0);
