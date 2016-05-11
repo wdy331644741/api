@@ -32,4 +32,4 @@ Route::controller('channel', 'ChannelController');
 Route::controller('award', 'AwardController');
 
 //触发发奖路由
-Route::controller('sendReward', 'SendRewardController');
+Route::controller('mc', 'MessageCenterController');

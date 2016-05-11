@@ -60,13 +60,13 @@ class AwardCommonController extends Controller{
             return array('code'=>404,'params'=>'effective_time_type','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
-        if($data['effective_time_type'] == 2){
+        if($data['effective_time_type'] == 1){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
                 return array('code'=>404,'params'=>'effective_time_day','error_msg'=>'发放顺延天数不能为空');
             }
             $data['effective_time_day'] = $day;
-        }elseif($data['effective_time_type'] == 3){
+        }elseif($data['effective_time_type'] == 2){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
@@ -171,13 +171,13 @@ class AwardCommonController extends Controller{
             return array('code'=>404,'params'=>'effective_time_type','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
-        if($data['effective_time_type'] == 2){
+        if($data['effective_time_type'] == 1){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
                 return array('code'=>404,'params'=>'effective_time_day','error_msg'=>'发放顺延天数不能为空');
             }
             $data['effective_time_day'] = $day;
-        }elseif($data['effective_time_type'] == 3){
+        }elseif($data['effective_time_type'] == 2){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
@@ -276,13 +276,13 @@ class AwardCommonController extends Controller{
             return array('code'=>404,'params'=>'effective_time_type','error_msg'=>'请选择有效时间');
         }
         //有效时间信息
-        if($data['effective_time_type'] == 2){
+        if($data['effective_time_type'] == 1){
             $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
             if($day == 0){
                 return array('code'=>404,'params'=>'effective_time_day','error_msg'=>'发放顺延天数不能为空');
             }
             $data['effective_time_day'] = $day;
-        }elseif($data['effective_time_type'] == 3){
+        }elseif($data['effective_time_type'] == 2){
             $start = $this->FormValidation($request,'effective_time_start','required','date');
             $end = $this->FormValidation($request,'effective_time_end','required','date');
             if($start == false || $end == false){
@@ -292,11 +292,11 @@ class AwardCommonController extends Controller{
             $data['effective_time_start'] = strtotime($start);
             $data['effective_time_end'] = strtotime($end);
         }
-        //产品ID
-        $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";
-        if(empty($data['product_id'])){
-            return array('code'=>404,'params'=>'product_id','error_msg'=>'产品ID不能为空');
-        }
+//        //产品ID
+//        $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";
+//        if(empty($data['product_id'])){
+//            return array('code'=>404,'params'=>'product_id','error_msg'=>'产品ID不能为空');
+//        }
         //平台端
         $data['platform_type'] = $request->platform_type;
         if($data['platform_type'] == null){

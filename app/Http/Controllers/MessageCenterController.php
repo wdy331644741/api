@@ -5,14 +5,17 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Jobs\SendReward;
 
+use Lib\JsonRpcClient;
+
 /**
  * Created by PhpStorm.
  * User: Administrator
  * Date: 2016/4/21
  * Time: 17:48
  */
-class MCController extends Controller{
-    public function postCallBack(Request $request){
+class MessageCenterController extends Controller{
+
+    public function postCallback(Request $request){
         //触发的事件
         $triggerName = isset($request->trigger) ? trim($request->trigger) : '';
         //触发的用户ID
@@ -20,7 +23,6 @@ class MCController extends Controller{
         //查询出该用户触发匹配的活动信息
         $where['name'] = $triggerName;
         $activityInfo = Activity::where($where)->get()->toArray();
-
         //队列
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
