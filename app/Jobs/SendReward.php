@@ -216,11 +216,11 @@ class SendReward extends Job implements ShouldQueue
                         $data['amount'] = $this->money * $v['info']['experience_amount_multiple'];
                     }
                     if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Ymd");
-                        $data['effective_end'] = date("Ymd",strtotime("+".$v['info']['effective_time_day']." days"));
+                        $data['effective_start'] = date("Y-m-d");
+                        $data['effective_end'] = date("Y-m-d",strtotime("+".$v['info']['effective_time_day']." days"));
                     }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = date("Ymd",$v['info']['effective_time_start']);
-                        $data['effective_end'] = date("Ymd",$v['info']['effective_time_end']);
+                        $data['effective_start'] = date("Y-m-d",$v['info']['effective_time_start']);
+                        $data['effective_end'] = date("Y-m-d",$v['info']['effective_time_end']);
                     }
                     $data['platform'] = $v['info']['platform_type'];
                     $data['limit_desc'] = $v['info']['limit_desc'];
@@ -267,6 +267,15 @@ class SendReward extends Job implements ShouldQueue
             return false;
         }
     }
+
+    /**
+     * 添加到日志
+     * @param $source_id
+     * @param $award_type
+     * @param $uuid
+     * @param $remark
+     * @return mixed
+     */
     function addLog($source_id,$award_type,$uuid,$remark){
         $SendRewardLog = new SendRewardLog;
         $data['user_id'] = $this->userID;
