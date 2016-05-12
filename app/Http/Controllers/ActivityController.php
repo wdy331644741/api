@@ -208,19 +208,15 @@ class ActivityController extends Controller
     }
 
     //组列表
-    public function getGroupList(){
-        $data = ActivityGroup::with('activities')->orderBy('id','desc')->paginate(20);
+    public function getGroupList($type_id=0){
+        if($type_id){
+            $data = ActivityGroup::where('type_id',$type_id)->with('activities')->orderBy('id','desc')->paginate(20);
+        }else{
+            $data = ActivityGroup::with('activities')->orderBy('id','desc')->paginate(20);
+        }
         return $this->outputJson(0,$data);
     }
 
-    //通过类型ID获取组活动
-    public function getTypeGroupList($type_id){
-        if(!$type_id){
-            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
-        }
-        $data = ActivityGroup::where('type_id',$type_id)->orderBy('id','desc')->paginate(20);
-        return  $this->outputJson(0,$data);
-    }
 
     //删除主活动
     public function postGroupDel(Request $request){
