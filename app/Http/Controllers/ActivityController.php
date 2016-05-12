@@ -213,6 +213,15 @@ class ActivityController extends Controller
         return $this->outputJson(0,$data);
     }
 
+    //通过类型ID获取组活动
+    public function getTypeGroupList($type_id){
+        if(!$type_id){
+            return $this->outputJson(10001,array('error_msg'=>"Parames Error"));
+        }
+        $data = ActivityGroup::where('type_id',$type_id)->orderBy('id','desc')->paginate(20);
+        return  $this->outputJson(0,$data);
+    }
+
     //删除主活动
     public function postGroupDel(Request $request){
         $validator = Validator::make($request->all(), [
