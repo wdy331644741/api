@@ -65,6 +65,20 @@ return [
             'type_id'=>3,
             'type_name'=>'渠道活动'
         ],
+    ],
+    'content_type'=>[
+        1=>[
+            'type_id'=>1,
+            'type_name'=>'常规活动'
+        ],
+        2=>[
+            'type_id'=>2,
+            'type_name'=>'网站公告'
+        ],
+        3=>[
+            'type_id'=>3,
+            'type_name'=>'网利动态'
+        ],
     ]
 
 ];
