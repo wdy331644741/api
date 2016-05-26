@@ -33,3 +33,6 @@ Route::controller('award', 'AwardController');
 
 //触发发奖路由
 Route::controller('mc', 'MessageCenterController');
+
+//图片管理
+Route::controller('img', 'ImgManageController');
