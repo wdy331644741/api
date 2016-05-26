@@ -27,7 +27,7 @@ Route::group(['middleware' => 'web'], function () {
 
 Route::controller('activity', 'ActivityController');
 Route::controller('channel', 'ChannelController');
-Route::controller('cms','CmsController');
+Route::controller('cms/content','Cms\ContentController');
 //奖品路由
 Route::controller('award', 'AwardController');
 
