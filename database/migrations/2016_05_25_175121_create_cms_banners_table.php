@@ -17,6 +17,7 @@ class CreateCmsBannersTable extends Migration
             $table->integer('sort');
             $table->string('paths');
             $table->string('links')->nullable()->default(NULL);
+            $table->tinyInteger('release')->default(0);
             $table->timestamps();
         });
     }
