@@ -8,7 +8,7 @@ define('DATABASE_ERROR_MSG','database error');
 //服务器错误
 define('REMOTE_SERVER_ERROR',10003);
 define('REMOTE_SERVER_ERROR_MSG','remote server error');
-
+define('DOMAIN','http://api-omg.wanglibao.com');
 return [
 
     /*

@@ -36,3 +36,8 @@ Route::controller('mc', 'MessageCenterController');
 
 //图片管理
 Route::controller('img', 'ImgManageController');
+//图片地址转调
+Route::get('/enclosures/{url}',function ($url) {
+    $img = file_get_contents(base_path()."/storage/images/{$url}");
+    return Response::make($img)->header('Content-Type', '');
+});
