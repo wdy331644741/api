@@ -9,7 +9,7 @@ use App\Models\ImgPosition;
 class ImgManageController extends Controller
 {
     //列表
-    public function getImgList(Request $request){
+    public function postImgList(Request $request){
         $where = array();
         $where['can_use'] = 1;
         //手机端还是pc端
@@ -22,7 +22,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Images::where($where)->orderBy('sort','DESC')->get();
+        $data = Image::where($where)->orderBy('sort','DESC')->get();
         return $this->outputJson(0,$data);
     }
     //添加
