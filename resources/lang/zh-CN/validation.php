@@ -149,7 +149,9 @@ return [
         'type_id'               => '类型',
         'trigger_index'         => '触发优先级',
         'group_id'              => '组活动',
-        'pre'                   => '渠道组'
+        'pre'                   => '渠道组',
+        'cover'                 => '封面',
+        'source'                => '来源'
     ],
 
 ];
