@@ -149,6 +149,11 @@ class ImgManageController extends Controller
         }
         //条件
         $where['id'] = $request['id'];
+        //判断是否存在
+        $count = Banner::where($where)->count();
+        if($count < 1){
+            return $this->outputJson(DATABASE_ERROR,array('id'=>'要修改的信息不存在'));
+        }
         //获取要修改的信息
         $info = Image::where($where)->get()->toArray();
         $info = isset($info[0]) ? $info[0] : array();
@@ -214,7 +219,7 @@ class ImgManageController extends Controller
         $data['can_use'] = 1;
         //修改时间
         $data['updated_at'] = time();
-        $status = Image::where($where)->update($data);
+        $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
         }else{
@@ -228,11 +233,16 @@ class ImgManageController extends Controller
         }
         //条件
         $where['id'] = $request['id'];
+        //判断是否存在
+        $count = Banner::where($where)->count();
+        if($count < 1){
+            return $this->outputJson(DATABASE_ERROR,array('id'=>'要修改的信息不存在'));
+        }
         //是否可用
         $save['can_use'] = 2;
         //修改时间
         $save['updated_at'] = time();
-        $status = Image::where($where)->update($save);
+        $status = Banner::where($where)->update($save);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'删除成功'));
         }else{
