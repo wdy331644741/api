@@ -9,8 +9,8 @@ use App\Models\ImgPosition;
 
 class ImgManageController extends Controller
 {
-    //获取某个位置的列表
-    public function postImgList(Request $request){
+    //获取某个位置的附件列表
+    public function postBannerList(Request $request){
         $where = array();
         $where['can_use'] = 1;
         //位置
@@ -18,7 +18,18 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Image::where($where)->orderBy('sort','DESC')->get();
+        $data = Banner::where($where)->orderBy('sort','DESC')->get();
+        return $this->outputJson(0,$data);
+    }
+    //获取某个位置的附件列表
+    public function postImgList(Request $request){
+        $where = array();
+        //位置
+        $position = intval($request['position']);
+        if(!empty($position)){
+            $where['position'] = $position;
+        }
+        $data = Image::where($where)->orderBy('id','DESC')->get();
         return $this->outputJson(0,$data);
     }
     //banner添加
