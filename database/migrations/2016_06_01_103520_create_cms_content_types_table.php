@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCmsContentsTable extends Migration
+class CreateCmsContentTypesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,15 +12,12 @@ class CreateCmsContentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('cms_contents', function (Blueprint $table) {
+        Schema::create('cms_content_types', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('type_id');
-            $table->string('cover')->nullable()->default(NULL);
-            $table->string('title');
-            $table->text('content');
-            $table->string('source')->nullable()->default(NULL);
+            $table->integer('parent_id')->default(0);
+            $table->string('name');
+            $table->string('alias_name')->unique();
             $table->integer('sort')->default(0);
-            $table->tinyInteger('release')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });
@@ -33,6 +30,6 @@ class CreateCmsContentsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('cms_contents');
+        Schema::drop('cms_content_types');
     }
 }
