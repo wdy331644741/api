@@ -28,6 +28,17 @@ class ImgManageController extends Controller
         if(empty($data['position'])){
             return $this->outputJson(PARAMS_ERROR,array('position'=>'位置不能为空'));
         }
+        //名称
+        $data['name'] = trim($request['name']);
+        if(empty($data['name'])){
+            return $this->outputJson(PARAMS_ERROR,array('name'=>'名称不能为空'));
+        }
+        //验证不能重复添加
+        $where['name'] = $data['name'];
+        $count = Banner::where($where)->count();
+        if($count > 0){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经添加过该信息'));
+        }
         //图片
         $file = '';
         $path = base_path().'/storage/banners/';
@@ -74,8 +85,23 @@ class ImgManageController extends Controller
         if(empty($data['img_url'])){
             return $this->outputJson(PARAMS_ERROR,array('img_url'=>'跳转的url不能为空'));
         }
+        //开始时间
+        $data['start'] = strtotime(trim($request['start']));
+        //结束时间
+        $data['end'] = strtotime(trim($request['end']));
+        //排序
+        $data['sort'] = intval($request['sort']);
+        //描述
+        $data['desc'] = trim($request['desc']);
+        if(empty($data['desc'])){
+            return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
+        }
         //添加时间
         $data['created_at'] = time();
+        //修改时间
+        $data['updated_at'] = time();
+        //是否可用
+        $data['can_use'] = 1;
         $id = Banner::insertGetId($data);
         if($id){
             return $this->outputJson(0,array('insert_id'=>$id));
@@ -162,6 +188,11 @@ class ImgManageController extends Controller
         if(empty($data['position'])){
             return $this->outputJson(PARAMS_ERROR,array('position'=>'位置不能为空'));
         }
+        //名称
+        $data['name'] = trim($request['name']);
+        if(empty($data['name'])){
+            return $this->outputJson(PARAMS_ERROR,array('name'=>'名称不能为空'));
+        }
         //图片
         $path = base_path().'/storage/banners/';
         if ($request->hasFile('img_path')) {
@@ -215,8 +246,11 @@ class ImgManageController extends Controller
         $data['end'] = strtotime(trim($request['end']));
         //排序
         $data['sort'] = intval($request['sort']);
-        //是否可用
-        $data['can_use'] = 1;
+        //描述
+        $data['desc'] = trim($request['desc']);
+        if(empty($data['desc'])){
+            return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
+        }
         //修改时间
         $data['updated_at'] = time();
         $status = Banner::where($where)->update($data);
