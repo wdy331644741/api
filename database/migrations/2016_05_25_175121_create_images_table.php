@@ -14,7 +14,7 @@ class CreateImagesTable extends Migration
     {
         Schema::create('images', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('position',false,true);//关联位置表
+            $table->string('type',32);//类型
             $table->string('img_path',255);//图片地址
             $table->string('http_url',255);//图片跳转地址
             $table->integer('created_at',false,true);//添加时间

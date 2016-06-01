@@ -14,7 +14,8 @@ class CreateImgPositionsTable extends Migration
     {
         Schema::create('img_positions', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('position',false,true);//关联位置表
+            $table->string('position',32);//关联位置表
+            $table->string('nickname',32);//别名
             $table->integer('width',false,true);//图片宽度
             $table->integer('height',false,true);//图片高度
             $table->integer('created_at',false,true);//添加时间
