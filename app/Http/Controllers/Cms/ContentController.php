@@ -18,7 +18,7 @@ class ContentController extends Controller
         if(!$type_id){
             $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        $data = Content::where('release',1)->where('type_id',$type_id)->orderBy('sort','ASC')->orderBy('id','desc')->paginate($pagenum);
+        $data = Content::where('release',1)->where('type_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
         return $this->outputJson(0,$data);
     }
 
@@ -28,7 +28,7 @@ class ContentController extends Controller
             $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $type_id = ContentType::where('alias_name',$name)->value('type_id');
-        $data = Content::where('release',1)->where('type_id',$type_id)->orderBy('sort','ASC')->orderBy('id','desc')->paginate($pagenum);
+        $data = Content::where('release',1)->where('type_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
         return $this->outputJson(0,$data);
     }
 
@@ -40,6 +40,7 @@ class ContentController extends Controller
             'title' => 'required',
             'content' => 'required',
             'source' => 'url',
+            'platform' =>'required|in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -48,6 +49,7 @@ class ContentController extends Controller
         $content->type_id = $request->type_id;
         $content->title = $request->title;
         $content->content = $request->content;
+        $content->platform = $request->platform;
         if(isset($request->release)){
             $content->release = $request->release;
         }
@@ -84,7 +86,6 @@ class ContentController extends Controller
         }
     }
 
-
     //修改内容
     public function postPut(Request $request){
         $validator = Validator::make($request->all(), [
@@ -92,7 +93,8 @@ class ContentController extends Controller
             'type_id' => 'required|alpha_num|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'source' => 'url'
+            'source' => 'url',
+            'platform' =>'required|in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -100,7 +102,8 @@ class ContentController extends Controller
         $putdata = array(
             'type_id'=>$request->type_id,
             'title'=>$request->title,
-            'content'=>$request->content
+            'content'=>$request->content,
+            'platform'=>$request->platform,
         );
 
         if(isset($request->cover)){
@@ -127,6 +130,144 @@ class ContentController extends Controller
         }
         $data = Content::where('release',1)->find($id);
         return $this->outputJson(0,$data);
+    }
+
+    //发布内容接口
+    public function getRelease($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_contents,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Content::where('id',$id)->update(array('release',1));
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //下线内容接口
+    public function getOffline($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_contents,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Content::where('id',$id)->update(array('release',0));
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //内容上移
+    public function getUp($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_contents,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $current = Content::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = Content::whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = Content::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = Content::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //内容下移
+    public function getDown($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_contents,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $current = Content::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = Content::whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = Content::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = Content::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //分类上移
+    public function getTypeUp($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_content_types,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $parent_id = ContentType::find($id)->value('parent_id');
+        $current = ContentType::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort > $current_num")->where('parent_id',$parent_id)->orderByRaw('id + sort ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = ContentType::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = ContentType::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //分类下移
+    public function getTypeDown($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_contents,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $parent_id = ContentType::find($id)->value('parent_id');
+        $current = ContentType::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = ContentType::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = ContentType::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
     }
 
     //新建分类
@@ -222,7 +363,7 @@ class ContentController extends Controller
         if($id !=0 && !$id){
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        $data = ContentType::where('parent_id',$id)->orderBy('sort','ASC')->orderBy('id','DESC')->get();
+        $data = ContentType::where('parent_id',$id)->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get();
         return $this->outputJson(0,$data);
     }
 
@@ -232,7 +373,7 @@ class ContentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $type_id = ContentType::where('alias_name',$name)->value('id');
-        $data = ContentType::where('parent_id',$type_id)->orderBy('sort','ASC')->orderBy('id','DESC')->get();
+        $data = ContentType::where('parent_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','DESC')->get();
         return $this->outputJson(0,$data);
     }
 
