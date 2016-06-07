@@ -15,11 +15,15 @@ class Activity extends Model
     protected $dates = ['deleted_at'];
 
     public function rules(){
-        return $this->hasMany('App\Models\Rule');
+        return $this->hasMany('App\Models\Rule','activity_id','id');
     }
 
     public function triggers(){
         return $this->hasOne('App\Models\Trigger');
+    }
+
+    public function awards(){
+        return $this->hasMany('App\Models\Award','activity_id','id');
     }
 
 }

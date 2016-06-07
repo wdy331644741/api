@@ -15,9 +15,6 @@ class AddGroupToActivitiesTable extends Migration
         Schema::table('activities', function (Blueprint $table) {
             $table->tinyInteger('group_id');
             $table->tinyInteger('trigger_index');
-            if (Schema::hasColumn('activities', 'alias_name')) {
-                $table->dropColumn('alias_name');
-            }
         });
     }
 
