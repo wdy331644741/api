@@ -471,8 +471,8 @@ class AwardCommonController extends Controller{
                 //验证文件上传中是否出错
                 if ($request->file('file')->isValid()){
                     $mimeTye = $request->file('file')->getClientOriginalExtension();
-                    if($mimeTye == 'txt'){
-                        $fileName = date('YmdHis').mt_rand(1000,9999).'.txt';
+                    if($mimeTye == 'xlsx' || $mimeTye == 'xls'){
+                        $fileName = date('YmdHis').mt_rand(1000,9999).'.'.$mimeTye;
                         //保存文件到路径
                         $request->file('file')->move($path,$fileName);
                         $file = $path.$fileName;

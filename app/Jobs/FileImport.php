@@ -7,6 +7,7 @@ use App\Models\CouponCode;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Excel;
 
 class FileImport extends Job implements ShouldQueue
 {
@@ -31,13 +32,18 @@ class FileImport extends Job implements ShouldQueue
      */
     public function handle()
     {
-        //打开文件
-        if(file_exists($this->file)){
-            $handle = fopen($this->file, 'r');
-            while(!feof($handle)){
-                $conn = fgets($handle, 1024);
+        if(!file_exists($this->file)){
+            return "file not find!";
+        }
+        Excel::load($this->file,function($reader) {
+            $reader = $reader->getSheet(0);
+            $data = $reader->toArray();
+            if(empty($data[0][0])){
+                return "file empty!";
+            }
+            foreach($data as $item){
                 //替换字符串
-                $conn = trim(str_replace("rn","<br/>",$conn));
+                $conn = trim(str_replace("rn","<br/>",$item[0]));
                 //判断是否添加过
                 $isExist = CouponCode::where('code',$conn)->get()->count();
                 if($isExist){
@@ -47,14 +53,11 @@ class FileImport extends Job implements ShouldQueue
                         continue;
                     }
                     //添加到数据库
-                    $data['coupon_id'] = intval($this->insertID);
-                    $data['code'] = $conn;
-                    CouponCode::insertGetId($data);
+                    $insert['coupon_id'] = intval($this->insertID);
+                    $insert['code'] = $conn;
+                    CouponCode::insertGetId($insert);
                 }
             }
-            fclose($handle);
-        }else{
-            echo "file not find!";
-        }
+        });
     }
 }
