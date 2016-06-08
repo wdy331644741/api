@@ -15,11 +15,13 @@ class CreateCmsContentsTable extends Migration
         Schema::create('cms_contents', function (Blueprint $table) {
             $table->increments('id');
             $table->tinyInteger('type_id');
-            $table->string('cover')->comment('当type_id为1时，封面图片不能为空');
+            $table->string('cover')->nullable()->default(NULL);
             $table->string('title');
             $table->text('content');
             $table->string('source')->nullable()->default(NULL);
+            $table->integer('sort')->default(0);
             $table->tinyInteger('release')->default(0);
+            $table->tinyInteger('platform')->default(0)->commemt('0:全平台，1：pc端，2：移动端(ios,android)');
             $table->softDeletes();
             $table->timestamps();
         });

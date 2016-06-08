@@ -28,6 +28,7 @@ class ActivityController extends Controller
     public function postAdd(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
+            'alias_name' =>'reuqired|uinque:activities,alias_name',
             'group_id'=>'required|exists:activity_groups,id',
             'start_at'=> 'date',
             'end_at' => 'date',
@@ -39,6 +40,7 @@ class ActivityController extends Controller
         }
         $activity = new Activity;
         $activity->name = $request->name;
+        $activity->alias_name = $request->alias_name;
         if($request->start_at){
             $activity->start_at = $request->start_at;
         }
@@ -84,6 +86,7 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
+            'alias_name' => 'required|unique:activities,alias_name'.$request->id,
             'group_id'=>'required|exists:activity_groups,id',
             'start_at'=> 'date',
             'end_at' => 'date',
@@ -96,6 +99,7 @@ class ActivityController extends Controller
 
         $res = Activity::where('id',$request->id)->update([
             'name'=>$request->name,
+            'alias_name'=>$request->alias_name,
             'group_id'=>$request->group_id,
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
@@ -210,9 +214,9 @@ class ActivityController extends Controller
     //组列表
     public function getGroupList($type_id=0){
         if($type_id){
-            $data = ActivityGroup::where('type_id',$type_id)->with('activities')->orderBy('id','desc')->paginate(20);
+            $data = ActivityGroup::where('type_id',$type_id)->with('activities')->with('activities.rules','activities.awards')->orderBy('id','desc')->paginate(20);
         }else{
-            $data = ActivityGroup::with('activities')->orderBy('id','desc')->paginate(20);
+            $data = ActivityGroup::with('activities')->with('activities.rules','activities.awards')->orderBy('id','desc')->paginate(20);
         }
         return $this->outputJson(0,$data);
     }
