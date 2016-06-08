@@ -221,7 +221,6 @@ class ActivityController extends Controller
         return $this->outputJson(0,$data);
     }
 
-
     //删除主活动
     public function postGroupDel(Request $request){
         $validator = Validator::make($request->all(), [
