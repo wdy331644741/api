@@ -9,8 +9,8 @@ class JsonRpcServer
 
     public function __construct($postRequest = '')
     {
-    	if(!$postRequest)
-    		$postRequest = file_get_contents("php://input");
+        if (!$postRequest)
+            $postRequest = file_get_contents("php://input");
         $this->_requestText = $postRequest;
         $this->_listOfCallableServices = array();
     }
@@ -27,7 +27,7 @@ class JsonRpcServer
             $this->performCalls();
         } catch (\Exception $e) {
             $responseBody = new RpcError($e->getMessage(), $e->getCode());
-           
+
             $responseObject = new RpcResponse($responseBody);
             $this->doResponse($responseObject->getRpcResponseObject());
         }
@@ -36,7 +36,7 @@ class JsonRpcServer
     private function parseRequestJson()
     {
         if (!is_null($requestObjects = json_decode($this->_requestText))) {
-            $requestObjects->id = intval($requestObjects->id);
+//            $requestObjects->id = intval($requestObjects->id);
             $this->_requestObject = $requestObjects;
         } else {
             throw new JsonRpcParseErrorException();
@@ -98,11 +98,12 @@ class JsonRpcServer
             $methodOwnerService = $this->isMethodAvailable($requestObject);
             $this->validateAndSortParameters($methodOwnerService, $requestObject);
             $responseObject = $this->buildResponseObject($requestObject, $methodOwnerService);
-        } catch (JsonRpcMethodNotFoundException $exception) {
-            $responseObject = $this->buildResponseObject($exception);
+        } catch (JsonRpcBasicErrorException $exception) {
+            $responseObject = $this->buildResponseObject($exception, null, $exception->data);
             $responseObject->setResponseObjectId($requestObject->id);
         } catch (\Exception $exception) {
             $responseObject = $this->buildResponseObject($exception);
+            $responseObject->setResponseObjectId($requestObject->id);
         }
         return $responseObject;
     }
@@ -175,10 +176,10 @@ class JsonRpcServer
         }
     }
 
-    private function buildResponseObject($requestOrExceptionObject, $service = null)
+    private function buildResponseObject($requestOrExceptionObject, $service = null, $data = array())
     {
         if (is_null($service)) {
-            $responseBody = new RpcError($requestOrExceptionObject->getMessage(), $requestOrExceptionObject->getCode());
+            $responseBody = new RpcError($requestOrExceptionObject->getMessage(), $requestOrExceptionObject->getCode(), $data);
             $responseObject = new RpcResponse($responseBody);
         } else {
             $callbackResult = $this->call($service, $requestOrExceptionObject);

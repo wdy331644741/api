@@ -36,7 +36,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Image::where($where)->orderBy('id','DESC')->get();
+        $data = Image::where($where)->orderBy('sort','DESC')->get();
         return $this->outputJson(0,$data);
     }
     //banner添加
@@ -269,5 +269,43 @@ class ImgManageController extends Controller
     public function _getPostion($where = array()){
         $list = ImgPosition::where($where)->get()->toArray();
         return $list;
+    }
+    //上移
+    public function postSortMove(Request $request){
+        //获取操作的id
+        $id = intval($request->id);
+        //取得当前的值
+        $data = Banner::where('id',$id)->select('sort')->get()->toArray();
+        $value = isset($data[0]['sort']) ? $data[0]['sort'] : 0;
+        //取得上一个当前的值
+        $data2 = Banner::where('sort','>',$value)->select('id','sort')->orderBy('sort','DESC')->get()->take(1)->toArray();
+        $move = isset($data2[0]['sort']) ? $data2[0]['sort'] : 0;
+        $moveID = isset($data2[0]['id']) ? $data2[0]['id'] : 0;
+        //开始交换值
+        if(!empty($move)){
+            Banner::where('id',$id)->update(array('sort'=>$move));
+            Banner::where('id',$moveID)->update(array('sort'=>$value));
+            return $this->outputJson(0,array('error_msg'=>'成功'));
+        }
+        return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'排序已经是最前'));
+    }
+    //下移
+    public function postSortDown(Request $request){
+        //获取操作的id
+        $id = intval($request->id);
+        //取得当前的值
+        $data = Banner::where('id',$id)->select('sort')->get()->toArray();
+        $value = isset($data[0]['sort']) ? $data[0]['sort'] : 0;
+        //取得上一个当前的值
+        $data2 = Banner::where('sort','<',$value)->select('id','sort')->orderBy('sort','DESC')->get()->take(1)->toArray();
+        $move = isset($data2[0]['sort']) ? $data2[0]['sort'] : 0;
+        $moveID = isset($data2[0]['id']) ? $data2[0]['id'] : 0;
+        //开始交换值
+        if(!empty($move)){
+            Banner::where('id',$id)->update(array('sort'=>$move));
+            Banner::where('id',$moveID)->update(array('sort'=>$value));
+            return $this->outputJson(0,array('error_msg'=>'成功'));
+        }
+        return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'排序已经是最后'));
     }
 }

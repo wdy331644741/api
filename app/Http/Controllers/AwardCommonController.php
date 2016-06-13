@@ -140,11 +140,12 @@ class AwardCommonController extends Controller{
         if($data['name'] == ''){
             return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
         }
-        //判断是直抵红包还是百分比红包
-        $data['percentage'] = isset($request->percentage) ? intval($request->percentage) : 0;
-        if(!empty($data['percentage'])){
-            //百分比红包
-            $data['red_type'] = 2;
+        //红包类型
+        $data['red_type'] = isset($request->red_type) ? intval($request->red_type) : 0;
+        if(empty($data['red_type'])){
+            return array('code'=>404,'params'=>'red_type','error_msg'=>'请选择红包类型');
+        }
+        if($data['red_type'] == 2){
             //红包最高金额
             $data['red_money'] = isset($request->red_max_money) ? intval($request->red_max_money) : 0;
             if($data['red_money'] == ''){
@@ -156,9 +157,8 @@ class AwardCommonController extends Controller{
                 return array('code'=>404,'params'=>'percentage','error_msg'=>'百分比例不能为空');
             }
 
-        }else{
-            //直抵红包
-            $data['red_type'] = 1;
+        }
+        if($data['red_type'] == 1){
             //红包金额
             $data['red_money'] = isset($request->red_money) ? intval($request->red_money) : 0;
             if($data['red_money'] == ''){
@@ -314,7 +314,7 @@ class AwardCommonController extends Controller{
             //修改时间
             $data['updated_at'] = time();
             if($isExist){
-                $status = Award4::where('id',$award_id)->update($data);
+                $status = Award3::where('id',$award_id)->update($data);
                 if($status){
                     return array('code'=>200,'error_msg'=>'修改成功');
                 }else{
@@ -538,14 +538,7 @@ class AwardCommonController extends Controller{
         if($limit == 0 && $params['award_type'] !== 0){
             //获取全部列表
             $table = $this->_getAwardTable($params['award_type']);
-            if($params['award_type'] == 2){
-                $returnArray = $table::where('red_type',1)->paginate(3);
-            }elseif($params['award_type'] == 3){
-                $returnArray = $table::where('red_type',2)->paginate(3);
-            }else{
-                $returnArray = $table::paginate(3);
-            }
-
+            $returnArray = $table::paginate(3);
             return $returnArray;
         }elseif ($limit == 1 && !empty($params['award_type']) && !empty($params['award_id'])) {
             //获取单条信息
@@ -562,20 +555,18 @@ class AwardCommonController extends Controller{
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 7) {
+        if($awardType >= 1 && $awardType <= 6) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
                 return new Award2;
             } elseif ($awardType == 3) {
-                return new Award2;
-            } elseif ($awardType == 4) {
                 return new Award3;
-            } elseif ($awardType == 5) {
+            } elseif ($awardType == 4) {
                 return new Award4;
-            } elseif ($awardType == 6) {
+            } elseif ($awardType == 5) {
                 return new Award5;
-            } elseif ($awardType == 7){
+            } elseif ($awardType == 6){
                 return new Coupon;
             }else{
                 return false;
