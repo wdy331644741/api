@@ -19,12 +19,11 @@ class AwardController extends AwardCommonController
         $this->awards = [
             'awards' => [
                 '1' => '_rateIncreases',//加息券
-                '2' => '_redMoney',//直抵红包
-                '3' => '_redMoney',//百分比红包
-                '4' => '_experienceAmount',//体验金
-                '5' => '_integral',//用户积分
-                '6' => '_objects',//实物
-                '7' => '_couponAdd',//优惠券
+                '2' => '_redMoney',//红包
+                '3' => '_experienceAmount',//百分比红包
+                '4' => '_integral',//体验金
+                '5' => '_objects',//用户积分
+                '6' => '_couponAdd',//实物
             ]
         ];
     }
@@ -81,7 +80,7 @@ class AwardController extends AwardCommonController
         if($return['code'] == 200){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
         }elseif($return['code'] == 404){
-            return $this->outputJson(PARAMES_ERROR,array($return['params']=>$return['error_msg']));
+            return $this->outputJson(PARAMS_ERROR,array($return['params']=>$return['error_msg']));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>$return['error_msg']));
         }

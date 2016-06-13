@@ -29,7 +29,7 @@ class RpcError {
 		$this->errorObject->message = $this->_message;
 	}
 	public function setErrorData() {
-		if(!is_null($this->_data)) {
+		if(!empty($this->_data)) {
 			$this->errorObject->data = $this->_data;
 		}
 	}
