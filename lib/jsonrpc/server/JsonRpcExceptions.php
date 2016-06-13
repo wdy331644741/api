@@ -37,4 +37,15 @@ class JsonRpcServererrorException extends \Exception {
 		parent::__construct("Server error",-32099||-32000);
 	}
 }
+
+// Defined Exception for JsonRpc
+class JsonRpcBasicErrorException extends \Exception
+{
+	public $data;
+	public function __construct($code, $message = '', $data = array())
+	{
+		$this->data = $data;
+		parent::__construct($message, $code);
+	}
+}
 ?>

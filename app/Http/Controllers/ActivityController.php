@@ -517,20 +517,18 @@ class ActivityController extends Controller
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 7) {
+        if($awardType >= 1 && $awardType <= 6) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
                 return new Award2;
             } elseif ($awardType == 3) {
-                return new Award2;
-            } elseif ($awardType == 4) {
                 return new Award3;
-            } elseif ($awardType == 5) {
+            } elseif ($awardType == 4) {
                 return new Award4;
-            } elseif ($awardType == 6) {
+            } elseif ($awardType == 5) {
                 return new Award5;
-            } elseif ($awardType == 7){
+            } elseif ($awardType == 6){
                 return new Coupon;
             }else{
                 return false;

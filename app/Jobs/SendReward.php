@@ -46,7 +46,6 @@ class SendReward extends Job implements ShouldQueue
     {
         //判断规则是否符合
         $rule = true;
-
         //查找奖品发送
         if ($rule) {
             //符合
@@ -102,7 +101,7 @@ class SendReward extends Job implements ShouldQueue
         if(!empty($info)){
             foreach($info as $k=>$v){
                 $data = array();
-                $url = "http://liuqi.wlpassport.dev.wanglibao.com/service.php?c=reward";
+                $url = "http://liuqi.dev.wanglibao.com/wl_passport/app/web/service.php?c=reward";
                 $client = new JsonRpcClient($url);
                 $uuid = $this->create_guid();
                 if($v['info']['award_type'] == 1){
@@ -137,7 +136,7 @@ class SendReward extends Job implements ShouldQueue
                         //发送接口
                         $result = $client->interestCoupon($data);
                         //存储到日志
-                        if($result['result']['err_code'] == 0){
+                        if($result['result']['err_code'] == 1000){
                             $this->addLog($data['source_id'],3,$data['uuid'],$data['remark']);
                         }
                     }
@@ -167,7 +166,7 @@ class SendReward extends Job implements ShouldQueue
                         //发送接口
                         $result = $client->redpacket($data);
                         //存储到日志
-                        if($result['result']['err_code'] == 0){
+                        if($result['result']['err_code'] == 1000){
                             $this->addLog($data['source_id'],3,$data['uuid'],$data['remark']);
                         }
                     }
@@ -198,7 +197,7 @@ class SendReward extends Job implements ShouldQueue
                         //发送接口
                         $result = $client->redpacket($data);
                         //存储到日志
-                        if($result['result']['err_code'] == 0){
+                        if($result['result']['err_code'] == 1000){
                             $this->addLog($data['source_id'],3,$data['uuid'],$data['remark']);
                         }
                     }
@@ -229,10 +228,10 @@ class SendReward extends Job implements ShouldQueue
                         //发送接口
                         $result = $client->experience($data);
                         //存储到日志
-                        if($result['result']['err_code'] == 0){
+                        if($result['result']['err_code'] == 1000){
                             $this->addLog($data['source_id'],4,$data['uuid'],$data['remark']);
                         }
-                        var_dump($result['result']['err_code']);exit;
+
                     }
                 }
 
