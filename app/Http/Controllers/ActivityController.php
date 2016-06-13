@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Service\Func;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 
 use App\Models\Activity;
 use App\Models\Rule;
@@ -24,7 +23,7 @@ use Validator;
 
 class ActivityController extends Controller
 {
-    //
+    //添加子活动
     public function postAdd(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
@@ -212,12 +211,14 @@ class ActivityController extends Controller
     }
 
     //组列表
-    public function getGroupList($type_id=0){
-        if($type_id){
+    public function getGroupList(Request $request){
+        $data = Func::GroupSearch($request,new ActivityGroup);
+        /*if($type_id){
             $data = ActivityGroup::where('type_id',$type_id)->with('activities')->with('activities.rules','activities.awards')->orderBy('id','desc')->paginate(20);
         }else{
             $data = ActivityGroup::with('activities')->with('activities.rules','activities.awards')->orderBy('id','desc')->paginate(20);
-        }
+        }*/
+        dd($data);
         return $this->outputJson(0,$data);
     }
 
