@@ -15,7 +15,7 @@ class Func
         if(isset($request->data['filter'])){
             $filter = $request->data['filter'];
         }else{
-            $filter = array('type_id',0);
+            $filter = array('type_id'=>0);
         }
         if(isset($request->data['pagenum'])){
             $pagenum = $request->data['pagenum'];
