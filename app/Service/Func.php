@@ -11,8 +11,12 @@ class Func
         $data = array();
         $order_str = '';
         $pagenum = 20;
-        dd($request->all());
         $url = $request->fullUrl();
+        if(isset($request->data['filter'])){
+            $filter = $request->data['filter'];
+        }else{
+            $filter = array('type_id',0);
+        }
         if(isset($request->data['pagenum'])){
             $pagenum = $request->data['pagenum'];
         }
@@ -26,7 +30,7 @@ class Func
         if(isset($request->data['like'])){
             foreach ($request->data['like'] as $key=>$val){
                 //$like_str = "$key LIKE %$val%";
-                $data = $model_name::where($request->data['filter'])
+                $data = $model_name::where($filter)
                     ->where($key,'LIKE',"%$val%")
                     ->with('activities')
                     ->with('activities.rules','activities.awards')
@@ -36,7 +40,7 @@ class Func
                     ->toArray();
             }
         }else{
-            $data = $model_name::where($request->data['filter'])
+            $data = $model_name::where($filter)
                 ->with('activities')
                 ->with('activities.rules','activities.awards')
                 ->orderByRaw($order_str)
