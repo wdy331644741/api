@@ -213,12 +213,6 @@ class ActivityController extends Controller
     //组列表
     public function getGroupList(Request $request){
         $data = Func::GroupSearch($request,new ActivityGroup);
-        /*if($type_id){
-            $data = ActivityGroup::where('type_id',$type_id)->with('activities')->with('activities.rules','activities.awards')->orderBy('id','desc')->paginate(20);
-        }else{
-            $data = ActivityGroup::with('activities')->with('activities.rules','activities.awards')->orderBy('id','desc')->paginate(20);
-        }*/
-        dd($data);
         return $this->outputJson(0,$data);
     }
 

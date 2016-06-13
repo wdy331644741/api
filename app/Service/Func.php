@@ -36,8 +36,7 @@ class Func
                     ->with('activities.rules','activities.awards')
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url)
-                    ->toArray();
+                    ->setPath($url);
             }
         }else{
             $data = $model_name::where($filter)
@@ -45,8 +44,7 @@ class Func
                 ->with('activities.rules','activities.awards')
                 ->orderByRaw($order_str)
                 ->paginate($pagenum)
-                ->setPath($url)
-                ->toArray();
+                ->setPath($url);
         }
 
         return $data;
