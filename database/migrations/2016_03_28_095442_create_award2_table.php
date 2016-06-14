@@ -24,10 +24,10 @@ class CreateAward2Table extends Migration
             $table->integer('effective_time_end',false,true);//有效时间结束时间
             $table->integer('investment_threshold',false,true);//投资门槛
             $table->tinyInteger('project_duration_type',false,true);//项目期限
-            $table->tinyInteger('project_type',false,true);//项目类型
-            $table->string('product_id',128);//产品ID
-            $table->tinyInteger('platform_type',false,true);//平台端
-            $table->string('limit_desc',32);//限制说明
+            $table->tinyInteger('project_type',false,true)->nullable();//项目类型
+            $table->string('product_id',128)->nullable();//产品ID
+            $table->tinyInteger('platform_type',false,true)->nullable();//平台端
+            $table->string('limit_desc',32)->nullable();//限制说明
             $table->integer('created_at',false,true);//创建时间
             $table->integer('updated_at',false,true);//修改时间
         });
