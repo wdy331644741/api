@@ -13,6 +13,7 @@ class ImgManageController extends Controller
     public function getBannerList(Request $request)
     {
         $where = array();
+        $where['can_use'] = 1;
         //位置
         $position = $request['position'];
         if (!empty($position)) {
