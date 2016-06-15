@@ -13,7 +13,7 @@ class ChannelController extends Controller
 {
     //渠道列表
     public function getList(){
-        $data = Channel::orderBy('id','desc')->get();
+        $data = Channel::orderBy('id','desc')->paginate(20);
         return $this->outputJson(0,$data);
     }
 
