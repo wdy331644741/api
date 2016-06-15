@@ -90,14 +90,8 @@ class AwardCommonController extends Controller{
         $data['project_type'] = $request->project_type;
         //产品ID
         $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";
-        if(empty($data['product_id'])){
-            return array('code'=>404,'params'=>'product_id','error_msg'=>'产品ID不能为空');
-        }
         //平台端
         $data['platform_type'] = $request->platform_type;
-        if($data['platform_type'] == null){
-            return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
-        }
         //限制说明
         $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
@@ -201,14 +195,8 @@ class AwardCommonController extends Controller{
         $data['project_type'] = $request->project_type;
         //产品ID
         $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";
-        if(empty($data['product_id'])){
-            return array('code'=>404,'params'=>'product_id','error_msg'=>'产品ID不能为空');
-        }
         //平台端
         $data['platform_type'] = $request->platform_type;
-        if($data['platform_type'] == null){
-            return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
-        }
         //限制说明
         $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
@@ -299,9 +287,6 @@ class AwardCommonController extends Controller{
 //        }
         //平台端
         $data['platform_type'] = $request->platform_type;
-        if($data['platform_type'] == null){
-            return array('code'=>404,'params'=>'platform_type','error_msg'=>'请选择平台端');
-        }
         //限制说明
         $data['limit_desc'] = trim($request->limit_desc);
         //判断是添加还是修改
