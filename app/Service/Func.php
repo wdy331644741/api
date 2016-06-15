@@ -12,11 +12,7 @@ class Func
         $order_str = '';
         $pagenum = 20;
         $url = $request->fullUrl();
-        if(isset($request->data['filter'])){
-            $filter = $request->data['filter'];
-        }else{
-            $filter = array('type_id'=>0);
-        }
+
         if(isset($request->data['pagenum'])){
             $pagenum = $request->data['pagenum'];
         }
@@ -27,10 +23,10 @@ class Func
         }else{
             $order_str = "id desc";
         }
-        if(isset($request->data['like'])){
+        if(isset($request->data['like']) && isset($request->data['filter'])){
             foreach ($request->data['like'] as $key=>$val){
                 //$like_str = "$key LIKE %$val%";
-                $data = $model_name::where($filter)
+                $data = $model_name::where($request->data['filter'])
                     ->where($key,'LIKE',"%$val%")
                     ->with('activities')
                     ->with('activities.rules','activities.awards')
@@ -38,9 +34,22 @@ class Func
                     ->paginate($pagenum)
                     ->setPath($url);
             }
-        }else{
-            $data = $model_name::where($filter)
+        }elseif(isset($request->data['like']) && !isset($request->data['filter'])){
+            $data = $model_name::where($key,'LIKE',"%$val%")
                 ->with('activities')
+                ->with('activities.rules','activities.awards')
+                ->orderByRaw($order_str)
+                ->paginate($pagenum)
+                ->setPath($url);
+        }elseif (isset($request->data['filter']) && !isset($request->data['like'])){
+            $data = $model_name::where($request->data['filter'])
+                ->with('activities')
+                ->with('activities.rules','activities.awards')
+                ->orderByRaw($order_str)
+                ->paginate($pagenum)
+                ->setPath($url);
+        }else{
+            $data = $model_name::with('activities')
                 ->with('activities.rules','activities.awards')
                 ->orderByRaw($order_str)
                 ->paginate($pagenum)
