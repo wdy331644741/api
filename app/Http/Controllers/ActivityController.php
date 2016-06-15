@@ -27,7 +27,7 @@ class ActivityController extends Controller
     public function postAdd(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'alias_name' =>'required|uinque:activities,alias_name',
+            'alias_name' =>'required|unique:activities,alias_name',
             'group_id'=>'required|exists:activity_groups,id',
             'start_at'=> 'date',
             'end_at' => 'date',
