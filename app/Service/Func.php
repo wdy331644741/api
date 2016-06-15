@@ -34,7 +34,7 @@ class Func
                     ->paginate($pagenum)
                     ->setPath($url);
             }
-        }elseif(isset($request->data['like']) && !isset($request->data['filter'])){
+        }elseif (isset($request->data['like']) && !isset($request->data['filter'])){
             $data = $model_name::where($key,'LIKE',"%$val%")
                 ->with('activities')
                 ->with('activities.rules','activities.awards')
