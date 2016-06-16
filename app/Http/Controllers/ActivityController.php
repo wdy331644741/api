@@ -331,7 +331,7 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'min_time' => 'date',
             'max_time' => 'date|after:min_time',
-            'activity_id'=>'alpha_num|exists:activities,id',
+            'activity_id'=>'required|alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
@@ -357,7 +357,7 @@ class ActivityController extends Controller
     private function rule_channel($type,$request){
         $validator = Validator::make($request->all(), [
             'channels' => 'required',
-            'activity_id'=>'alpha_num|exists:activities,id',
+            'activity_id'=>'required|alpha_num|exists:activities,id',
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
@@ -380,7 +380,7 @@ class ActivityController extends Controller
     //充值金额
     private function rule_recharge($type,$request){
         $validator = Validator::make($request->all(), [
-            'activity_id'=>'alpha_num|exists:activities,id',
+            'activity_id'=>'required|alpha_num|exists:activities,id',
             'isfirst' => 'required|in:0,1',
             'min_recharge'=>'required|numeric',
             'max_recharge'=>'required|numeric',
@@ -406,7 +406,7 @@ class ActivityController extends Controller
     //投资金额
     private function rule_cast($type,$request){
         $validator = Validator::make($request->all(), [
-            'activity_id'=>'alpha_num|exists:activities,id',
+            'activity_id'=>'required|alpha_num|exists:activities,id',
             'isfirst' => 'required|in:0,1',
             'min_cast'=>'required|numeric',
             'max_cast'=>'required|numeric',
