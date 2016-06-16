@@ -383,7 +383,7 @@ class ActivityController extends Controller
             'activity_id'=>'required|alpha_num|exists:activities,id',
             'isfirst' => 'required|in:0,1',
             'min_recharge'=>'required|numeric',
-            'max_recharge'=>'required|numeric',
+            'max_recharge'=>'required|numeric|min:'.$request->min_recharge,
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
@@ -409,7 +409,7 @@ class ActivityController extends Controller
             'activity_id'=>'required|alpha_num|exists:activities,id',
             'isfirst' => 'required|in:0,1',
             'min_cast'=>'required|numeric',
-            'max_cast'=>'required|numeric',
+            'max_cast'=>'required|numeric|min:'.$request->min_cast,
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());

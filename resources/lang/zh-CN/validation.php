@@ -52,7 +52,7 @@ return [
     ],
     'mimes'                => ':attribute 必须是一个 :values 类型的文件。',
     'min'                  => [
-        'numeric' => ':attribute 必须大于等于 :min。',
+        'numeric' => ':attribute 必须大于:min。',/*等于*/
         'file'    => ':attribute 大小不能小于 :min kb。',
         'string'  => ':attribute 至少为 :min 个字符。',
         'array'   => ':attribute 至少有 :min 个单元。',
@@ -151,7 +151,11 @@ return [
         'group_id'              => '组活动',
         'pre'                   => '渠道组',
         'cover'                 => '封面',
-        'source'                => '来源'
+        'source'                => '来源',
+        'min_recharge'          => '最小充值金额',
+        'max_recharge'          => '最大充值金额',
+        'min_cast'              => '最小投资金额',
+        'max_cast'              => '最大投资金额',
     ],
 
 ];
