@@ -377,6 +377,58 @@ class ActivityController extends Controller
         }
     }
 
+    //充值金额
+    private function rule_recharge($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'alpha_num|exists:activities,id',
+            'isfirst' => 'required|in:0,1',
+            'min_recharge'=>'required|numeric',
+            'max_recharge'=>'required|numeric',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('isfirst','min_recharge','max_recharge'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //投资金额
+    private function rule_cast($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'alpha_num|exists:activities,id',
+            'isfirst' => 'required|in:0,1',
+            'min_cast'=>'required|numeric',
+            'max_cast'=>'required|numeric',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('isfirst','min_cast','max_cast'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     //获取规则
     private function getRegisterRule($rule_id){
         $register = new Rule\Register();
