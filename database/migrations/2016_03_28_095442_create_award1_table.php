@@ -15,7 +15,7 @@ class CreateAward1Table extends Migration
         Schema::create('award_1', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name',64);//名称
-            $table->integer('rate_increases',false,true);//加息值
+            $table->float('rate_increases',8,4);//加息值
             $table->tinyInteger('rate_increases_type',false,true);//加息时长类型 1、全周期2、加息天数3、局部加息时间段
             $table->tinyInteger('rate_increases_day',false,true);//加息时长天数
             $table->integer('rate_increases_start',false,true);//加息时长开始时间
