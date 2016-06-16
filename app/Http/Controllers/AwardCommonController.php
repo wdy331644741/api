@@ -28,9 +28,15 @@ class AwardCommonController extends Controller{
             return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
         }
         //加息值
-        $data['rate_increases'] = isset($request->rate_increases) ? intval($request->rate_increases) : 0;
-        if($data['rate_increases'] == 0){
-            return array('code'=>404,'params'=>'rate_increases','error_msg'=>'加息值不能为空');
+        $data['rate_increases'] = isset($request->rate_increases) ? floatval($request->rate_increases) : 0;
+        if($data['rate_increases'] == 0) {
+            return array('code' => 404, 'params' => 'rate_increases', 'error_msg' => '加息值不能为空');
+        }
+        if($data['rate_increases'] >= 1) {
+            return array('code' => 404, 'params' => 'rate_increases', 'error_msg' => '加息值不能大于1');
+        }
+        if($data['rate_increases'] < 0.0001) {
+            return array('code' => 404, 'params' => 'rate_increases', 'error_msg' => '加息值不能小于0.0001');
         }
         //加息时长类型
         $data['rate_increases_type'] = $request->rate_increases_type;
