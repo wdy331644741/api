@@ -49,7 +49,7 @@ class AwardController extends AwardCommonController
         if($return['code'] == 200){
             return $this->outputJson(0,array('insert_id'=>$return['insert_id']));
         }elseif($return['code'] == 404){
-            return $this->outputJson(PARAMS_ERROR,array($return['params']=>$return['error_msg']));
+            return $this->outputJson(PARAMS_ERROR,array('error_param'=>$return['params'],'error_msg'=>$return['error_msg']));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>$return['error_msg']));
         }
@@ -80,7 +80,7 @@ class AwardController extends AwardCommonController
         if($return['code'] == 200){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
         }elseif($return['code'] == 404){
-            return $this->outputJson(PARAMS_ERROR,array($return['params']=>$return['error_msg']));
+            return $this->outputJson(PARAMS_ERROR,array('error_param'=>$return['params'],'error_msg'=>$return['error_msg']));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>$return['error_msg']));
         }

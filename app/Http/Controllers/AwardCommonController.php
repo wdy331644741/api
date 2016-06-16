@@ -523,12 +523,12 @@ class AwardCommonController extends Controller{
         if($limit == 0 && $params['award_type'] !== 0){
             //获取全部列表
             $table = $this->_getAwardTable($params['award_type']);
-            $returnArray = $table::paginate(3);
+            $returnArray = $table::orderBy('id','DESC')->paginate(3);
             return $returnArray;
         }elseif ($limit == 1 && !empty($params['award_type']) && !empty($params['award_id'])) {
             //获取单条信息
             $table = $this->_getAwardTable($params['award_type']);
-            $returnArray = $table::where('id', $params['award_id'])->get()->toArray();
+            $returnArray = $table::where('id', $params['award_id'])->orderBy('id','DESC')->get()->toArray();
             return !empty($returnArray) ? $returnArray[0] : false;
         } else {
             return false;
