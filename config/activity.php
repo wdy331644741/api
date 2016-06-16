@@ -38,14 +38,14 @@ return [
             'model_path'=>'App\Models\Rule\Balance',
         ],
         7=>[
-            'name'=>'首投金额',
-            'model_name'=>'Firstcast',
-            'model_path'=>'App\Models\Rule\Firstcast',
-        ],
-        8=>[
             'name'=>'投资金额',
             'model_name'=>'Cast',
             'model_path'=>'App\Models\Rule\Cast',
+        ],
+        8=>[
+            'name'=>'充值金额',
+            'model_name'=>'Recharge',
+            'model_path'=>'App\Models\Rule\Recharge',
         ],
     ],
     'activity_type'=>[
