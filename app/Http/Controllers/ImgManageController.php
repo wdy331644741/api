@@ -455,7 +455,7 @@ class ImgManageController extends Controller
         $data = AppStartpage::where($filter)
             ->where('online_time','<=',$newdate)
             ->where('offline_time','>=',$newdate)
-            ->orderByRaw("offline_time - now()")
+            ->orderByRaw("offline_time - now() ASC")
             ->first();
         return $this->outputJson(0,$data);
     }
