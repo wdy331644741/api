@@ -1,11 +1,18 @@
 <?php
 namespace App\Http\Controllers;
+
+use App\Models\AppStartpage;
+use App\Service\Func;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 
 use App\Models\Banner;
 use App\Models\Image;
 use App\Models\ImgPosition;
+
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Validator;
 
 class ImgManageController extends Controller
 {
@@ -271,6 +278,7 @@ class ImgManageController extends Controller
         $list = ImgPosition::where($where)->get()->toArray();
         return $list;
     }
+    #TODO 有bug
     //上移
     public function postSortMove(Request $request){
         //获取操作的id
@@ -290,6 +298,7 @@ class ImgManageController extends Controller
         }
         return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'排序已经是最前'));
     }
+    #TODO 有bug
     //下移
     public function postSortDown(Request $request){
         //获取操作的id
@@ -308,5 +317,158 @@ class ImgManageController extends Controller
             return $this->outputJson(0,array('error_msg'=>'成功'));
         }
         return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'排序已经是最后'));
+    }
+
+
+    /************************************App启动页**************************************/
+
+    //添加启动页
+    public function postAppAdd(Request $request){
+        $validator = Validator::make($request->all(),[
+            'name' => 'required',
+            'platform' => 'required|numeric',
+            'img1' => 'url',
+            'img2' => 'url',
+            'img3' => 'url',
+            'img4' => 'url',
+            'online_time' => 'date|required',
+            'offline_time' => 'required|after:online_time'
+        ]);
+
+        if($validator->fails()){
+            return $this->outputJson('10001',array('error_msg'=>$validator->errors()->first()));
+        }
+
+        $insdata = [
+            'name' => $request->name,
+            'platform' => $request->platform,
+            'online_time' => $request->online_time,
+            'offline_time' => $request->offline_time,
+        ];
+        if(isset($request->img1)){
+            $insdata['img1'] = $request->img1;
+        }
+        if(isset($request->img2)){
+            $insdata['img2'] = $request->img2;
+        }
+        if(isset($request->img3)){
+            $insdata['img3'] = $request->img3;
+        }
+        if(isset($request->img4)){
+            $insdata['img4'] = $request->img4;
+        }
+
+        $id = AppStartpage::insertGetId($insdata);
+        return $this->outputJson(0,array('insert_id'=>$id));
+    }
+
+
+    //上线启动页
+    public function postAppOnline(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = AppStartpage::where('id',$request->id)->update(array('enable'=>1));
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //下线启动页
+    public function postAppOffline(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = AppStartpage::where('id',$request->id)->update(array('enable'=>0));
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //修改启动页
+    public function postAppPut(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required|exists:app_startpages,id',
+            'name' => 'required',
+            'platform' => 'required|numeric',
+            'img1' => 'url',
+            'img2' => 'url',
+            'img3' => 'url',
+            'img4' => 'url',
+            'online_time' => 'date|required',
+            'offline_time' => 'required|after:online_time'
+        ]);
+
+        if($validator->fails()){
+            return $this->outputJson('10001',array('error_msg'=>$validator->errors()->first()));
+        }
+
+        $data = [
+            'name' => $request->name,
+            'platform' => $request->platform,
+            'online_time' => $request->online_time,
+            'offline_time' => $request->offline_time,
+        ];
+        if(isset($request->img1)){
+            $data['img1'] = $request->img1;
+        }
+        if(isset($request->img2)){
+            $data['img2'] = $request->img2;
+        }
+        if(isset($request->img3)){
+            $data['img3'] = $request->img3;
+        }
+        if(isset($request->img4)){
+            $data['img4'] = $request->img4;
+        }
+        $res = AppStartpage::where('id',$request->id)->update($data);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //启动页列表
+    public function getAppList(Request $request){
+        $data = Func::Search($request,new AppStartpage);
+        return $this->outputJson(0,$data);
+    }
+    
+    //启动页详情 通过平台id获取
+    public function getAppInfoPid($platform){
+        $filter = [
+            'platform'=>$platform,
+            'enable'=>1
+        ];
+        $newdate = date('Y-m-d H:i:s');
+        $data = AppStartpage::where($filter)
+            ->where('online_time','<=',$newdate)
+            ->where('offline_time','>=',$newdate)
+            ->orderByRaw("offline_time - now()")
+            ->first();
+        return $this->outputJson(0,$data);
+    }
+
+    //启动页详情 通过id获取
+    public function getAppInfo($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id' => 'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $data = AppStartpage::find($id);
+        return $this->outputJson(0,$data);
     }
 }
