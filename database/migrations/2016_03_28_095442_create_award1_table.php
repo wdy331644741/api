@@ -30,8 +30,7 @@ class CreateAward1Table extends Migration
             $table->string('product_id',128)->nullable();//产品ID
             $table->tinyInteger('platform_type',false,true)->nullable();//平台端
             $table->string('limit_desc',32)->nullable();//限制说明
-            $table->integer('created_at',false,true);//创建时间
-            $table->integer('updated_at',false,true);//修改时间
+            $table->timestamps();
         });
     }
 

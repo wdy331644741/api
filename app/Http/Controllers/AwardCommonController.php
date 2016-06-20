@@ -108,7 +108,7 @@ class AwardCommonController extends Controller{
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){
                 $status = Award1::where('id',$award_id)->update($data);
                 if($status){
@@ -121,9 +121,9 @@ class AwardCommonController extends Controller{
             }
         }else{
             //添加时间
-            $data['created_at'] = time();
+            $data['created_at'] = date("Y-m-d H:i:s");
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             $id = Award1::insertGetId($data);
             return array('code'=>200,'insert_id' => $id);
         }
@@ -213,7 +213,7 @@ class AwardCommonController extends Controller{
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){
                 $status = Award2::where('id',$award_id)->update($data);
                 if($status){
@@ -226,9 +226,9 @@ class AwardCommonController extends Controller{
             }
         }else {
             //添加时间
-            $data['created_at'] = time();
+            $data['created_at'] = date("Y-m-d H:i:s");
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             $id = Award2::insertGetId($data);
             return array('code' => 200, 'insert_id' => $id);
         }
@@ -303,7 +303,7 @@ class AwardCommonController extends Controller{
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){
                 $status = Award3::where('id',$award_id)->update($data);
                 if($status){
@@ -316,9 +316,9 @@ class AwardCommonController extends Controller{
             }
         }else {
             //添加时间
-            $data['created_at'] = time();
+            $data['created_at'] = date("Y-m-d H:i:s");
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             $id = Award3::insertGetId($data);
             return array('code' => 200, 'insert_id' => $id);
         }
@@ -361,7 +361,7 @@ class AwardCommonController extends Controller{
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){
                 $status = Award4::where('id',$award_id)->update($data);
                 if($status){
@@ -374,9 +374,9 @@ class AwardCommonController extends Controller{
             }
         }else {
             //添加时间
-            $data['created_at'] = time();
+            $data['created_at'] = date("Y-m-d H:i:s");
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             $id = Award4::insertGetId($data);
             return array('code' => 200, 'insert_id' => $id);
         }
@@ -400,7 +400,7 @@ class AwardCommonController extends Controller{
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){
                 $status = Award5::where('id',$award_id)->update($data);
                 if($status){
@@ -413,9 +413,9 @@ class AwardCommonController extends Controller{
             }
         }else {
             //添加时间
-            $data['created_at'] = time();
+            $data['created_at'] = date("Y-m-d H:i:s");
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             $id = Award5::insertGetId($data);
             return array('code' => 200, 'insert_id' => $id);
         }
@@ -444,7 +444,7 @@ class AwardCommonController extends Controller{
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
             //修改时间
-            $data['updated_at'] = time();
+            $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){
                 $status = Coupon::where('id',$award_id)->update($data);
                 if($status){
@@ -480,7 +480,7 @@ class AwardCommonController extends Controller{
             if(!file_exists($data['file'])){
                 return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
             }
-            $data['created_at'] = time();
+            $data['created_at'] = date("Y-m-d H:i:s");
             //插入数据
             $insertID = Coupon::insertGetId($data);
             if($insertID){

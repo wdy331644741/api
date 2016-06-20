@@ -33,7 +33,7 @@ class ImgManageController extends Controller
                 }
             }
         }
-        $data = Banner::where($where)->orderBy('id','DESC')->get();
+        $data = Banner::where($where)->orderBy('sort','DESC')->orderBy('id','DESC')->get();
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
@@ -80,16 +80,16 @@ class ImgManageController extends Controller
         //结束时间
         $data['end'] = strtotime(trim($request['end']));
         //排序
-        $data['sort'] = intval($request['sort']);
+        $data['sort'] = 0;
         //描述
         $data['desc'] = trim($request['desc']);
         if(empty($data['desc'])){
             return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
         }
         //添加时间
-        $data['created_at'] = time();
+        $data['created_at'] = date("Y-m-d H:i:s");
         //修改时间
-        $data['updated_at'] = time();
+        $data['updated_at'] = date("Y-m-d H:i:s");
         //是否可用
         $data['can_use'] = 1;
         $id = Banner::insertGetId($data);
@@ -146,7 +146,7 @@ class ImgManageController extends Controller
         //跳转url
         $data['http_url'] = DOMAIN."/enclosures/".trim($fileName);
         //添加时间
-        $data['created_at'] = time();
+        $data['created_at'] = date("Y-m-d H:i:s");
         $id = Image::insertGetId($data);
         if($id){
             return $this->outputJson(0,array('url'=>$data['http_url']));
@@ -201,7 +201,7 @@ class ImgManageController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
         }
         //修改时间
-        $data['updated_at'] = time();
+        $data['updated_at'] = date("Y-m-d H:i:s");
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
@@ -224,7 +224,7 @@ class ImgManageController extends Controller
         //是否可用
         $save['can_use'] = 2;
         //修改时间
-        $save['updated_at'] = time();
+        $save['updated_at'] = date("Y-m-d H:i:s");
         $status = Banner::where($where)->update($save);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'删除成功'));
@@ -261,7 +261,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经添加过该位置'));
         }
         //添加时间
-        $data['created_at'] = time();
+        $data['created_at'] = date("Y-m-d H:i:s");
         $id = ImgPosition::insertGetId($data);
         if($id){
             return $this->outputJson(0,array('insert_id'=>$id));

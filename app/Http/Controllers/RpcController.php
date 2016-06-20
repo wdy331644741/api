@@ -16,7 +16,7 @@ class RpcController extends Controller
 {
     
     public function getClient() {
-        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/banner-list');
+        $client = new JsonRpcClient('http://staging.api-omg.wanglibao.com/rpc/banner-list');
         $result = $client->getList(array('position' => '1'));
         print_r($result);
     }  

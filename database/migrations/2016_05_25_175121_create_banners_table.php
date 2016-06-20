@@ -22,9 +22,8 @@ class CreateBannersTable extends Migration
             $table->integer('end',false,true);//结束时间
             $table->text('desc',64);//描述
             $table->integer('sort',false,true);//排序值越大越靠前
-            $table->integer('created_at',false,true);//添加时间
-            $table->integer('updated_at',false,true);//修改时间
             $table->tinyInteger('can_use',false,true);//是否可用1可用2不可用
+            $table->timestamps();
         });
     }
 

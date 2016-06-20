@@ -18,7 +18,7 @@ class CreateImgPositionsTable extends Migration
             $table->string('nickname',32);//别名
             $table->integer('width',false,true);//图片宽度
             $table->integer('height',false,true);//图片高度
-            $table->integer('created_at',false,true);//添加时间
+            $table->timestamps();
         });
     }
 

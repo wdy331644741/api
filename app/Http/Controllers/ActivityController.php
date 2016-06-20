@@ -552,8 +552,8 @@ class ActivityController extends Controller
         if($count > 0){
             return false;
         }
-        $data['created_at'] = time();
-        $data['updated_at'] = time();
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['updated_at'] = date("Y-m-d H:i:s");
         $id = Award::insertGetId($data);
         return $id;
     }
