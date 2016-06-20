@@ -34,6 +34,8 @@ Route::controller('award', 'AwardController');
 //触发发奖路由
 Route::controller('mc', 'MessageCenterController');
 
+Route::controller('rpc', 'RpcController');
+
 //图片管理
 Route::controller('img', 'ImgManageController');
 //图片地址转调
