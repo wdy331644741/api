@@ -16,8 +16,8 @@ class RpcController extends Controller
 {
     
     public function getClient() {
-        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/content-list');
-        $result = $client->getList(array('type_id' => '1'));
+        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/cms');
+        $result = $client->getContentList(array('type_id' => '1'));
         print_r($result);
     }  
 
@@ -30,19 +30,11 @@ class RpcController extends Controller
     /**
      * banner列表
      */
-    public function postBannerList() {
+    public function postCms() {
         $jsonRpcServer = new JsonRpcServer();
+        $jsonRpcServer->addService(new ContentJsonRpc());
         $jsonRpcServer->addService(new BannerJsonRpc());
         $jsonRpcServer->processingRequests();
     }
-
-
-    /**
-     * 公告列表
-     */
-    public function postContentList() {
-        $jsonRpcServer = new JsonRpcServer();
-        $jsonRpcServer->addService(new ContentJsonRpc());
-        $jsonRpcServer->processingRequests();
-    }
+    
 }

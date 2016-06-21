@@ -11,7 +11,7 @@ class ContentJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-        public function getList($params) {
+        public function getContentList($params) {
         if(!$params->type_id){
             throw new JsonRpcInternalErrorException();
         }
@@ -21,7 +21,8 @@ class ContentJsonRpc extends JsonRpc {
         ];
         $pagenum = isset($params->pagenum) ? $params->pagenum : 5;
         $data = Content::where($filter)->orderBy('id','desc')->paginate($pagenum)->toArray();
-        $data['Etag'] =  $data['data'][0]['release_time'];
+        if(isset($data['data'][0]['release_time']))
+            $data['Etag'] = $data['data'][0]['release_time'];
         return array(
             'code' => 0,
             'message' => 'success',
