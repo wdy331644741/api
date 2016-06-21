@@ -17,7 +17,7 @@ class RpcController extends Controller
     
     public function getClient() {
         $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/cms');
-        $result = $client->getContentList(array('type_id' => '1'));
+        $result = $client->noticeList(array('alias_name' => 'notice'));
         print_r($result);
     }  
 

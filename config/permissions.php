@@ -7,29 +7,36 @@ return [
             "activity" => [
                 "default" => false,
                 "childrens" => [
-                    "list" => false
+                    "list" => true
+                ]
+            ],
+            "award" => [
+                "default" => false,
+                "childrens" => [
+                    "list" => true
+                ]
+            ],
+            "channel" => [
+                "default" => false,
+                "childrens" => [
+                    "list" => true
+                ]
+            ],
+            "cms" => [
+                "default" => false,
+                "childrens" => [
+                    "list" => true
                 ]
             ]
+
         ]
-    ],
-    "youke" => [
-        "default" => true,
     ],
     "admin" => [
-        "default" => true,
+        "default" => true
     ],
-    "caozuoyuan" => [
-        "default" => true,
-        'child' => [
-            'act' => [
-                'def' => true,
-                'child' => [
-                    'put' => false,
-                    'del' => false,
-                ]
-            ]
-        ]
-    ]
+    'editor' => [
+        'default'=>true
+    ],
 
 ];
 
