@@ -41,9 +41,26 @@ class FileImport extends Job implements ShouldQueue
             if(empty($data[0][0])){
                 return "file empty!";
             }
-            foreach($data as $item){
+            //获取出code和isuse的key
+            foreach($data[0] as $k=>$v){
+                if($v == "code"){
+                    $codeKey = $k;
+                }
+                if($v == "is_use"){
+                    $isUseKey = $k;
+                }
+            }
+            foreach($data as $key => $item){
+                //第一行不插入
+                if($key === 0){
+                    continue;
+                }
+                //如果大于等于1就不插入
+                if($item[$isUseKey] >= 1){
+                    continue;
+                }
                 //替换字符串
-                $conn = trim(str_replace("rn","<br/>",$item[0]));
+                $conn = trim(str_replace("rn","<br/>",$item[$codeKey]));
                 //判断是否添加过
                 $isExist = CouponCode::where('code',$conn)->get()->count();
                 if($isExist){
