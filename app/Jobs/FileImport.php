@@ -42,6 +42,8 @@ class FileImport extends Job implements ShouldQueue
                 return "file empty!";
             }
             //获取出code和isuse的key
+            $codeKey = '';
+            $isUseKey = '';
             foreach($data[0] as $k=>$v){
                 if($v == "code"){
                     $codeKey = $k;
@@ -49,6 +51,10 @@ class FileImport extends Job implements ShouldQueue
                 if($v == "is_use"){
                     $isUseKey = $k;
                 }
+            }
+            //如果没有code和isusekey就不插入
+            if(empty($codeKey) || empty($isUseKey)){
+                return ;
             }
             foreach($data as $key => $item){
                 //第一行不插入
