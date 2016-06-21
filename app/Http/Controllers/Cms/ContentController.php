@@ -140,7 +140,11 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = Content::where('id',$id)->update(array('release',1));
+        $updata = [
+            'release'=>1,
+            'release_at'=>date('Y-m-d H:i:s')
+        ];
+        $res = Content::where('id',$id)->update($updata);
         if($res){
             return $this->outputJson(0);
         }else{
