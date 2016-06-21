@@ -13,7 +13,7 @@ use App\Models\ImgPosition;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Validator;
-
+use Config;
 class ImgManageController extends Controller
 {
     //获取某个位置的附件列表
@@ -33,7 +33,7 @@ class ImgManageController extends Controller
                 }
             }
         }
-        $data = Banner::where($where)->orderBy('sort','DESC')->orderBy('id','DESC')->get();
+        $data = Banner::where($where)->orderBy('sort','DESC')->get();
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
@@ -80,7 +80,8 @@ class ImgManageController extends Controller
         //结束时间
         $data['end'] = strtotime(trim($request['end']));
         //排序
-        $data['sort'] = 0;
+        $maxSort = Banner::max("sort");
+        $data['sort'] = empty($maxSort) ? 1 : $maxSort+1;
         //描述
         $data['desc'] = trim($request['desc']);
         if(empty($data['desc'])){
@@ -144,7 +145,7 @@ class ImgManageController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('img_path'=>'文件不能为空'));
         }
         //跳转url
-        $data['http_url'] = DOMAIN."/enclosures/".trim($fileName);
+        $data['http_url'] = Config::get('cms.img_http_url')."/enclosures/".trim($fileName);
         //添加时间
         $data['created_at'] = date("Y-m-d H:i:s");
         $id = Image::insertGetId($data);
@@ -284,10 +285,10 @@ class ImgManageController extends Controller
         //获取操作的id
         $id = intval($request->id);
         //取得当前的值
-        $data = Banner::where('id',$id)->select('sort')->get()->toArray();
-        $value = isset($data[0]['sort']) ? $data[0]['sort'] : 0;
+        $data = Banner::where('id',$id)->where('can_use',1)->select('sort')->get()->first()->toArray();
+        $value = isset($data['sort']) ? $data['sort'] : 0;
         //取得上一个当前的值
-        $data2 = Banner::where('sort','>',$value)->select('id','sort')->orderBy('sort','DESC')->get()->take(1)->toArray();
+        $data2 = Banner::where('sort','>',$value)->where('can_use',1)->select('id','sort')->orderBy('sort','ASC')->get()->toArray();
         $move = isset($data2[0]['sort']) ? $data2[0]['sort'] : 0;
         $moveID = isset($data2[0]['id']) ? $data2[0]['id'] : 0;
         //开始交换值
@@ -304,10 +305,10 @@ class ImgManageController extends Controller
         //获取操作的id
         $id = intval($request->id);
         //取得当前的值
-        $data = Banner::where('id',$id)->select('sort')->get()->toArray();
-        $value = isset($data[0]['sort']) ? $data[0]['sort'] : 0;
+        $data = Banner::where('id',$id)->where('can_use',1)->select('sort')->get()->first()->toArray();
+        $value = isset($data['sort']) ? $data['sort'] : 0;
         //取得上一个当前的值
-        $data2 = Banner::where('sort','<',$value)->select('id','sort')->orderBy('sort','DESC')->get()->take(1)->toArray();
+        $data2 = Banner::where('sort','<',$value)->where('can_use',1)->select('id','sort')->orderBy('sort','DESC')->take(1)->get()->toArray();
         $move = isset($data2[0]['sort']) ? $data2[0]['sort'] : 0;
         $moveID = isset($data2[0]['id']) ? $data2[0]['id'] : 0;
         //开始交换值
