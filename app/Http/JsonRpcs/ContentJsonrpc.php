@@ -13,21 +13,15 @@ class ContentJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function noticeList($params) {
-        if(!$params->alias_name){
-            throw new JsonRpcInternalErrorException();
-        }
-        $type_id = ContentType::where('alias_name',$params->alias_name)->value('id');
-
+        $type_id = ContentType::where('alias_name','notice')->value('id');
         $filter = [
             'type_id' => intval($type_id),
             'release' => 1
         ];
-        $pagenum = isset($params->pagenum) ? $params->pagenum : 5;
-        $data = Content::select('id','type_id','title','content','release','release_time','platform','created_at')->where($filter)->orderBy('id','desc')->paginate($pagenum)->toArray();
-            dd($data);
-        if(isset($data['data'][0]['release_time']))
-            $data['Etag'] = $data['data'][0]['release_time'];
-        unset($data['data'][0]['']);
+        $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
+        $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where($filter)->orderBy('release_at','desc')->paginate($pagenum)->toArray();
+        if(isset($data['data'][0]['release_at']))
+            $data['Etag'] = strval(strtotime($data['data'][0]['release_at']));
         return array(
             'code' => 0,
             'message' => 'success',
