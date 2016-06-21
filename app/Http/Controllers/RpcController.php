@@ -9,15 +9,15 @@ use Lib\JsonRpcClient;
 use Lib\JsonRpcServer;
 use App\Http\JsonRpcs\TestJsonRpc;
 use App\Http\JsonRpcs\BannerJsonRpc;
-
+use App\Http\JsonRpcs\ContentJsonRpc;
 
 
 class RpcController extends Controller
 {
     
     public function getClient() {
-        $client = new JsonRpcClient('http://staging.api-omg.wanglibao.com/rpc/banner-list');
-        $result = $client->getList(array('position' => '1'));
+        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/cms');
+        $result = $client->noticeList(array('alias_name' => 'notice'));
         print_r($result);
     }  
 
@@ -30,9 +30,11 @@ class RpcController extends Controller
     /**
      * banner列表
      */
-    public function postBannerList() {
+    public function postCms() {
         $jsonRpcServer = new JsonRpcServer();
+        $jsonRpcServer->addService(new ContentJsonRpc());
         $jsonRpcServer->addService(new BannerJsonRpc());
         $jsonRpcServer->processingRequests();
     }
+    
 }

@@ -11,7 +11,7 @@ class BannerJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function getList($params) {
+    public function bannerList($params) {
         $where = array();
         $where['can_use'] = 1;
         //位置
