@@ -11,7 +11,7 @@ class ContentJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-        public function getContentList($params) {
+    public function contentList($params) {
         if(!$params->type_id){
             throw new JsonRpcInternalErrorException();
         }
