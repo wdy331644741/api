@@ -208,7 +208,7 @@ class AwardController extends AwardCommonController
         }
         $where['is_use'] = 0;
         //获取一个可用的优惠券
-        $list = CouponCode::where($where)->paginate(3);
+        $list = CouponCode::where($where)->paginate(20);
         return $this->outputJson(0,$list);
     }
 }
