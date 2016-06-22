@@ -36,12 +36,12 @@ class ContentJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function noticeInfo($id)
+    public function noticeInfo($params)
     {
-        if (empty($id)) {
+        if (empty($params->id)) {
             throw new JsonRpcInvalidParamsException();
         }
-        $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where('id',intval($id))->first()->toArray();
+        $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where('id',intval($params->id))->first()->toArray();
         return array(
             'code' => 0,
             'message' => 'success',
