@@ -19,21 +19,14 @@ class BannerJsonRpc extends JsonRpc {
         if (empty($position)) {
             throw new AccountException();
         }else{
-            $typeID = $this->_getPostion(array('nickname' => $position));
-            if(empty($typeID)){
-                $where['position'] = $position;
-            }else {
-                if (isset($typeID[0]['id']) && !empty($typeID[0]['id'])) {
-                    $where['position'] = $typeID[0]['id'];
-                }
-            }
+            $where['position'] = $position;
         }
         $data = Banner::where($where)->orderBy('id','DESC')->get();
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => $data
-        );
+            );
     }
     public function _getPostion($where = array()){
         $list = ImgPosition::where($where)->get()->toArray();

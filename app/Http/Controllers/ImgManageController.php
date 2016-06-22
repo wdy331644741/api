@@ -22,16 +22,9 @@ class ImgManageController extends Controller
         $where = array();
         $where['can_use'] = 1;
         //位置
-        $position = $request['position'];
-        if (!empty($position)) {
-            $typeID = $this->_getPostion(array('nickname' => $position));
-            if(empty($typeID)){
-                $where['position'] = $position;
-            }else {
-                if (isset($typeID[0]['id']) && !empty($typeID[0]['id'])) {
-                    $where['position'] = $typeID[0]['id'];
-                }
-            }
+        $position = trim($request->position);
+        if(!empty($position)){
+            $where['position'] = $position;
         }
         $data = Banner::where($where)->orderBy('sort','DESC')->paginate(20);
         return $this->outputJson(0,$data);
@@ -50,7 +43,7 @@ class ImgManageController extends Controller
     //banner添加
     public function postBannerAdd(Request $request){
         //位置id
-        $data['position'] = intval($request['position']);
+        $data['position'] = trim($request['position']);
         if(empty($data['position'])){
             return $this->outputJson(PARAMS_ERROR,array('position'=>'位置不能为空'));
         }
@@ -232,52 +225,6 @@ class ImgManageController extends Controller
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
         }
-    }
-    //位置添加
-    public function postPositionAdd(Request $request){
-        //位置名
-        $data['position'] = trim($request['position']);
-        if(empty($data['position'])){
-            return $this->outputJson(PARAMS_ERROR,array('position'=>'位置名不能为空'));
-        }
-        //位置名
-        $data['nickname'] = trim($request['nickname']);
-        if(empty($data['nickname'])){
-            return $this->outputJson(PARAMS_ERROR,array('nickname'=>'别名不能为空'));
-        }
-        //图片宽度
-        $data['width'] = intval($request['width']);
-        if(empty($data['width'])){
-            return $this->outputJson(PARAMS_ERROR,array('width'=>'宽度不能为空'));
-        }
-        //图片高度
-        $data['height'] = intval($request['height']);
-        if(empty($data['position'])){
-            return $this->outputJson(PARAMS_ERROR,array('height'=>'高度不能为空'));
-        }
-        //判断是否添加过
-        $where['nickname'] = $request['nickname'];
-        $count = ImgPosition::where($where)->count();
-        if($count > 0){
-            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经添加过该位置'));
-        }
-        //添加时间
-        $data['created_at'] = date("Y-m-d H:i:s");
-        $id = ImgPosition::insertGetId($data);
-        if($id){
-            return $this->outputJson(0,array('insert_id'=>$id));
-        }else{
-            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'添加失败'));
-        }
-    }
-    //位置列表
-    public function getPositionList(){
-        $list = $this->_getPostion();
-        return $this->outputJson(0,array('data'=>$list));
-    }
-    public function _getPostion($where = array()){
-        $list = ImgPosition::where($where)->get()->toArray();
-        return $list;
     }
     #TODO 有bug
     //上移
