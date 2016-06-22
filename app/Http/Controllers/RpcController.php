@@ -35,6 +35,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new ContentJsonRpc());
         $jsonRpcServer->addService(new BannerJsonRpc());
         $jsonRpcServer->processingRequests();
+        return response('')->header('Content-Type', 'application/json');
     }
     
 }
