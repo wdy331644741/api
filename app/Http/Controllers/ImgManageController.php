@@ -33,7 +33,7 @@ class ImgManageController extends Controller
                 }
             }
         }
-        $data = Banner::where($where)->orderBy('sort','DESC')->get();
+        $data = Banner::where($where)->orderBy('sort','DESC')->paginate(20);
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
@@ -44,7 +44,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Image::where($where)->orderBy('sort','DESC')->get();
+        $data = Image::where($where)->orderBy('id','DESC')->paginate(20);
         return $this->outputJson(0,$data);
     }
     //banner添加
