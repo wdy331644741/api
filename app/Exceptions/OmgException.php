@@ -25,6 +25,7 @@ class OmgException extends BasicException
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
+    const PARAMS_NOT_NULL = 4101;
 
     //服务器错误
     const GET_BANNER_FAIL = 4200;
@@ -37,6 +38,7 @@ class OmgException extends BasicException
         self::API_FAILED => "接口调用失败",
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",
+        self::PARAMS_NOT_NULL => "参数不能为空",
         //服务器错误
         self::GET_BANNER_FAIL => "获取banner图列表失败",
     );
