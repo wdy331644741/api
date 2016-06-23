@@ -364,10 +364,21 @@ class ContentController extends Controller
 
     //查询分类列表（通过id）
     public function getTypeList($id){
-        if($id !=0 && !$id){
+        $data = array();
+        if($id == 0){
+            $base = ContentType::where('parent_id',0)->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get()->toArray();
+            foreach($base as $val){
+                $childrens = ContentType::where('parent_id',$val['id'])->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get()->toArray();
+                if(!empty($childrens)){
+                    $val['childrens'] = $childrens;
+                }
+                $data[] = $val;
+            }
+        }elseif ($id){
+            $data = ContentType::where('parent_id',intval($id))->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get();
+        }else{
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        $data = ContentType::where('parent_id',$id)->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get();
         return $this->outputJson(0,$data);
     }
 
