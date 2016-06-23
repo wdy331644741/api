@@ -2,6 +2,7 @@
 
 namespace App\Http\JsonRpcs;
 
+use App\Exceptions\OmgException;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
 use Lib\JsonRpcInvalidParamsException;
@@ -42,7 +43,7 @@ class ContentJsonRpc extends JsonRpc {
     public function noticeInfo($params)
     {
         if (empty($params->id)) {
-            throw new JsonRpcInvalidParamsException();
+            throw new OmgException(4101);
         }
         $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where('id',intval($params->id))->first()->toArray();
         return array(
