@@ -9,7 +9,7 @@ class ContentType extends Model
 {
     protected $table = 'cms_content_types';
 
-    protected $hidden = ['deleted_at'];
+    protected $hidden = ['deleted_at','updated_at'];
 
     use SoftDeletes;
 

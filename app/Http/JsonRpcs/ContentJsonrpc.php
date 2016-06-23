@@ -21,7 +21,10 @@ class ContentJsonRpc extends JsonRpc {
             'release' => 1
         ];
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where($filter)->orderBy('release_at','desc')->paginate($pagenum)->toArray();
+        $data = Content::select('id','title','release_at')->where($filter)->orderBy('release_at','desc')->paginate($pagenum)->toArray();
+        foreach ($data['data'] as $key=>$value){
+            $data['data'][$key]['link'] = 'https://www.wanglibao.com/announcement/detail/'.$value['id'].'/';
+        }
         if(isset($data['data'][0]['release_at']))
             $data['Etag'] = strval(strtotime($data['data'][0]['release_at']));
         return array(
