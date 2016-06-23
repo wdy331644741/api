@@ -369,11 +369,7 @@ class ContentController extends Controller
             $base = ContentType::where('parent_id',0)->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get()->toArray();
             foreach($base as $val){
                 $childrens = ContentType::where('parent_id',$val['id'])->orderByRAW('id + sort DESC')->orderBy('id','DESC')->get()->toArray();
-                if(!empty($childrens)){
-                    $val['childrens'] = $childrens;
-                }else{
-                    $val['childrens'] = null;
-                }
+                $val['childrens'] = $childrens;
                 $data[] = $val;
             }
         }elseif ($id){
