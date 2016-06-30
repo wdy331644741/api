@@ -49,9 +49,6 @@ class ImgManageController extends Controller
         }
         //名称
         $data['name'] = trim($request['name']);
-        if(empty($data['name'])){
-            return $this->outputJson(PARAMS_ERROR,array('name'=>'名称不能为空'));
-        }
         //验证不能重复添加
         $where['name'] = $data['name'];
         $count = Banner::where($where)->count();
@@ -69,17 +66,14 @@ class ImgManageController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('img_url'=>'跳转的url不能为空'));
         }
         //开始时间
-        $data['start'] = strtotime(trim($request['start']));
+        $data['start'] = trim($request['start']);
         //结束时间
-        $data['end'] = strtotime(trim($request['end']));
+        $data['end'] = trim($request['end']);
         //排序
         $maxSort = Banner::max("sort");
         $data['sort'] = empty($maxSort) ? 1 : $maxSort+1;
         //描述
         $data['desc'] = trim($request['desc']);
-        if(empty($data['desc'])){
-            return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
-        }
         //添加时间
         $data['created_at'] = date("Y-m-d H:i:s");
         //修改时间
@@ -184,9 +178,9 @@ class ImgManageController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('img_url'=>'跳转的url不能为空'));
         }
         //开始时间
-        $data['start'] = strtotime(trim($request['start']));
+        $data['start'] = trim($request['start']);
         //结束时间
-        $data['end'] = strtotime(trim($request['end']));
+        $data['end'] = trim($request['end']);
         //排序
         $data['sort'] = intval($request['sort']);
         //描述
