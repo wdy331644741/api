@@ -156,7 +156,11 @@ return [
         'max_recharge'          => '最大充值金额',
         'min_cast'              => '最小投资金额',
         'max_cast'              => '最大投资金额',
-        'frequency'             => '频次限制'
+        'frequency'             => '频次限制',
+        'number'                => '数量',
+        'award_type'            => '奖品类型',
+        'award_id'              => '奖品id',
+        'expire_time'           => '过期时间'
     ],
 
 ];

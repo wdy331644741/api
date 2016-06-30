@@ -43,3 +43,5 @@ Route::get('/enclosures/{url}',function ($url) {
     $img = file_get_contents(base_path()."/storage/images/{$url}");
     return Response::make($img)->header('Content-Type', '');
 });
+//兑换码
+Route::controller('redeem', 'RedeemController');
