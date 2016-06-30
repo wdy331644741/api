@@ -156,6 +156,7 @@ return [
         'max_recharge'          => '最大充值金额',
         'min_cast'              => '最小投资金额',
         'max_cast'              => '最大投资金额',
+        'frequency'             => '频次限制'
     ],
 
 ];

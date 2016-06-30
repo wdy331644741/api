@@ -29,6 +29,7 @@ class ActivityController extends Controller
             'name' => 'required|min:2|max:255',
             'alias_name' =>'unique:activities,alias_name',
             'group_id'=>'required|exists:activity_groups,id',
+            'frequency'=>'required',
             'start_at'=> 'date',
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
@@ -39,6 +40,7 @@ class ActivityController extends Controller
         }
         $activity = new Activity;
         $activity->name = $request->name;
+        $activity->frequency = $request->frequency;
         $activity->alias_name = $request->alias_name;
         if($request->start_at){
             $activity->start_at = $request->start_at;
@@ -87,6 +89,7 @@ class ActivityController extends Controller
             'name' => 'required|min:2|max:255',
             'alias_name' => 'required|unique:activities,alias_name'.$request->id,
             'group_id'=>'required|exists:activity_groups,id',
+            'frequency'=>'required',
             'start_at'=> 'date',
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
@@ -100,6 +103,7 @@ class ActivityController extends Controller
             'name'=>$request->name,
             'alias_name'=>$request->alias_name,
             'group_id'=>$request->group_id,
+            'frequency'=>$request->frequency,
             'start_at'=>$request->start_at,
             'end_at'=>$request->end_at,
             'trigger_index'=>$request->trigger_index,
