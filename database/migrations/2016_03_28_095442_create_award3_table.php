@@ -20,8 +20,8 @@ class CreateAward3Table extends Migration
             $table->tinyInteger('experience_amount_multiple',false,true);//体验金额倍数
             $table->tinyInteger('effective_time_type',false,true);//有效时间类型
             $table->tinyInteger('effective_time_day',false,true);//有效时间顺延天数
-            $table->integer('effective_time_start',false,true);//有效时间开始时间
-            $table->integer('effective_time_end',false,true);//有效时间结束时间
+            $table->timestamp('effective_time_start');//有效时间开始时间
+            $table->timestamp('effective_time_end');//有效时间结束时间
 //            $table->string('product_id',128)->nullable();//产品ID
             $table->tinyInteger('platform_type',false,true)->nullable();//平台端
             $table->string('limit_desc',32)->nullable();//限制说明

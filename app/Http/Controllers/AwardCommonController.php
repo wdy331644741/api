@@ -57,8 +57,8 @@ class AwardCommonController extends Controller{
                 $params = $start == false ? 'rate_increases_start' : 'rate_increases_end';
                 return array('code'=>404,'params'=>$params,'error_msg'=>'加息时间格式不对');
             }
-            $data['rate_increases_start'] = strtotime($start);
-            $data['rate_increases_end'] = strtotime($end);
+            $data['rate_increases_start'] = trim($start);
+            $data['rate_increases_end'] = trim($end);
         }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
@@ -79,8 +79,8 @@ class AwardCommonController extends Controller{
                 $params = $start == false ? 'effective_time_start' : 'effective_time_end';
                 return array('code'=>404,'params'=>$params,'error_msg'=>'有效时间格式不对');
             }
-            $data['effective_time_start'] = strtotime($start);
-            $data['effective_time_end'] = strtotime($end);
+            $data['effective_time_start'] = trim($start);
+            $data['effective_time_end'] = trim($end);
         }
         //投资门槛
         $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
@@ -184,8 +184,8 @@ class AwardCommonController extends Controller{
                 $params = $start == false ? 'effective_time_start' : 'effective_time_end' ;
                 return array('code'=>404,'params'=>$params,'error_msg'=>'有效时间格式不对');
             }
-            $data['effective_time_start'] = strtotime($start);
-            $data['effective_time_end'] = strtotime($end);
+            $data['effective_time_start'] = trim($start);
+            $data['effective_time_end'] = trim($end);
         }
         //投资门槛
         $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
@@ -283,8 +283,8 @@ class AwardCommonController extends Controller{
                 $params = $start == false ? 'effective_time_start' : 'effective_time_end' ;
                 return array('code'=>404,'params'=>$params,'error_msg'=>'有效时间格式不对');
             }
-            $data['effective_time_start'] = strtotime($start);
-            $data['effective_time_end'] = strtotime($end);
+            $data['effective_time_start'] = trim($start);
+            $data['effective_time_end'] = trim($end);
         }
 //        //产品ID
 //        $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";

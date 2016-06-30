@@ -122,13 +122,14 @@ class SendReward extends Job implements ShouldQueue
                         $data['increases_end'] = date("Y-m-d",$v['info']['rate_increases_end']);//加息天数
                     }
                     if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d");
-                        $data['effective_end'] = date("Y-m-d",strtotime("+".$v['info']['effective_time_day']." days"));
+                        $data['effective_start'] = date("Y-m-d H:i:s");
+                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
                     }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = date("Y-m-d",$v['info']['effective_time_start']);
-                        $data['effective_end'] = date("Y-m-d",$v['info']['effective_time_end']);
+                        $data['effective_start'] = $v['info']['effective_time_start'];
+                        $data['effective_end'] = $v['info']['effective_time_end'];
                     }
                     $data['investment_threshold'] = $v['info']['investment_threshold'];
+                    $data['source_name'] = $v['name'];
                     $data['platform'] = $v['info']['platform_type'];
                     $data['limit_desc'] = $v['info']['limit_desc'];
                     $data['remark'] = '';
@@ -152,13 +153,14 @@ class SendReward extends Job implements ShouldQueue
                     $data['type'] = 1;//直抵红包
                     $data['amount'] = $v['info']['red_money'];//红包金额
                     if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d");
-                        $data['effective_end'] = date("Y-m-d",strtotime("+".$v['info']['effective_time_day']." days"));
+                        $data['effective_start'] = date("Y-m-d H:i:s");
+                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
                     }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = date("Y-m-d",$v['info']['effective_time_start']);
-                        $data['effective_end'] = date("Y-m-d",$v['info']['effective_time_end']);
+                        $data['effective_start'] = $v['info']['effective_time_start'];
+                        $data['effective_end'] = $v['info']['effective_time_end'];
                     }
                     $data['investment_threshold'] = $v['info']['investment_threshold'];
+                    $data['source_name'] = $v['name'];
                     $data['platform'] = $v['info']['platform_type'];
                     $data['limit_desc'] = $v['info']['limit_desc'];
                     $data['remark'] = '';
@@ -183,13 +185,14 @@ class SendReward extends Job implements ShouldQueue
                     $data['max_amount'] = $v['info']['red_money'];//红包最高金额
                     $data['percentage'] = $v['info']['percentage'];//红包百分比
                     if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d");
-                        $data['effective_end'] = date("Y-m-d",strtotime("+".$v['info']['effective_time_day']." days"));
+                        $data['effective_start'] = date("Y-m-d H:i:s");
+                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
                     }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = date("Y-m-d",$v['info']['effective_time_start']);
-                        $data['effective_end'] = date("Y-m-d",$v['info']['effective_time_end']);
+                        $data['effective_start'] = $v['info']['effective_time_start'];
+                        $data['effective_end'] = $v['info']['effective_time_end'];
                     }
                     $data['investment_threshold'] = $v['info']['investment_threshold'];
+                    $data['source_name'] = $v['name'];
                     $data['platform'] = $v['info']['platform_type'];
                     $data['limit_desc'] = $v['info']['limit_desc'];
                     $data['remark'] = '';
@@ -215,12 +218,13 @@ class SendReward extends Job implements ShouldQueue
                         $data['amount'] = $this->money * $v['info']['experience_amount_multiple'];
                     }
                     if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d");
-                        $data['effective_end'] = date("Y-m-d",strtotime("+".$v['info']['effective_time_day']." days"));
+                        $data['effective_start'] = date("Y-m-d H:i:s");
+                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
                     }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = date("Y-m-d",$v['info']['effective_time_start']);
-                        $data['effective_end'] = date("Y-m-d",$v['info']['effective_time_end']);
+                        $data['effective_start'] = $v['info']['effective_time_start'];
+                        $data['effective_end'] = $v['info']['effective_time_end'];
                     }
+                    $data['source_name'] = $v['name'];
                     $data['platform'] = $v['info']['platform_type'];
                     $data['limit_desc'] = $v['info']['limit_desc'];
                     $data['remark'] = '';

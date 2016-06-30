@@ -7,7 +7,7 @@ use App\Exceptions\OmgException as OmgException;
 class BannerJsonRpc extends JsonRpc {
     
     /**
-     *  测试 
+     *  banner列表
      *
      * @JsonRpcMethod
      */
