@@ -15,6 +15,7 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
+        \App\Http\Middleware\Permission::class,
     ];
 
     /**
@@ -34,6 +35,9 @@ class Kernel extends HttpKernel
         'api' => [
             'throttle:60,1',
         ],
+        'permission' => [
+            \App\Http\Middleware\Permission::class,
+        ]
     ];
 
     /**
