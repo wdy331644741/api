@@ -6,3 +6,5 @@ Homestead.json
 .env
 .idea
 composer.lock
+storage/images
+storage/coupon
