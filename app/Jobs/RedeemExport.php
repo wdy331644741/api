@@ -33,7 +33,13 @@ class RedeemExport extends Job implements ShouldQueue
         //获取优惠码
         $where['rel_id'] = $this->id;
         $list = RedeemCode::where($where)->get()->toArray();
-        $cellData = $list;
+        $cellData = array();
+        foreach($list as $key => $item){
+            if($key == 0){
+                $cellData[$key] = array('ID','名称','兑换码','是否可用','添加时间','修改时间');
+            }
+            $cellData[$key+1] = array($item['id'],$this->name,$item['code'],$item['is_use'] == 1 ? '可用' : '不可用',$item['created_at'],$item['updated_at']);
+        }
         $fileName = date("YmdHis").mt_rand(1000,9999);
         $typeName = "xls";
         Excel::create($fileName,function($excel) use ($cellData){
