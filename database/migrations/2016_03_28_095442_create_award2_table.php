@@ -20,8 +20,8 @@ class CreateAward2Table extends Migration
             $table->integer('percentage',false,true);//红包百分比
             $table->tinyInteger('effective_time_type',false,true);//有效时间类型
             $table->tinyInteger('effective_time_day',false,true);//有效时间顺延天数
-            $table->integer('effective_time_start',false,true);//有效时间开始时间
-            $table->integer('effective_time_end',false,true);//有效时间结束时间
+            $table->timestamp('effective_time_start');//有效时间开始时间
+            $table->timestamp('effective_time_end');//有效时间结束时间
             $table->integer('investment_threshold',false,true);//投资门槛
             $table->tinyInteger('project_duration_type',false,true);//项目期限
             $table->tinyInteger('project_type',false,true)->nullable();//项目类型

@@ -42,16 +42,18 @@ class ImgManageController extends Controller
     }
     //banner添加
     public function postBannerAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'position' => 'required|min:2|max:255',
+            'img_path' => 'required|min:2|max:255',
+            'img_url' => 'required|min:2|max:255'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //位置id
-        $data['position'] = trim($request['position']);
-        if(empty($data['position'])){
-            return $this->outputJson(PARAMS_ERROR,array('position'=>'位置不能为空'));
-        }
+        $data['position'] = $request['position'];
         //名称
-        $data['name'] = trim($request['name']);
-        if(empty($data['name'])){
-            return $this->outputJson(PARAMS_ERROR,array('name'=>'名称不能为空'));
-        }
+        $data['name'] = $request['name'];
         //验证不能重复添加
         $where['name'] = $data['name'];
         $count = Banner::where($where)->count();
@@ -60,26 +62,17 @@ class ImgManageController extends Controller
         }
         //图片
         $data['img_path'] = trim($request['img_path']);
-        if(empty($data['img_path'])){
-            return $this->outputJson(PARAMS_ERROR,array('img_path'=>'文件不能为空'));
-        }
         //跳转url
         $data['img_url'] = trim($request['img_url']);
-        if(empty($data['img_url'])){
-            return $this->outputJson(PARAMS_ERROR,array('img_url'=>'跳转的url不能为空'));
-        }
         //开始时间
-        $data['start'] = strtotime(trim($request['start']));
+        $data['start'] = trim($request['start']);
         //结束时间
-        $data['end'] = strtotime(trim($request['end']));
+        $data['end'] = trim($request['end']);
         //排序
         $maxSort = Banner::max("sort");
         $data['sort'] = empty($maxSort) ? 1 : $maxSort+1;
         //描述
         $data['desc'] = trim($request['desc']);
-        if(empty($data['desc'])){
-            return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
-        }
         //添加时间
         $data['created_at'] = date("Y-m-d H:i:s");
         //修改时间
@@ -150,8 +143,14 @@ class ImgManageController extends Controller
     }
     //修改
     public function postBannerEdit(Request $request){
-        if(empty($request['id'])){
-            return $this->outputJson(PARAMS_ERROR,array('id'=>'没找到要修改的信息'));
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+            'position' => 'required|min:2|max:255',
+            'img_path' => 'required|min:2|max:255',
+            'img_url' => 'required|min:2|max:255'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         //条件
         $where['id'] = $request['id'];
@@ -164,36 +163,21 @@ class ImgManageController extends Controller
         $info = Image::where($where)->get()->toArray();
         $info = isset($info[0]) ? $info[0] : array();
         //位置id
-        $data['position'] = intval($request['position']);
-        if(empty($data['position'])){
-            return $this->outputJson(PARAMS_ERROR,array('position'=>'位置不能为空'));
-        }
+        $data['position'] = $request['position'];
         //名称
-        $data['name'] = trim($request['name']);
-        if(empty($data['name'])){
-            return $this->outputJson(PARAMS_ERROR,array('name'=>'名称不能为空'));
-        }
+        $data['name'] = $request['name'];
         //图片路径
         $data['img_path'] = trim($request['img_path']);
-        if(empty($data['img_path'])){
-            return $this->outputJson(PARAMS_ERROR,array('img_path'=>'文件不能为空'));
-        }
         //跳转url
         $data['img_url'] = trim($request['img_url']);
-        if(empty($data['img_url'])){
-            return $this->outputJson(PARAMS_ERROR,array('img_url'=>'跳转的url不能为空'));
-        }
         //开始时间
-        $data['start'] = strtotime(trim($request['start']));
+        $data['start'] = trim($request['start']);
         //结束时间
-        $data['end'] = strtotime(trim($request['end']));
+        $data['end'] = trim($request['end']);
         //排序
         $data['sort'] = intval($request['sort']);
         //描述
         $data['desc'] = trim($request['desc']);
-        if(empty($data['desc'])){
-            return $this->outputJson(PARAMS_ERROR,array('desc'=>'描述不能为空'));
-        }
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
         $status = Banner::where($where)->update($data);
@@ -205,8 +189,11 @@ class ImgManageController extends Controller
     }
     //删除
     public function postBannerDel(Request $request){
-        if(empty($request['id'])){
-            return $this->outputJson(PARAMS_ERROR,array('id'=>'没找到要删除的信息'));
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         //条件
         $where['id'] = $request['id'];
