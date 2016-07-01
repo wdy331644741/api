@@ -39,28 +39,22 @@ class ContentController extends Controller
             'type_id' => 'required|integer|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'source' => 'url',
-            'platform' =>'required|in:0,1,2'
+            'platform' =>'in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $platform = isset($request->platform) ? $request->platform : 0;
         $content = new Content();
         $content->type_id = $request->type_id;
         $content->title = $request->title;
         $content->content = $request->content;
-        $content->platform = $request->platform;
-        if(isset($request->release)){
+        $content->platform = $platform;
+        /*if(isset($request->release)){
             $content->release = $request->release;
-        }
+        }*/
         if(isset($request->cover)){
             $content->cover = $request->cover;
-        }
-        if(isset($request->source)){
-            $content->source = $request->source;
-        }
-        if(isset($request->sort)){
-            $content->sort = $request->sort;
         }
         $res = $content->save();
         if($res){
@@ -93,27 +87,21 @@ class ContentController extends Controller
             'type_id' => 'required|alpha_num|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'source' => 'url',
-            'platform' =>'required|in:0,1,2'
+            'platform' =>'in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $platform = isset($request->platform) ? $request->platform : 0;
         $putdata = array(
             'type_id'=>$request->type_id,
             'title'=>$request->title,
             'content'=>$request->content,
-            'platform'=>$request->platform,
+            'platform'=>$platform,
         );
 
         if(isset($request->cover)){
             $putdata['cover'] = $request->cover;
-        }
-        if(isset($request->source)){
-            $putdata['source'] = $request->source;
-        }
-        if(isset($request->sort)){
-            $putdata['sort'] = $request->sort;
         }
         $res = Content::where('id',$request->id)->update($putdata);
         if($res){
@@ -250,7 +238,7 @@ class ContentController extends Controller
     //分类下移
     public function getTypeDown($id){
         $validator = Validator::make(array('id'=>$id),[
-            'id'=>'required|exists:cms_contents,id'
+            'id'=>'required|exists:cms_content_types,id'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -279,19 +267,16 @@ class ContentController extends Controller
         $validator = Validator::make($request->all(), [
             'parent_id' => 'required|numeric',
             'name' => 'required',
-            'alias_name' => 'required|alpha|unique:cms_content_types,alias_name',
+            'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-
+        $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
         $contentType = new ContentType();
         $contentType->parent_id = $request->parent_id;
         $contentType->name = $request->name;
-        $contentType->alias_name = $request->alias_name;
-        if(isset($request->sort)){
-            $contentType->sort = $request->sort;
-        }
+        $contentType->alias_name = $alias_name;
         $res = $contentType->save();
         if($res){
             return $this->outputJson(0,array('insert_id'=>$contentType->id));
@@ -323,20 +308,18 @@ class ContentController extends Controller
             'id' => 'required|exists:cms_content_types,id',
             'parent_id' => 'required|numeric',
             'name' => 'required',
-            'alias_name' => 'required|alpha|unique:cms_content_types,alias_name',
+            'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name',
         ]);
 
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
         $putdata = array(
             'parent_id'=>$request->parent_id,
             'name'=>$request->name,
-            'alias_name'=>$request->alias_name,
+            'alias_name'=>$alias_name,
         );
-        if(isset($request->sort)){
-            $putdata['sort'] = $request->sort;
-        }
         $res = ContentType::where('id',$request->id)->update($putdata);
         if($res){
             return $this->outputJson(0);
