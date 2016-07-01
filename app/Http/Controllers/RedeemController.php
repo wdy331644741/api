@@ -19,10 +19,10 @@ class RedeemController extends Controller
     public function postAdd(Request $request){
         //验证必填项
         $validator = Validator::make($request->all(), [
-            'name' => 'required|alpha|filled',
-            'award_type' => 'required|numeric',
-            'award_id' => 'required|numeric',
-            'number' => 'required|numeric|filled',
+            'name' => 'required|min:2|max:255',
+            'award_type' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1',
+            'number' => 'required|integer|min:1',
             'expire_time' => 'date'
         ]);
         if($validator->fails()){
@@ -54,7 +54,7 @@ class RedeemController extends Controller
     public function getList(Request $request){
         //验证必填项
         $validator = Validator::make($request->all(), [
-            'id' => 'required|numeric|filled',
+            'id' => 'required|integer|min:1',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -70,7 +70,7 @@ class RedeemController extends Controller
     public function getExport(Request $request){
         //验证必填项
         $validator = Validator::make($request->all(), [
-            'id' => 'required|numeric|filled',
+            'id' => 'required|integer|min:1',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -87,7 +87,7 @@ class RedeemController extends Controller
     public function getDownload(Request $request){
         //验证必填项
         $validator = Validator::make($request->all(), [
-            'file' => 'required|filled',
+            'file' => 'required|min:2|max:255',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
