@@ -18,7 +18,7 @@ class ContentController extends Controller
         if(!$type_id){
             $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        $data = Content::where('release',1)->where('type_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
+        $data = Content::where('type_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
         return $this->outputJson(0,$data);
     }
 
@@ -28,7 +28,7 @@ class ContentController extends Controller
             $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $type_id = ContentType::where('alias_name',$name)->value('type_id');
-        $data = Content::where('release',1)->where('type_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
+        $data = Content::where('type_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
         return $this->outputJson(0,$data);
     }
 
@@ -116,7 +116,7 @@ class ContentController extends Controller
         if(!$id){
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        $data = Content::where('release',1)->find($id);
+        $data = Content::find($id);
         return $this->outputJson(0,$data);
     }
 
