@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class DelSourceToContentsTable extends Migration
+class PutAliasnameToContenttypeTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,8 +12,8 @@ class DelSourceToContentsTable extends Migration
      */
     public function up()
     {
-        Schema::table('activities', function (Blueprint $table) {
-            $table->dropColumn('source');
+        Schema::table('cms_content_types', function (Blueprint $table) {
+            $table->string('alias_name')->nullable()->default(NULL)->change();
         });
     }
 
@@ -24,8 +24,8 @@ class DelSourceToContentsTable extends Migration
      */
     public function down()
     {
-        Schema::table('activities', function (Blueprint $table) {
-            $table->string('source')->default(NULL);
+        Schema::table('cms_content_types', function (Blueprint $table) {
+            $table->string('alias_name')->change();
         });
     }
 }
