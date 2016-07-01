@@ -19,11 +19,11 @@ class AwardController extends AwardCommonController
         $this->awards = [
             'awards' => [
                 '1' => '_rateIncreases',//加息券
-                '2' => '_redMoney',//红包
-                '3' => '_experienceAmount',//百分比红包
-                '4' => '_integral',//体验金
-                '5' => '_objects',//用户积分
-                '6' => '_couponAdd',//实物
+                '2' => '_redMoney',//红包&百分比红包
+                '3' => '_experienceAmount',//体验金
+                '4' => '_integral',//用户积分
+                '5' => '_objects',//实物
+                '6' => '_couponAdd',//优惠券
             ]
         ];
     }
@@ -34,13 +34,16 @@ class AwardController extends AwardCommonController
      * @return mixed
      */
     function postAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //获取配置信息
         $awards = $this->awards['awards'];
         //奖品类型
-        $award_type = intval($request->award_type);
-        if(empty($award_type)){
-            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
-        }
+        $award_type = $request->award_type;
         foreach($awards as $k=>$v){
             if($award_type == $k){
                 $return = $this->$v($request,0,0);
@@ -49,7 +52,7 @@ class AwardController extends AwardCommonController
         if($return['code'] == 200){
             return $this->outputJson(0,array('insert_id'=>$return['insert_id']));
         }elseif($return['code'] == 404){
-            return $this->outputJson(PARAMS_ERROR,array('error_param'=>$return['params'],'error_msg'=>$return['error_msg']));
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$return['error_msg']));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>$return['error_msg']));
         }
@@ -60,18 +63,19 @@ class AwardController extends AwardCommonController
      * @return mixed
      */
     function postUpdate(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //获取配置信息
         $awards = $this->awards['awards'];
         //奖品类型
-        $award_type = isset($request->award_type) ? intval($request->award_type) : 0;
-        if(empty($award_type)){
-            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
-        }
+        $award_type = $request->award_type;
         //奖品ID（如果存在说明是修改）
-        $award_id = isset($request->award_id) ? intval($request->award_id) : 0;
-        if(empty($award_id)){
-            return $this->outputJson(PARAMS_ERROR,array('award_id'=>'奖品id不能为空'));
-        }
+        $award_id = $request->award_id;
         foreach($awards as $k=>$v){
             if($award_type == $k){
                 $return = $this->$v($request,$award_id,$award_type);
@@ -131,10 +135,17 @@ class AwardController extends AwardCommonController
      * @return \Illuminate\Http\JsonResponse
      */
     function postDelete(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //奖品类型
-        $params['award_type'] = isset($request->award_type) ? intval($request->award_type) : 0;
+        $params['award_type'] = $request->award_type;
         //奖品ID
-        $params['award_id'] = isset($request->award_id) ? intval($request->award_id) : 0;
+        $params['award_id'] = $request->award_id;
         //删除奖品表
         $table = $this->_getAwardTable($params['award_type']);
         $status = $table::where('id',$params['award_id'])->delete();
@@ -176,10 +187,13 @@ class AwardController extends AwardCommonController
      * @return \Illuminate\Http\JsonResponse
      */
     function postGetCouponCode(Request $request){
-        $where['coupon_id'] = isset($request->coupon_id) ? intval($request->coupon_id) : 0;
-        if($where['coupon_id'] == 0){
-            return $this->outputJson(PARAMS_ERROR,array('coupon_id'=>'优惠券id参数有误'));
+        $validator = Validator::make($request->all(), [
+            'coupon_id' => 'required|integer|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
+        $where['coupon_id'] = $request->coupon_id;
         $where['is_use'] = 0;
         //获取一个可用的优惠券
         $first = CouponCode::where($where)->first()->toArray();
@@ -202,10 +216,13 @@ class AwardController extends AwardCommonController
      * @return \Illuminate\Http\JsonResponse
      */
     function postCouponCodeList(Request $request){
-        $where['coupon_id'] = isset($request->coupon_id) ? intval($request->coupon_id) : 0;
-        if($where['coupon_id'] == 0){
-            return $this->outputJson(PARAMS_ERROR,array('coupon_id'=>'优惠券id参数有误'));
+        $validator = Validator::make($request->all(), [
+            'coupon_id' => 'required|integer|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
+        $where['coupon_id'] = $request->coupon_id;
         $where['is_use'] = 0;
         //获取一个可用的优惠券
         $list = CouponCode::where($where)->paginate(20);

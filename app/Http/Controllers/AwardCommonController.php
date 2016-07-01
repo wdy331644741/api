@@ -22,76 +22,59 @@ class AwardCommonController extends Controller{
      * @return bool
      */
     function _rateIncreases($request,$award_id,$award_type){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:2|max:255',
+            'rate_increases' => 'required|numeric|between:0.0001,1',
+            'rate_increases_type' => 'required|integer|min:1',
+            'effective_time_type' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:1',
+            'project_duration_type' => 'required|integer|min:1'
+        ]);
+        $validator->sometimes('rate_increases_day', 'required|integer', function($input) {
+            return $input->rate_increases_type == 2;
+        });
+        $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
+            return $input->rate_increases_type == 3;
+        });
+        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+            return $input->effective_time_type == 1;
+        });
+        $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
+            return $input->effective_time_type == 2;
+        });
+        if($validator->fails()){
+            return array('code'=>404,'error_msg'=>$validator->errors()->first());
+        }
         //名称
-        $data['name'] = isset($request->name) ? trim($request->name) : '';
-        if($data['name'] == ''){
-            return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
-        }
+        $data['name'] = $request->name;
         //加息值
-        $data['rate_increases'] = isset($request->rate_increases) ? floatval($request->rate_increases) : 0;
-        if($data['rate_increases'] == 0) {
-            return array('code' => 404, 'params' => 'rate_increases', 'error_msg' => '加息值不能为空');
-        }
-        if($data['rate_increases'] >= 1) {
-            return array('code' => 404, 'params' => 'rate_increases', 'error_msg' => '加息值不能大于1');
-        }
-        if($data['rate_increases'] < 0.0001) {
-            return array('code' => 404, 'params' => 'rate_increases', 'error_msg' => '加息值不能小于0.0001');
-        }
+        $data['rate_increases'] = $request->rate_increases;
         //加息时长类型
         $data['rate_increases_type'] = $request->rate_increases_type;
-        if($data['rate_increases_type'] == null){
-            return array('code'=>404,'params'=>'rate_increases_type','error_msg'=>'请选择加息时长类型');
+        //加息时长天数
+        if($data['rate_increases_type'] == 2){
+            $data['rate_increases_day'] = $request->rate_increases_day;
         }
-        //加息时长信息
-        if($data['rate_increases_type'] == 2){//加息天数
-            $day = $this->FormValidation($request,'rate_increases_day','required','int');
-            if($day == false){
-                return array('code'=>404,'params'=>'rate_increases_day','error_msg'=>'加息时间格式不对');
-            }
-            $data['rate_increases_day'] = $day;
-        }elseif($data['rate_increases_type'] == 3){//加息时间段
-            $start = $this->FormValidation($request,'rate_increases_start','required','date');
-            $end = $this->FormValidation($request,'rate_increases_end','required','date');
-            if($start == false || $end == false){
-                $params = $start == false ? 'rate_increases_start' : 'rate_increases_end';
-                return array('code'=>404,'params'=>$params,'error_msg'=>'加息时间格式不对');
-            }
-            $data['rate_increases_start'] = trim($start);
-            $data['rate_increases_end'] = trim($end);
+        //加息时长时间段
+        if($data['rate_increases_type'] == 3) {
+            $data['rate_increases_start'] = $request->rate_increases_start;
+            $data['rate_increases_end'] = $request->rate_increases_end;
         }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
-        if($data['effective_time_type'] == null){
-            return array('code'=>404,'params'=>'effective_time_type','error_msg'=>'请选择有效时间');
-        }
-        //有效时间信息
+        //有效时间顺延天数
         if($data['effective_time_type'] == 1){
-            $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
-            if($day == 0){
-                return array('code'=>404,'params'=>'effective_time_day','error_msg'=>'发放顺延天数不能为空');
-            }
-            $data['effective_time_day'] = $day;
-        }elseif($data['effective_time_type'] == 2){
-            $start = $this->FormValidation($request,'effective_time_start','required','date');
-            $end = $this->FormValidation($request,'effective_time_end','required','date');
-            if($start == false || $end == false){
-                $params = $start == false ? 'effective_time_start' : 'effective_time_end';
-                return array('code'=>404,'params'=>$params,'error_msg'=>'有效时间格式不对');
-            }
-            $data['effective_time_start'] = trim($start);
-            $data['effective_time_end'] = trim($end);
+            $data['effective_time_day'] = $request->effective_time_day;
+        }
+        //有效时间段
+        if($data['effective_time_type'] == 2) {
+            $data['effective_time_start'] = $request->effective_time_start;
+            $data['effective_time_end'] = $request->effective_time_end;
         }
         //投资门槛
-        $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
-        if($data['investment_threshold'] == 0){
-            return array('code'=>404,'params'=>'investment_threshold','error_msg'=>'投资门槛不能为空');
-        }
+        $data['investment_threshold'] = $request->investment_threshold;
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
-        if($data['project_duration_type'] == 0){
-            return array('code'=>404,'params'=>'project_duration_type','error_msg'=>'请选择项目期限类型');
-        }
         //项目类型
         $data['project_type'] = $request->project_type;
         //产品ID
@@ -135,68 +118,55 @@ class AwardCommonController extends Controller{
      * @return bool
      */
     function _redMoney($request,$award_id,$award_type){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:2|max:255',
+            'red_type' => 'required|integer|min:1',
+            'effective_time_type' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:1',
+            'project_duration_type' => 'required|integer|min:1'
+        ]);
+        $validator->sometimes('red_money', 'required|integer|min:1', function($input) {
+            return $input->red_type == 1;
+        });
+        $validator->sometimes(array('red_max_money','percentage'), 'required|integer|min:1', function($input) {
+            return $input->red_type == 2;
+        });
+        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+            return $input->effective_time_type == 1;
+        });
+        $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
+            return $input->effective_time_type == 2;
+        });
+        if($validator->fails()){
+            return array('code'=>404,'error_msg'=>$validator->errors()->first());
+        }
         //名称
-        $data['name'] = isset($request->name) ? trim($request->name) : '';
-        if($data['name'] == ''){
-            return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
-        }
+        $data['name'] = $request->name;
         //红包类型
-        $data['red_type'] = isset($request->red_type) ? intval($request->red_type) : 0;
-        if(empty($data['red_type'])){
-            return array('code'=>404,'params'=>'red_type','error_msg'=>'请选择红包类型');
-        }
+        $data['red_type'] = $request->red_type;
         if($data['red_type'] == 2){
             //红包最高金额
-            $data['red_money'] = isset($request->red_max_money) ? intval($request->red_max_money) : 0;
-            if($data['red_money'] == ''){
-                return array('code'=>404,'params'=>'red_max_money','error_msg'=>'红包最高金额不能为空');
-            }
+            $data['red_money'] = $request->red_max_money;
             //百分比例
-            $data['percentage'] = isset($request->percentage) ? intval($request->percentage) : 0;
-            if($data['percentage'] == ''){
-                return array('code'=>404,'params'=>'percentage','error_msg'=>'百分比例不能为空');
-            }
-
+            $data['percentage'] = $request->percentage;
         }
         if($data['red_type'] == 1){
             //红包金额
-            $data['red_money'] = isset($request->red_money) ? intval($request->red_money) : 0;
-            if($data['red_money'] == ''){
-                return array('code'=>404,'params'=>'red_money','error_msg'=>'红包金额不能为空');
-            }
+            $data['red_money'] = $request->red_money;
         }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
-        if($data['effective_time_type'] == null){
-            return array('code'=>404,'params'=>'effective_time_type','error_msg'=>'请选择有效时间');
-        }
         //有效时间信息
         if($data['effective_time_type'] == 1){
-            $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
-            if($day == 0){
-                return array('code'=>404,'params'=>'effective_time_day','error_msg'=>'发放顺延天数不能为空');
-            }
-            $data['effective_time_day'] = $day;
+            $data['effective_time_day'] = $request->effective_time_day;
         }elseif($data['effective_time_type'] == 2){
-            $start = $this->FormValidation($request,'effective_time_start','required','date');
-            $end = $this->FormValidation($request,'effective_time_end','required','date');
-            if($start == false || $end == false){
-                $params = $start == false ? 'effective_time_start' : 'effective_time_end' ;
-                return array('code'=>404,'params'=>$params,'error_msg'=>'有效时间格式不对');
-            }
-            $data['effective_time_start'] = trim($start);
-            $data['effective_time_end'] = trim($end);
+            $data['effective_time_start'] = $request->effective_time_start;
+            $data['effective_time_end'] = $request->effective_time_end;
         }
         //投资门槛
-        $data['investment_threshold'] = isset($request->investment_threshold) ? intval($request->investment_threshold) : 0;
-        if($data['investment_threshold'] == 0){
-            return array('code'=>404,'params'=>'investment_threshold','error_msg'=>'投资门槛不能为空');
-        }
+        $data['investment_threshold'] = $request->investment_threshold;
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
-        if($data['project_duration_type'] == 0){
-            return array('code'=>404,'params'=>'project_duration_type','error_msg'=>'请选择项目期限类型');
-        }
         //项目类型
         $data['project_type'] = $request->project_type;
         //产品ID
@@ -239,52 +209,44 @@ class AwardCommonController extends Controller{
      * @return bool
      */
     function _experienceAmount($request,$award_id,$award_type){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:2|max:255',
+            'experience_amount_type' => 'required|integer|min:1',
+            'effective_time_type' => 'required|integer|min:1',
+        ]);
+        $validator->sometimes('experience_amount_money', 'required|integer|min:1', function($input) {
+            return $input->experience_amount_type == 1;
+        });
+        $validator->sometimes('experience_amount_multiple', 'required|integer|min:1', function($input) {
+            return $input->experience_amount_type == 2;
+        });
+        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+            return $input->effective_time_type == 1;
+        });
+        $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
+            return $input->effective_time_type == 2;
+        });
+        if($validator->fails()){
+            return array('code'=>404,'error_msg'=>$validator->errors()->first());
+        }
         //名称
-        $data['name'] = isset($request->name) ? trim($request->name) : '';
-        if($data['name'] == ''){
-            return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
-        }
+        $data['name'] = $request->name;
         //体验金额
-        $data['experience_amount_type'] = isset($request->experience_amount_type) ? intval($request->experience_amount_type) : 0;
-        if($data['experience_amount_type'] == 0){
-            return array('code'=>404,'params'=>'experience_amount_type','error_msg'=>'体验金额不能为空');
-        }
+        $data['experience_amount_type'] = $request->experience_amount_type;
         //体验金额信息
         if($data['experience_amount_type'] == 1){
-            $experience_amount_money = $this->FormValidation($request,'experience_amount_money','required','integer');
-            if($experience_amount_money == false){
-                return array('code'=>404,'params'=>'experience_amount_money','error_msg'=>'固定金额不能为空');
-            }
-            $data['experience_amount_money'] = $experience_amount_money;
+            $data['experience_amount_money'] = $request->experience_amount_money;
         }elseif($data['experience_amount_type'] == 2){
-            $experience_amount_multiple = $this->FormValidation($request,'experience_amount_multiple','required','integer');
-            if($experience_amount_multiple == false){
-                return array('code'=>404,'params'=>'experience_amount_multiple','error_msg'=>'投资额倍数不能为空');
-            }
-            $data['experience_amount_multiple'] = $experience_amount_multiple;
+            $data['experience_amount_multiple'] = $request->experience_amount_multiple;
         }
-
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
-        if($data['effective_time_type'] == null){
-            return array('code'=>404,'params'=>'effective_time_type','error_msg'=>'请选择有效时间');
-        }
         //有效时间信息
         if($data['effective_time_type'] == 1){
-            $day = isset($request->effective_time_day) ? intval($request->effective_time_day) : 0;
-            if($day == 0){
-                return array('code'=>404,'params'=>'effective_time_day','error_msg'=>'发放顺延天数不能为空');
-            }
-            $data['effective_time_day'] = $day;
+            $data['effective_time_day'] = $request->effective_time_day;
         }elseif($data['effective_time_type'] == 2){
-            $start = $this->FormValidation($request,'effective_time_start','required','date');
-            $end = $this->FormValidation($request,'effective_time_end','required','date');
-            if($start == false || $end == false){
-                $params = $start == false ? 'effective_time_start' : 'effective_time_end' ;
-                return array('code'=>404,'params'=>$params,'error_msg'=>'有效时间格式不对');
-            }
-            $data['effective_time_start'] = trim($start);
-            $data['effective_time_end'] = trim($end);
+            $data['effective_time_start'] = trim($request->effective_time_start);
+            $data['effective_time_end'] = trim($request->effective_time_end);
         }
 //        //产品ID
 //        $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";
@@ -426,16 +388,17 @@ class AwardCommonController extends Controller{
      * @return bool
      */
     function _couponAdd($request,$award_id,$award_type){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:2|max:255',
+            'desc' => 'required|min:2|max:255'
+        ]);
+        if($validator->fails()){
+            return array('code'=>404,'error_msg'=>$validator->errors()->first());
+        }
         //优惠券名称
-        $data['name'] = isset($request->name) ? trim($request->name) : '';
-        if(empty($data['name'])){
-            return array('code'=>404,'params'=>'name','error_msg'=>'优惠券名称不能为空');
-        }
+        $data['name'] = $request->name;
         //优惠券简介
-        $data['desc'] = isset($request->desc) ? trim($request->desc) : '';
-        if(empty($data['desc'])){
-            return array('code'=>404,'params'=>'desc','error_msg'=>'优惠券简介不能为空');
-        }
+        $data['desc'] = $request->desc;
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
