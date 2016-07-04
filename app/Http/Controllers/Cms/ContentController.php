@@ -121,7 +121,7 @@ class ContentController extends Controller
     }
 
     //发布内容接口
-    public function getRelease($id){
+    public function postRelease($id){
         $validator = Validator::make(array('id'=>$id),[
             'id'=>'required|exists:cms_contents,id'
         ]);
@@ -141,7 +141,7 @@ class ContentController extends Controller
     }
 
     //下线内容接口
-    public function getOffline($id){
+    public function postOffline($id){
         $validator = Validator::make(array('id'=>$id),[
             'id'=>'required|exists:cms_contents,id'
         ]);
