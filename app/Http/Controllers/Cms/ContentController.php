@@ -122,7 +122,6 @@ class ContentController extends Controller
 
     //发布内容接口
     public function postRelease(Request $request){
-        dd(1111);
         $validator = Validator::make($request->all(),[
             'id'=>'required|exists:cms_contents,id'
         ]);
