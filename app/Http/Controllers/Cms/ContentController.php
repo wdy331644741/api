@@ -148,7 +148,7 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = Content::where('id',$request->id)->update(array('release',0));
+        $res = Content::where('id',$request->id)->update(array('release'=>0));
         if($res){
             return $this->outputJson(0);
         }else{
