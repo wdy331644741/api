@@ -121,8 +121,9 @@ class ContentController extends Controller
     }
 
     //发布内容接口
-    public function postRelease($id){
-        $validator = Validator::make(array('id'=>$id),[
+    public function postRelease(Request $request){
+        dd(1111);
+        $validator = Validator::make($request->all(),[
             'id'=>'required|exists:cms_contents,id'
         ]);
         if($validator->fails()){
@@ -132,7 +133,7 @@ class ContentController extends Controller
             'release'=>1,
             'release_at'=>date('Y-m-d H:i:s')
         ];
-        $res = Content::where('id',$id)->update($updata);
+        $res = Content::where('id',$request->id)->update($updata);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -141,14 +142,14 @@ class ContentController extends Controller
     }
 
     //下线内容接口
-    public function postOffline($id){
-        $validator = Validator::make(array('id'=>$id),[
+    public function postOffline(Request $request){
+        $validator = Validator::make($request->id,[
             'id'=>'required|exists:cms_contents,id'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = Content::where('id',$id)->update(array('release',0));
+        $res = Content::where('id',$request->id)->update(array('release',0));
         if($res){
             return $this->outputJson(0);
         }else{
