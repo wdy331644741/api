@@ -142,7 +142,7 @@ class ContentController extends Controller
 
     //下线内容接口
     public function postOffline(Request $request){
-        $validator = Validator::make($request->id,[
+        $validator = Validator::make($request->all(),[
             'id'=>'required|exists:cms_contents,id'
         ]);
         if($validator->fails()){
