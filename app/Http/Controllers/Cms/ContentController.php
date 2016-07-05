@@ -166,7 +166,7 @@ class ContentController extends Controller
         }
         $current = Content::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = Content::whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
+        $pre = Content::where('type_id',$current['type_id'])->whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -192,7 +192,7 @@ class ContentController extends Controller
         }
         $current = Content::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = Content::whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        $pre = Content::where('type_id',$current['type_id'])->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
         }
