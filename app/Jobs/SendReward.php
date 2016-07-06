@@ -10,12 +10,12 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
 use App\Models\Coupon;
-use App\Models\SendRewardLog;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-use Lib\JsonRpcClient;
+use App\Service\SendAward;
+
 
 class SendReward extends Job implements ShouldQueue
 {
@@ -56,15 +56,18 @@ class SendReward extends Job implements ShouldQueue
                 //是否有匹配的奖品
                 $awardArray = array();
                 if(count($awardList) >= 1){
-                    foreach($awardList as $item){
+                    foreach($awardList as $k => $item){
                         if($item['name'] === $this->triggerName){
-                            $awardArray[] = $item['info'];
+                            $awardArray[$k]['award_type'] = $item['award_type'];
+                            $awardArray[$k]['award_id'] = $item['award_id'];
                         }
                     }
                     //调用发送奖励接口
-                    if(!empty($awardList) && count($awardList) >= 1){
+                    if(!empty($awardArray) && count($awardArray) >= 1){
                         //刘奇接口
-                        $this->sendDataRole($awardList);
+                        foreach($awardArray as $val){
+                            SendAward::sendDataRole($this->userID,$val['award_type'],$val['award_id'],$this->activityID);
+                        }
                     }
                 }
             }
@@ -97,151 +100,6 @@ class SendReward extends Job implements ShouldQueue
         }
         return $list;
     }
-    function sendDataRole($info){
-        if(!empty($info)){
-            foreach($info as $k=>$v){
-                $data = array();
-                $url = "http://liuqi.dev.wanglibao.com/wl_passport/app/web/service.php?c=reward";
-                $client = new JsonRpcClient($url);
-                $uuid = $this->create_guid();
-                if($v['info']['award_type'] == 1){
-                    //加息券
-                    $data['user_id'] = $this->userID;
-                    $data['uuid'] = $uuid;
-                    $data['source_id'] = $v['info']['id'];
-                    $data['project_ids'] = str_replace(";",",",$v['info']['product_id']);//产品id
-                    $data['project_type'] = $v['info']['project_type'];//项目类型
-                    $data['project_duration_type'] = $v['info']['project_duration_type'];//项目期限类型
-                    $data['name'] = $v['info']['name'];//奖品名称
-                    $data['type'] = $v['info']['rate_increases_type'];//直抵红包
-                    $data['rate'] = $v['info']['rate_increases'];//加息值
-                    if($v['info']['rate_increases_type'] == 2){
-                        $data['continuous_days'] = $v['info']['rate_increases_day'];//加息天数
-                    }elseif($v['info']['rate_increases_type'] == 3){
-                        $data['increases_start'] = date("Y-m-d",$v['info']['rate_increases_start']);//加息天数
-                        $data['increases_end'] = date("Y-m-d",$v['info']['rate_increases_end']);//加息天数
-                    }
-                    if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d H:i:s");
-                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
-                    }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = $v['info']['effective_time_start'];
-                        $data['effective_end'] = $v['info']['effective_time_end'];
-                    }
-                    $data['investment_threshold'] = $v['info']['investment_threshold'];
-                    $data['source_name'] = $v['name'];
-                    $data['platform'] = $v['info']['platform_type'];
-                    $data['limit_desc'] = $v['info']['limit_desc'];
-                    $data['remark'] = '';
-                    if(!empty($data) && !empty($url)){
-                        //发送接口
-                        $result = $client->interestCoupon($data);
-                        //存储到日志
-                        if($result['result']['err_code'] == 1000){
-                            $this->addLog($data['source_id'],3,$data['uuid'],$data['remark']);
-                        }
-                    }
-                }elseif($v['info']['award_type'] == 2){
-                    //直抵红包
-                    $data['user_id'] = $this->userID;
-                    $data['uuid'] = $uuid;
-                    $data['source_id'] = $v['info']['id'];
-                    $data['project_ids'] = str_replace(";",",",$v['info']['product_id']);//产品id
-                    $data['project_type'] = $v['info']['project_type'];//项目类型
-                    $data['project_duration_type'] = $v['info']['project_duration_type'];//项目期限类型
-                    $data['name'] = $v['info']['name'];//奖品名称
-                    $data['type'] = 1;//直抵红包
-                    $data['amount'] = $v['info']['red_money'];//红包金额
-                    if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d H:i:s");
-                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
-                    }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = $v['info']['effective_time_start'];
-                        $data['effective_end'] = $v['info']['effective_time_end'];
-                    }
-                    $data['investment_threshold'] = $v['info']['investment_threshold'];
-                    $data['source_name'] = $v['name'];
-                    $data['platform'] = $v['info']['platform_type'];
-                    $data['limit_desc'] = $v['info']['limit_desc'];
-                    $data['remark'] = '';
-                    if(!empty($data) && !empty($url)){
-                        //发送接口
-                        $result = $client->redpacket($data);
-                        //存储到日志
-                        if($result['result']['err_code'] == 1000){
-                            $this->addLog($data['source_id'],3,$data['uuid'],$data['remark']);
-                        }
-                    }
-                }elseif($v['info']['award_type'] == 3){
-                    //百分比红包
-                    $data['user_id'] = $this->userID;
-                    $data['uuid'] = $uuid;
-                    $data['source_id'] = $v['info']['id'];
-                    $data['project_ids'] = str_replace(";",",",$v['info']['product_id']);//产品id
-                    $data['project_type'] = $v['info']['project_type'];//项目类型
-                    $data['project_duration_type'] = $v['info']['project_duration_type'];//项目期限类型
-                    $data['name'] = $v['info']['name'];//奖品名称
-                    $data['type'] = 2;//百分比红包
-                    $data['max_amount'] = $v['info']['red_money'];//红包最高金额
-                    $data['percentage'] = $v['info']['percentage'];//红包百分比
-                    if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d H:i:s");
-                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
-                    }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = $v['info']['effective_time_start'];
-                        $data['effective_end'] = $v['info']['effective_time_end'];
-                    }
-                    $data['investment_threshold'] = $v['info']['investment_threshold'];
-                    $data['source_name'] = $v['name'];
-                    $data['platform'] = $v['info']['platform_type'];
-                    $data['limit_desc'] = $v['info']['limit_desc'];
-                    $data['remark'] = '';
-                    if(!empty($data) && !empty($url)){
-                        //发送接口
-                        $result = $client->redpacket($data);
-                        //存储到日志
-                        if($result['result']['err_code'] == 1000){
-                            $this->addLog($data['source_id'],3,$data['uuid'],$data['remark']);
-                        }
-                    }
-                }elseif($v['info']['award_type'] == 4){
-                    //体验金
-                    $data['user_id'] = $this->userID;
-                    $data['uuid'] = $uuid;
-                    $data['source_id'] = $v['info']['id'];
-                    $data['name'] = $v['info']['name'];
-                    if($v['info']['experience_amount_type'] == 1){
-                        //固定
-                        $data['amount'] = $v['info']['experience_amount_money'];
-                    }elseif($v['info']['experience_amount_type'] == 2){
-                        //倍数
-                        $data['amount'] = $this->money * $v['info']['experience_amount_multiple'];
-                    }
-                    if($v['info']['effective_time_type'] == 1){
-                        $data['effective_start'] = date("Y-m-d H:i:s");
-                        $data['effective_end'] = date("Y-m-d H:i:s",strtotime("+".$v['info']['effective_time_day']." days"));
-                    }elseif($v['info']['effective_time_type'] == 2){
-                        $data['effective_start'] = $v['info']['effective_time_start'];
-                        $data['effective_end'] = $v['info']['effective_time_end'];
-                    }
-                    $data['source_name'] = $v['name'];
-                    $data['platform'] = $v['info']['platform_type'];
-                    $data['limit_desc'] = $v['info']['limit_desc'];
-                    $data['remark'] = '';
-                    if(!empty($data) && !empty($url)){
-                        //发送接口
-                        $result = $client->experience($data);
-                        //存储到日志
-                        if($result['result']['err_code'] == 1000){
-                            $this->addLog($data['source_id'],4,$data['uuid'],$data['remark']);
-                        }
-
-                    }
-                }
-
-            }
-        }
-    }
     /**
      * 获取表对象
      * @param $awardType
@@ -271,35 +129,6 @@ class SendReward extends Job implements ShouldQueue
         }
     }
 
-    /**
-     * 添加到日志
-     * @param $source_id
-     * @param $award_type
-     * @param $uuid
-     * @param $remark
-     * @return mixed
-     */
-    function addLog($source_id,$award_type,$uuid,$remark){
-        $SendRewardLog = new SendRewardLog;
-        $data['user_id'] = $this->userID;
-        $data['activity_id'] = $this->activityID;
-        $data['source_id'] = $source_id;
-        $data['award_type'] = $award_type;
-        $data['uuid'] = $uuid;
-        $data['remark'] = $remark;
-        $insertID = $SendRewardLog->insertGetId($data);
-        return $insertID;
-    }
-    //生成Guid
-    function create_guid()
-    {
-        $charid = strtoupper(md5(uniqid(mt_rand(), true)));
-        $hyphen = chr(45); // "-"
-        $uuid = substr($charid, 0, 8) . $hyphen
-            . substr($charid, 8, 4) . $hyphen
-            . substr($charid, 12, 4) . $hyphen
-            . substr($charid, 16, 4) . $hyphen
-            . substr($charid, 20, 12);
-        return $uuid;
-    }
+
+
 }
