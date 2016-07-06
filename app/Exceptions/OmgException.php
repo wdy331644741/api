@@ -25,10 +25,16 @@ class OmgException extends BasicException
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
+    const VALID_CODE_FAIL = 4111;
+    const VALID_USERID_FAIL = 4112;
     const PARAMS_NOT_NULL = 4101;
 
     //服务器错误
     const GET_BANNER_FAIL = 4200;
+    const GET_CODEDATAEMPTY_FAIL = 4113;
+    const GET_AWARDDATAEMPTY_FAIL = 4202;
+    const GET_AWARDDATAEXIST_FAIL = 4203;
+    const SENDAEARD_FAIL = 4204;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -38,9 +44,15 @@ class OmgException extends BasicException
         self::API_FAILED => "接口调用失败",
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",
+        self::VALID_CODE_FAIL => "兑换码不能为空",
+        self::VALID_USERID_FAIL => "用户ID不能为空",
         self::PARAMS_NOT_NULL => "参数不能为空",
         //服务器错误
         self::GET_BANNER_FAIL => "获取banner图列表失败",
+        self::GET_CODEDATAEMPTY_FAIL => "该CODE不存在",
+        self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在",
+        self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
+        self::SENDAEARD_FAIL => "发送兑换码奖品失败",
     );
 
     public function __construct($code, $data = array())

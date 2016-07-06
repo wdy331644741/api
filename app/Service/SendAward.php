@@ -36,11 +36,14 @@ class SendAward
         //获取数据
         $table = self::_getAwardTable($award_type);
         $info = $table::where('id', $award_id)->select()->get()->toArray();
-        if($info >= 1){
+        if(count($info) >= 1){
             $info = $info[0];
         }
+        //来源id
+        $info['source_id'] = $activityID;
         //获取出活动的名称
         $activity = Activity::where('id',$activityID)->select('name')->get()->toArray();
+        //来源名称
         $info['source_name'] = isset($activity[0]['name']) ? $activity[0]['name'] : '';
         //用户id
         $info['user_id'] = $userID;
@@ -58,7 +61,7 @@ class SendAward
     static function increases($info){
         $validator = Validator::make($info, [
             'user_id' => 'required|integer|min:1',
-            'id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'rate_increases' => 'required|numeric|between:0.0001,1',
@@ -90,7 +93,7 @@ class SendAward
         //加息券
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['id'];
+        $data['source_id'] = $info['source_id'];
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
@@ -120,7 +123,8 @@ class SendAward
             $result = $client->interestCoupon($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark']);
+                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id']);
+                return true;
             }else{
                 return false;
             }
@@ -130,7 +134,7 @@ class SendAward
     static function redMoney($info){
         $validator = Validator::make($info, [
             'user_id' => 'required|integer|min:1',
-            'id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'red_money' => 'required|integer|min:1',
@@ -155,7 +159,7 @@ class SendAward
         //直抵红包
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['id'];
+        $data['source_id'] = $info['source_id'];
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
@@ -179,7 +183,7 @@ class SendAward
             $result = $client->redpacket($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark']);
+                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id']);
             }else{
                 return false;
             }
@@ -189,7 +193,7 @@ class SendAward
     static function redMaxMoney($info){
         $validator = Validator::make($info, [
             'user_id' => 'required|integer|min:1',
-            'id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'red_max_money' => 'required|integer|min:1',
@@ -215,7 +219,7 @@ class SendAward
         //百分比红包
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['id'];
+        $data['source_id'] = $info['source_id'];
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
@@ -238,10 +242,9 @@ class SendAward
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->redpacket($data);
-            print_r($result);exit;
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark']);
+                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id']);
             }else{
                 return false;
             }
@@ -252,7 +255,7 @@ class SendAward
         //验证必填
         $validator = Validator::make($info, [
             'user_id' => 'required|integer|min:1',
-            'id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'experience_amount_type' => 'required|integer|min:1',
@@ -280,7 +283,7 @@ class SendAward
         //体验金
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['id'];
+        $data['source_id'] = $info['source_id'];
         $data['name'] = $info['name'];
         //体验金额
         $data['amount'] = $info['experience_amount_money'];
@@ -300,7 +303,7 @@ class SendAward
             $result = $client->experience($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 4, $data['uuid'], $data['remark']);
+                self::addLog($data['source_id'], 4, $data['uuid'], $data['remark'], $data['user_id']);
             }else{
                 return false;
             }
@@ -342,10 +345,10 @@ class SendAward
      * @param $remark
      * @return mixed
      */
-    static function addLog($source_id,$award_type,$uuid,$remark){
+    static function addLog($source_id,$award_type,$uuid,$remark,$userID){
         $SendRewardLog = new SendRewardLog;
-        $data['user_id'] = self::$userID;
-        $data['activity_id'] = self::$activityID;
+        $data['user_id'] = $userID;
+        $data['activity_id'] = $source_id;
         $data['source_id'] = $source_id;
         $data['award_type'] = $award_type;
         $data['uuid'] = $uuid;
