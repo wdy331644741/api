@@ -14,4 +14,15 @@ class Controller extends BaseController
     protected function outputJson($errorCode, $data = null){
         return response()->json(array('error_code'=> $errorCode, 'data'=>$data));
     }
+    
+    protected function outputRpc($res) {
+        if(isset($res['error'])){
+            $response['error_code']  = $res['error']['code'];      
+            $response['data'] = array( 'error_msg' => $res['error']['message']);
+        }else{
+            $response['error_code']  = $res['result']['code'];
+            $response['data'] = $res['result']['data'];
+        }
+        return response()->json($response);
+    }
 }
