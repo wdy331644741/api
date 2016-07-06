@@ -52,4 +52,43 @@ class ContentJsonRpc extends JsonRpc {
             'data' => $data
         );
     }
+
+    /**
+     * 通过别名获取分类
+     *
+     * @JsonRpcMethod
+     */
+    public function contentType($params){
+        if (empty($params->alias_name)) {
+            throw new OmgException(4101);
+        }
+        $parent_id = ContentType::where('alias_name',$params->alias_name)->value('id');
+
+        $data = ContentType::where('parent_id',$parent_id)->orderByRaw('id + sort desc')->get()->toArray();
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
+    /**
+     * 获取文章列表
+     *
+     * @JsonRpcMethod
+     */
+    public function contentList($params){
+        if (empty($params->type_id)) {
+            throw new OmgException(4101);
+        }
+        $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
+        $data = Content::where('type_id',$params->alias_name)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
 }
