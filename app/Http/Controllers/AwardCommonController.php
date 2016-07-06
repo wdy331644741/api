@@ -211,15 +211,9 @@ class AwardCommonController extends Controller{
     function _experienceAmount($request,$award_id,$award_type){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'experience_amount_type' => 'required|integer|min:1',
+            'experience_amount_money' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
         ]);
-        $validator->sometimes('experience_amount_money', 'required|integer|min:1', function($input) {
-            return $input->experience_amount_type == 1;
-        });
-        $validator->sometimes('experience_amount_multiple', 'required|integer|min:1', function($input) {
-            return $input->experience_amount_type == 2;
-        });
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
             return $input->effective_time_type == 1;
         });
@@ -232,13 +226,7 @@ class AwardCommonController extends Controller{
         //名称
         $data['name'] = $request->name;
         //体验金额
-        $data['experience_amount_type'] = $request->experience_amount_type;
-        //体验金额信息
-        if($data['experience_amount_type'] == 1){
-            $data['experience_amount_money'] = $request->experience_amount_money;
-        }elseif($data['experience_amount_type'] == 2){
-            $data['experience_amount_multiple'] = $request->experience_amount_multiple;
-        }
+        $data['experience_amount_money'] = $request->experience_amount_money;
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
         //有效时间信息

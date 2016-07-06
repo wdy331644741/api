@@ -13,7 +13,7 @@
 
 
 Route::get('/', function () {
-    return view('welcome');
+    return 'server is ok';
 });
 
 /*
@@ -26,6 +26,7 @@ Route::group(['middleware' => 'web'], function () {
 
 
 Route::controller('activity', 'ActivityController');
+Route::controller('account', 'AccountController');
 Route::controller('channel', 'ChannelController');
 Route::controller('cms/content','Cms\ContentController');
 //奖品路由
