@@ -258,15 +258,9 @@ class SendAward
             'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
-            'experience_amount_type' => 'required|integer|min:1',
+            'experience_amount_money' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
         ]);
-        $validator->sometimes('experience_amount_money', 'required|integer|min:1', function($input) {
-            return $input->experience_amount_type == 1;
-        });
-        $validator->sometimes('experience_amount_multiple', 'required|integer|min:1', function($input) {
-            return $input->experience_amount_type == 2;
-        });
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
             return $input->effective_time_type == 1;
         });
