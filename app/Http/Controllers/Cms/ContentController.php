@@ -121,8 +121,8 @@ class ContentController extends Controller
     }
 
     //发布内容接口
-    public function getRelease($id){
-        $validator = Validator::make(array('id'=>$id),[
+    public function postRelease(Request $request){
+        $validator = Validator::make($request->all(),[
             'id'=>'required|exists:cms_contents,id'
         ]);
         if($validator->fails()){
@@ -132,7 +132,7 @@ class ContentController extends Controller
             'release'=>1,
             'release_at'=>date('Y-m-d H:i:s')
         ];
-        $res = Content::where('id',$id)->update($updata);
+        $res = Content::where('id',$request->id)->update($updata);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -141,14 +141,14 @@ class ContentController extends Controller
     }
 
     //下线内容接口
-    public function getOffline($id){
-        $validator = Validator::make(array('id'=>$id),[
+    public function postOffline(Request $request){
+        $validator = Validator::make($request->all(),[
             'id'=>'required|exists:cms_contents,id'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = Content::where('id',$id)->update(array('release',0));
+        $res = Content::where('id',$request->id)->update(array('release'=>0));
         if($res){
             return $this->outputJson(0);
         }else{
@@ -166,7 +166,7 @@ class ContentController extends Controller
         }
         $current = Content::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = Content::whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
+        $pre = Content::where('type_id',$current['type_id'])->whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -192,7 +192,7 @@ class ContentController extends Controller
         }
         $current = Content::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = Content::whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        $pre = Content::where('type_id',$current['type_id'])->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
         }

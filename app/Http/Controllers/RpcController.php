@@ -10,15 +10,15 @@ use Lib\JsonRpcServer;
 use App\Http\JsonRpcs\TestJsonRpc;
 use App\Http\JsonRpcs\BannerJsonRpc;
 use App\Http\JsonRpcs\ContentJsonRpc;
-
+use App\Http\JsonRpcs\RedeemCodeJsonRpc;
 
 class RpcController extends Controller
 {
     
     public function getClient() {
-        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/cms');
-        $result = $client->noticeInfo(array());
-        echo json_encode($result);
+        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/redeem-code');
+        $result = $client->sendCodeAward(array('code'=>'5006-6476-8435','userID'=>1716596));
+        print_r($result);exit;
     }  
 
     public function postTest() {
@@ -37,5 +37,13 @@ class RpcController extends Controller
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
-    
+    /**
+     * 兑换码发奖
+     */
+    public function postRedeemCode() {
+        $jsonRpcServer = new JsonRpcServer();
+        $jsonRpcServer->addService(new RedeemCodeJsonRpc());
+        $jsonRpcServer->processingRequests();
+        return response('')->header('Content-Type', 'application/json');
+    }
 }
