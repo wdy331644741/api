@@ -31,6 +31,7 @@ class ActivityController extends Controller
             'group_id'=>'required|exists:activity_groups,id',
             'frequency'=>'required',
             'start_at'=> 'date',
+            'award_rule'=>'required|integer',
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
             'trigger_type'=>'required',
@@ -42,6 +43,7 @@ class ActivityController extends Controller
         $activity->name = $request->name;
         $activity->frequency = $request->frequency;
         $activity->alias_name = $request->alias_name;
+        $activity->award_rule = $request->award_rule;
         if($request->start_at){
             $activity->start_at = $request->start_at;
         }
@@ -90,6 +92,7 @@ class ActivityController extends Controller
             'alias_name' => 'required|unique:activities,alias_name'.$request->id,
             'group_id'=>'required|exists:activity_groups,id',
             'frequency'=>'required',
+            'award_rule'=>'required|integer',
             'start_at'=> 'date',
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
@@ -105,6 +108,7 @@ class ActivityController extends Controller
             'group_id'=>$request->group_id,
             'frequency'=>$request->frequency,
             'start_at'=>$request->start_at,
+            'award_rule'=>$request->award_rule,
             'end_at'=>$request->end_at,
             'trigger_index'=>$request->trigger_index,
             'trigger_type'=>$request->trigger_type,
