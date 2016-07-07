@@ -182,7 +182,6 @@ return [
         'coupon_id'             => '优惠券ID',
         'position'              => '位置',
         'img_path'              => '图片地址',
-        'img_url'               => '图片跳转URL',
         'id'                    => '操作ID'
     ],
 

@@ -43,8 +43,7 @@ class ImgManageController extends Controller
     public function postBannerAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'position' => 'required|min:1|max:255',
-            'img_path' => 'required|min:1|max:255',
-            'img_url' => 'required|min:1|max:255'
+            'img_path' => 'required|min:1|max:255'
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
