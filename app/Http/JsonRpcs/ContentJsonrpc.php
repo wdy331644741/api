@@ -83,7 +83,7 @@ class ContentJsonRpc extends JsonRpc {
             throw new OmgException(4101);
         }
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::where('type_id',$params->alias_name)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
+        $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
 
         return array(
             'code' => 0,

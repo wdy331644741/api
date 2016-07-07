@@ -13,6 +13,7 @@ class AccountController extends Controller
     public function __construct() {
         $this->jsonRpc = new JsonRpc();
     }
+    
     public function postLogin(Request $request) {
         $params = $request->all();
         $validator = Validator::make($params, [
@@ -20,7 +21,7 @@ class AccountController extends Controller
             'password' => 'required',
         ]);
         if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+            return $this->outputJson(10001, array('error_msg'=>$validator->errors()->first()));
         }
         
         $result = $this->jsonRpc->account()->signin($params);
@@ -29,5 +30,14 @@ class AccountController extends Controller
     
     public function getTest() {
         global $userId;
+    }
+    
+    public function getProfile() {
+        $result = $this->jsonRpc->account()->profile();
+        return $this->outputRpc($result);       
+    }
+    public function getLogout() {
+        $result = $this->jsonRpc->account()->signout(array());
+        return $this->outputRpc($result);       
     }
 }
