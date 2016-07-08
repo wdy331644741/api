@@ -49,7 +49,7 @@ class OmgException extends BasicException
         self::PARAMS_NOT_NULL => "参数不能为空",
         //服务器错误
         self::GET_BANNER_FAIL => "获取banner图列表失败",
-        self::GET_CODEDATAEMPTY_FAIL => "该CODE不存在",
+        self::GET_CODEDATAEMPTY_FAIL => "该CODE不存在或已发送",
         self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在",
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
