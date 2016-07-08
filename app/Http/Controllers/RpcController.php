@@ -18,7 +18,7 @@ class RpcController extends Controller
     
     public function getClient() {
         $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/redeem-code');
-        $result = $client->sendCodeAward(array('code'=>'5006-6476-8435','userID'=>1716596));
+        $result = $client->sendCodeAward(array('code'=>'4414-4959-2867'));
         print_r($result);exit;
     }  
 

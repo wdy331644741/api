@@ -476,22 +476,29 @@ class ActivityController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     function postAwardAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'activity_id' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //奖品类型
-        $award_type = intval($request->award_type);
-        if(empty($award_type)){
-            return $this->outputJson(PARAMS_ERROR,array('award_type'=>'奖品类型id不能为空'));
-        }
+        $data['award_type'] = intval($request->award_type);
         //活动ID
-        $activity_id = intval($request->activity_id);
-        if(empty($activity_id)){
-            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
-        }
+        $data['activity_id'] = intval($request->activity_id);
         //优惠券id
-        $award_id = intval($request->award_id);
-        if(empty($award_id)){
-            return $this->outputJson(PARAMS_ERROR,array('award_id'=>'奖品id不能为空'));
+        $data['award_id'] = intval($request->award_id);
+        //查看是否重复
+        $count = Award::where($data)->count();
+        if($count > 0){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该数据'));
         }
-        $awardID = $this->_awardAdd($award_type,$award_id,$activity_id);
+        $data['priority'] = isset($request->priority) ? intval($request->priority) : 0;
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['updated_at'] = date("Y-m-d H:i:s");
+        $awardID = Award::insertGetId($data);
         if($awardID){
             return $this->outputJson(0,array('insert_id'=>$awardID));
         }else{
@@ -539,27 +546,6 @@ class ActivityController extends Controller
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
         }
-    }
-    /**
-     * 添加到awards
-     * @param $award_type
-     * @param $award_id
-     * @param $activityID
-     * @return mixed
-     */
-    function _awardAdd($award_type,$award_id,$activityID){
-        $data['activity_id'] = $activityID;
-        $data['award_type'] = $award_type;
-        $data['award_id'] = $award_id;
-        //查看是否重复
-        $count = Award::where($data)->count();
-        if($count > 0){
-            return false;
-        }
-        $data['created_at'] = date("Y-m-d H:i:s");
-        $data['updated_at'] = date("Y-m-d H:i:s");
-        $id = Award::insertGetId($data);
-        return $id;
     }
     /**
      * 获取表对象

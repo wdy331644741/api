@@ -13,6 +13,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function sendCodeAward($params) {
+        global $userId;
         $where = array();
         //code码
         $code = $params->code;
@@ -23,8 +24,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
             $where['code'] = $code;
         }
         //用户ID
-        $userID = $params->userID;
-        if (empty($userID)) {
+        if (empty($userId)) {
             throw new OmgException(OmgException::VALID_USERID_FAIL);
         }
         //获取兑换码关联表ID
@@ -50,7 +50,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
                 //来源名称
                 $info['source_name'] = $list['name'];
                 //用户id
-                $info['user_id'] = $userID;
+                $info['user_id'] = $userId;
                 $status = false;
                 if($list['award_type'] == 1){
                     $status = SendAward::increases($info);
@@ -64,6 +64,8 @@ class RedeemCodeJsonRpc extends JsonRpc {
                 if(!$status){
                     throw new OmgException(OmgException::SENDAEARD_FAIL);
                 }else{
+                    //修改兑换码状态为已使用
+                    RedeemCode::where('code',$code)->update(array('is_use'=>2));
                     return array(
                         'code' => 0,
                         'message' => 'success'
