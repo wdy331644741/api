@@ -48,13 +48,21 @@ class SendAward
         //用户id
         $info['user_id'] = $userID;
         if ($award_type == 1) {
-            self::increases($info);
+            //加息券
+            return self::increases($info);
         } elseif ($award_type == 2) {
-            self::redMoney($info);
+            if ($info['red_type'] == 1) {
+                //直抵红包
+                return self::redMoney($info);
+            } elseif ($info['red_type'] == 2){
+                //百分比红包
+                return self::redMaxMoney($info);
+            }
         } elseif ($award_type == 3) {
-            self::redMaxMoney($info);
-        } elseif ($award_type == 4) {
-            self::experience($info);
+            //体验金
+            return self::experience($info);
+        } elseif ($award_type == 6) {
+            //优惠券
         }
     }
     //加息券
