@@ -21,7 +21,7 @@ class Controller extends BaseController
             $response['data'] = array( 'error_msg' => $res['error']['message']);
         }else{
             $response['error_code']  = $res['result']['code'];
-            $response['data'] = $res['result']['data'];
+            $response['data'] = isset($res['result']['data']) ? $res['result']['data'] : [];
         }
         return response()->json($response);
     }

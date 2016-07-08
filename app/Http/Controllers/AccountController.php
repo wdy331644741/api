@@ -37,7 +37,7 @@ class AccountController extends Controller
         return $this->outputRpc($result);       
     }
     public function getLogout() {
-        $result = $this->jsonRpc->account()->signout(array());
+        $result = $this->jsonRpc->account()->signout();
         return $this->outputRpc($result);       
     }
 }
