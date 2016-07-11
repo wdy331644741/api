@@ -16,7 +16,7 @@ use Validator;
 use Config;
 class ImgManageController extends Controller
 {
-    //获取某个位置的附件列表
+    //获取某个位置的banner列表
     public function getBannerList(Request $request)
     {
         $where = array();
@@ -144,7 +144,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'添加失败'));
         }
     }
-    //修改
+    //banner修改
     public function postBannerEdit(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
@@ -195,7 +195,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'修改失败'));
         }
     }
-    //发布
+    //banner发布
     public function postBannerRelease(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
@@ -223,7 +223,33 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'发布失败'));
         }
     }
-    //删除
+    //banner下线
+    public function postBannerOffline(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        //条件
+        $where['id'] = $request['id'];
+        //判断是否存在
+        $count = Banner::where($where)->count();
+        if($count < 1){
+            return $this->outputJson(DATABASE_ERROR,array('id'=>'要发布的信息不存在'));
+        }
+        //是否可用（已发布状态）
+        $save['can_use'] = 0;
+        //修改时间
+        $save['updated_at'] = date("Y-m-d H:i:s");
+        $status = Banner::where($where)->update($save);
+        if($status){
+            return $this->outputJson(0,array('error_msg'=>'下线成功'));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'下线失败'));
+        }
+    }
+    //banner删除
     public function postBannerDel(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
@@ -245,7 +271,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
         }
     }
-    //上移
+    //banner上移
     public function postSortMove(Request $request){
         //获取操作的id
         $id = intval($request->id);
@@ -264,7 +290,7 @@ class ImgManageController extends Controller
         }
         return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'排序已经是最前'));
     }
-    //下移
+    //banner下移
     public function postSortDown(Request $request){
         //获取操作的id
         $id = intval($request->id);

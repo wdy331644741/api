@@ -182,6 +182,7 @@ return [
         'coupon_id'             => '优惠券ID',
         'position'              => '位置',
         'img_path'              => '图片地址',
+        'activity_time'         => '图片活动的时间',
         'id'                    => '操作ID'
     ],
 
