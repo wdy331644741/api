@@ -25,7 +25,7 @@ class BannerJsonRpc extends JsonRpc {
         $data = Banner::where($where)->orderBy('id','DESC')->get()->toArray();
         if(!empty($data)){
             $rData['bannerList'] = $data;
-            $rData['tag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : null;
+            $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : null;
             return array(
                 'code' => 0,
                 'message' => 'success',
@@ -57,9 +57,11 @@ class BannerJsonRpc extends JsonRpc {
             ->where($filter)
             ->where('online_time','<=',$newdate)
             ->where('offline_time','>=',$newdate)
-            ->orderByRaw("offline_time - now() ASC")
-            ->first()->toArray();
-        $data['Etag'] = strval(strtotime($data['release_at']));
+            ->orderByRaw("id + sort DESC")
+            ->first();
+        if($data){
+            $data['Etag'] = strval(strtotime($data['release_at']));
+        }
         return array(
             'code' => 0,
             'message' => 'success',

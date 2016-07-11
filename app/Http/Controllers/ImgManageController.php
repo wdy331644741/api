@@ -16,7 +16,7 @@ use Validator;
 use Config;
 class ImgManageController extends Controller
 {
-    //获取某个位置的附件列表
+    //获取某个位置的banner列表
     public function getBannerList(Request $request)
     {
         $where = array();
@@ -136,7 +136,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'添加失败'));
         }
     }
-    //修改
+    //banner修改
     public function postBannerEdit(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
@@ -187,7 +187,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'修改失败'));
         }
     }
-    //发布
+    //banner发布
     public function postBannerRelease(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
@@ -215,7 +215,33 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'发布失败'));
         }
     }
-    //删除
+    //banner下线
+    public function postBannerOffline(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        //条件
+        $where['id'] = $request['id'];
+        //判断是否存在
+        $count = Banner::where($where)->count();
+        if($count < 1){
+            return $this->outputJson(DATABASE_ERROR,array('id'=>'要发布的信息不存在'));
+        }
+        //是否可用（已发布状态）
+        $save['can_use'] = 0;
+        //修改时间
+        $save['updated_at'] = date("Y-m-d H:i:s");
+        $status = Banner::where($where)->update($save);
+        if($status){
+            return $this->outputJson(0,array('error_msg'=>'下线成功'));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'下线失败'));
+        }
+    }
+    //banner删除
     public function postBannerDel(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
@@ -237,7 +263,7 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
         }
     }
-    //上移
+    //banner上移
     public function postSortMove(Request $request){
         //获取操作的id
         $id = intval($request->id);
@@ -256,7 +282,7 @@ class ImgManageController extends Controller
         }
         return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'排序已经是最前'));
     }
-    //下移
+    //banner下移
     public function postSortDown(Request $request){
         //获取操作的id
         $id = intval($request->id);
@@ -410,13 +436,13 @@ class ImgManageController extends Controller
         return $this->outputJson(0,$data);
     }
     
-    //启动页详情 通过平台id获取
+    //启动页列表 通过平台id获取
     public function getAppInfoPid($platform){
         $filter = [
             'platform'=>$platform,
         ];
-        $newdate = date('Y-m-d H:i:s');
-        $data = AppStartpage::where($filter)->get();
+        $data = AppStartpage::where($filter)
+            ->orderByRaw('id + sort DESC')->get();
         return $this->outputJson(0,$data);
     }
 
@@ -442,6 +468,66 @@ class ImgManageController extends Controller
         }
         $res = AppStartpage::destroy($request->id);
         if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //启动页上移
+    public function getAppUp($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $now_date = date('Y-m-d H:i:s');
+        $current = AppStartpage::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = AppStartpage::where('online_time','<=',$now_date)
+            ->where('offline_time','>=',$now_date)
+            ->whereRaw("id + sort > $current_num")
+            ->orderByRaw('id + sort ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = AppStartpage::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = AppStartpage::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //启动页下移
+    public function getAppDown($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $now_date = date('Y-m-d H:i:s');
+        $current = AppStartpage::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = AppStartpage::where('online_time','<=',$now_date)
+            ->where('offline_time','>=',$now_date)
+            ->whereRaw("id + sort < $current_num")
+            ->orderByRaw('id + sort DESC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = AppStartpage::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = AppStartpage::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
