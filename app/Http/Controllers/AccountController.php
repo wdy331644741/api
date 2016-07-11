@@ -23,7 +23,7 @@ class AccountController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001, array('error_msg'=>$validator->errors()->first()));
         }
-        
+
         $result = $this->jsonRpc->account()->signin($params);
         return $this->outputRpc($result);
     }

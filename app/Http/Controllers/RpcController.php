@@ -15,31 +15,9 @@ use App\Http\JsonRpcs\ActivityJsonRpc;
 
 class RpcController extends Controller
 {
-    
-    public function getClient() {
-        $client = new JsonRpcClient('http://api-omg.wanglibao.com/rpc/redeem-code');
-        $result = $client->sendCodeAward(array('code'=>'4414-4959-2867'));
-        print_r($result);exit;
-    }  
-
-    public function postTest() {
-        $jsonRpcServer = new JsonRpcServer();         
-        $jsonRpcServer->addService(new TestJsonRpc());
-        $jsonRpcServer->processingRequests();
-    }
-    
-    public function postIndex() {
-        $jsonRpcServer = new JsonRpcServer();
-        $jsonRpcServer->addService(new ContentJsonRpc());
-        $jsonRpcServer->addService(new BannerJsonRpc());
-        $jsonRpcServer->addService(new RedeemCodeJsonRpc());
-        $jsonRpcServer->addService(new ActivityJsonRpc());
-        $jsonRpcServer->processingRequests();
-        return response('')->header('Content-Type', 'application/json');       
-    }
 
     /**
-     * banner列表
+     * cms列表
      */
     public function postCms() {
         $jsonRpcServer = new JsonRpcServer();
@@ -51,11 +29,12 @@ class RpcController extends Controller
     
 
     /**
-     * 兑换码发奖
+     * api列表
      */
-    public function postRedeemCode() {
+    public function postApi() {
         $jsonRpcServer = new JsonRpcServer();
         $jsonRpcServer->addService(new RedeemCodeJsonRpc());
+        $jsonRpcServer->addService(new ActivityJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
