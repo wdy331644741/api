@@ -35,7 +35,7 @@ class BannerJsonRpc extends JsonRpc {
                     ->orderByRaw('id + sort DESC')->get()->toArray();
         }
 
-        $rData['bannerList'] = $data;
+        $rData['list'] = $data;
         $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : '';
         return array(
             'code' => 0,
