@@ -53,14 +53,6 @@ class ImgManageController extends Controller
         $data['position'] = $request['position'];
         //名称
         $data['name'] = $request['name'];
-        //验证不能重复添加
-        $where['name'] = $data['name'];
-        if(!empty($where['name'])){
-            $count = Banner::where($where)->count();
-            if($count > 0){
-                return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经添加过该信息'));
-            }
-        }
         //图片
         $data['img_path'] = trim($request['img_path']);
         //跳转url
