@@ -23,10 +23,12 @@ class BannerJsonRpc extends JsonRpc {
         }
         $data = Banner::where($where)->orderBy('id','DESC')->get()->toArray();
         if(!empty($data)){
+            $rData['bannerList'] = $data;
+            $rData['tag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : null;
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => $data
+                'data' => $rData
             );
         }else{
             throw new OmgException(OmgException::GET_BANNER_FAIL);
