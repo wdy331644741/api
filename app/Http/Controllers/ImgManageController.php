@@ -213,7 +213,7 @@ class ImgManageController extends Controller
         //是否可用（已发布状态）
         $save['can_use'] = 1;
         //图片发布时间
-        $data['release_time'] = date("Y-m-d H:i:s");
+        $save['release_time'] = date("Y-m-d H:i:s");
         //修改时间
         $save['updated_at'] = date("Y-m-d H:i:s");
         $status = Banner::where($where)->update($save);
