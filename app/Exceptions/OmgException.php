@@ -35,6 +35,10 @@ class OmgException extends BasicException
     const GET_AWARDDATAEMPTY_FAIL = 4202;
     const GET_AWARDDATAEXIST_FAIL = 4203;
     const SENDAEARD_FAIL = 4204;
+    
+    //结果处理
+    const NO_DATA = 4300;
+    
 
     protected static $errorArray = array(
         //接口调用错误
@@ -53,6 +57,9 @@ class OmgException extends BasicException
         self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在",
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
+        
+        //结果处理
+        self::NO_DATA => "暂无数据"
     );
 
     public function __construct($code, $data = array())
