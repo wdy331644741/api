@@ -455,4 +455,64 @@ class ImgManageController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
+
+    //启动页上移
+    public function getAppUp($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $now_date = date('Y-m-d H:i:s');
+        $current = AppStartpage::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = AppStartpage::where('online_time','<=',$now_date)
+            ->where('offline_time','>=',$now_date)
+            ->whereRaw("id + sort > $current_num")
+            ->orderByRaw('id + sort ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = AppStartpage::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = AppStartpage::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //启动页下移
+    public function getAppDown($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:app_startpages,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $now_date = date('Y-m-d H:i:s');
+        $current = AppStartpage::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = AppStartpage::where('online_time','<=',$now_date)
+            ->where('offline_time','>=',$now_date)
+            ->whereRaw("id + sort > $current_num")
+            ->orderByRaw('id + sort ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = AppStartpage::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = AppStartpage::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
 }
