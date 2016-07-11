@@ -21,7 +21,7 @@ class CreateCmsContentsTable extends Migration
             $table->string('source')->nullable()->default(NULL);
             $table->integer('sort')->default(0);
             $table->tinyInteger('release')->default(0);
-            $table->dateTime('release_at')->default(NULL);
+            $table->dateTime('release_at')->nullable()->default(NULL);
             $table->tinyInteger('platform')->default(0)->commemt('0:全平台，1：pc端，2：移动端(ios,android)');
             $table->softDeletes();
             $table->timestamps();
