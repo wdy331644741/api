@@ -58,9 +58,9 @@ class ImgManageController extends Controller
         //跳转url
         $data['img_url'] = trim($request['img_url']);
         //开始时间
-        $data['start'] = $request['start'];
+        $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
-        $data['end'] = $request['end'];
+        $data['end'] = empty($request['end']) ? null : $request['end'];
         //排序
         $maxSort = Banner::max("sort");
         $data['sort'] = empty($maxSort) ? 1 : $maxSort+1;
@@ -171,9 +171,9 @@ class ImgManageController extends Controller
         //跳转url
         $data['img_url'] = trim($request['img_url']);
         //开始时间
-        $data['start'] = $request['start'];
+        $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
-        $data['end'] = $request['end'];
+        $data['end'] = empty($request['end']) ? null : $request['end'];
         //描述
         $data['desc'] = trim($request['desc']);
         //修改时间
