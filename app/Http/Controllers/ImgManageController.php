@@ -380,7 +380,7 @@ class ImgManageController extends Controller
         ]);
 
         if($validator->fails()){
-            return $this->outputJson('10001',array('error_msg'=>$validator->errors()->first()));
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
 
         $data = [
@@ -424,11 +424,7 @@ class ImgManageController extends Controller
             'platform'=>$platform,
         ];
         $newdate = date('Y-m-d H:i:s');
-        $data = AppStartpage::where($filter)
-            ->where('online_time','<=',$newdate)
-            ->where('offline_time','>=',$newdate)
-            ->orderByRaw("offline_time - now() ASC")
-            ->first();
+        $data = AppStartpage::where($filter)->get();
         return $this->outputJson(0,$data);
     }
 
@@ -442,5 +438,20 @@ class ImgManageController extends Controller
         }
         $data = AppStartpage::find($id);
         return $this->outputJson(0,$data);
+    }
+    
+    public function postAppDel(Request $request){
+        $validator = Validator::make($request->all(),[
+            'id' => 'required|exists:app_startpages,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = AppStartpage::destroy($request->id);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
     }
 }
