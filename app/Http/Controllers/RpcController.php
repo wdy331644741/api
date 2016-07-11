@@ -26,6 +26,19 @@ class RpcController extends Controller
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
+
+    /**
+     * rpc接口
+     */
+    public function postIndex() {
+        $jsonRpcServer = new JsonRpcServer();
+        $jsonRpcServer->addService(new ContentJsonRpc());
+        $jsonRpcServer->addService(new BannerJsonRpc());
+        $jsonRpcServer->addService(new RedeemCodeJsonRpc());
+        $jsonRpcServer->addService(new ActivityJsonRpc());
+        $jsonRpcServer->processingRequests();
+        return response('')->header('Content-Type', 'application/json');       
+    }
     
 
     /**
