@@ -272,7 +272,7 @@ class ImgManageController extends Controller
         }
     }
     //banner上移
-    public function postSortMove(Request $request){
+    public function postSortUp(Request $request){
         //获取操作的id
         $id = intval($request->id);
         //取得当前的值
