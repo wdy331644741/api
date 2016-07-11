@@ -439,7 +439,8 @@ class ImgManageController extends Controller
         $data = AppStartpage::find($id);
         return $this->outputJson(0,$data);
     }
-    
+
+    //删除启动页
     public function postAppDel(Request $request){
         $validator = Validator::make($request->all(),[
             'id' => 'required|exists:app_startpages,id',
