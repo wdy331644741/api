@@ -57,8 +57,8 @@ class AwardCommonController extends Controller{
         }
         //加息时长时间段
         if($data['rate_increases_type'] == 3) {
-            $data['rate_increases_start'] = $request->rate_increases_start;
-            $data['rate_increases_end'] = $request->rate_increases_end;
+            $data['rate_increases_start'] = empty($request->rate_increases_start) ? null : $request->rate_increases_start;
+            $data['rate_increases_end'] = empty($request->rate_increases_end) ? null : $request->rate_increases_end;
         }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
@@ -68,8 +68,8 @@ class AwardCommonController extends Controller{
         }
         //有效时间段
         if($data['effective_time_type'] == 2) {
-            $data['effective_time_start'] = $request->effective_time_start;
-            $data['effective_time_end'] = $request->effective_time_end;
+            $data['effective_time_start'] = empty($request->effective_time_start) ? null : $request->effective_time_start;
+            $data['effective_time_end'] = empty($request->effective_time_end) ? null : $request->effective_time_end;
         }
         //投资门槛
         $data['investment_threshold'] = $request->investment_threshold;
@@ -160,8 +160,8 @@ class AwardCommonController extends Controller{
         if($data['effective_time_type'] == 1){
             $data['effective_time_day'] = $request->effective_time_day;
         }elseif($data['effective_time_type'] == 2){
-            $data['effective_time_start'] = $request->effective_time_start;
-            $data['effective_time_end'] = $request->effective_time_end;
+            $data['effective_time_start'] = empty($request->effective_time_start) ? null : $request->effective_time_start;
+            $data['effective_time_end'] = empty($request->effective_time_end) ? null : $request->effective_time_end;
         }
         //投资门槛
         $data['investment_threshold'] = $request->investment_threshold;
@@ -233,8 +233,8 @@ class AwardCommonController extends Controller{
         if($data['effective_time_type'] == 1){
             $data['effective_time_day'] = $request->effective_time_day;
         }elseif($data['effective_time_type'] == 2){
-            $data['effective_time_start'] = trim($request->effective_time_start);
-            $data['effective_time_end'] = trim($request->effective_time_end);
+            $data['effective_time_start'] = empty($request->effective_time_start) ? null : $request->effective_time_start;
+            $data['effective_time_end'] = empty($request->effective_time_end) ? null : $request->effective_time_end;
         }
 //        //产品ID
 //        $data['product_id'] = isset($request->product_id) ? trim($request->product_id) : "";
