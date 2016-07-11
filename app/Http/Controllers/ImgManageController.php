@@ -418,13 +418,13 @@ class ImgManageController extends Controller
         return $this->outputJson(0,$data);
     }
     
-    //启动页详情 通过平台id获取
+    //启动页列表 通过平台id获取
     public function getAppInfoPid($platform){
         $filter = [
             'platform'=>$platform,
         ];
-        $newdate = date('Y-m-d H:i:s');
-        $data = AppStartpage::where($filter)->get();
+        $data = AppStartpage::where($filter)
+            ->orderByRaw('id + sort DESC')->get();
         return $this->outputJson(0,$data);
     }
 
@@ -499,8 +499,8 @@ class ImgManageController extends Controller
         $current_num = $current['id'] + $current['sort'];
         $pre = AppStartpage::where('online_time','<=',$now_date)
             ->where('offline_time','>=',$now_date)
-            ->whereRaw("id + sort > $current_num")
-            ->orderByRaw('id + sort ASC')->first();
+            ->whereRaw("id + sort < $current_num")
+            ->orderByRaw('id + sort DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
