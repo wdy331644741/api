@@ -25,7 +25,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Banner::where('can_use','>=','1')->where('can_use','<','3')->where($where)->orderBy('sort','DESC')->paginate(20);
+        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('sort','DESC')->paginate(20);
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
@@ -43,7 +43,8 @@ class ImgManageController extends Controller
     public function postBannerAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'position' => 'required|min:1|max:255',
-            'img_path' => 'required|min:1|max:255'
+            'img_path' => 'required|min:1|max:255',
+            'activity_time' => 'date'
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -54,9 +55,11 @@ class ImgManageController extends Controller
         $data['name'] = $request['name'];
         //验证不能重复添加
         $where['name'] = $data['name'];
-        $count = Banner::where($where)->count();
-        if($count > 0){
-            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经添加过该信息'));
+        if(!empty($where['name'])){
+            $count = Banner::where($where)->count();
+            if($count > 0){
+                return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经添加过该信息'));
+            }
         }
         //图片
         $data['img_path'] = trim($request['img_path']);
@@ -76,7 +79,9 @@ class ImgManageController extends Controller
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
         //是否可用
-        $data['can_use'] = 1;
+        $data['can_use'] = 0;
+        //图片活动的时间
+        $data['activity_time'] = $request['activity_time'];
         $id = Banner::insertGetId($data);
         if($id){
             return $this->outputJson(0,array('insert_id'=>$id));
@@ -145,7 +150,7 @@ class ImgManageController extends Controller
             'id' => 'required|integer|min:1',
             'position' => 'required|min:2|max:255',
             'img_path' => 'required|min:2|max:255',
-            'img_url' => 'required|min:2|max:255'
+            'activity_time' => 'date'
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -161,6 +166,14 @@ class ImgManageController extends Controller
         $data['position'] = $request['position'];
         //名称
         $data['name'] = $request['name'];
+        //验证不能重复添加
+        $isExist['name'] = $data['name'];
+        if(!empty($isExist['name'])){
+            $count = Banner::where($isExist)->count();
+            if($count > 0){
+                return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该名字信息'));
+            }
+        }
         //图片路径
         $data['img_path'] = trim($request['img_path']);
         //跳转url
@@ -169,12 +182,12 @@ class ImgManageController extends Controller
         $data['start'] = trim($request['start']);
         //结束时间
         $data['end'] = trim($request['end']);
-        //排序
-        $data['sort'] = intval($request['sort']);
         //描述
         $data['desc'] = trim($request['desc']);
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
+        //图片活动的时间
+        $data['activity_time'] = $request['activity_time'];
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
@@ -197,8 +210,10 @@ class ImgManageController extends Controller
         if($count < 1){
             return $this->outputJson(DATABASE_ERROR,array('id'=>'要发布的信息不存在'));
         }
-        //是否可用
-        $save['can_use'] = 2;
+        //是否可用（已发布状态）
+        $save['can_use'] = 1;
+        //图片发布时间
+        $data['release_time'] = date("Y-m-d H:i:s");
         //修改时间
         $save['updated_at'] = date("Y-m-d H:i:s");
         $status = Banner::where($where)->update($save);
@@ -223,11 +238,7 @@ class ImgManageController extends Controller
         if($count < 1){
             return $this->outputJson(DATABASE_ERROR,array('id'=>'要删除的信息不存在'));
         }
-        //是否可用
-        $save['can_use'] = 3;
-        //修改时间
-        $save['updated_at'] = date("Y-m-d H:i:s");
-        $status = Banner::where($where)->update($save);
+        $status = Banner::where($where)->delete();
         if($status){
             return $this->outputJson(0,array('error_msg'=>'删除成功'));
         }else{
