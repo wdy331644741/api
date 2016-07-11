@@ -297,7 +297,8 @@ class ImgManageController extends Controller
             'img3' => 'url',
             'img4' => 'url',
             'online_time' => 'date|required',
-            'offline_time' => 'required|after:online_time'
+            'offline_time' => 'required|after:online_time',
+            'target_url' => 'url'
         ]);
 
         if($validator->fails()){
@@ -322,6 +323,9 @@ class ImgManageController extends Controller
         if(isset($request->img4)){
             $insdata['img4'] = $request->img4;
         }
+        if(isset($request->target_url)){
+            $insdata['target_url'] = $request->target_url;
+        }
 
         $id = AppStartpage::insertGetId($insdata);
         return $this->outputJson(0,array('insert_id'=>$id));
@@ -336,7 +340,7 @@ class ImgManageController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = AppStartpage::where('id',$request->id)->update(array('enable'=>1));
+        $res = AppStartpage::where('id',$request->id)->update(array('enable'=>1,'release_at'=>date('Y-m-d H:i:s')));
         if($res){
             return $this->outputJson(0);
         }else{
@@ -371,7 +375,8 @@ class ImgManageController extends Controller
             'img3' => 'url',
             'img4' => 'url',
             'online_time' => 'date|required',
-            'offline_time' => 'required|after:online_time'
+            'offline_time' => 'required|after:online_time',
+            'target_url' => 'url'
         ]);
 
         if($validator->fails()){
@@ -396,6 +401,9 @@ class ImgManageController extends Controller
         if(isset($request->img4)){
             $data['img4'] = $request->img4;
         }
+        if(isset($request->target_url)){
+            $data['target_url'] = $request->target_url;
+        }
         $res = AppStartpage::where('id',$request->id)->update($data);
         if($res){
             return $this->outputJson(0);
@@ -414,7 +422,6 @@ class ImgManageController extends Controller
     public function getAppInfoPid($platform){
         $filter = [
             'platform'=>$platform,
-            'enable'=>1
         ];
         $newdate = date('Y-m-d H:i:s');
         $data = AppStartpage::where($filter)
