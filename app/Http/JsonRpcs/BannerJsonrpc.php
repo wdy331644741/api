@@ -13,28 +13,67 @@ class BannerJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function bannerList($params) {
-        $where = array();
-        $where['can_use'] = 1;
-        //位置
+        $where = array(
+            'can_use' => 1,
+        );
         $position = $params->position;
         if (empty($position)) {
             throw new OmgException(OmgException::VALID_POSITION_FAIL);
         }else{
             $where['position'] = $position;
         }
-        $data = Banner::where($where)->orderBy('id','DESC')->get()->toArray();
-        if(!empty($data)){
-            $rData['bannerList'] = $data;
-            $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : null;
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => $rData
-            );
-        }else{
-            throw new OmgException(OmgException::GET_BANNER_FAIL);
+        switch($position) {
+            default:
+                $data = BANNER::where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+                    
+                    ->orderByRaw('id + sort DESC')->get()->toArray();
         }
+
+        $rData['bannerList'] = $data;
+        $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : '';
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $rData
+        );
     }
+    
+    /**
+     * 活动弹窗
+     *
+     * @JsonRpcMethod
+     */
+    public function activityPop($params) {
+         $where = array(
+            'can_use' => 1,
+             'position' => 'pop',
+        );
+        $data = BANNER::where($where)
+            ->where(function($query) {
+                $query->whereNull('start')->orWhereRaw('start < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end')->orWhereRaw('end > now()');
+            })
+            ->orderByRaw('id + sort DESC')->first();
+
+        if(!$data) {
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $data['Etag'] = $data['release_time'];
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
     public function _getPostion($where = array()){
         $list = ImgPosition::where($where)->get()->toArray();
         return $list;
