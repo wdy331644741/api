@@ -84,11 +84,12 @@ class BannerJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function appStartpages($params){
-        if (!isset($params->platform)) {
-            throw new OmgException(4101);
+        if (!isset($params->platform) || !isset($params->value)) {
+            throw new OmgException(PARAMS_NEED_ERROR);
         }
         $filter = [
             'platform'=>$params->platform,
+            'value' => $params->value,
             'enable'=>1,
         ];
         $newdate = date('Y-m-d H:i:s');
@@ -101,6 +102,7 @@ class BannerJsonRpc extends JsonRpc {
         if($data){
             $data['Etag'] = strval(strtotime($data['release_at']));
         }
+        $data['img'] = $data["img{$params->value}"];
         return array(
             'code' => 0,
             'message' => 'success',

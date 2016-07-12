@@ -35,6 +35,7 @@ class OmgException extends BasicException
     const GET_AWARDDATAEMPTY_FAIL = 4202;
     const GET_AWARDDATAEXIST_FAIL = 4203;
     const SENDAEARD_FAIL = 4204;
+    const PARAMS_NEED_ERROR = 4205;
     
     //结果处理
     const NO_DATA = 4300;
@@ -51,6 +52,7 @@ class OmgException extends BasicException
         self::VALID_CODE_FAIL => "兑换码不能为空",
         self::VALID_USERID_FAIL => "用户ID不能为空",
         self::PARAMS_NOT_NULL => "参数不能为空",
+        self::PARAMS_NEED_ERROR => "缺少必要的参数",
         //服务器错误
         self::GET_BANNER_FAIL => "获取banner图列表失败",
         self::GET_CODEDATAEMPTY_FAIL => "该CODE不存在或已发送",
