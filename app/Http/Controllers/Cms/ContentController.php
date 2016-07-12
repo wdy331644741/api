@@ -219,7 +219,7 @@ class ContentController extends Controller
         $parent_id = ContentType::find($id)->value('parent_id');
         $current = ContentType::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort > $current_num")->where('parent_id',$parent_id)->orderByRaw('id + sort ASC')->first();
+        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
