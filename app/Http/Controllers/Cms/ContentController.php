@@ -306,7 +306,6 @@ class ContentController extends Controller
     public function postTypePut(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:cms_content_types,id',
-            'parent_id' => 'required|numeric',
             'name' => 'required',
             'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name',
         ]);
@@ -316,7 +315,6 @@ class ContentController extends Controller
         }
         $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
         $putdata = array(
-            'parent_id'=>$request->parent_id,
             'name'=>$request->name,
             'alias_name'=>$alias_name,
         );
