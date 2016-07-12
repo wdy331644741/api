@@ -85,14 +85,14 @@ class BannerJsonRpc extends JsonRpc {
      */
     public function appStartpages($params){
         if (!isset($params->platform) || !isset($params->value)) {
-            throw new OmgException(PARAMS_NEED_ERROR);
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $filter = [
             'platform'=>$params->platform,
             'enable'=>1,
         ];
         $newdate = date('Y-m-d H:i:s');
-        $data = AppStartpage::select('id','img1','img2','img3','img4','target_url','release_at')
+        $data = AppStartpage::select('id','img1','img2','img3','img4','target_url','release_at', 'online_time', 'offline_time')
             ->where($filter)
             ->where('online_time','<=',$newdate)
             ->where('offline_time','>=',$newdate)
