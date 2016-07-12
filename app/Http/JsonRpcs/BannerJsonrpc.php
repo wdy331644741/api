@@ -89,7 +89,6 @@ class BannerJsonRpc extends JsonRpc {
         }
         $filter = [
             'platform'=>$params->platform,
-            'value' => $params->value,
             'enable'=>1,
         ];
         $newdate = date('Y-m-d H:i:s');
