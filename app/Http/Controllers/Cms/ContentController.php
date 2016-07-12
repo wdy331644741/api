@@ -270,7 +270,7 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
+        $alias_name = !empty($request->alias_name) ? $request->alias_name : NULL;
         $contentType = new ContentType();
         $contentType->parent_id = $request->parent_id;
         $contentType->name = $request->name;
