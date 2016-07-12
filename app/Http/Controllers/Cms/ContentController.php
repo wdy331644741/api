@@ -305,7 +305,7 @@ class ContentController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:cms_content_types,id',
             'name' => 'required',
-            'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name',
+            'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name,'.$request->id,
         ]);
 
         if($validator->fails()){
