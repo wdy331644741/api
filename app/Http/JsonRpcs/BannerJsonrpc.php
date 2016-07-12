@@ -6,7 +6,7 @@ use App\Models\Banner;
 use App\Models\AppStartpage;
 use App\Exceptions\OmgException as OmgException;
 class BannerJsonRpc extends JsonRpc {
-    
+
     /**
      *  banner列表
      *
@@ -31,7 +31,7 @@ class BannerJsonRpc extends JsonRpc {
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-                    
+
                     ->orderByRaw('id + sort DESC')->get()->toArray();
         }
 
@@ -43,7 +43,7 @@ class BannerJsonRpc extends JsonRpc {
             'data' => $rData
         );
     }
-    
+
     /**
      * 活动弹窗
      *

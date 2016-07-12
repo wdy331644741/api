@@ -369,4 +369,12 @@ class ContentController extends Controller
         return $this->outputJson(0,$data);
     }
 
+    //——————————————————————————问题、反馈————————————————————————————————//
+
+    //获取反馈列表
+    public function getOpinionList(Request $request){
+        $data = Func::Search($request,new Opinion);
+        return $this->outputJson(0,$data);
+    }
+
 }
