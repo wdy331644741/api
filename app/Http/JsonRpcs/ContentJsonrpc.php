@@ -44,7 +44,7 @@ class ContentJsonRpc extends JsonRpc {
     public function noticeInfo($params)
     {
         if (empty($params->id)) {
-            throw new OmgException(4101);
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where('id',intval($params->id))->first()->toArray();
         return array(
@@ -61,7 +61,7 @@ class ContentJsonRpc extends JsonRpc {
      */
     public function contentType($params){
         if (empty($params->alias_name)) {
-            throw new OmgException(4101);
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $parent_id = ContentType::where('alias_name',$params->alias_name)->value('id');
 
@@ -81,7 +81,7 @@ class ContentJsonRpc extends JsonRpc {
      */
     public function contentList($params){
         if (empty($params->type_id)) {
-            throw new OmgException(4101);
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
         $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
@@ -100,7 +100,7 @@ class ContentJsonRpc extends JsonRpc {
      */
     public function contentListAliasName($params){
         if (empty($params->alias_name)) {
-            throw new OmgException(4101);
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $type_id = ContentType::where('alias_name',$params->alias_name)->value('id');
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;

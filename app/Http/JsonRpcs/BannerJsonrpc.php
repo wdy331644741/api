@@ -85,7 +85,8 @@ class BannerJsonRpc extends JsonRpc {
      */
     public function appStartpages($params){
         if (!isset($params->platform) || !isset($params->value)) {
-            throw new OmgException(PARAMS_NEED_ERROR);
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+
         }
         $filter = [
             'platform'=>$params->platform,
