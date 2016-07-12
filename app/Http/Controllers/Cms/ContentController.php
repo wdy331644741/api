@@ -216,10 +216,9 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $parent_id = ContentType::find($id)->value('parent_id');
         $current = ContentType::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort > $current_num")->where('parent_id',$parent_id)->orderByRaw('id + sort ASC')->first();
+        $pre = ContentType::where('parent_id',$current['parent_id'])->whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -243,10 +242,9 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $parent_id = ContentType::find($id)->value('parent_id');
         $current = ContentType::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        $pre = ContentType::where('parent_id',$current['parent_id'])->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -272,7 +270,7 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
+        $alias_name = !empty($request->alias_name) ? $request->alias_name : NULL;
         $contentType = new ContentType();
         $contentType->parent_id = $request->parent_id;
         $contentType->name = $request->name;

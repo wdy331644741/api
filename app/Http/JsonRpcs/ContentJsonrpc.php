@@ -5,6 +5,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
+use Validator;
 use Lib\JsonRpcInvalidParamsException;
 use Lib\JsonRpcParseErrorException as AccountException;
 
@@ -83,7 +84,27 @@ class ContentJsonRpc extends JsonRpc {
             throw new OmgException(4101);
         }
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
+        $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
+    /**
+     * 获取文章列表(别名)
+     *
+     * @JsonRpcMethod
+     */
+    public function contentListAliasName($params){
+        if (empty($params->alias_name)) {
+            throw new OmgException(4101);
+        }
+        $type_id = ContentType::where('alias_name',$params->alias_name)->value('id');
+        $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
+        $data = Content::select('id','title','content','release_at')->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
 
         return array(
             'code' => 0,
