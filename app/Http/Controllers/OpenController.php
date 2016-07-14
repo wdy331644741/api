@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use Illuminate\Http\Request;
+use \GuzzleHttp\Client;
+use Lib\Weixin;
 
 class OpenController extends Controller
 {
@@ -64,7 +66,39 @@ class OpenController extends Controller
         }
     }
 
-    private function getTokenByUserId($user_id){
+    //---------------------------微信相关----------------------------//
 
+    //wechat_auth_uri
+    public function getOauth(){
+
+        $weixin = new Weixin();
+        $data = $weixin->get_access_token("asdasdasdasd");
+        /*$weixin = new Weixin();
+        $oauth_url = $weixin->get_authorize_url();
+        header("Location:$oauth_url");*/
+    }
+
+    //获取用户的open_id
+    public function getOpenid(Request $request){
+        if(!$request->code){
+            $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
+        }
+        $weixin = new Weixin();
+        $data = $weixin->get_access_token($request->code);
+
+        dd($data);
+
+    }
+
+
+    public function getHaha(){
+        $request = new Client([
+            'base_uri'=>'http://yunying.dev.wanglibao.com',
+            'timeout'=>9999.0
+        ]);
+        $response = $request->get('/cms/content/detail/1');
+        if($response->getStatusCode() == 200){
+            echo $response->getBody();
+        }
     }
 }

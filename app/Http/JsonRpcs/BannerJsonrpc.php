@@ -6,7 +6,7 @@ use App\Models\Banner;
 use App\Models\AppStartpage;
 use App\Exceptions\OmgException as OmgException;
 class BannerJsonRpc extends JsonRpc {
-    
+
     /**
      *  banner列表
      *
@@ -31,7 +31,7 @@ class BannerJsonRpc extends JsonRpc {
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-                    
+
                     ->orderByRaw('id + sort DESC')->get()->toArray();
         }
 
@@ -43,7 +43,7 @@ class BannerJsonRpc extends JsonRpc {
             'data' => $rData
         );
     }
-    
+
     /**
      * 活动弹窗
      *
@@ -84,15 +84,15 @@ class BannerJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function appStartpages($params){
-        if (!isset($params->platform)) {
-            throw new OmgException(4101);
+        if (!isset($params->platform) || !isset($params->value)) {
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $filter = [
             'platform'=>$params->platform,
             'enable'=>1,
         ];
         $newdate = date('Y-m-d H:i:s');
-        $data = AppStartpage::select('id','img1','img2','img3','img4','target_url','release_at')
+        $data = AppStartpage::select('id','img1','img2','img3','img4','target_url','release_at', 'online_time', 'offline_time')
             ->where($filter)
             ->where('online_time','<=',$newdate)
             ->where('offline_time','>=',$newdate)
@@ -101,6 +101,7 @@ class BannerJsonRpc extends JsonRpc {
         if($data){
             $data['Etag'] = strval(strtotime($data['release_at']));
         }
+        $data['img'] = $data["img{$params->value}"];
         return array(
             'code' => 0,
             'message' => 'success',

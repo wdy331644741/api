@@ -8,8 +8,10 @@ use Validator;
 use DB;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
+use App\Models\Cms\Opinion;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Service\Func;
 
 class ContentController extends Controller
 {
@@ -216,10 +218,9 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $parent_id = ContentType::find($id)->value('parent_id');
         $current = ContentType::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort > $current_num")->where('parent_id',$parent_id)->orderByRaw('id + sort ASC')->first();
+        $pre = ContentType::where('parent_id',$current['parent_id'])->whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -243,10 +244,9 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $parent_id = ContentType::find($id)->value('parent_id');
         $current = ContentType::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = ContentType::where('parent_id',$parent_id)->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        $pre = ContentType::where('parent_id',$current['parent_id'])->whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -272,7 +272,7 @@ class ContentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
+        $alias_name = !empty($request->alias_name) ? $request->alias_name : NULL;
         $contentType = new ContentType();
         $contentType->parent_id = $request->parent_id;
         $contentType->name = $request->name;
@@ -306,17 +306,15 @@ class ContentController extends Controller
     public function postTypePut(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:cms_content_types,id',
-            'parent_id' => 'required|numeric',
             'name' => 'required',
-            'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name',
+            'alias_name' => 'alpha_dash|unique:cms_content_types,alias_name,'.$request->id,
         ]);
 
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $alias_name = isset($request->alias_name) ? $request->alias_name : NULL;
+        $alias_name = !empty($request->alias_name) ? $request->alias_name : NULL;
         $putdata = array(
-            'parent_id'=>$request->parent_id,
             'name'=>$request->name,
             'alias_name'=>$alias_name,
         );
@@ -370,6 +368,14 @@ class ContentController extends Controller
         }
         $type_id = ContentType::where('alias_name',$name)->value('id');
         $data = ContentType::where('parent_id',$type_id)->orderByRaw('id + sort DESC')->orderBy('id','DESC')->get();
+        return $this->outputJson(0,$data);
+    }
+
+    //——————————————————————————问题、反馈————————————————————————————————//
+
+    //获取反馈列表
+    public function getOpinionList(Request $request){
+        $data = Func::Search($request,new Opinion);
         return $this->outputJson(0,$data);
     }
 
