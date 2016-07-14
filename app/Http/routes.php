@@ -29,6 +29,7 @@ Route::controller('activity', 'ActivityController');
 Route::controller('account', 'AccountController');
 Route::controller('channel', 'ChannelController');
 Route::controller('cms/content','Cms\ContentController');
+Route::controller('open','OpenController');
 //奖品路由
 Route::controller('award', 'AwardController');
 
