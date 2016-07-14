@@ -8,8 +8,10 @@ use Validator;
 use DB;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
+use App\Models\Cms\Opinion;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Service\Func;
 
 class ContentController extends Controller
 {
