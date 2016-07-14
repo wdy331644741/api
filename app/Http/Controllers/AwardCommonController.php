@@ -30,17 +30,23 @@ class AwardCommonController extends Controller{
             'investment_threshold' => 'required|integer|min:1',
             'project_duration_type' => 'required|integer|min:1'
         ]);
-        $validator->sometimes('rate_increases_day', 'required|integer', function($input) {
+        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:30', function($input) {
             return $input->rate_increases_type == 2;
         });
         $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
             return $input->rate_increases_type == 3;
         });
-        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
+            return $input->rate_increases_type == 4;
+        });
+        $validator->sometimes('effective_time_day', 'required|integer|min:1|max:30', function($input) {
             return $input->effective_time_type == 1;
         });
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
             return $input->effective_time_type == 2;
+        });
+        $validator->sometimes('project_duration_time', 'required|integer', function($input) {
+            return $input->project_duration_type > 1;
         });
         if($validator->fails()){
             return array('code'=>404,'error_msg'=>$validator->errors()->first());
@@ -52,8 +58,8 @@ class AwardCommonController extends Controller{
         //加息时长类型
         $data['rate_increases_type'] = $request->rate_increases_type;
         //加息时长天数
-        if($data['rate_increases_type'] == 2){
-            $data['rate_increases_day'] = $request->rate_increases_day;
+        if($data['rate_increases_type'] == 2 || $data['rate_increases_type'] == 4){
+            $data['rate_increases_time'] = $request->rate_increases_time;
         }
         //加息时长时间段
         if($data['rate_increases_type'] == 3) {
@@ -75,6 +81,10 @@ class AwardCommonController extends Controller{
         $data['investment_threshold'] = $request->investment_threshold;
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
+        //项目期限时间
+        if($data['project_duration_type'] > 1){
+            $data['project_duration_time'] = $request->project_duration_time;
+        }
         //项目类型
         $data['project_type'] = $request->project_type;
         //产品ID
@@ -137,6 +147,9 @@ class AwardCommonController extends Controller{
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
             return $input->effective_time_type == 2;
         });
+        $validator->sometimes('project_duration_time', 'required|integer', function($input) {
+            return $input->project_duration_type > 1;
+        });
         if($validator->fails()){
             return array('code'=>404,'error_msg'=>$validator->errors()->first());
         }
@@ -167,6 +180,10 @@ class AwardCommonController extends Controller{
         $data['investment_threshold'] = $request->investment_threshold;
         //项目期限类型
         $data['project_duration_type'] = $request->project_duration_type;
+        //项目期限时间
+        if($data['project_duration_type'] > 1){
+            $data['project_duration_time'] = $request->project_duration_time;
+        }
         //项目类型
         $data['project_type'] = $request->project_type;
         //产品ID
