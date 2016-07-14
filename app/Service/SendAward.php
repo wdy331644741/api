@@ -78,17 +78,23 @@ class SendAward
             'investment_threshold' => 'required|integer|min:1',
             'project_duration_type' => 'required|integer|min:1'
         ]);
-        $validator->sometimes('rate_increases_day', 'required|integer', function($input) {
+        $validator->sometimes('rate_increases_time', 'required|integer', function($input) {
             return $input->rate_increases_type == 2;
         });
         $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
             return $input->rate_increases_type == 3;
+        });
+        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
+            return $input->rate_increases_type == 4;
         });
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
             return $input->effective_time_type == 1;
         });
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
             return $input->effective_time_type == 2;
+        });
+        $validator->sometimes('project_duration_time', 'required|integer', function($input) {
+            return $input->project_duration_type > 1;
         });
         if($validator->fails()){
             return false;
@@ -105,14 +111,20 @@ class SendAward
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
+        //项目期限时间
+        if($data['project_duration_type'] > 1){
+            $data['project_duration_num'] = $info['project_duration_time'];
+        }
         $data['name'] = $info['name'];//奖品名称
         $data['type'] = $info['rate_increases_type'];//直抵红包
         $data['rate'] = $info['rate_increases'];//加息值
         if ($info['rate_increases_type'] == 2) {
-            $data['continuous_days'] = $info['rate_increases_day'];//加息天数
+            $data['continuous_days'] = $info['rate_increases_time'];//加息天数
         } elseif ($info['rate_increases_type'] == 3) {
-            $data['increases_start'] = $info['rate_increases_start'];//加息天数
-            $data['increases_end'] = $info['rate_increases_end'];//加息天数
+            $data['increases_start'] = $info['rate_increases_start'];//加息开始时间
+            $data['increases_end'] = $info['rate_increases_end'];//加息结束时间
+        } elseif ($info['rate_increases_type'] == 4) {
+            $data['continuous_month'] = $info['rate_increases_time'];//加息开始时间
         }
         if ($info['effective_time_type'] == 1) {
             $data['effective_start'] = date("Y-m-d H:i:s");
@@ -156,6 +168,9 @@ class SendAward
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
             return $input->effective_time_type == 2;
         });
+        $validator->sometimes('project_duration_time', 'required|integer', function($input) {
+            return $input->project_duration_type > 1;
+        });
         if($validator->fails()){
             return false;
         }
@@ -171,6 +186,10 @@ class SendAward
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
+        //项目期限时间
+        if($data['project_duration_type'] > 1){
+            $data['project_duration_num'] = $info['project_duration_time'];
+        }
         $data['name'] = $info['name'];//奖品名称
         $data['type'] = 1;//直抵红包
         $data['amount'] = $info['red_money'];//红包金额
@@ -204,7 +223,7 @@ class SendAward
             'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
-            'red_max_money' => 'required|integer|min:1',
+            'red_money' => 'required|integer|min:1',
             'percentage' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
             'investment_threshold' => 'required|integer|min:1',
@@ -215,6 +234,9 @@ class SendAward
         });
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
             return $input->effective_time_type == 2;
+        });
+        $validator->sometimes('project_duration_time', 'required|integer', function($input) {
+            return $input->project_duration_type > 1;
         });
         if($validator->fails()){
             return false;
@@ -231,6 +253,11 @@ class SendAward
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
+
+        //项目期限时间
+        if($data['project_duration_type'] > 1){
+            $data['project_duration_num'] = $info['project_duration_time'];
+        }
         $data['name'] = $info['name'];//奖品名称
         $data['type'] = 2;//百分比红包
         $data['max_amount'] = $info['red_money'];//红包最高金额
