@@ -6,9 +6,15 @@ use App\Http\Requests;
 use Illuminate\Http\Request;
 use \GuzzleHttp\Client;
 use Lib\Weixin;
+use Lib\JsonRpcClient;
+use Lib\Session;
 
 class OpenController extends Controller
 {
+    private $_weixin = 'wechat';
+    private $_openid;
+    private $_user_api_url = "http://account.dev.wanglibao.com/service.php?c=account";
+
     public function postBind(Request $request){
         $validator = Validator::make($request->all(), [
             'user_id' => 'required',
@@ -69,13 +75,18 @@ class OpenController extends Controller
     //---------------------------微信相关----------------------------//
 
     //wechat_auth_uri
-    public function getOauth(){
-
-        $weixin = new Weixin();
-        $data = $weixin->get_access_token("asdasdasdasd");
-        /*$weixin = new Weixin();
-        $oauth_url = $weixin->get_authorize_url();
-        header("Location:$oauth_url");*/
+    public function getLogin(Request $request){
+        if($request->callback){
+            Session::set('weixin',['callback'=>$request->callback]);
+        }
+        global $userId;
+        if($userId){
+            header("Location:$request->callback");
+        }else{
+            $weixin = new Weixin();
+            $oauth_url = $weixin->get_authorize_url();
+            header("Location:$oauth_url");
+        }
     }
 
     //获取用户的open_id
@@ -84,13 +95,35 @@ class OpenController extends Controller
             $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
         }
         $weixin = new Weixin();
-        $data = $weixin->get_access_token($request->code);
+        $this->_openid =  $weixin->get_access_token($request->code);
+        $weixin = Session::get('weixin');
+        $new_weixin = array_merge($weixin,['openid'=>$this->_openid]);
+        Session::set('weixin',$new_weixin);
+        $client = new JsonRpcClient($this->_user_api_url);
+        $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openid'=>$this->_openid));
 
-        dd($data);
+    }
+
+    //绑定用户
+    public function postWechatBind(){
+        global $userId;
+        $weixin = Session::get('weixin');
+        $client = new JsonRpcClient($this->_user_api_url);
+        $res = $client->accountBind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid'],'userId'=>$userId));
+        return $res;
 
     }
 
 
+    //接触绑定
+    public function postWechatUnbind(){
+        $weixin = Session::get('weixin');
+        $client = new JsonRpcClient($this->_user_api_url);
+        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid']));
+        return $res;
+    }
+
+    //测试
     public function getHaha(){
         $request = new Client([
             'base_uri'=>'http://yunying.dev.wanglibao.com',
