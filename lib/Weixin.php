@@ -9,7 +9,7 @@ class Weixin
     private $_appsecret = "777cd7abf2a7b63427a660fcec01383f";
     private $_client = null;
     private $_oauth_base_uri = "https://open.weixin.qq.com";
-    private $_redirect_uri = "http://ec79d23c.ngrok.io/open/openid";
+    private $_redirect_uri = "http://ccabcce5.ngrok.io/open/openid";
     private $_state = "snsapi_base";
 
     function __construct(){
@@ -40,14 +40,9 @@ class Weixin
 
     public function get_access_token($code){
         $access_token_url = "/sns/oauth2/access_token?appid=".$this->_appid."&secret=".$this->_appsecret."&code={$code}&grant_type=authorization_code";
-       /* $res = $this->http($access_token_url,'GET',true);
-        if($res[0] == 200){
-            return json_decode($res[1]);
-        }
-        return false;*/
         $res = $this->_client->get($access_token_url);
         if($res->getStatusCode() == 200){
-            $data = json_decode($res->getBody());
+            $data = (array)json_decode($res->getBody());
             return $data['openid'];
         }
         return false;
@@ -66,57 +61,5 @@ class Weixin
             return json_decode($res->getBody());
         }
         return false;
-    }
-
-
-    /*
-     * http请求
-     * @params:string $url
-     * @paramsLstring $method
-     * @params:array  $postfields
-     * @params:array $header
-     * @params:bool $debug
-     */
-
-    public function http($url,$method="GET",$https=false,$postfields=array(),$header=array(),$debug=false){
-
-        $ch = curl_init();
-        //curl Setting
-        $option = array(
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_NONE,
-            CURLOPT_CONNECTTIMEOUT => 30,
-            CURLOPT_TIMEOUT => 60, //设置cURL允许执行的最长秒数。
-            CURLOPT_RETURNTRANSFER => true, //将curl_exec()获取的信息以文件流的形式返回，而不是直接输出。
-            CURLOPT_URL => $url,//设置连接url
-            CURLOPT_HTTPHEADER => $header, //设置http头
-            CURLINFO_HEADER_OUT => true,
-        );
-        switch($method){
-            case "POST":
-                $option[CURLOPT_POST] = true;
-                if(!empty($postfields)){
-                    $option[CURLOPT_POSTFIELDS] = $postfields;
-                }
-                break;
-        }
-        if($https){
-            $option[CURLOPT_SSL_VERIFYPEER] = false; // 跳过证书检查
-            $option[CURLOPT_SSL_VERIFYHOST] = 2;  // 从证书中检查SSL加密算法是否存在
-        }
-        curl_setopt_array($ch,$option);
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch,CURLINFO_HTTP_CODE);
-        if ($debug) {
-            echo "=====post data======\r\n";
-            var_dump($postfields);
-
-            echo '=====info=====' . "\r\n";
-            print_r(curl_getinfo($ch));
-
-            echo '=====$response=====' . "\r\n";
-            print_r($response);
-        }
-        curl_close($ch);
-        return array($http_code, $response);
     }
 }

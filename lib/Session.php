@@ -56,7 +56,7 @@ class Session
 
         session_start();
         $data = &$_SESSION[self::$group];
-        session_write_close();
+        //session_write_close();
         
         if ($key) {
             $deepKeys = explode('.', $key);
@@ -68,6 +68,7 @@ class Session
                         $data[$deepKey] = null;
                         $data = &$data[$deepKey];
                     } else {
+                        session_write_close();
                         return null;
                     }
                 }
@@ -75,12 +76,15 @@ class Session
         }
         switch ($action) {
             case 'get' :
+                session_write_close();
                 return $data;
             case 'set':
                 $data = $val;
+                session_write_close();
                 return true;
             case 'del':
                 $data = null;
+                session_write_close();
                 return true;
         }
 
