@@ -6,13 +6,14 @@ use App\Exceptions\OmgException;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
 use Validator;
+use Illuminate\Pagination\Paginator;
 use Lib\JsonRpcInvalidParamsException;
 use Lib\JsonRpcParseErrorException as AccountException;
 
 class ContentJsonRpc extends JsonRpc {
     
     /**
-     *  获取公告
+     *  获取公告列表
      *
      * @JsonRpcMethod
      */
@@ -23,15 +24,16 @@ class ContentJsonRpc extends JsonRpc {
             'release' => 1
         ];
         $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $offset = ($page-1)*$pagenum;
-        $data = Content::select('id','title','release_at')->where($filter)->orderBy('release_at','desc')->take($pagenum)->skip($offset)->get();
+        $data = Content::select('id','title','release_at')->where($filter)->orderBy('release_at','desc')->paginate($pagenum)->toArray();
 
-        foreach ($data as $key=>$value){
-            $data[$key]['link'] = 'https://www.wanglibao.com/announcement/detail/714/';
+        foreach ($data['data'] as $key=>$value){
+            $data['data'][$key]['link'] = 'https://www.wanglibao.com/announcement/detail/714/';
         }
-        if(isset($data[0]['release_at']))
-            $data['Etag'] = strval(strtotime($data[0]['release_at']));
+        $data['data']['Etag'] = strval(strtotime($data['data'][0]['release_at']));
         return array(
             'code' => 0,
             'message' => 'success',
@@ -87,9 +89,11 @@ class ContentJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $offset = ($page-1)*$pagenum;
-        $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->take($pagenum)->skip($offset)->get();
+        $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum)->get();
 
         return array(
             'code' => 0,
@@ -109,9 +113,11 @@ class ContentJsonRpc extends JsonRpc {
         }
         $type_id = ContentType::where('alias_name',$params->alias_name)->value('id');
         $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $offset = ($page-1)*$pagenum;
-        $data = Content::select('id','title','content','release_at')->where('type_id',$type_id)->orderByRaw('id + sort desc')->take($pagenum)->skip($offset)->get();
+        $data = Content::select('id','title','content','release_at')->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum)->get();
 
         return array(
             'code' => 0,
