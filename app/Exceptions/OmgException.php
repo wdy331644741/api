@@ -22,6 +22,7 @@ class OmgException extends BasicException
     const API_ILLEGAL = 4001;
     const API_BUSY = 4002;
     const API_FAILED = 4003;
+    const NO_LOGIN = 4004;
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
@@ -37,10 +38,11 @@ class OmgException extends BasicException
     const SENDAEARD_FAIL = 4204;
     const PARAMS_NEED_ERROR = 4205;
     const DATABASE_ERROR = 4026;
-    
-    //结果处理
+
+    //应用错误
     const NO_DATA = 4300;
-    
+    const ALREADY_SIGNIN = 4301;
+
 
     protected static $errorArray = array(
         //接口调用错误
@@ -55,14 +57,17 @@ class OmgException extends BasicException
         self::PARAMS_NOT_NULL => "参数不能为空",
         self::PARAMS_NEED_ERROR => "缺少必要的参数",
         //服务器错误
+        self::NO_LOGIN => "用户未登陆",
         self::GET_BANNER_FAIL => "获取banner图列表失败",
         self::GET_CODEDATAEMPTY_FAIL => "该CODE不存在或已发送",
         self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在",
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
+
+        //应用错误
+        self::NO_DATA => "暂无数据",
+        self::ALREADY_SIGNIN => "今日已签到",
         self::DATABASE_ERROR => "数据库错误",
-        //结果处理
-        self::NO_DATA => "暂无数据"
     );
 
     public function __construct($code, $data = array())
