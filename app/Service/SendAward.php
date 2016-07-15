@@ -384,6 +384,15 @@ class SendAward
         $insertID = $SendRewardLog->insertGetId($data);
         return $insertID;
     }
+    
+    //获取奖品
+    static function getSendedAwards($userId, $activityId, $day) {
+        return SendRewardLog::where(array(
+            'user_id'  => $userId, 
+            'activity_id' => $activityId,
+        ))->whereRaw("date(created_at) = '{$day}'")->get();
+    }
+    
     //生成Guid
     static function create_guid()
     {
