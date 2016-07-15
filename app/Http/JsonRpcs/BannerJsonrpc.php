@@ -5,6 +5,8 @@ use App\Models\ImgPosition;
 use App\Models\Banner;
 use App\Models\AppStartpage;
 use App\Exceptions\OmgException as OmgException;
+use Illuminate\Pagination\Paginator;
+
 class BannerJsonRpc extends JsonRpc {
 
     /**
@@ -17,6 +19,8 @@ class BannerJsonRpc extends JsonRpc {
             'can_use' => 1,
         );
         $position = $params->position;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 5;
+        $page = isset($params->page) ? $params->page : 1;
         if (empty($position)) {
             throw new OmgException(OmgException::VALID_POSITION_FAIL);
         }else{
@@ -26,6 +30,28 @@ class BannerJsonRpc extends JsonRpc {
             case 'discover':
                 $data = BANNER::where($where)
                     ->orderByRaw('id + sort DESC')->get()->toArray();
+                break;
+            case 'memorabilia':
+                Paginator::currentPageResolver(function () use ($page) {
+                    return $page;
+                });
+                
+                $res = BANNER::where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+
+                    ->orderByRaw('id + sort DESC')->paginate($pageNum)->toArray();
+                $data = $res['data'];
+                $rData['total'] = $res['total'];
+                $rData['per_page'] = $res['per_page'];
+                $rData['current_page'] = $res['current_page'];
+                $rData['last_page'] = $res['last_page'];
+                $rData['from'] = $res['from'];
+                $rData['to'] = $res['to'];
                 break;
             default:
                 $data = BANNER::where($where)
@@ -38,6 +64,7 @@ class BannerJsonRpc extends JsonRpc {
 
                     ->orderByRaw('id + sort DESC')->get()->toArray();
         }
+        
 
         $rData['list'] = $data;
         $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : '';
