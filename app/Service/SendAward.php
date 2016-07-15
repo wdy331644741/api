@@ -68,6 +68,7 @@ class SendAward
     //加息券
     static function increases($info){
         $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
@@ -113,7 +114,7 @@ class SendAward
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
         //项目期限时间
         if($data['project_duration_type'] > 1){
-            $data['project_duration_num'] = $info['project_duration_time'];
+            $data['project_duration_time'] = $info['project_duration_time'];
         }
         $data['name'] = $info['name'];//奖品名称
         $data['type'] = $info['rate_increases_type'];//直抵红包
@@ -143,7 +144,7 @@ class SendAward
             $result = $client->interestCoupon($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id']);
+                self::addLog($data['source_id'], 1, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
                 return true;
             }else{
                 return false;
@@ -153,6 +154,7 @@ class SendAward
     //直抵红包
     static function redMoney($info){
         $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
@@ -188,7 +190,7 @@ class SendAward
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
         //项目期限时间
         if($data['project_duration_type'] > 1){
-            $data['project_duration_num'] = $info['project_duration_time'];
+            $data['project_duration_time'] = $info['project_duration_time'];
         }
         $data['name'] = $info['name'];//奖品名称
         $data['type'] = 1;//直抵红包
@@ -210,7 +212,7 @@ class SendAward
             $result = $client->redpacket($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id']);
+                self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
             }else{
                 return false;
             }
@@ -219,6 +221,7 @@ class SendAward
     //百分比红包
     static function redMaxMoney($info){
         $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
@@ -256,7 +259,7 @@ class SendAward
 
         //项目期限时间
         if($data['project_duration_type'] > 1){
-            $data['project_duration_num'] = $info['project_duration_time'];
+            $data['project_duration_time'] = $info['project_duration_time'];
         }
         $data['name'] = $info['name'];//奖品名称
         $data['type'] = 2;//百分比红包
@@ -279,7 +282,7 @@ class SendAward
             $result = $client->redpacket($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id']);
+                self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
             }else{
                 return false;
             }
@@ -289,6 +292,7 @@ class SendAward
     static function experience($info){
         //验证必填
         $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:1',
             'name' => 'required|min:2|max:255',
@@ -332,7 +336,7 @@ class SendAward
             $result = $client->experience($data);
             //存储到日志
             if ($result['result']) {
-                self::addLog($data['source_id'], 4, $data['uuid'], $data['remark'], $data['user_id']);
+                self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
             }else{
                 return false;
             }
@@ -372,7 +376,7 @@ class SendAward
      * @param $remark
      * @return mixed
      */
-    static function addLog($source_id,$award_type,$uuid,$remark,$userID){
+    static function addLog($source_id,$award_type,$uuid,$remark,$userID,$award_id){
         $SendRewardLog = new SendRewardLog;
         $data['user_id'] = $userID;
         $data['activity_id'] = $source_id;
@@ -380,6 +384,7 @@ class SendAward
         $data['award_type'] = $award_type;
         $data['uuid'] = $uuid;
         $data['remark'] = $remark;
+        $data['award_id'] = $award_id;
         $data['created_at'] = date("Y-m-d H:i:s");
         $insertID = $SendRewardLog->insertGetId($data);
         return $insertID;
