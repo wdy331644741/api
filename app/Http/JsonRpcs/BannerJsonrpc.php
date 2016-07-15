@@ -23,6 +23,10 @@ class BannerJsonRpc extends JsonRpc {
             $where['position'] = $position;
         }
         switch($position) {
+            case 'discover':
+                $data = BANNER::where($where)
+                    ->orderByRaw('id + sort DESC')->get()->toArray();
+                break;
             default:
                 $data = BANNER::where($where)
                     ->where(function($query) {
