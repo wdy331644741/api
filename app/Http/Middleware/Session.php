@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Lib\Session as SessionHandler; 
+use Config;
 
 class Session
 {
@@ -16,12 +17,13 @@ class Session
      */
     public function handle($request, Closure $next)
     {
-        ini_set("session.save_handler", "redis");
-        ini_set("session.save_path", "tcp://192.168.10.36:6379");
-        ini_set("session.name", "WANGLIBAO_TOKEN");
-        ini_set("session.cookie_domain", "wanglibao.com");
+        ini_set("session.save_handler", Config::get('rpcsession.handler'));
+        ini_set("session.save_path", Config::get('rpcsession.path'));
+        ini_set("session.name", Config::get('rpcsession.name'));
+        ini_set("session.cookie_domain", Config::get('rpcsession.domain'));
+        
         $sessionHandler = new SessionHandler();
-        $sessionHandler->selectSessionGroup('account.dev.wanglibao.com');
+        $sessionHandler->selectSessionGroup(Config::get('rpcsession.accountgroup'));
         global $userId;
         $userId = $sessionHandler->get('userData.user_id');
         

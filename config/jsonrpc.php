@@ -2,7 +2,7 @@
 return [
     'server' => [
         'account' => [
-            'url' => 'http://account.dev.wanglibao.com/service.php?c=account',
+            'url' => env('ACCOUNT_HTTP_URL'),
             'config' => [
                 'timeout' => 20,//请求超时时间，默认20秒
                 'resultToArr' => true, //结果以数组返回
