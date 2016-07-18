@@ -80,7 +80,7 @@ class BannerJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function activityPop($params) {
+    public function activityPop() {
          $where = array(
             'can_use' => 1,
              'position' => 'pop',
