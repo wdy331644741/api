@@ -9,7 +9,7 @@ class Weixin
     private $_appsecret = "777cd7abf2a7b63427a660fcec01383f";
     private $_client = null;
     private $_oauth_base_uri = "https://open.weixin.qq.com";
-    private $_redirect_uri = "http://ccabcce5.ngrok.io/open/openid";
+    private $_redirect_uri = "http://041f92d5.ngrok.io/open/openid";
     private $_state = "snsapi_base";
 
     function __construct(){
@@ -43,6 +43,7 @@ class Weixin
         $res = $this->_client->get($access_token_url);
         if($res->getStatusCode() == 200){
             $data = (array)json_decode($res->getBody());
+            if(isset($data['openid']))
             return $data['openid'];
         }
         return false;

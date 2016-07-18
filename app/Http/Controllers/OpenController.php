@@ -76,9 +76,10 @@ class OpenController extends Controller
 
     //wechat_auth_uri
     public function getLogin(Request $request){
-        if($request->callback){
-            Session::set('weixin',['callback'=>$request->callback]);
+        if(isset($request->callback)){
+            Session::set('weixin',array('callback'=>$request->callback));
         }
+        Session::set('weixin',array('callback'=>'http://www.baidu.com'));
         global $userId;
         if($userId){
             header("Location:$request->callback");
@@ -97,10 +98,19 @@ class OpenController extends Controller
         $weixin = new Weixin();
         $this->_openid =  $weixin->get_access_token($request->code);
         $weixin = Session::get('weixin');
-        $new_weixin = array_merge($weixin,['openid'=>$this->_openid]);
+        $new_weixin = array();
+        if(is_array($weixin)){
+            $new_weixin = array_merge($weixin,array('openid'=>$this->_openid));
+        }
         Session::set('weixin',$new_weixin);
         $client = new JsonRpcClient($this->_user_api_url);
-        $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openid'=>$this->_openid));
+        $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
+        if($res['code'] == 0){
+            header("Location:{$weixin['callback']}");
+        }
+        if(isset($res['error']) && $res['error']['code'] == 1442){
+            header("Location:http://weixin.wanglibao.com/user/login");
+        }
 
     }
 
@@ -133,5 +143,13 @@ class OpenController extends Controller
         if($response->getStatusCode() == 200){
             echo $response->getBody();
         }
+    }
+
+    public function getIndex(){
+        Session::set('weixin',array('231231','qweqwe'));
+    }
+
+    public function getId(){
+        dd(Session::get('weixin'));
     }
 }
