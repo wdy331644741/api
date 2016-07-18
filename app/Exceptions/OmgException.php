@@ -26,9 +26,10 @@ class OmgException extends BasicException
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
+    const PARAMS_NOT_NULL = 4101;
+    const PARAMS_ERROR = 4102;
     const VALID_CODE_FAIL = 4111;
     const VALID_USERID_FAIL = 4112;
-    const PARAMS_NOT_NULL = 4101;
 
     //服务器错误
     const GET_BANNER_FAIL = 4200;
@@ -42,6 +43,7 @@ class OmgException extends BasicException
     //应用错误
     const NO_DATA = 4300;
     const ALREADY_SIGNIN = 4301;
+    const ACTIVITY_NOT_EXIST = 4302;
 
 
     protected static $errorArray = array(
@@ -53,6 +55,7 @@ class OmgException extends BasicException
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",
         self::VALID_CODE_FAIL => "兑换码不能为空",
+        self::PARAMS_ERROR => "参数错误",
         self::VALID_USERID_FAIL => "用户ID不能为空",
         self::PARAMS_NOT_NULL => "参数不能为空",
         self::PARAMS_NEED_ERROR => "缺少必要的参数",
@@ -68,6 +71,7 @@ class OmgException extends BasicException
         self::NO_DATA => "暂无数据",
         self::ALREADY_SIGNIN => "今日已签到",
         self::DATABASE_ERROR => "数据库错误",
+        self::ACTIVITY_NOT_EXIST => "活动不存在或已下线",
     );
 
     public function __construct($code, $data = array())

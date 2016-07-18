@@ -145,7 +145,7 @@ class SendAward
             //存储到日志
             if ($result['result']) {
                 self::addLog($data['source_id'], 1, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return true;
+                return $data['name'];
             }else{
                 return false;
             }
@@ -213,6 +213,7 @@ class SendAward
             //存储到日志
             if ($result['result']) {
                 self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
+                return $data['name'];
             }else{
                 return false;
             }
@@ -283,6 +284,7 @@ class SendAward
             //存储到日志
             if ($result['result']) {
                 self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
+                return $data['name'];
             }else{
                 return false;
             }
@@ -337,6 +339,7 @@ class SendAward
             //存储到日志
             if ($result['result']) {
                 self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
+                return $data['name'];
             }else{
                 return false;
             }
@@ -388,6 +391,55 @@ class SendAward
         $data['created_at'] = date("Y-m-d H:i:s");
         $insertID = $SendRewardLog->insertGetId($data);
         return $insertID;
+    }
+
+    /**
+     *  根据awardType获取奖品详情 
+     * 
+     * @param $awardType
+     * @param $awardId
+     * @return mixed
+     */
+    
+    static function getAward($awardType, $awardId) {
+        $table = self::_getAwardTable($awardType);    
+        return $table->where('id', $awardId)->first();
+    }
+
+    /**
+     * 按活动添加奖品
+     * 
+     * @param $userId
+     * @param $activityId
+     * @return array
+     */
+    static function addAwardByActivity($userId, $activityId) {
+        $activity = Activity::where('id', $activityId)->with('awards')->first();
+        $awards = $activity['awards'];
+        $res = [];
+        if($activity['award_rule'] == 1) {
+            foreach($awards as $award) {
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+            }
+        }
+        if($activity['award_rule'] == 2) {
+            $awards = $activity['awards'];
+            $priority = 0;
+            foreach($awards as $award) {
+                $priority += $award['priority'];
+            }
+            $target = rand(1, $priority);
+            foreach($awards as $award) {
+                $target = $target - $award['priority'];
+                if($target <= 0) {
+                    break;
+                }
+            }
+            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+        }
+        return $res;
+
+
     }
     
     //获取奖品
