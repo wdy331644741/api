@@ -1,6 +1,6 @@
 <?php
 return [
-    'account_http_url' => env('REWARD_HTTP_URL'),
+    'reward_http_url' => env('REWARD_HTTP_URL'),
     //项目期限类型
     'project_duration_type'=>[
         1=>'不限',
