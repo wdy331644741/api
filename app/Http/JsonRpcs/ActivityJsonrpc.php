@@ -18,7 +18,6 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function sendAward($params) {
-
         $res = SendAward::sendDataRole($params->userId, $params->awardType, $params->awardId, 6);
         return array(
             'code' => 0,
@@ -32,22 +31,45 @@ class ActivityJsonRpc extends JsonRpc {
      *      
      * @JsonRpcMethod
      */
-    public function signinShared() {
+    public function signinShare($params) {
         global $userId;
-        $userId = 1313;
-
-        $aliasName = 'signin';
-        $day = 3600*24 * 9;
-        $today = date('Y-m-d', time() + $day);
-        $where = [
-            'user_id' => $userId,
-            'alias_name' => $aliasName,
-        ];
-
-        $activityJoin = new ActivityJoin;
+        
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
+
+        $signinName = 'signin';
+        $signinActivity = Activity::where('alias_name', $signinName)->first();
+        
+        $sharedName = 'signinShared';
+        $sharedActivity = Activity::where('alias_name', $sharedName)->first();
+        $today = date('Y-m-d');
+        
+        
+        //是否签到
+        $signinRes = SendRewardLog::where(['user_id' => $userId, 'activity_id' => $signinActivity['id']])->whereRaw("date(created_at) = '{$today}'")->first();
+        if(!$signinRes) {
+            throw new OmgException(OmgException::NOT_SIGNIN);
+        }
+
+        $shared = $this->isShared($userId);
+        //是否分享
+        if($shared) {
+            throw new OmgException(OmgException::ALREADY_SHARED);
+        }
+
+        //给用户发奖
+        $res = SendAward::sendDataRole($userId, $signinRes['award_type'], $signinRes['award_id'], $sharedActivity['id']);
+        
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => array(
+                'award' => $res,
+            ),
+        );
+
+
     }
 
     /**
@@ -56,9 +78,8 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function signinDay($params) {
-
         global $userId;
-        $userId = 1313;
+        $today = date('Y-m-d', time());
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -77,19 +98,47 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         
-        $where = [
-            'user_id' => $userId,
-            'alias_name' => $aliasName,
-        ];       
-         
+        $signin = Activity::where('alias_name', 'signin')->first();
         
-        $today = date('Y-m-d', time() + $day);
+        $where = array(
+            'user_id' => $userId,
+            'activity_id' => $signin['id'],
+        );
 
+        $signinRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
 
-        $activityJoin = new ActivityJoin;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
+        if(!$signinRes) {
+            throw new OmgException(OmgException::NOT_SIGNIN);
         }
+
+        $remark = json_decode($signinRes['remark'], true);
+        //获取连续签到天数
+        $continue = intval($remark['continue']);
+
+        if($day > $continue) {
+            throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
+        }
+        $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
+
+        $awardRes = SendRewardLog::where(array(
+            'user_id'  => $userId,
+            'activity_id' => $activity['id'],
+        ))->whereRaw("created_at >= '{$before}'")->first();
+
+        if($awardRes) {
+            throw new OmgException(OmgException::ALREADY_AWARD);                    
+        }
+
+        $res = SendAward::addAwardByActivity($userId, $activity['id']);
+        
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => array(
+                'awards' => $res,
+            ),
+        );
+
     }
 
     /**
@@ -99,16 +148,14 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function signin($params) {
         global $userId;
-        $userId = 1313;
         $aliasName = 'signin';
 
         //是否登录
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $day = 3600*24 * 0;
-        $today = date('Y-m-d', time() + $day);
-        $yesterday = date('Y-m-d', time() - 3600*24 + $day);
+        $today = date('Y-m-d', time());
+        $yesterday = date('Y-m-d', time() - 3600*24);
         $continue = 1;
 
         $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
@@ -116,27 +163,40 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);   
         }
         
+        // 今日是否签到
         $where = array(
             'user_id' => $userId,
             'activity_id' => $activity['id'],
         );
-        
         $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
         if($todayRes) {
             $remark = json_decode($todayRes['remark'], true) ;
-            $continue = $remark['continue'];
             $award = SendAward::getAward($todayRes['award_type'], $todayRes['award_id']);
+            $continue = intval($remark['continue']);
+            
+            
+            // 是否分享
+            $shared = $this->isShared($userId);
+            
+            //获取额外奖励记录
+            $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
+            $extraAwards = $this->getExtraAwards($userId, $before);
+            
             $data = array(
-                'continue' => $continue,
+                'continue' => $remark['continue'],
+                'shared' => $shared,
                 'award' => $award['name'],
+                'extra' => $extraAwards,
             );
+            
             throw new OmgException(OmgException::ALREADY_SIGNIN, $data);
         }
         
+        // 发奖
         $res = SendAward::addAwardByActivity($userId, $activity['id']);
 
+        // 连续登陆
         $yesterdayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$yesterday}'")->first();
-
         if(!empty($yesterdayRes)){
             $remark = json_decode($yesterdayRes['remark'], true);
             $continue = $remark['continue'] + 1;
@@ -144,21 +204,69 @@ class ActivityJsonRpc extends JsonRpc {
                 $continue = 1;
             }
         }
+        
+        // 强制修改连续登陆天数
+        if(!empty($params->continue)) {
+            $continue = $params->continue;
+        }
 
+        // 更新连续登陆天数
         $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
         $remark = json_decode($todayRes['remark'], true) ;
         $remark['continue'] = $continue;
         $todayRes->remark = json_encode($remark);
         $todayRes->save();
 
+        // 获取额外奖励领取记录
+        $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
+        $extraAwards = $this->getExtraAwards($userId, $before);
+
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
                 'continue' => $continue,    
+                'shared' => false,
                 'award' => $res,
+                'extra' => $extraAwards,
             ),
         );
+    }
+
+    // 获取额外奖励领取记录
+    private function getExtraAwards($userId, $before) {
+        $days = array('7', '14', '21', '28');
+        $extraAwards = [];
+        foreach($days as $day) {
+            $activity = Activity::where('alias_name', "signinDay_{$day}")->first();
+            if($activity) {
+                $awardRes = SendRewardLog::where(array(
+                    'user_id'  => $userId,
+                    'activity_id' => $activity['id'],
+                ))->whereRaw("created_at >= '{$before}'")->first();
+                if($awardRes){
+                    $extraAwards[$day]  = true;  
+                }else{
+                    $extraAwards[$day]  = false;
+                }
+            }
+        }
+
+        return $extraAwards;
+        
+    }
+    
+    // 今天是否分享
+    private function isShared($userId) {
+        $sharedName = 'signinShared';
+        $sharedActivity = Activity::where('alias_name', $sharedName)->first();
+        $today = date('Y-m-d', time());
+        
+        $sharedRes = SendRewardLog::where(['user_id' => $userId, 'activity_id' => $sharedActivity['id']])->whereRaw("date(created_at) = '{$today}'")->first();
+        if($sharedRes) {
+            return true;
+        }
+        return false;
     }
 
 }
