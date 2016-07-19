@@ -44,6 +44,11 @@ class OmgException extends BasicException
     const NO_DATA = 4300;
     const ALREADY_SIGNIN = 4301;
     const ACTIVITY_NOT_EXIST = 4302;
+    const NOT_SIGNIN = 4303;
+    const PARSE_ERROR = 4304;
+    const DAYS_NOT_ENOUGH = 4305;
+    const ALREADY_AWARD = 4306;
+    const ALREADY_SHARED = 4307;
 
 
     protected static $errorArray = array(
@@ -72,6 +77,11 @@ class OmgException extends BasicException
         self::ALREADY_SIGNIN => "今日已签到",
         self::DATABASE_ERROR => "数据库错误",
         self::ACTIVITY_NOT_EXIST => "活动不存在或已下线",
+        self::NOT_SIGNIN => '今天还没有签到',
+        self::PARSE_ERROR => '解析错误',
+        self::DAYS_NOT_ENOUGH => '不满足领取条件',
+        self::ALREADY_AWARD => '奖励已领取',
+        self::ALREADY_SHARED => '已分享',
     );
 
     public function __construct($code, $data = array())
