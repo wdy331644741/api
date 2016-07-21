@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
 use Illuminate\Http\Request;
 
@@ -13,6 +14,7 @@ use App\Http\JsonRpcs\ContentJsonRpc;
 use App\Http\JsonRpcs\RedeemCodeJsonRpc;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 use App\Http\JsonRpcs\OpinionJsonRpc;
+use App\Http\JsonRpcs\AppUpdateConfigJsonRpc;
 
 class RpcController extends Controller
 {
@@ -38,6 +40,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new RedeemCodeJsonRpc());
         $jsonRpcServer->addService(new ActivityJsonRpc());
         $jsonRpcServer->addService(new OpinionJsonRpc());
+        $jsonRpcServer->addService(new AppUpdateConfigJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');       
     }

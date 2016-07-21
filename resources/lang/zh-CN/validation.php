@@ -183,7 +183,12 @@ return [
         'position'              => '位置',
         'img_path'              => '图片地址',
         'activity_time'         => '图片活动的时间',
-        'id'                    => '操作ID'
+        'id'                    => '操作ID',
+        'update_time'           => '更新时间',
+        'platform'              => '平台',
+        'url'                   => '链接',
+        'force'                 => '强制开启选项',
+        'version'               => '版本号',
     ],
 
 ];
