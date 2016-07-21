@@ -102,7 +102,7 @@ class SendAward
         }
         //获取出来该信息
         $data = array();
-        $url = Config::get("award.account_http_url");
+        $url = Config::get("award.reward_http_url");
         $client = new JsonRpcClient($url);
         $uuid = self::create_guid();
         //加息券
@@ -178,7 +178,7 @@ class SendAward
         }
         //获取出来该信息
         $data = array();
-        $url = Config::get("award.account_http_url");
+        $url = Config::get("award.reward_http_url");
         $client = new JsonRpcClient($url);
         $uuid = self::create_guid();
         //直抵红包
@@ -247,7 +247,7 @@ class SendAward
         }
         //获取出来该信息
         $data = array();
-        $url = Config::get("award.account_http_url");
+        $url = Config::get("award.reward_http_url");
         $client = new JsonRpcClient($url);
         $uuid = self::create_guid();
         //百分比红包
@@ -312,7 +312,7 @@ class SendAward
             return false;
         }
         $data = array();
-        $url = Config::get("award.account_http_url");
+        $url = Config::get("award.reward_http_url");
         $client = new JsonRpcClient($url);
         $uuid = self::create_guid();
         //体验金
