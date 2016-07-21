@@ -55,7 +55,13 @@ class ActivityJsonRpc extends JsonRpc {
         $shared = $this->isShared($userId);
         //是否分享
         if($shared) {
-            throw new OmgException(OmgException::ALREADY_SHARED);
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'isShared' => true,
+                ),
+            );
         }
 
         //给用户发奖
@@ -65,6 +71,7 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => array(
+                'isShared' => false,
                 'award' => $res,
             ),
         );
@@ -126,7 +133,13 @@ class ActivityJsonRpc extends JsonRpc {
         ))->whereRaw("created_at >= '{$before}'")->first();
 
         if($awardRes) {
-            throw new OmgException(OmgException::ALREADY_AWARD);                    
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'isAward' => true,
+                ),
+            ); 
         }
 
         $res = SendAward::addAwardByActivity($userId, $activity['id']);
@@ -135,6 +148,7 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => array(
+                'isAward' => false,
                 'awards' => $res,
             ),
         );
@@ -194,14 +208,17 @@ class ActivityJsonRpc extends JsonRpc {
                     break;
                 }
             }
-            
-            $data = array(
-                'current' => $remark['continue'],
-                'shared' => $shared,
-                'start' => $start,
-                'end' => $end,
-                'award' => $award['name'],
-                'extra' => $extra,
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'isSignin' => true,
+                    'current' => $continue,
+                    'start' => $start,
+                    'end' => $end,
+                    'extra' => $extra,
+                    'shared' => false,
+                ),
             );
             
             throw new OmgException(OmgException::ALREADY_SIGNIN, $data);
@@ -253,6 +270,7 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => array(
+                'isSignin' => false,
                 'current' => $continue,
                 'start' => $start,
                 'end' => $end,
