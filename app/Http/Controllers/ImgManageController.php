@@ -40,7 +40,8 @@ class ImgManageController extends Controller
         if(!empty($data)){
             foreach($data as &$item){
                 if(!empty($item['file_name'])){
-                    $item['file_name'] = Config::get('cms.img_http_url').$item['file_name'];
+                    $item['http_url'] = Config::get('cms.img_http_url').$item['file_name'];
+                    unset($item['file_name']);
                 }
             }
         }
