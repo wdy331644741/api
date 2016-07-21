@@ -164,6 +164,8 @@ class ActivityJsonRpc extends JsonRpc {
         global $userId;
         $aliasName = 'signin';
         $days = array(7, 14, 21, 28);
+        $daysLength = count($days);
+        $last = $days[$daysLength-1];
 
         //是否登录
         if(!$userId) {
@@ -202,7 +204,7 @@ class ActivityJsonRpc extends JsonRpc {
                     if($key == 0) {
                         $start = 1;
                     }else{
-                        $start = $days[$key-1];
+                        $start = $days[$key-1] + 1;
                     }
                     $end = $day;
                     break;
@@ -218,6 +220,7 @@ class ActivityJsonRpc extends JsonRpc {
                     'end' => $end,
                     'extra' => $extra,
                     'shared' => false,
+                    'last' => $last,
                 ),
             );
             
@@ -255,7 +258,7 @@ class ActivityJsonRpc extends JsonRpc {
                 if($key == 0) {
                     $start = 1;
                 }else{
-                    $start = $days[$key-1];
+                    $start = $days[$key-1] + 1;
                 }
                 $end = $day;
                 break;
@@ -277,6 +280,7 @@ class ActivityJsonRpc extends JsonRpc {
                 'extra' => $extra,
                 'shared' => false,
                 'award' => $res,
+                'last' => $last,
             ),
         );
     }
