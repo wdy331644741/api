@@ -11,7 +11,7 @@ Route::group(['prefix' => 'yunying'], function() {
     Route::controller('channel', 'ChannelController');
     Route::controller('cms/content','Cms\ContentController');
     Route::controller('open','OpenController');
-    Route::controller('app','AppUpdateConfigController.php');
+    Route::controller('app','AppUpdateConfigController');
     //奖品路由
     Route::controller('award', 'AwardController');
 

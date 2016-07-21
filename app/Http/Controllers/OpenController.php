@@ -132,24 +132,5 @@ class OpenController extends Controller
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid']));
         return $res;
     }
-
-    //测试
-    public function getHaha(){
-        $request = new Client([
-            'base_uri'=>'http://yunying.dev.wanglibao.com',
-            'timeout'=>9999.0
-        ]);
-        $response = $request->get('/cms/content/detail/1');
-        if($response->getStatusCode() == 200){
-            echo $response->getBody();
-        }
-    }
-
-    public function getIndex(){
-        Session::set('weixin',array('231231','qweqwe'));
-    }
-
-    public function getId(){
-        dd(Session::get('weixin'));
-    }
+    
 }

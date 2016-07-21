@@ -21,6 +21,7 @@ class CreateAppUpdateConfigsTable extends Migration
             $table->string('version');
             $table->string('size');
             $table->string('toggle')->default('off');
+            $table->tinyInteger('platform')->default(1)->commnet('1:安卓，2:iOS，2:iPad');
             $table->timestamps();
         });
     }
