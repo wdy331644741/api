@@ -55,7 +55,13 @@ class ActivityJsonRpc extends JsonRpc {
         $shared = $this->isShared($userId);
         //是否分享
         if($shared) {
-            throw new OmgException(OmgException::ALREADY_SHARED);
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'isShared' => true,
+                ),
+            );
         }
 
         //给用户发奖
@@ -65,6 +71,7 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => array(
+                'isShared' => false,
                 'award' => $res,
             ),
         );
@@ -126,7 +133,13 @@ class ActivityJsonRpc extends JsonRpc {
         ))->whereRaw("created_at >= '{$before}'")->first();
 
         if($awardRes) {
-            throw new OmgException(OmgException::ALREADY_AWARD);                    
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'isAward' => true,
+                ),
+            ); 
         }
 
         $res = SendAward::addAwardByActivity($userId, $activity['id']);
@@ -135,6 +148,7 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => array(
+                'isAward' => false,
                 'awards' => $res,
             ),
         );
@@ -149,6 +163,9 @@ class ActivityJsonRpc extends JsonRpc {
     public function signin($params) {
         global $userId;
         $aliasName = 'signin';
+        $days = array(7, 14, 21, 28);
+        $daysLength = count($days);
+        $last = $days[$daysLength-1];
 
         //是否登录
         if(!$userId) {
@@ -180,13 +197,31 @@ class ActivityJsonRpc extends JsonRpc {
             
             //获取额外奖励记录
             $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
-            $extraAwards = $this->getExtraAwards($userId, $before);
-            
-            $data = array(
-                'continue' => $remark['continue'],
-                'shared' => $shared,
-                'award' => $award['name'],
-                'extra' => $extraAwards,
+
+            $extra = $this->getExtraAwards($userId, $before, $continue);
+            foreach($days as $key => $day) {
+                if($continue <= $day){
+                    if($key == 0) {
+                        $start = 1;
+                    }else{
+                        $start = $days[$key-1] + 1;
+                    }
+                    $end = $day;
+                    break;
+                }
+            }
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array(
+                    'isSignin' => true,
+                    'current' => $continue,
+                    'start' => $start,
+                    'end' => $end,
+                    'extra' => $extra,
+                    'shared' => false,
+                    'last' => $last,
+                ),
             );
             
             throw new OmgException(OmgException::ALREADY_SIGNIN, $data);
@@ -216,44 +251,55 @@ class ActivityJsonRpc extends JsonRpc {
         $remark['continue'] = $continue;
         $todayRes->remark = json_encode($remark);
         $todayRes->save();
+        
+        
+        foreach($days as $key => $day) {
+            if($continue <= $day){
+                if($key == 0) {
+                    $start = 1;
+                }else{
+                    $start = $days[$key-1] + 1;
+                }
+                $end = $day;
+                break;
+            }            
+        }
 
         // 获取额外奖励领取记录
         $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
-        $extraAwards = $this->getExtraAwards($userId, $before);
+        $extra = $this->getExtraAwards($userId, $before, $continue);
 
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
-                'continue' => $continue,    
+                'isSignin' => false,
+                'current' => $continue,
+                'start' => $start,
+                'end' => $end,
+                'extra' => $extra,
                 'shared' => false,
                 'award' => $res,
-                'extra' => $extraAwards,
+                'last' => $last,
             ),
         );
     }
 
     // 获取额外奖励领取记录
-    private function getExtraAwards($userId, $before) {
-        $days = array('7', '14', '21', '28');
-        $extraAwards = [];
-        foreach($days as $day) {
-            $activity = Activity::where('alias_name', "signinDay_{$day}")->first();
-            if($activity) {
-                $awardRes = SendRewardLog::where(array(
-                    'user_id'  => $userId,
-                    'activity_id' => $activity['id'],
-                ))->whereRaw("created_at >= '{$before}'")->first();
-                if($awardRes){
-                    $extraAwards[$day]  = true;  
-                }else{
-                    $extraAwards[$day]  = false;
-                }
+    private function getExtraAwards($userId, $before, $day) {
+        $activity = Activity::where('alias_name', "signinDay_{$day}")->first();
+        if($activity) {
+            $awardRes = SendRewardLog::where(array(
+                'user_id'  => $userId,
+                'activity_id' => $activity['id'],
+            ))->whereRaw("created_at >= '{$before}'")->first();
+            if($awardRes){
+                return true;
+            }else{
+                return false;
             }
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-
-        return $extraAwards;
-        
     }
     
     // 今天是否分享

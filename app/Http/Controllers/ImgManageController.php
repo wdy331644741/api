@@ -37,6 +37,14 @@ class ImgManageController extends Controller
             $where['position'] = $position;
         }
         $data = Image::where($where)->orderBy('id','DESC')->paginate(20);
+        if(!empty($data)){
+            foreach($data as &$item){
+                if(!empty($item['file_name'])){
+                    $item['http_url'] = Config::get('cms.img_http_url').$item['file_name'];
+                    unset($item['file_name']);
+                }
+            }
+        }
         return $this->outputJson(0,$data);
     }
     //banner添加
@@ -121,17 +129,16 @@ class ImgManageController extends Controller
                 return $this->outputJson(PARAMS_ERROR,array('img_path'=>'文件错误'));
             }
         }
-        $data['img_path'] = trim($file);
-        if(empty($data['img_path'])){
+        if(empty($file)){
             return $this->outputJson(PARAMS_ERROR,array('img_path'=>'文件不能为空'));
         }
-        //跳转url
-        $data['http_url'] = Config::get('cms.img_http_url')."/enclosures/".trim($fileName);
+        //文件名
+        $data['file_name'] = trim($fileName);
         //添加时间
         $data['created_at'] = date("Y-m-d H:i:s");
         $id = Image::insertGetId($data);
         if($id){
-            return $this->outputJson(0,array('url'=>$data['http_url']));
+            return $this->outputJson(0,array('url'=>Config::get('cms.img_http_url').$data['file_name']));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'添加失败'));
         }
