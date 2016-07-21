@@ -187,7 +187,7 @@ class ActivityJsonRpc extends JsonRpc {
         );
         $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
         if($todayRes) {
-            $remark = json_decode($todayRes['remark'], true) ;
+            $remark = json_decode($todayRes['remark'], true);
             $award = SendAward::getAward($todayRes['award_type'], $todayRes['award_id']);
             $continue = intval($remark['continue']);
             
@@ -221,6 +221,7 @@ class ActivityJsonRpc extends JsonRpc {
                     'extra' => $extra,
                     'shared' => false,
                     'last' => $last,
+                    'award' => [$award['name']],
                 ),
             );
             
