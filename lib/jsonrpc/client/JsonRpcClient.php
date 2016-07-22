@@ -16,7 +16,7 @@ class JsonRpcClient
         'timeout' => 20,
         'resultToArr' => true,
         'Cookie' => '',
-        'User-Agent' => '',
+        'User-Agent' => 'WangLiBao PHP Team Background Task',
         'Referer' => '',
     ]; //rpc请求参数
 
