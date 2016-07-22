@@ -66,7 +66,7 @@ class JsonRpcClient
     private function _setCookies(){
         if($this->_config['useCurrentCookie'])
         {
-            $this->_requestParams['Cookie'] = $this->_userHeaders['Cookie'];
+            $this->_requestParams['Cookie'] = isset($this->_userHeaders['Cookie']) ? $this->_userHeaders['Cookie'] : '';
         }
         else
         {

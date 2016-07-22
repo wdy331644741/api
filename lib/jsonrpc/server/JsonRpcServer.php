@@ -9,6 +9,7 @@ class JsonRpcServer
 
     public function __construct($postRequest = '')
     {
+//        ob_start();
         if (!$postRequest)
             $postRequest = file_get_contents("php://input");
         $this->_requestText = $postRequest;
@@ -231,6 +232,9 @@ class JsonRpcServer
 
     private function doResponse($responseObject)
     {
+//        $log = ob_get_clean();
+//        if($log)
+//            logs($log,'phperror');
         if (!empty($responseObject)) {
             header('Content-Type: application/json');
             echo json_encode($responseObject);

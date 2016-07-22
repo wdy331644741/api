@@ -13,7 +13,7 @@ class RuleCheck
         $client = new JsonRpcClient($url);
         $res = $client->userBasicInfo(array('userId'=>$userId));
         if(isset($res['error'])){
-            return array('send'=>true,'errmsg'=>$res['error']['message']);
+            return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
         $register_time = $res['result']['data']['create_time'];
         if($register_time >= $rules['min_time'] && $register_time <= $rules['max_time']){
