@@ -6,6 +6,9 @@ Route::group(['prefix' => 'yunying'], function() {
     });
 
 
+    //test
+    Route::controller('test', 'TestController');
+    
     Route::controller('activity', 'ActivityController');
     Route::controller('account', 'AccountController');
     Route::controller('channel', 'ChannelController');
