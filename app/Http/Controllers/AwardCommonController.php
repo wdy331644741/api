@@ -39,7 +39,7 @@ class AwardCommonController extends Controller{
         $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
             return $input->rate_increases_type == 4;
         });
-        $validator->sometimes('effective_time_day', 'required|integer|min:1|max:30', function($input) {
+        $validator->sometimes('effective_time_day', 'required|integer|min:1', function($input) {
             return $input->effective_time_type == 1;
         });
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
@@ -141,7 +141,7 @@ class AwardCommonController extends Controller{
         $validator->sometimes(array('red_max_money','percentage'), 'required|integer|min:1', function($input) {
             return $input->red_type == 2;
         });
-        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+        $validator->sometimes('effective_time_day', 'required|integer|min:1', function($input) {
             return $input->effective_time_type == 1;
         });
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
@@ -231,7 +231,7 @@ class AwardCommonController extends Controller{
             'experience_amount_money' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
         ]);
-        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+        $validator->sometimes('effective_time_day', 'required|integer|min:1', function($input) {
             return $input->effective_time_type == 1;
         });
         $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {

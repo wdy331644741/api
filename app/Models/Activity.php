@@ -25,5 +25,8 @@ class Activity extends Model
     public function awards(){
         return $this->hasMany('App\Models\Award','activity_id','id');
     }
+    public function award_invite(){
+        return $this->hasMany('App\Models\AwardInvite','activity_id','id');
+    }
 
 }

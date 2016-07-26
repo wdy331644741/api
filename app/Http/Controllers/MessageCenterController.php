@@ -4,7 +4,6 @@ use App\Models\Activity;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Jobs\SendReward;
-use App\Service\RuleCheck;
 
 /**
  * Created by PhpStorm.
@@ -48,17 +47,9 @@ class MessageCenterController extends Controller{
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
                 if(!empty($item['id'])){
-                    file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID \t".$item['id']."\n",FILE_APPEND);
-                    //验证规则
-                    $status = RuleCheck::$rule($item['id'],$userID);
-                    if($status['send'] === true){
-                        //调用发奖队列
-                        file_put_contents($logUrl,date("Y-m-d H:i:s")."\t"."开始发奖 活动ID:".$item['id']."  用户ID:".$userID."\n",FILE_APPEND);
-                        $this->dispatch(new SendReward($item['id'],$userID));
-                    }else{
-                        //记录规则错误日志
-                        file_put_contents($logUrl,date("Y-m-d H:i:s")."\t ruleErrorMsg \t".$status['errmsg']."\n",FILE_APPEND);
-                    }
+                    file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID&userID \t".$item['id']."\t**\t".$userID."\t放入队列"."\n",FILE_APPEND);
+                    //放入队列
+                    $this->dispatch(new SendReward($item['id'],$userID,$rule,$logUrl));
                 }
             }
         }
@@ -77,7 +68,6 @@ class MessageCenterController extends Controller{
         $redis = $this->connect($this->ip,$this->port);
         $json  = json_encode(["tag" => $tag, "value" => $value]);
         $res =  $redis->LPUSH('msg_queue', $json);
-        var_dump($res);exit;
         return json_encode(["result" => "ok"]);
     }
 
