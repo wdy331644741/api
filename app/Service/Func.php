@@ -100,4 +100,11 @@ class Func
         }
         return $data;
     }
+    public static function msgTemplate($template,$arr){
+        $newTemplate = "";
+        foreach($arr as $key => $value) {
+
+        }
+        return $newTemplate;
+    }
 }
