@@ -42,6 +42,14 @@ return [
             'name'=>'回款金额',
             'model_name'=>'Payment',
         ],
+        10=>[
+            'name'=>'投资总金额',
+            'model_name'=>'Castall',
+        ],
+        11=>[
+            'name'=>'充值总金额',
+            'model_name'=>'Rechargeall',
+        ],
     ],
     'activity_type'=>[
         0=>[
