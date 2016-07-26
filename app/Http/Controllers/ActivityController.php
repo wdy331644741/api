@@ -9,6 +9,7 @@ use App\Models\Activity;
 use App\Models\Rule;
 use App\Models\ActivityGroup;
 use App\Models\Award;
+use App\Models\AwardInvite;
 use App\Models\Award1;
 use App\Models\Award2;
 use App\Models\Award3;
@@ -503,6 +504,41 @@ class ActivityController extends Controller
         $data['created_at'] = date("Y-m-d H:i:s");
         $data['updated_at'] = date("Y-m-d H:i:s");
         $awardID = Award::insertGetId($data);
+        if($awardID){
+            return $this->outputJson(0,array('insert_id'=>$awardID));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品关系表失败'));
+        }
+    }
+    /**
+     * 邀请人奖品映射关系添加
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'activity_id' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        //奖品类型
+        $data['award_type'] = intval($request->award_type);
+        //活动ID
+        $data['activity_id'] = intval($request->activity_id);
+        //优惠券id
+        $data['award_id'] = intval($request->award_id);
+        //查看是否重复
+        $count = Award::where($data)->count();
+        if($count > 0){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该数据'));
+        }
+        $data['priority'] = isset($request->priority) ? intval($request->priority) : 0;
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['updated_at'] = date("Y-m-d H:i:s");
+        $awardID = AwardInvite::insertGetId($data);
         if($awardID){
             return $this->outputJson(0,array('insert_id'=>$awardID));
         }else{
