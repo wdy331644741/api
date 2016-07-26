@@ -55,11 +55,13 @@ class ActivityJsonRpc extends JsonRpc {
         $shared = $this->isShared($userId);
         //是否分享
         if($shared) {
+            $award = SendAward::getAward($signinRes['award_type'], $signinRes['award_id']);
             return array(
                 'code' => 0,
                 'message' => 'success',
                 'data' => array(
                     'isShared' => true,
+                    'award' => [$award['name']],
                 ),
             );
         }
@@ -72,7 +74,7 @@ class ActivityJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => array(
                 'isShared' => false,
-                'award' => $res,
+                'award' => [$res],
             ),
         );
 
@@ -133,11 +135,13 @@ class ActivityJsonRpc extends JsonRpc {
         ))->whereRaw("created_at >= '{$before}'")->first();
 
         if($awardRes) {
+            $award = SendAward::getAward($awardRes['award_type'], $awardRes['award_id']);
             return array(
                 'code' => 0,
                 'message' => 'success',
                 'data' => array(
                     'isAward' => true,
+                    'awards' => [$award['name']],
                 ),
             ); 
         }
