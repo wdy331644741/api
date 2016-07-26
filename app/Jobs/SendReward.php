@@ -19,17 +19,19 @@ class SendReward extends Job implements ShouldQueue
     private $userID;
     private $rule;
     private $logUrl;
+    private $triggerData;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($activityID,$userID,$rule,$logUrl)
+    public function __construct($activityID,$userID,$rule,$logUrl,$triggerData)
     {
         $this->activityID = intval($activityID);
         $this->userID = intval($userID);
         $this->rule = trim($rule);
         $this->logUrl = trim($logUrl);
+        $this->triggerData = $triggerData;
     }
 
     /**

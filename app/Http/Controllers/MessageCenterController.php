@@ -22,34 +22,31 @@ class MessageCenterController extends Controller{
         $value = $request->value;
         //触发的事件
         $event = $request->tag;
-        $rule = "";
-        if($event == 'register'){
-            //注册
-            $trigger_type = 1;
-            $rule = "register";
-        }else if($event == 'login'){
-            //登陆
-            $trigger_type = 2;
-            $rule = "login";
-        }
-        $trigger_type = isset($trigger_type) ? trim($trigger_type) : '';
+        //获取trigger_type和rule
+        $res = $this->_getRuleFunc($event);
+        $rule = $res['rule'];
+        $trigger_type = isset($res['trigger_type']) ? trim($res['trigger_type']) : '';
         //触发的用户ID
         $userID = isset($value['user_id']) ? intval($value['user_id']) : 0;
         file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID \t".$trigger_type."\t**\t".$userID."\n",FILE_APPEND);
         if(empty($trigger_type) || empty($userID) || empty($rule)){
-            file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID \t"."参数错误"."\n",FILE_APPEND);
+            file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID&rule \t"."参数错误"."\n",FILE_APPEND);
             return ;
         }
         //查询出该用户触发匹配的活动信息
         $where['trigger_type'] = $trigger_type;
         $activityInfo = Activity::where($where)->get()->toArray();
+        //拼接触发的消息
+        $triggerData = array();
+        $triggerData['tag'] = $request->tag;
+        $triggerData['value'] = $request->value;
         //队列
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
                 if(!empty($item['id'])){
                     file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID&userID \t".$item['id']."\t**\t".$userID."\t放入队列"."\n",FILE_APPEND);
                     //放入队列
-                    $this->dispatch(new SendReward($item['id'],$userID,$rule,$logUrl));
+                    $this->dispatch(new SendReward($item['id'],$userID,$rule,$logUrl,$triggerData));
                 }
             }
         }
@@ -70,5 +67,22 @@ class MessageCenterController extends Controller{
         $res =  $redis->LPUSH('msg_queue', $json);
         return json_encode(["result" => "ok"]);
     }
-
+    public function _getRuleFunc($event){
+        $data = array();
+        switch($event){
+            case "register":
+                $data['trigger_type'] = 1;
+                $data['rule'] = "register";
+                break;
+            case "login":
+                $data['trigger_type'] = 2;
+                $data['rule'] = "login";
+                break;
+            default:
+                $data['trigger_type'] = 0;
+                $data['rule'] = "";
+                break;
+        }
+        return $data;
+    }
 }

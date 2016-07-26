@@ -27,7 +27,7 @@ class AwardCommonController extends Controller{
             'rate_increases' => 'required|numeric|between:0.0001,1',
             'rate_increases_type' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
-            'investment_threshold' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
         ]);
         $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:30', function($input) {
@@ -132,7 +132,7 @@ class AwardCommonController extends Controller{
             'name' => 'required|min:2|max:255',
             'red_type' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
-            'investment_threshold' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
         ]);
         $validator->sometimes('red_money', 'required|integer|min:1', function($input) {
