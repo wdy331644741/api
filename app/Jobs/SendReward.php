@@ -10,7 +10,6 @@ use App\Service\SendAward;
 use App\Service\RuleCheck;
 
 use Lib\JsonRpcClient;
-use App\Models\Activity;
 use Config;
 
 class SendReward extends Job implements ShouldQueue
@@ -56,6 +55,7 @@ class SendReward extends Job implements ShouldQueue
             //给邀请人发奖励
             $url = Config::get('award.reward_http_url');
             $client = new JsonRpcClient($url);
+            //获取邀请人id
             $res = $client->getInviteList(array('uid'=>$this->userID));
             if(isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])){
                 $inviteUserID = isset($res['result']['data'][0]) ? $res['result']['data'][0] : 0;
