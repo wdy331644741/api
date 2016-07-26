@@ -441,6 +441,22 @@ class SendAward
 
 
     }
+    /**
+     * 邀请人发奖
+     *
+     * @param $userId
+     * @param $activityId
+     * @return array
+     */
+    static function addAwardToInvite($userId, $activityId) {
+        $activity = Activity::where('id', $activityId)->with('award_invite')->first();
+        $awardInvite = $activity['award_invite'];
+        $res = [];
+        foreach($awardInvite as $award) {
+            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+        }
+        return $res;
+    }
     
     //获取奖品
     static function getSendedAwards($userId, $activityId, $day) {
