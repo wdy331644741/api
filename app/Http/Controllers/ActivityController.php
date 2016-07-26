@@ -511,42 +511,6 @@ class ActivityController extends Controller
         }
     }
     /**
-     * 邀请人奖品映射关系添加
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    function postAwardInviteAdd(Request $request){
-        $validator = Validator::make($request->all(), [
-            'award_type' => 'required|integer|min:1',
-            'activity_id' => 'required|integer|min:1',
-            'award_id' => 'required|integer|min:1',
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
-        }
-        //奖品类型
-        $data['award_type'] = intval($request->award_type);
-        //活动ID
-        $data['activity_id'] = intval($request->activity_id);
-        //优惠券id
-        $data['award_id'] = intval($request->award_id);
-        //查看是否重复
-        $count = Award::where($data)->count();
-        if($count > 0){
-            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该数据'));
-        }
-        $data['priority'] = isset($request->priority) ? intval($request->priority) : 0;
-        $data['created_at'] = date("Y-m-d H:i:s");
-        $data['updated_at'] = date("Y-m-d H:i:s");
-        $awardID = AwardInvite::insertGetId($data);
-        if($awardID){
-            return $this->outputJson(0,array('insert_id'=>$awardID));
-        }else{
-            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品关系表失败'));
-        }
-    }
-
-    /**
      * 获取奖品映射关系列表
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -581,6 +545,82 @@ class ActivityController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('id'=>'记录id不能为空'));
         }
         $status = Award::where($where)->delete();
+        if($status){
+            return $this->outputJson(0,array('error_msg'=>'删除成功'));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
+        }
+    }
+    /**
+     * 邀请人奖品映射关系添加
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'activity_id' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        //奖品类型
+        $data['award_type'] = intval($request->award_type);
+        //活动ID
+        $data['activity_id'] = intval($request->activity_id);
+        //优惠券id
+        $data['award_id'] = intval($request->award_id);
+        //查看是否重复
+        $count = Award::where($data)->count();
+        if($count > 0){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该数据'));
+        }
+        $data['priority'] = isset($request->priority) ? intval($request->priority) : 0;
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['updated_at'] = date("Y-m-d H:i:s");
+        $awardID = AwardInvite::insertGetId($data);
+        if($awardID){
+            return $this->outputJson(0,array('insert_id'=>$awardID));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品关系表失败'));
+        }
+    }
+    /**
+     * 获取奖品映射关系列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteList(Request $request){
+        //活动ID
+        $where['activity_id'] = intval($request->activity_id);
+        if(empty($where['activity_id'])){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
+        $list = AwardInvite::where($where)->orderBy('updated_at','desc')->get()->toArray();
+        foreach($list as &$item){
+            $table = $this->_getAwardTable($item['award_type']);
+            $name = $table::where('id',$item['award_id'])->select('name')->get()->toArray();
+            if(count($name) >= 1 && isset($name[0]['name'])){
+                $item['name'] = $name[0]['name'];
+            }else{
+                $item['name'] = '';
+            }
+        }
+        return $this->outputJson(0,$list);
+    }
+    /**
+     * 删除奖品映射关系
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteDelete(Request $request){
+        //记录id
+        $where['id'] = intval($request->id);
+        if(empty($where['id'])){
+            return $this->outputJson(PARAMS_ERROR,array('id'=>'记录id不能为空'));
+        }
+        $status = AwardInvite::where($where)->delete();
         if($status){
             return $this->outputJson(0,array('error_msg'=>'删除成功'));
         }else{
