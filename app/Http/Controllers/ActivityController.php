@@ -393,6 +393,31 @@ class ActivityController extends Controller
         }
     }
 
+    //充值总金额
+    private function rule_rechargeall($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_recharge_all'=>'required|numeric',
+            'max_recharge_all'=>'required|numeric|min:'.$request->min_recharge_all,
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_recharge_all','max_recharge_all'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     //投资金额
     private function rule_cast($type,$request){
         $validator = Validator::make($request->all(), [
@@ -409,6 +434,31 @@ class ActivityController extends Controller
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
         $rule->rule_info = $this->Params2json($request,array('isfirst','min_cast','max_cast'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //投资总金额
+    private function rule_castall($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_cast_all'=>'required|numeric',
+            'max_cast_all'=>'required|numeric|min:'.$request->min_cast_all,
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_cast_all','max_cast_all'));
         $rule->save();
         if($rule->id){
             DB::commit();
@@ -527,7 +577,7 @@ class ActivityController extends Controller
         }
     }
 
-    //用户余额
+    //用户回款
     private function rule_payment($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
