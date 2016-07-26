@@ -5,47 +5,42 @@ return [
         0=>[
             'name'=>'注册时间',
             'model_name'=>'Register',
-            'model_path'=>'App\Models\Rule\Register',
         ],
         1=>[
             'name'=>'用户渠道',
             'model_name'=>'Channel',
-            'model_path'=>'App\Models\Rule\Channel',
         ],
         2=>[
             'name'=>'是否邀请用户',
             'model_name'=>'Invite',
-            'model_path'=>'App\Models\Rule\Invite',
         ],
         3=>[
             'name'=>'邀请人数',
             'model_name'=>'Invitenum',
-            'model_path'=>'App\Models\Rule\Invitenum',
         ],
         4=>[
             'name'=>'用户等级',
             'model_name'=>'Userlevel',
-            'model_path'=>'App\Models\Rule\Userlevel',
         ],
         5=>[
             'name'=>'用户积分',
             'model_name'=>'Usercredit',
-            'model_path'=>'App\Models\Rule\Usercredit',
         ],
         6=>[
             'name'=>'用户余额',
             'model_name'=>'Balance',
-            'model_path'=>'App\Models\Rule\Balance',
         ],
         7=>[
             'name'=>'投资金额',
             'model_name'=>'Cast',
-            'model_path'=>'App\Models\Rule\Cast',
         ],
         8=>[
             'name'=>'充值金额',
             'model_name'=>'Recharge',
-            'model_path'=>'App\Models\Rule\Recharge',
+        ],
+        9=>[
+            'name'=>'回款金额',
+            'model_name'=>'Payment',
         ],
     ],
     'activity_type'=>[
