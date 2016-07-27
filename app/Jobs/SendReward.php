@@ -17,7 +17,6 @@ class SendReward extends Job implements ShouldQueue
     use InteractsWithQueue, SerializesModels;
     private $activityID;
     private $userID;
-    private $rule;
     private $logUrl;
     private $triggerData;
     /**
@@ -25,11 +24,10 @@ class SendReward extends Job implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($activityID,$userID,$rule,$logUrl,$triggerData)
+    public function __construct($activityID,$userID,$logUrl,$triggerData)
     {
         $this->activityID = intval($activityID);
         $this->userID = intval($userID);
-        $this->rule = trim($rule);
         $this->logUrl = trim($logUrl);
         $this->triggerData = $triggerData;
     }
@@ -42,17 +40,16 @@ class SendReward extends Job implements ShouldQueue
     public function handle()
     {
         //验证规则
-        $rule = $this->rule;
-        $status = RuleCheck::$rule($this->activityID,$this->userID);
+        $status = RuleCheck::check($this->activityID,$this->userID,$this->triggerData);
         if($status['send'] === true){
             //调用发奖队列
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."开始发奖 活动ID:".$this->activityID."  用户ID:".$this->userID."\n",FILE_APPEND);
             //给本人发的奖励
-            $status = SendAward::addAwardByActivity($this->userID,$this->activityID,0);
+            $status = SendAward::addAwardByActivity($this->userID,$this->activityID);
             if(!empty($status)){
                 file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发送成功".json_encode($status)."\n",FILE_APPEND);
             }else{
-                file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发奖失败".json_encode($status)."\n",FILE_APPEND);
+                file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发奖失败 没配置奖品或者请求接口错误".json_encode($status)."\n",FILE_APPEND);
             }
             //给邀请人发奖励
             $url = Config::get('award.reward_http_url');
@@ -66,11 +63,11 @@ class SendReward extends Job implements ShouldQueue
                     return true;
                 }else{
                     //调用发奖接口
-                    $status = SendAward::addAwardToInvite($inviteUserID,$this->activityID,1);
+                    $status = SendAward::addAwardToInvite($inviteUserID,$this->activityID);
                     if(!empty($status)){
                         file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."邀请人状态:发送成功 邀请人ID:".$inviteUserID.json_encode($status)."\n",FILE_APPEND);
                     }else{
-                        file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."邀请人状态:发奖失败 邀请人ID:".$inviteUserID.json_encode($status)."\n",FILE_APPEND);
+                        file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."邀请人状态:发奖失败 没配置奖品或者请求接口错误 邀请人ID:".$inviteUserID.json_encode($status)."\n",FILE_APPEND);
                     }
                 }
                 return true;

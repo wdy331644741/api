@@ -24,7 +24,7 @@ class AwardCommonController extends Controller{
     function _rateIncreases($request,$award_id,$award_type){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'rate_increases' => 'required|numeric|between:0.0001,1',
+            'rate_increases' => 'required|numeric|between:0.001,1',
             'rate_increases_type' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
             'investment_threshold' => 'required|integer|min:0',
@@ -142,7 +142,10 @@ class AwardCommonController extends Controller{
         $validator->sometimes('red_money', 'required|integer|min:1', function($input) {
             return $input->red_type == 1;
         });
-        $validator->sometimes(array('red_max_money','percentage'), 'required|integer|min:1', function($input) {
+        $validator->sometimes('red_max_money', 'required|integer|min:1', function($input) {
+            return $input->red_type == 2;
+        });
+        $validator->sometimes('percentage', 'required|numeric|between:0.001,1', function($input) {
             return $input->red_type == 2;
         });
         $validator->sometimes('effective_time_day', 'required|integer|min:1', function($input) {

@@ -22,14 +22,13 @@ class MessageCenterController extends Controller{
         $value = $request->value;
         //触发的事件
         $event = $request->tag;
-        //获取trigger_type和rule
-        $res = $this->_getRuleFunc($event);
-        $rule = $res['rule'];
-        $trigger_type = isset($res['trigger_type']) ? trim($res['trigger_type']) : '';
+        //获取trigger_type
+        $trigger_type = $this->_getRuleFunc($event);
+        $trigger_type = isset($trigger_type) ? trim($trigger_type) : '';
         //触发的用户ID
         $userID = isset($value['user_id']) ? intval($value['user_id']) : 0;
         file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID \t".$trigger_type."\t**\t".$userID."\n",FILE_APPEND);
-        if(empty($trigger_type) || empty($userID) || empty($rule)){
+        if(empty($trigger_type) || empty($userID)){
             file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID&rule \t"."参数错误"."\n",FILE_APPEND);
             return ;
         }
@@ -46,7 +45,7 @@ class MessageCenterController extends Controller{
                 if(!empty($item['id'])){
                     file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID&userID \t".$item['id']."\t**\t".$userID."\t放入队列"."\n",FILE_APPEND);
                     //放入队列
-                    $this->dispatch(new SendReward($item['id'],$userID,$rule,$logUrl,$triggerData));
+                    $this->dispatch(new SendReward($item['id'],$userID,$logUrl,$triggerData));
                 }
             }
         }
@@ -68,21 +67,17 @@ class MessageCenterController extends Controller{
         return json_encode(["result" => "ok"]);
     }
     public function _getRuleFunc($event){
-        $data = array();
         switch($event){
             case "register":
-                $data['trigger_type'] = 1;
-                $data['rule'] = "register";
+                $trigger_type = 1;
                 break;
             case "login":
-                $data['trigger_type'] = 2;
-                $data['rule'] = "login";
+                $trigger_type = 2;
                 break;
             default:
-                $data['trigger_type'] = 0;
-                $data['rule'] = "";
+                $trigger_type = 0;
                 break;
         }
-        return $data;
+        return $trigger_type;
     }
 }
