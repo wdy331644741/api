@@ -8,6 +8,7 @@ use App\Http\Requests;
 use Validator;
 use App\Jobs\FileImport;
 use DB;
+use App\Service\SendAward;
 
 class AwardController extends AwardCommonController
 {
@@ -26,6 +27,26 @@ class AwardController extends AwardCommonController
                 '6' => '_couponAdd',//优惠券
             ]
         ];
+    }
+
+    /**
+     * 给用户添加奖品
+     * 
+     * @param Request $request
+     * @return json 
+     */
+    function postAddAwardToUser(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'userId' => 'required|integer|min:1',
+            'awardType' => 'required|integer',
+            'awardId' => 'required|integer',
+            'sourceName' => 'string',
+        ]); 
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = SendAward::sendDataRole($request->userId, $request->awardType, $request->awardId, 1, $request->sourceName );
+        return $this->outputJson(0, $res);
     }
 
     /**
