@@ -29,7 +29,7 @@ class SendAward
      * @param $userID ，$award_type,$award_id
      *
      */
-    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0)
+    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '')
     {
         self::$userID = $userID;
         self::$activityID = $activityID;
@@ -44,7 +44,7 @@ class SendAward
         //获取出活动的名称
         $activity = Activity::where('id',$activityID)->select('name')->get()->toArray();
         //来源名称
-        $info['source_name'] = isset($activity[0]['name']) ? $activity[0]['name'] : '';
+        $info['source_name'] = isset($activity[0]['name']) ? $activity[0]['name'] : $sourceName;
         //用户id
         $info['user_id'] = $userID;
         if ($award_type == 1) {
