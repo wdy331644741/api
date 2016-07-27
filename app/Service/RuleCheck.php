@@ -12,8 +12,8 @@ class RuleCheck
     private static $user_api_url = 'http://sunfeng.wlpassport.dev.wanglibao.com/service.php?c=account';
 
     private static $trade_api_url = 'http://sunfeng.wlpassport.dev.wanglibao.com/service.php?c=trade';
-    //注册
-    public static function register($activity_id,$userId,$sqsmsg){
+    //规则验证
+    public static function check($activity_id,$userId,$sqsmsg){
         $url = Config::get('award.rulecheck_user_http_url');
         $activity = Rule::where('activity_id',$activity_id)->get();
         $res = array('send'=>true);
