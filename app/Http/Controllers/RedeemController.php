@@ -40,6 +40,10 @@ class RedeemController extends Controller
         $data['award_id'] = $request->award_id;
         $data['number'] = $request->number;
         $data['expire_time'] = $request->expire_time;
+        //短信模板
+        $data['message'] = $request->message;
+        //站内信模板
+        $data['mail'] = $request->mail;
         $data['status'] = 0;
         $data['created_at'] = date("Y-m-d H:i:s");
         $insertID = RedeemAward::insertGetId($data);

@@ -2,6 +2,7 @@
 return [
     'reward_http_url' => env('REWARD_HTTP_URL'),
     'rulecheck_user_http_url' => env('RULECHECK_USER_HTTP_URL'),
+    'rulecheck_trade_http_url' =>env('RULECHECK_TRADE_HTTP_URL'),
     //项目期限类型
     'project_duration_type'=>[
         1=>'不限',

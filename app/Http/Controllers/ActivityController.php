@@ -9,6 +9,7 @@ use App\Models\Activity;
 use App\Models\Rule;
 use App\Models\ActivityGroup;
 use App\Models\Award;
+use App\Models\AwardInvite;
 use App\Models\Award1;
 use App\Models\Award2;
 use App\Models\Award3;
@@ -296,7 +297,6 @@ class ActivityController extends Controller
         $rules = config('activity.rule_child');
         $new_rules = array();
         foreach($rules as $key=>$val){
-            unset($val['model_path']);
             $new_rules[$key] = $val;
         }
         return $this->outputJson(0,$new_rules);
@@ -315,26 +315,7 @@ class ActivityController extends Controller
         return $this->outputJson(0,$rules);
     }
 
-    //手动触发调用
-    public function postReceive(Request $request){
-        $validator = Validator::make($request->all(), [
-            'id' => 'alpha_num|exists:activities,id',
-        ]);
-        if($validator->fails()){
-            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
-        }
-        $rules = $this->getRulelist($request->id);
-        $rule_obj = json_decode($rules);
-        if($rule_obj->error_code  == 0){
-            $rule_list = $rule_obj->data;
-            //1、获取用户信息
-            //2、发奖励，存储参与记录
-
-        }
-    }
-
-
-    //添加规则
+    //注册时间
     private function rule_register($type,$request){
         $validator = Validator::make($request->all(), [
             'min_time' => 'date',
@@ -362,6 +343,7 @@ class ActivityController extends Controller
         }
     }
 
+    //用户渠道
     private function rule_channel($type,$request){
         $validator = Validator::make($request->all(), [
             'channels' => 'required',
@@ -411,6 +393,31 @@ class ActivityController extends Controller
         }
     }
 
+    //充值总金额
+    private function rule_rechargeall($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_recharge_all'=>'required|numeric',
+            'max_recharge_all'=>'required|numeric|min:'.$request->min_recharge_all,
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_recharge_all','max_recharge_all'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     //投资金额
     private function rule_cast($type,$request){
         $validator = Validator::make($request->all(), [
@@ -437,18 +444,161 @@ class ActivityController extends Controller
         }
     }
 
-    //获取规则
-    private function getRegisterRule($rule_id){
-        $register = new Rule\Register();
-        $res = $register::where('id',$rule_id)->first()->toArray();
-        return $res;
+    //投资总金额
+    private function rule_castall($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_cast_all'=>'required|numeric',
+            'max_cast_all'=>'required|numeric|min:'.$request->min_cast_all,
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_cast_all','max_cast_all'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
     }
 
-    private function getChannelRule($rule_id){
-        $register = new Rule\Channel();
-        $res = $register::where('id',$rule_id)->first()->toArray();
-        return $res;
+    //是否邀请
+    private function rule_invite($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'is_invite' => 'required|in:0,1',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('is_invite',));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
     }
+
+
+    //邀请人数
+    private function rule_invitenum($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'invite_num' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('invite_num'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //用户等级
+    private function rule_userlevel($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'user_level' => 'required',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('user_level'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //用户积分
+    private function rule_usercredit($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_credit' => 'required|integer',
+            'max_credit' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_credit','max_credit'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //用户余额
+    private function rule_balance($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_balance' => 'required|numeric',
+            'max_balance' => 'required|numeric',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_balance','max_balance'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //用户回款
+    private function rule_payment($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_payment' => 'required|numeric',
+            'max_payment' => 'required|numeric',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_payment','max_payment'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
 
     private function getStorageTypeByName($type_name){
         $rules = config('activity.rule_child');
@@ -467,13 +617,8 @@ class ActivityController extends Controller
         }
         return json_encode($arr);
     }
-    private function getUserInfo(){
 
-    }
 
-    private function getUserCastInfo(){
-
-    }
     /**
      * 添加奖品映射关系
      * @param Request $request
@@ -509,7 +654,6 @@ class ActivityController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品关系表失败'));
         }
     }
-
     /**
      * 获取奖品映射关系列表
      * @param Request $request
@@ -545,6 +689,82 @@ class ActivityController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('id'=>'记录id不能为空'));
         }
         $status = Award::where($where)->delete();
+        if($status){
+            return $this->outputJson(0,array('error_msg'=>'删除成功'));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
+        }
+    }
+    /**
+     * 邀请人奖品映射关系添加
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'activity_id' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        //奖品类型
+        $data['award_type'] = intval($request->award_type);
+        //活动ID
+        $data['activity_id'] = intval($request->activity_id);
+        //优惠券id
+        $data['award_id'] = intval($request->award_id);
+        //查看是否重复
+        $count = Award::where($data)->count();
+        if($count > 0){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该数据'));
+        }
+        $data['priority'] = isset($request->priority) ? intval($request->priority) : 0;
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['updated_at'] = date("Y-m-d H:i:s");
+        $awardID = AwardInvite::insertGetId($data);
+        if($awardID){
+            return $this->outputJson(0,array('insert_id'=>$awardID));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'插入奖品关系表失败'));
+        }
+    }
+    /**
+     * 获取奖品映射关系列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteList(Request $request){
+        //活动ID
+        $where['activity_id'] = intval($request->activity_id);
+        if(empty($where['activity_id'])){
+            return $this->outputJson(PARAMS_ERROR,array('activity_id'=>'活动id不能为空'));
+        }
+        $list = AwardInvite::where($where)->orderBy('updated_at','desc')->get()->toArray();
+        foreach($list as &$item){
+            $table = $this->_getAwardTable($item['award_type']);
+            $name = $table::where('id',$item['award_id'])->select('name')->get()->toArray();
+            if(count($name) >= 1 && isset($name[0]['name'])){
+                $item['name'] = $name[0]['name'];
+            }else{
+                $item['name'] = '';
+            }
+        }
+        return $this->outputJson(0,$list);
+    }
+    /**
+     * 删除奖品映射关系
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function postAwardInviteDelete(Request $request){
+        //记录id
+        $where['id'] = intval($request->id);
+        if(empty($where['id'])){
+            return $this->outputJson(PARAMS_ERROR,array('id'=>'记录id不能为空'));
+        }
+        $status = AwardInvite::where($where)->delete();
         if($status){
             return $this->outputJson(0,array('error_msg'=>'删除成功'));
         }else{
