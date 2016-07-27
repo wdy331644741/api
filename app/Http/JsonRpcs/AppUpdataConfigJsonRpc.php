@@ -15,10 +15,15 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function currentAppConfig($params) {
-        if (empty($params->platform)) {
+        if (empty($params->platform) || empty($params->version)) {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        $data = AppUpdateConfig::where(['platform'=>$params->platform,'toggle'=>'on'])->orderBy('publish_time','desc')->first();
+        $structure = '';
+        $version_arr = explode('.',$params->version);
+        for($i=0; $i<count($version_arr); $i++){
+            $structure.=str_pad($version_arr[$i],3,'0',STR_PAD_LEFT);
+        }
+        $data = AppUpdateConfig::where(['platform'=>$params->platform,'toggle'=>1])->where('structure','>',intval($structure))->orderBy('publish_time','desc')->first();
         return array(
             'code' => 0,
             'message' => 'success',

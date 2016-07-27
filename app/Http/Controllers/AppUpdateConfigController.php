@@ -19,14 +19,18 @@ class AppUpdateConfigController extends Controller
             'force' =>'required|in:0,1',
             'description'=>'required',
             'url'=>'required_if:platform,1|url',
-            'version'=> 'required',
+            'version'=> array('required','regex:/^\d{1,3}\.\d{1,3}\.\d{1,3}$/'),
             'size'=>'required',
             'platform'=>'required|in:1,2,3',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-
+        $version_arr = explode('.',$request->version);
+        $structure = '';
+        for($i=0; $i<count($version_arr); $i++){
+            $structure.=str_pad($version_arr[$i],3,'0',STR_PAD_LEFT);
+        }
         $appconfig = new AppUpdateConfig();
         $appconfig->update_time = $request->update_time;
         $appconfig->force = $request->force;
@@ -34,6 +38,7 @@ class AppUpdateConfigController extends Controller
         $appconfig->version = $request->version;
         $appconfig->size = $request->size;
         $appconfig->platform = $request->platform;
+        $appconfig->structure = intval($structure);
         $appconfig->url = !empty($request->url) ? $request->url : NULL;
         $res = $appconfig->save();
         if($res){
@@ -74,6 +79,11 @@ class AppUpdateConfigController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $version_arr = explode('.',$request->version);
+        $structure = '';
+        for($i=0; $i<count($version_arr); $i++){
+            $structure.=str_pad($version_arr[$i],3,'0',STR_PAD_LEFT);
+        }
         $updata = array(
             'update_time'=>$request->update_time,
             'force' => $request->force,
@@ -81,6 +91,7 @@ class AppUpdateConfigController extends Controller
             'version' => $request->version,
             'size' => $request->size,
             'platform' => $request->platform,
+            'structure' => $structure,
         );
         $updata['url'] = !empty($request->url) ? $request->url : NULL;
         $res = AppUpdateConfig::where('id',$request->id)->update($updata);
