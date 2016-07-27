@@ -16,7 +16,7 @@ class AppUpdateConfigController extends Controller
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'update_time' => 'required|date',
-            'force' =>'required|in:true,false',
+            'force' =>'required|in:0,1',
             'description'=>'required',
             'url'=>'required_if:platform,1|url',
             'version'=> 'required',
@@ -43,12 +43,28 @@ class AppUpdateConfigController extends Controller
         }
     }
 
+    //删除升级配置
+    public function postDel(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:app_update_configs,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = AppUpdateConfig::destroy($request->id);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     //修改升级配置
     public function postPut(Request $request){
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:app_update_configs,id',
             'update_time' => 'required|date',
-            'force' =>'required|in:true,false',
+            'force' =>'required|in:0,1',
             'description'=>'required',
             'url'=>'required_if:platform,1|url',
             'version'=> 'required',
@@ -95,7 +111,7 @@ class AppUpdateConfigController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = AppUpdateConfig::where('id',$request->id)->update(array('toggle'=>'on','publish_time'=>date('Y-m-d H:i:s')));
+        $res = AppUpdateConfig::where('id',$request->id)->update(array('toggle'=>1,'publish_time'=>date('Y-m-d H:i:s')));
         if($res){
             return $this->outputJson(0);
         }else{
@@ -112,7 +128,7 @@ class AppUpdateConfigController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
 
-        $res = AppUpdateConfig::where('id',$request->id)->update(array('toggle'=>'off'));
+        $res = AppUpdateConfig::where('id',$request->id)->update(array('toggle'=>0));
         if($res){
             return $this->outputJson(0);
         }else{

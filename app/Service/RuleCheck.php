@@ -63,7 +63,7 @@ class RuleCheck
                 return array('send'=>false,'errmsg'=>$res['errmsg']);
             }
         }
-        return true;
+        return $res;
     }
 
     //注册时间
