@@ -1,0 +1,58 @@
+<?php
+namespace App\Service;
+use Config;
+use Lib\JsonRpcClient;
+
+class SendMessage
+{
+
+    public static function Message($userID,$template,$arr){
+        if(empty($template)){
+            return false;
+        }
+        $content = self::msgTemplate($template,$arr);
+        $params = array();
+        $params['user_id'] = $userID;
+        $params['nodeName'] = "message_custom";
+        $params['tplParam'] = array();
+        $params['customTpl'] = array('title'=>'奖品','content'=>$content,'url'=>'','jump_type'=>0);
+        $url = Config::get('cms.message_base_host')."/wl_message/App/web/message.php?c=msg";
+        $client = new JsonRpcClient($url);
+        $res = $client->send($params);
+        if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            return true;
+        }
+        return false;
+    }
+
+    public static function Mail($userID,$template,$arr){
+        if(empty($template)){
+            return false;
+        }
+        $content = self::msgTemplate($template,$arr);
+        //根据用户ID获取手机号
+
+        $params = array();
+        $params['phone'] = "18701656515";
+        $params['node_name'] = "custom";
+        $params['tplParam'] = array();
+        $params['customTpl'] = $content;
+        $url = Config::get('cms.message_base_host')."/wl_message/App/web/sms.php?c=sms";
+        $client = new JsonRpcClient($url);
+        $res = $client->sendSms($params);
+        if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            return true;
+        }
+        return false;
+    }
+    public static function msgTemplate($template,$arr){
+        if(empty($template)){
+            return false;
+        }
+        $newTemplate = $template;
+        foreach($arr as $key => $value) {
+            $newTemplate = str_replace("{{".$key."}}",$value,$newTemplate);
+        }
+        return $newTemplate;
+    }
+}
