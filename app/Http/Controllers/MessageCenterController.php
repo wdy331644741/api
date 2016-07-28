@@ -4,7 +4,8 @@ use App\Models\Activity;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Jobs\SendReward;
-
+use Config;
+use Lib\McQueue;
 /**
  * Created by PhpStorm.
  * User: Administrator
@@ -24,11 +25,11 @@ class MessageCenterController extends Controller{
         $event = $request->tag;
         //获取trigger_type
         $trigger_type = $this->_getRuleFunc($event);
-        $trigger_type = isset($trigger_type) ? trim($trigger_type) : '';
+        $trigger_type = isset($trigger_type) && $trigger_type !== false ? trim($trigger_type) : null;
         //触发的用户ID
         $userID = isset($value['user_id']) ? intval($value['user_id']) : 0;
         file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID \t".$trigger_type."\t**\t".$userID."\n",FILE_APPEND);
-        if(empty($trigger_type) || empty($userID)){
+        if($trigger_type === null || empty($userID)){
             file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID&rule \t"."参数错误"."\n",FILE_APPEND);
             return ;
         }
@@ -51,33 +52,27 @@ class MessageCenterController extends Controller{
         }
         print_r($activityInfo);exit;
     }
-    private function connect() {
-        $this->redis = new \Redis();
-        $this->redis->connect("192.168.10.36",6379);
-        return $this->redis;
-    }
     public function getSend(Request $request){
-        $tag = $request->tag;
-        $value = $request->value;
-        $this->ip = '192.168.10.36';
-        $this->port = 6379;
-        $redis = $this->connect($this->ip,$this->port);
-        $json  = json_encode(["tag" => $tag, "value" => $value]);
-        $res =  $redis->LPUSH('msg_queue', $json);
-        return json_encode(["result" => "ok"]);
+        $mcQueue = new McQueue;
+        $data =  ['user_id' => 296 ,'realname'=> '冉海强','mobile'=>'18701656515','ip' => '127.0.0.1','datetime' => '2016-07-28 10:19:12'];
+        $putStatus = $mcQueue->put($request->tag,$data);
+        var_dump($putStatus);exit;
+        if(!$putStatus)
+        {
+            $error = $mcQueue->getErrMsg();
+            dump($error);
+        }
     }
     public function _getRuleFunc($event){
-        switch($event){
-            case "register":
-                $trigger_type = 1;
-                break;
-            case "login":
-                $trigger_type = 2;
-                break;
-            default:
-                $trigger_type = 0;
-                break;
+        $trigger = Config::get("trigger.trigger");
+        if(empty($trigger)){
+            return false;
         }
-        return $trigger_type;
+        foreach($trigger as $key => $val){
+            if($val['model_name'] == $event){
+                return $key;
+            }
+        }
+        return false;
     }
 }
