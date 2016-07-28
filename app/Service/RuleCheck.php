@@ -12,48 +12,53 @@ class RuleCheck
     private static $user_api_url = 'http://sunfeng.wlpassport.dev.wanglibao.com/service.php?c=account';
 
     private static $trade_api_url = 'http://sunfeng.wlpassport.dev.wanglibao.com/service.php?c=trade';
+
+    private static $account_reward_url = 'http://account.dev.wanglibao.com/service.php?c=reward';
+
     //规则验证
     public static function check($activity_id,$userId,$sqsmsg){
         $url = Config::get('award.rulecheck_user_http_url');
         $activity = Rule::where('activity_id',$activity_id)->get();
+        $client = new JsonRpcClient(self::$user_api_url);
+        $userBase = $client->userBasicInfo(array('userId'=>$userId));
         $res = array('send'=>true);
         foreach ($activity as $value){
             switch ($value->rule_tupe){
                 case 0:
-                    $res = self::_register($userId,$value);
+                    $res = self::_register($userBase,$value);
                     break;
                 case 1:
-                    $res = self::_channel($userId,$value);
+                    $res = self::_channel($userBase,$value);
                     break;
                 case 2:
-                    $res = self::_invite($userId,$value);
+                    $res = self::_invite($userBase,$value);
                     break;
                 case 3:
                     $res = self::_inviteNum($userId,$value);
                     break;
                 case 4:
-                    $res = self::_userLevel($userId,$value);
+                    $res = self::_userLevel($userBase,$value);
                     break;
                 case 5:
-                    $res = self::_userCredit($userId,$value);
+                    $res = self::_userCredit($userBase,$value);
                     break;
                 case 6:
-                    $res = self::_balance($userId,$value);
+                    $res = self::_balance($userBase,$value);
                     break;
                 case 7:
-                    $res = self::_cast($userId,$value,$activity_id,$sqsmsg);
+                    $res = self::_cast($userId,$value,$sqsmsg);
                     break;
                 case 8:
-                    $res = self::_recharge($userId,$value,$activity_id,$sqsmsg);
+                    $res = self::_recharge($userId,$value,$sqsmsg);
                     break;
                 case 9:
                     $res = self::_payment($userId,$value);
                     break;
                 case 10:
-                    $res = self::_castAll($userId,$value,$activity_id);
+                    $res = self::_castAll($userId,$value);
                     break;
                 case 11:
-                    $res = self::_rechargeAll($userId,$value,$activity_id);
+                    $res = self::_rechargeAll($userId,$value);
                     break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
@@ -67,14 +72,12 @@ class RuleCheck
     }
 
     //注册时间
-    private static function _register($userId,$rule){
+    private static function _register($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
+        if(isset($userBase['error'])){
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
-        $register_time = $res['result']['data']['create_time'];
+        $register_time = $userBase['result']['data']['create_time'];
         if($register_time >= $rules['min_time'] && $register_time <= $rules['max_time']){
             return array('send'=>true);
         }
@@ -82,14 +85,12 @@ class RuleCheck
     }
 
     //用户渠道
-    private static function  _channel($userId,$rule){
+    private static function  _channel($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
+        if(isset($userBase['error'])){
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
-        $user_channel = $res['result']['data']['from_channel'];
+        $user_channel = $userBase['result']['data']['from_channel'];
         if($user_channel == $rules['channels']){
             return array('send'=>true);
         }
@@ -97,14 +98,12 @@ class RuleCheck
     }
 
     //是否邀请用户
-    private static function _invite($userId,$rule){
+    private static function _invite($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
+        if(isset($userBase['error'])){
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
-        $from_user_id = $res['result']['data']['from_user_id'];
+        $from_user_id = $userBase['result']['data']['from_user_id'];
         if(boolval($from_user_id) === boolval($rules['is_invite'])){
             return array('send'=>true);
         }
@@ -114,28 +113,26 @@ class RuleCheck
     //邀请人数
     private static function _inviteNum($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
+        $client = new JsonRpcClient(self::$account_reward_url);
+        $res = $client->getInviteList(array('userId'=>$userId));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
-        $from_user_id = $res['result']['data']['from_user_id'];
-        if(boolval($from_user_id) === boolval($rules['invite_num'])){
+        $inviteNum = count($res['result']['data']);
+        if($inviteNum >= $rules['invite_num']){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'邀请规则验证不通过');
     }
 
     //用户等级
-    private static function _userLevel($userId,$rule){
+    private static function _userLevel($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
+        if(isset($userBase['error'])){
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
-        $user_level = $res['result']['data']['level'];
-        if($rules['user_level'] >= $user_level){
+        $user_level = $userBase['result']['data']['level'];
+        if($user_level >= $rules['min_level'] && $user_level <= $rules['max_level'] ){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'等级规则验证不通过');
@@ -143,14 +140,12 @@ class RuleCheck
 
 
     #TODO  //用户积分(用户表没有积分字段)
-    private static function _userCredit($userId,$rule){
+    private static function _userCredit($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
+        if(isset($userBase['error'])){
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
-        $user_credit = @$res['result']['data']['积分'];
+        $user_credit = @$userBase['result']['data']['积分'];
         if($user_credit >= $rules['min_credit'] && $user_credit <= $rules['max_credit']){
             return array('send'=>true);
         }
@@ -158,14 +153,12 @@ class RuleCheck
     }
 
     //用户余额
-    private static function _balance($userId,$rule){
+    private static function _balance($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$user_api_url);
-        $res = $client->userBasicInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
+        if(isset($userBase['error'])){
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
-        $user_balance = $res['result']['data']['avaliable'];
+        $user_balance = $userBase['result']['data']['avaliable'];
         if($user_balance >= $rules['min_balance'] && $user_balance <= $rules['max_balance']){
             return array('send'=>true);
         }
@@ -173,20 +166,10 @@ class RuleCheck
     }
 
     #TODO //用户投资（cast消息通知未添加）
-    private static function _cast($userId,$rule,$activity_id,$sqsmsg){
+    private static function _cast($userId,$rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $activity = Activity::find($activity_id);
-        $res = null;
-        if(empty($activity->id)){
-            return array('send'=>false,'errmsg'=>'活动不存在');
-        }
-        $res = null;
-        if(empty($activity->start_at) && empty($activity->ent_at)){
-            $res = $client->userTradeInfo(array('userId'=>$userId));
-        }else{
-            $res = $client->userTradeInfo(array('userId'=>$userId,'startTime'=>$activity->start_at,'endTime'=>$activity->end_at));
-        }
+        $res = $client->userTradeInfo(array('userId'=>$userId));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
@@ -211,17 +194,7 @@ class RuleCheck
     private static function _recharge($userId,$rule,$activity_id,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $activity = Activity::find($activity_id);
-        $res = null;
-        if(empty($activity->id)){
-            return array('send'=>false,'errmsg'=>'活动不存在');
-        }
-        $res = null;
-        if(empty($activity->start_at) && empty($activity->ent_at)){
-            $res = $client->userRechargeInfo(array('userId'=>$userId));
-        }else{
-            $res = $client->userRechargeInfo(array('userId'=>$userId,'startTime'=>$activity->start_at,'endTime'=>$activity->end_at));
-        }
+        $res = $client->userRechargeInfo(array('userId'=>$userId));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
@@ -254,19 +227,10 @@ class RuleCheck
     }
 
     //用户投资总金额
-    private static function _castAll($rule,$userId,$activity_id){
+    private static function _castAll($rule,$userId){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $activity = Activity::find($activity_id);
-        if(empty($activity->id)){
-            return array('send'=>false,'errmsg'=>'活动不存在');
-        }
-        $res = null;
-        if(empty($activity->start_at) && empty($activity->ent_at)){
-            $res = $client->userRechargeCount(array('userId'=>$userId));
-        }else{
-            $res = $client->userRechargeCount(array('userId'=>$userId,'startTime'=>$activity->start_at,'endTime'=>$activity->end_at));
-        }
+        $res = $client->userRechargeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
@@ -278,17 +242,10 @@ class RuleCheck
     }
 
     //用户充值总金额
-    private static function _rechargeAll($rule,$userId,$activity_id){
+    private static function _rechargeAll($rule,$userId){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $activity = Activity::find($activity_id);
-        $res = null;
-        if(empty($activity->start_at) && empty($activity->ent_at)){
-            $res = $client->userTradeCount(array('userId'=>$userId));
-        }else{
-            $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$activity->start_at,'endTime'=>$activity->end_at));
-        }
-        $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$activity->start_at,'endTime'=>$activity->end_at));
+        $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }

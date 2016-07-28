@@ -397,6 +397,8 @@ class ActivityController extends Controller
     private function rule_rechargeall($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
+            'start_time'=>'required|date',
+            'end_time'=>'required|date',
             'min_recharge_all'=>'required|numeric',
             'max_recharge_all'=>'required|numeric|min:'.$request->min_recharge_all,
         ]);
@@ -407,7 +409,7 @@ class ActivityController extends Controller
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_info = $this->Params2json($request,array('min_recharge_all','max_recharge_all'));
+        $rule->rule_info = $this->Params2json($request,array('start_time','end_time','min_recharge_all','max_recharge_all'));
         $rule->save();
         if($rule->id){
             DB::commit();
@@ -448,6 +450,8 @@ class ActivityController extends Controller
     private function rule_castall($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
+            'start_time'=>'required|date',
+            'end_time'=>'required|date',
             'min_cast_all'=>'required|numeric',
             'max_cast_all'=>'required|numeric|min:'.$request->min_cast_all,
         ]);
@@ -458,7 +462,7 @@ class ActivityController extends Controller
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_info = $this->Params2json($request,array('min_cast_all','max_cast_all'));
+        $rule->rule_info = $this->Params2json($request,array('start_time','end_time','min_cast_all','max_cast_all'));
         $rule->save();
         if($rule->id){
             DB::commit();
@@ -516,7 +520,8 @@ class ActivityController extends Controller
     private function rule_userlevel($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
-            'user_level' => 'required',
+            'min_level' => 'required',
+            'max_level' => 'required',
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
@@ -524,7 +529,7 @@ class ActivityController extends Controller
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_info = $this->Params2json($request,array('user_level'));
+        $rule->rule_info = $this->Params2json($request,array('min_level','max_level'));
         $rule->save();
         if($rule->id){
             return array('error_code'=>0,'insert_id'=>$rule->id);
