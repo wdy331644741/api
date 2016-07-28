@@ -38,9 +38,9 @@ class JsonRpcClient
         $this->_requestParams['resultToArr'] = $this->_config['resultToArr'];
         $this->_setCookies();
         if($this->_config['useCurrentUserAgent'])
-            $this->_requestParams['User-Agent'] = isset($this->_userHeaders['User-Agent']) ? $this->_userHeaders['User-Agent'] : $this->_requestParams['User-Agent'];
+            $this->_requestParams['User-Agent'] = isset($this->_userHeaders['User-Agent'])  && !empty($this->_userHeaders['User-Agent']) ? $this->_userHeaders['User-Agent'] : $this->_requestParams['User-Agent'];
         if($this->_config['useCurrentReferer'])
-            $this->_requestParams['Referer'] = isset($this->_userHeaders['Referer']) ? $this->_userHeaders['Referer'] : $this->_requestParams['Referer'];
+            $this->_requestParams['Referer'] = isset($this->_userHeaders['Referer']) && !empty($this->_userHeaders['Referer']) ? $this->_userHeaders['Referer'] : $this->_requestParams['Referer'];
     }
 
     /**
@@ -145,9 +145,12 @@ class JsonRpcClient
             $curl->setOpt(CURLOPT_SSL_VERIFYPEER,false);
             $curl->setOpt(CURLOPT_SSL_VERIFYHOST,false);
         }
-        $curl->setHeader('Cookie', $this->_requestParams['Cookie']);
-        $curl->setUserAgent($this->_requestParams['User-Agent']);
-        $curl->setReferer($this->_requestParams['Referer']);
+        if($this->_requestParams['Cookie'])
+            $curl->setHeader('Cookie', $this->_requestParams['Cookie']);
+        if($this->_requestParams['User-Agent'])
+            $curl->setUserAgent($this->_requestParams['User-Agent']);
+        if($this->_requestParams['Referer'])
+            $curl->setReferer($this->_requestParams['Referer']);
         $curl->setConnectTimeout(10);
         $curl->setTimeout($this->_requestParams['timeout']);
         $curl->post($this->_rpcUrl,json_encode($rpcBatchArray));
