@@ -23,7 +23,7 @@ class RuleCheck
         $userBase = $client->userBasicInfo(array('userId'=>$userId));
         $res = array('send'=>true);
         foreach ($activity as $value){
-            switch ($value->rule_tupe){
+            switch ($value->rule_type){
                 case 0:
                     $res = self::_register($userBase,$value);
                     break;

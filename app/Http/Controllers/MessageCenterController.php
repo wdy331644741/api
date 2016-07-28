@@ -17,17 +17,16 @@ class MessageCenterController extends Controller{
     public function postCallback(Request $request){
         $date = date("Ymd");
         $logUrl = $path = base_path().'/storage/logs/messageCenter'.$date.'.log';
+        $requests = $request->all();
         //记录日志
-        file_put_contents($logUrl,date("Y-m-d H:i:s")."\t requestInfo \t".$request->tag."\t *** \t".json_encode($request->value)."\n",FILE_APPEND);
-        //获取参数
-        $value = $request->value;
+        file_put_contents($logUrl,date("Y-m-d H:i:s")."\t requestInfo \t".$requests['tag']."\t *** \t".json_encode($requests)."\n",FILE_APPEND);;
         //触发的事件
         $event = $request->tag;
         //获取trigger_type
         $trigger_type = $this->_getRuleFunc($event);
         $trigger_type = isset($trigger_type) && $trigger_type !== false ? trim($trigger_type) : null;
         //触发的用户ID
-        $userID = isset($value['user_id']) ? intval($value['user_id']) : 0;
+        $userID = isset($requests['user_id']) ? intval($requests['user_id']) : 0;
         file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID \t".$trigger_type."\t**\t".$userID."\n",FILE_APPEND);
         if($trigger_type === null || empty($userID)){
             file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID&rule \t"."参数错误"."\n",FILE_APPEND);
@@ -36,17 +35,13 @@ class MessageCenterController extends Controller{
         //查询出该用户触发匹配的活动信息
         $where['trigger_type'] = $trigger_type;
         $activityInfo = Activity::where($where)->get()->toArray();
-        //拼接触发的消息
-        $triggerData = array();
-        $triggerData['tag'] = $request->tag;
-        $triggerData['value'] = $request->value;
         //队列
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
                 if(!empty($item['id'])){
                     file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID&userID \t".$item['id']."\t**\t".$userID."\t放入队列"."\n",FILE_APPEND);
                     //放入队列
-                    $this->dispatch(new SendReward($item['id'],$userID,$logUrl,$triggerData));
+                    $this->dispatch(new SendReward($item['id'],$userID,$logUrl,$requests));
                 }
             }
         }
@@ -54,14 +49,14 @@ class MessageCenterController extends Controller{
     }
     public function getSend(Request $request){
         $mcQueue = new McQueue;
-        $data =  ['user_id' => 296 ,'realname'=> '冉海强','mobile'=>'18701656515','ip' => '127.0.0.1','datetime' => '2016-07-28 10:19:12'];
+        $data =  ['user_id' => 296];
         $putStatus = $mcQueue->put($request->tag,$data);
-        var_dump($putStatus);exit;
         if(!$putStatus)
         {
             $error = $mcQueue->getErrMsg();
             dump($error);
         }
+        return "success";
     }
     public function _getRuleFunc($event){
         $trigger = Config::get("trigger.trigger");
