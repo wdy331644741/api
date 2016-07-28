@@ -17,6 +17,7 @@ use App\Models\Award6;
 use App\Models\Coupon;
 use Lib\JsonRpcClient;
 use App\Models\SendRewardLog;
+use App\Service\SendMessage;
 use Config;
 use Validator;
 class SendAward
@@ -142,8 +143,11 @@ class SendAward
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->interestCoupon($data);
-            //存储到日志
+            //发送消息&存储到日志
             if ($result['result']) {
+                //发送消息
+                self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
+                //存储到日志
                 self::addLog($data['source_id'], 1, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
                 return $data['name'];
             }else{
@@ -477,5 +481,20 @@ class SendAward
             . substr($charid, 16, 4) . $hyphen
             . substr($charid, 20, 12);
         return $uuid;
+    }
+    static function sendMessage($userID,$messageTemp,$mailTemp,$source_name,$award_name){
+        $message = array();
+        $message['sourcename'] = $source_name;
+        $message['awardname'] = $award_name;
+        $return = array();
+        if(!empty($messageTemp)){
+            //发送站内信
+            $return['message'] = SendMessage::Message($userID,$messageTemp,$message);
+        }
+        if(!empty($mailTemp)){
+            //发送短信
+            $return['mail'] = SendMessage::Mail($userID,$mailTemp,$message);
+        }
+        return $return;
     }
 }
