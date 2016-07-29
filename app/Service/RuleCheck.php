@@ -173,6 +173,7 @@ class RuleCheck
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
+        $isfirst = false;
         if(count($res['result']['data']) == 1){
             $isfirst = true;
         }
@@ -198,6 +199,7 @@ class RuleCheck
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
+        $isfirst = false;
         if(count($res['result']['data']) == 1){
             $isfirst = true;
         }
