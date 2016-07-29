@@ -13,18 +13,18 @@ class Xxtea
         self::ANDROID_NUM => 'wlAZ+az\'Az',
     ];
 
-    static public function de($sourceStr){
-        if($sourceStr[0] !== '{')
-        {
-            $num = substr($sourceStr,0,4 );
-            $str = substr($sourceStr,4);
-            $xxtea = new self();
-            return $xxtea->decrypt($str,self::$keys[$num]);
+    static public function de($sourceStr)
+    {
+        if (!empty($sourceStr)) {
+            if ($sourceStr[0] != '{' && $sourceStr[0] != '[') {
+                $num = substr($sourceStr, 0, 4);
+                $str = substr($sourceStr, 4);
+                $xxtea = new self();
+                return $xxtea->decrypt($str, self::$keys[$num]);
+            }
         }
-        else
-        {
-            return $sourceStr;
-        }
+
+        return $sourceStr;
     }
 
     public function encrypt($s, $key)
