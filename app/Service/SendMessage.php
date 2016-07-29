@@ -31,9 +31,15 @@ class SendMessage
         }
         $content = self::msgTemplate($template,$arr);
         //根据用户ID获取手机号
-
+        $url = Config::get('award.rulecheck_user_http_url');
+        $client = new JsonRpcClient($url);
+        $userBase = $client->userBasicInfo(array('userId'=>$userID));
+        $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+        if(empty($phone)){
+            return false;
+        }
         $params = array();
-        $params['phone'] = "18701656515";
+        $params['phone'] = $phone = "18701656515";
         $params['node_name'] = "custom";
         $params['tplParam'] = array();
         $params['customTpl'] = $content;

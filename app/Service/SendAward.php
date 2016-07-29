@@ -285,8 +285,11 @@ class SendAward
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->redpacket($data);
-            //存储到日志
+            //发送消息&存储到日志
             if ($result['result']) {
+                //发送消息
+                self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
+                //存储到日志
                 self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
                 return $data['name'];
             }else{
@@ -340,8 +343,11 @@ class SendAward
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->experience($data);
-            //存储到日志
+            //发送消息&存储到日志
             if ($result['result']) {
+                //发送消息
+                self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
+                //存储到日志
                 self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
                 return $data['name'];
             }else{

@@ -6,6 +6,7 @@ use App\Http\Requests;
 use App\Jobs\SendReward;
 use Config;
 use Lib\McQueue;
+use Lib\JsonRpcClient;
 /**
  * Created by PhpStorm.
  * User: Administrator
