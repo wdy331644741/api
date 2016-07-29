@@ -13,7 +13,6 @@ class OpenController extends Controller
 {
     private $_weixin = 'wechat';
     private $_openid;
-    private $_user_api_url = "http://account.dev.wanglibao.com/service.php?c=account";
 
     public function postBind(Request $request){
         $validator = Validator::make($request->all(), [
@@ -76,10 +75,10 @@ class OpenController extends Controller
 
     //wechat_auth_uri
     public function getLogin(Request $request){
-        if(isset($request->callback)){
-            Session::set('weixin',array('callback'=>$request->callback));
+        if(!isset($request->callback)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        Session::set('weixin',array('callback'=>'http://www.baidu.com'));
+        Session::set('weixin',array('callback'=>$request->callback));
         global $userId;
         if($userId){
             header("Location:$request->callback");
@@ -93,7 +92,7 @@ class OpenController extends Controller
     //获取用户的open_id
     public function getOpenid(Request $request){
         if(!$request->code){
-            $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
+            return $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
         }
         $weixin = new Weixin();
         $this->_openid =  $weixin->get_access_token($request->code);
@@ -103,22 +102,29 @@ class OpenController extends Controller
             $new_weixin = array_merge($weixin,array('openid'=>$this->_openid));
         }
         Session::set('weixin',$new_weixin);
-        $client = new JsonRpcClient($this->_user_api_url);
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
-        if($res['code'] == 0){
-            header("Location:{$weixin['callback']}");
-        }
         if(isset($res['error']) && $res['error']['code'] == 1442){
-            header("Location:http://weixin.wanglibao.com/user/login");
+            if(isset($weixin['callback'])){
+                header("Location:https://php1.wanglibao.com/wechat/login?next=".$weixin['callback']);
+            }else{
+                header("Location:https://php1.wanglibao.com/wechat/login");
+            }
         }
-
+        if(!isset($res['error'])){
+            if(isset($weixin['callback'])){
+                header("Location:{$weixin['callback']}");
+            }else{
+                header("Location:https://php1.wanglibao.com/wechat/");
+            }
+        }
     }
 
     //绑定用户
     public function postWechatBind(){
         global $userId;
         $weixin = Session::get('weixin');
-        $client = new JsonRpcClient($this->_user_api_url);
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountBind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid'],'userId'=>$userId));
         return $res;
 
@@ -128,7 +134,7 @@ class OpenController extends Controller
     //接触绑定
     public function postWechatUnbind(){
         $weixin = Session::get('weixin');
-        $client = new JsonRpcClient($this->_user_api_url);
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid']));
         return $res;
     }

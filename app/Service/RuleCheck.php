@@ -165,7 +165,7 @@ class RuleCheck
         return array('send'=>false,'errmsg'=>'用户余额规则验证不通过');
     }
 
-    #TODO //用户投资（cast消息通知未添加）
+    //用户投资
     private static function _cast($userId,$rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
@@ -176,7 +176,7 @@ class RuleCheck
         if(count($res['result']['data']) == 1){
             $isfirst = true;
         }
-        $cast_meony = $sqsmsg['单笔投资金额'];
+        $cast_meony = $sqsmsg['Investment_amount'];
         if($rules['isfirst']){
             if($isfirst && $cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
                 return array('send'=>true);

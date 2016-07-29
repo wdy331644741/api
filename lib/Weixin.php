@@ -5,14 +5,17 @@ use  \GuzzleHttp\Client;
 
 class Weixin
 {
-    private $_appid = "wx169c6925918fe915";
-    private $_appsecret = "777cd7abf2a7b63427a660fcec01383f";
+    private $_appid = "";
+    private $_appsecret = "";
     private $_client = null;
     private $_oauth_base_uri = "https://open.weixin.qq.com";
-    private $_redirect_uri = "https://php1.wanglibao.com/yunying/open/openid";
-    private $_state = "snsapi_base";
+    private $_redirect_uri = "";
+    private $_state = "wanglibao";
 
     function __construct(){
+        $this->_appid = env('WECHAT_APPID');
+        $this->_appsecret = env('WECHAT_APP_SECRET');
+        $this->_redirect_uri = env('WECHAT_REDIRECT_URI');
         $this->_client = new Client([
             'base_uri'=>"https://api.weixin.qq.com",
             'timeout'=>9999.0
