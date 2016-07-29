@@ -52,7 +52,7 @@ class RuleCheck
                     $res = self::_recharge($userId,$value,$sqsmsg);
                     break;
                 case $value->rule_type === 9:
-                    $res = self::_payment($userId,$value);
+                    $res = self::_payment($value,$sqsmsg);
                     break;
                 case $value->rule_type === 10:
                     $res = self::_castAll($userId,$value);
@@ -192,7 +192,7 @@ class RuleCheck
     }
 
     #TODO //用户单笔充值（recharge消息通知未添加）
-    private static function _recharge($userId,$rule,$activity_id,$sqsmsg){
+    private static function _recharge($userId,$rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
         $res = $client->userRechargeInfo(array('userId'=>$userId));
@@ -229,7 +229,7 @@ class RuleCheck
     }
 
     //用户投资总金额
-    private static function _castAll($rule,$userId){
+    private static function _castAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
         $res = $client->userRechargeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
@@ -244,7 +244,7 @@ class RuleCheck
     }
 
     //用户充值总金额
-    private static function _rechargeAll($rule,$userId){
+    private static function _rechargeAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
         $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
