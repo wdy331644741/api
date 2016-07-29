@@ -23,41 +23,41 @@ class RuleCheck
         $userBase = $client->userBasicInfo(array('userId'=>$userId));
         $res = array('send'=>true);
         foreach ($activity as $value){
-            switch ($value->rule_tupe){
-                case 0:
+            switch (true){
+                case $value->rule_type === 0:
                     $res = self::_register($userBase,$value);
                     break;
-                case 1:
+                case $value->rule_type === 1:
                     $res = self::_channel($userBase,$value);
                     break;
-                case 2:
+                case $value->rule_type === 2:
                     $res = self::_invite($userBase,$value);
                     break;
-                case 3:
+                case $value->rule_type === 3:
                     $res = self::_inviteNum($userId,$value);
                     break;
-                case 4:
+                case $value->rule_type === 4:
                     $res = self::_userLevel($userBase,$value);
                     break;
-                case 5:
+                case $value->rule_type === 5:
                     $res = self::_userCredit($userBase,$value);
                     break;
-                case 6:
+                case $value->rule_type === 6:
                     $res = self::_balance($userBase,$value);
                     break;
-                case 7:
+                case $value->rule_type === 7:
                     $res = self::_cast($userId,$value,$sqsmsg);
                     break;
-                case 8:
+                case $value->rule_type === 8:
                     $res = self::_recharge($userId,$value,$sqsmsg);
                     break;
-                case 9:
+                case $value->rule_type === 9:
                     $res = self::_payment($userId,$value);
                     break;
-                case 10:
+                case $value->rule_type === 10:
                     $res = self::_castAll($userId,$value);
                     break;
-                case 11:
+                case $value->rule_type === 11:
                     $res = self::_rechargeAll($userId,$value);
                     break;
                 default :

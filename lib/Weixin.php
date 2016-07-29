@@ -9,7 +9,7 @@ class Weixin
     private $_appsecret = "777cd7abf2a7b63427a660fcec01383f";
     private $_client = null;
     private $_oauth_base_uri = "https://open.weixin.qq.com";
-    private $_redirect_uri = "http://041f92d5.ngrok.io/open/openid";
+    private $_redirect_uri = "https://php1.wanglibao.com/yunying/open/openid";
     private $_state = "snsapi_base";
 
     function __construct(){
