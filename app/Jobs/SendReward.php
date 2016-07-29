@@ -47,9 +47,9 @@ class SendReward extends Job implements ShouldQueue
             //给本人发的奖励
             $status = SendAward::addAwardByActivity($this->userID,$this->activityID);
             if(!empty($status)){
-                file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发送成功".json_encode($status)."\n",FILE_APPEND);
+                file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发送成功".$this->activityID."\t".$this->userID."\t".json_encode($status)."\n",FILE_APPEND);
             }else{
-                file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发奖失败 没配置奖品或者请求接口错误".json_encode($status)."\n",FILE_APPEND);
+                file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发奖失败 没配置奖品或者请求接口错误\t".$this->activityID."\t".$this->userID."\t".json_encode($status)."\n",FILE_APPEND);
             }
             //给邀请人发奖励
             $url = Config::get('award.reward_http_url');
@@ -59,7 +59,7 @@ class SendReward extends Job implements ShouldQueue
             if(isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])){
                 $inviteUserID = isset($res['result']['data'][0]) ? $res['result']['data'][0] : 0;
                 if(empty($inviteUserID)){
-                    file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."没有邀请人"."\n",FILE_APPEND);
+                    file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."没有邀请人\t".$this->userID."\n",FILE_APPEND);
                     return true;
                 }else{
                     //调用发奖接口
