@@ -9,9 +9,10 @@ class JsonRpcServer
 
     public function __construct($postRequest = '')
     {
-        if (!$postRequest)
-            $postRequest = file_get_contents("php://input");
-        $this->_requestText = Xxtea::de($postRequest);
+        $postRequest  =  $postRequest ? $postRequest :  file_get_contents("php://input");
+        if ($postRequest)
+                $postRequest = Xxtea::de($postRequest);
+        $this->_requestText = $postRequest;
         $this->_listOfCallableServices = array();
     }
 
