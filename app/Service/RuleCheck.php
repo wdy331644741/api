@@ -232,7 +232,7 @@ class RuleCheck
     private static function _castAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $res = $client->userRechargeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
+        $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
@@ -247,7 +247,7 @@ class RuleCheck
     private static function _rechargeAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
+        $res = $client->userRechargeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
