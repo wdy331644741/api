@@ -16,7 +16,7 @@ class SendMessage
         $params['nodeName'] = "message_custom";
         $params['tplParam'] = array();
         $params['customTpl'] = array('title'=>'奖品','content'=>$content,'url'=>'','jump_type'=>0);
-        $url = Config::get('cms.message_base_host')."/wl_message/App/web/message.php?c=msg";
+        $url = Config::get('cms.message_http_url');
         $client = new JsonRpcClient($url);
         $res = $client->send($params);
         if(isset($res['result']['code']) && $res['result']['code'] === 0){
@@ -43,7 +43,7 @@ class SendMessage
         $params['node_name'] = "custom";
         $params['tplParam'] = array();
         $params['customTpl'] = $content;
-        $url = Config::get('cms.message_base_host')."/wl_message/App/web/sms.php?c=sms";
+        $url = Config::get('cms.message_http_url');
         $client = new JsonRpcClient($url);
         $res = $client->sendSms($params);
         if(isset($res['result']['code']) && $res['result']['code'] === 0){

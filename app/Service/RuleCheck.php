@@ -168,7 +168,7 @@ class RuleCheck
     //用户投资
     private static function _cast($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
-        $isfirst = $sqsmsg['isfirst'];
+        $isfirst = $sqsmsg['is_first'];
         $cast_meony = $sqsmsg['Investment_amount'];
         if($rules['is_first']){
             if($isfirst && $cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
@@ -186,7 +186,7 @@ class RuleCheck
     private static function _recharge($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $isfirst = $sqsmsg['is_first'];
-        $recharge_meony = $sqsmsg['单笔充值金额'];
+        $recharge_meony = $sqsmsg['money'];
         if ($rules['isfirst']){
             if($isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['min_recharge']){
                 return array('send'=>true);

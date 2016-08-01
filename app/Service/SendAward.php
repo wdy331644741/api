@@ -77,7 +77,7 @@ class SendAward
             'rate_increases' => 'required|numeric|between:0.0001,1',
             'rate_increases_type' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
-            'investment_threshold' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
         ]);
         $validator->sometimes('rate_increases_time', 'required|integer', function($input) {
@@ -165,7 +165,7 @@ class SendAward
             'source_name' => 'required|min:2|max:255',
             'red_money' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
-            'investment_threshold' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
         ]);
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
@@ -234,7 +234,7 @@ class SendAward
             'red_money' => 'required|integer|min:1',
             'percentage' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
-            'investment_threshold' => 'required|integer|min:1',
+            'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
         ]);
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
