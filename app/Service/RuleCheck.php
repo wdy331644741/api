@@ -46,10 +46,10 @@ class RuleCheck
                     $res = self::_balance($userBase,$value);
                     break;
                 case $value->rule_type === 7:
-                    $res = self::_cast($userId,$value,$sqsmsg);
+                    $res = self::_cast($value,$sqsmsg);
                     break;
                 case $value->rule_type === 8:
-                    $res = self::_recharge($userId,$value,$sqsmsg);
+                    $res = self::_recharge($value,$sqsmsg);
                     break;
                 case $value->rule_type === 9:
                     $res = self::_payment($value,$sqsmsg);
@@ -166,19 +166,11 @@ class RuleCheck
     }
 
     //用户投资
-    private static function _cast($userId,$rule,$sqsmsg){
+    private static function _cast($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$trade_api_url);
-        $res = $client->userTradeInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
-        }
-        $isfirst = false;
-        if(count($res['result']['data']) == 1){
-            $isfirst = true;
-        }
+        $isfirst = $sqsmsg['isfirst'];
         $cast_meony = $sqsmsg['Investment_amount'];
-        if($rules['isfirst']){
+        if($rules['is_first']){
             if($isfirst && $cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
                 return array('send'=>true);
             }
@@ -187,22 +179,13 @@ class RuleCheck
                 return array('send'=>true);
             }
         }
-
         return array('send'=>false,'errmsg'=>'单笔投资规则验证不通过');
     }
 
-    #TODO //用户单笔充值（recharge消息通知未添加）
-    private static function _recharge($userId,$rule,$sqsmsg){
+    //用户单笔充值
+    private static function _recharge($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$trade_api_url);
-        $res = $client->userRechargeInfo(array('userId'=>$userId));
-        if(isset($res['error'])){
-            return array('send'=>false,'errmsg'=>$res['error']['message']);
-        }
-        $isfirst = false;
-        if(count($res['result']['data']) == 1){
-            $isfirst = true;
-        }
+        $isfirst = $sqsmsg['is_first'];
         $recharge_meony = $sqsmsg['单笔充值金额'];
         if ($rules['isfirst']){
             if($isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['min_recharge']){
