@@ -31,11 +31,12 @@ class MessageCenterController extends Controller{
         file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID \t".$trigger_type."\t**\t".$userID."\n",FILE_APPEND);
         if($trigger_type === null || empty($userID)){
             file_put_contents($logUrl,date("Y-m-d H:i:s")."\t trigger_type&userID&rule \t"."参数错误"."\n",FILE_APPEND);
-            return ;
+            return '参数错误';
         }
         //查询出该用户触发匹配的活动信息
         $where['trigger_type'] = $trigger_type;
-        $activityInfo = Activity::where($where)->get()->toArray();
+        $where['enable'] = 1;
+        $activityInfo = Activity::where('start_at','<',date("Y-m-d H:i:s"))->where('end_at','>',date("Y-m-d H:i:s"))->where($where)->get()->toArray();
         //队列
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
@@ -45,6 +46,9 @@ class MessageCenterController extends Controller{
                     $this->dispatch(new SendReward($item['id'],$userID,$logUrl,$requests));
                 }
             }
+        }else{
+            file_put_contents($logUrl,date("Y-m-d H:i:s")."\t notAward \t"."没有配置该触发的奖品"."\n",FILE_APPEND);
+            return '没有配置该触发的奖品';
         }
         print_r($activityInfo);exit;
     }
