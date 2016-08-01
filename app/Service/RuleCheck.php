@@ -188,7 +188,7 @@ class RuleCheck
         $isfirst = $sqsmsg['is_first'];
         $recharge_meony = $sqsmsg['money'];
         if ($rules['isfirst']){
-            if($isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['min_recharge']){
+            if($isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['max_recharge']){
                 return array('send'=>true);
             }
         }else{
