@@ -170,7 +170,7 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $isfirst = $sqsmsg['is_first'];
         $cast_meony = $sqsmsg['Investment_amount'];
-        if($rules['is_first']){
+        if($rules['isfirst']){
             if($isfirst && $cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
                 return array('send'=>true);
             }
