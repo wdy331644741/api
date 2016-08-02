@@ -119,7 +119,7 @@ class RuleCheck
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
         $inviteNum = count($res['result']['data']);
-        if($inviteNum >= $rules['invite_num']){
+        if($inviteNum >= $rules['min_invitenum'] && $inviteNum <= $rules['max_invitenum']){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'邀请规则验证不通过');
