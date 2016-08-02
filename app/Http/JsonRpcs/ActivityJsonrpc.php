@@ -202,7 +202,6 @@ class ActivityJsonRpc extends JsonRpc {
             //获取额外奖励记录
             $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
 
-            $extra = $this->getExtraAwards($userId, $before, $continue);
             foreach($days as $key => $day) {
                 if($continue <= $day){
                     if($key == 0) {
@@ -214,6 +213,7 @@ class ActivityJsonRpc extends JsonRpc {
                     break;
                 }
             }
+            $extra = $this->getExtraAwards($userId, $before, $end);
             return array(
                 'code' => 0,
                 'message' => 'success',
@@ -223,7 +223,7 @@ class ActivityJsonRpc extends JsonRpc {
                     'start' => $start,
                     'end' => $end,
                     'extra' => $extra,
-                    'shared' => false,
+                    'shared' => $shared,
                     'last' => $last,
                     'award' => [$award['name']],
                 ),
@@ -272,7 +272,7 @@ class ActivityJsonRpc extends JsonRpc {
 
         // 获取额外奖励领取记录
         $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
-        $extra = $this->getExtraAwards($userId, $before, $continue);
+        $extra = $this->getExtraAwards($userId, $before, $end);
 
         return array(
             'code' => 0,
@@ -303,8 +303,8 @@ class ActivityJsonRpc extends JsonRpc {
             }else{
                 return false;
             }
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
+        throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
     }
     
     // 今天是否分享
