@@ -19,6 +19,9 @@ class RuleCheck
     public static function check($activity_id,$userId,$sqsmsg){
         $url = Config::get('award.rulecheck_user_http_url');
         $activity = Rule::where('activity_id',$activity_id)->get();
+        if(count($activity) < 1){
+            return array('send'=>true);
+        }
         $client = new JsonRpcClient(self::$user_api_url);
         $userBase = $client->userBasicInfo(array('userId'=>$userId));
         $res = array('send'=>true);
