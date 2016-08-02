@@ -499,7 +499,8 @@ class ActivityController extends Controller
     private function rule_invitenum($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
-            'invite_num' => 'required|integer',
+            'min_invitenum' => 'required|integer',
+            'max_invitenum' => 'required|integer',
         ]);
         if($validator->fails()){
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
@@ -507,7 +508,7 @@ class ActivityController extends Controller
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_info = $this->Params2json($request,array('invite_num'));
+        $rule->rule_info = $this->Params2json($request,array('min_invitenum','max_invitenum'));
         $rule->save();
         if($rule->id){
             return array('error_code'=>0,'insert_id'=>$rule->id);
