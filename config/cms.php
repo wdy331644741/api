@@ -2,7 +2,7 @@
 return [
     //图片http地址
     'img_http_url' => env('IMG_HTTP_URL'),
-    'message_base_host' => env('MESSAGE_BASE_HOST'),
+    'message_http_url' => env('MESSAGE_HTTP_URL'),
     //平台配置
     'platform'=>[
         0=>'全平台',
