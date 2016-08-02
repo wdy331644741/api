@@ -90,7 +90,7 @@ class ActivityController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|alpha_num',
             'name' => 'required|min:2|max:255',
-            'alias_name' => 'required|unique:activities,alias_name'.$request->id,
+            'alias_name' => 'required|unique:activities,alias_name,'.$request->id,
             'group_id'=>'required|exists:activity_groups,id',
             'frequency'=>'required',
             'award_rule'=>'required|integer',

@@ -64,7 +64,11 @@ class ImgManageController extends Controller
         //图片
         $data['img_path'] = trim($request['img_path']);
         //跳转url
-        $data['img_url'] = trim($request['img_url']);
+        $data['url'] = trim($request['url']);
+        //简短说明
+        $data['short_desc'] = $request['short_desc'];
+        //类型
+        $data['type'] = $request['type'];
         //开始时间
         $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
@@ -143,6 +147,17 @@ class ImgManageController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'添加失败'));
         }
     }
+    //banner详情
+    public function postBannerInfo(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Banner::where(array('id', $request['id']))->first();
+        return $this->outputJson(0, $res);
+    }
     //banner修改
     public function postBannerEdit(Request $request){
         $validator = Validator::make($request->all(), [
@@ -165,18 +180,10 @@ class ImgManageController extends Controller
         $data['position'] = $request['position'];
         //名称
         $data['name'] = $request['name'];
-        //验证不能重复添加
-        $isExist['name'] = $data['name'];
-        if(!empty($isExist['name'])){
-            $count = Banner::where($isExist)->count();
-            if($count > 0){
-                return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该名字信息'));
-            }
-        }
         //图片路径
         $data['img_path'] = trim($request['img_path']);
         //跳转url
-        $data['img_url'] = trim($request['img_url']);
+        $data['url'] = trim($request['url']);
         //开始时间
         $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
