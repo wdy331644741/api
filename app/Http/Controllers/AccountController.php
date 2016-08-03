@@ -28,8 +28,9 @@ class AccountController extends Controller
         return $this->outputRpc($result);
     }
     
-    public function getTest() {
-        global $userId;
+    public function getCaptcha() {
+        $result = $this->jsonRpc->account()->captcha();
+        return $this->outputRpc($result);                               
     }
     
     public function getProfile() {
