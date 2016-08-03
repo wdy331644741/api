@@ -27,16 +27,18 @@ class BannerJsonRpc extends JsonRpc {
             $where['position'] = $position;
         }
         switch($position) {
+            // 不做时间限制
             case 'discover':
-                $data = BANNER::where($where)
+                $data = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
                     ->orderByRaw('id + sort DESC')->get()->toArray();
                 break;
+            // 增加分页
             case 'memorabilia':
                 Paginator::currentPageResolver(function () use ($page) {
                     return $page;
                 });
                 
-                $res = BANNER::where($where)
+                $res = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
                     ->where(function($query) {
                         $query->whereNull('start')->orWhereRaw('start < now()');
                     })
@@ -53,8 +55,9 @@ class BannerJsonRpc extends JsonRpc {
                 $rData['from'] = $res['from'];
                 $rData['to'] = $res['to'];
                 break;
+            // 默认
             default:
-                $data = BANNER::where($where)
+                $data = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
                     ->where(function($query) {
                         $query->whereNull('start')->orWhereRaw('start < now()');
                     })
@@ -85,7 +88,7 @@ class BannerJsonRpc extends JsonRpc {
             'can_use' => 1,
              'position' => 'pop',
         );
-        $data = BANNER::where($where)
+        $data = BANNER::selectwhere($where)
             ->where(function($query) {
                 $query->whereNull('start')->orWhereRaw('start < now()');
             })

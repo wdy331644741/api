@@ -94,7 +94,8 @@ class RuleCheck
             return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
         $user_channel = $userBase['result']['data']['from_channel'];
-        if($user_channel == $rules['channels']){
+        $channel_arr = explode(';',$rules['channels']);
+        if(in_array($user_channel,$channel_arr)){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'渠道规则验证不通过');
