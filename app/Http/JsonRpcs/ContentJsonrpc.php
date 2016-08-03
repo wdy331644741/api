@@ -31,7 +31,7 @@ class ContentJsonRpc extends JsonRpc {
         $data = Content::select('id','title','release_at')->where($filter)->orderBy('release_at','desc')->paginate($pagenum)->toArray();
 
         foreach ($data['data'] as $key=>$value){
-            $data['data'][$key]['link'] = 'https://www.wanglibao.com/announcement/detail/714/';
+            $data['data'][$key]['link'] = env('NOTICE_LIST_H5_URL').$value['id'];
         }
         $data['Etag'] = strval(strtotime($data['data'][0]['release_at']));
         return array(
