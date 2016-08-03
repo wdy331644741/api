@@ -52,7 +52,7 @@ class SendReward extends Job implements ShouldQueue
             $status = SendAward::addAwardByActivity($this->userID,$this->activityID);
             //记录日志
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发送成功".$info.json_encode($status)."\n",FILE_APPEND);
-            //修改活动参照表状态
+            //修改活动参与表状态
             $arr = array();
             $arr['status'] = 2;
             $arr['remark'] = json_encode($status);
@@ -72,7 +72,7 @@ class SendReward extends Job implements ShouldQueue
                     $status = SendAward::addAwardToInvite($inviteUserID,$this->activityID);
                     //记录日志
                     file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."邀请人状态:发送成功 邀请人ID:".$inviteUserID."\t活动ID:".$this->activityID."\t".json_encode($status)."\n",FILE_APPEND);
-                    //修改活动参照表状态
+                    //修改活动参与表状态
                     $arr = array();
                     $arr['invite_remark'] = json_encode($status);
                     ActivityJoin::where('id',$this->logID)->update($arr);
@@ -83,7 +83,7 @@ class SendReward extends Job implements ShouldQueue
         }else{
             //记录规则错误日志
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t ruleErrorMsg \t".$info.$status['errmsg']."\n",FILE_APPEND);
-            //修改活动参照表状态
+            //修改活动参与表状态
             $err = array();
             $err['status'] = 1;
             $err['remark'] = $status['errmsg'];

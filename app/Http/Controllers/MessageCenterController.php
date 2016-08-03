@@ -113,6 +113,7 @@ class MessageCenterController extends Controller{
             return false;
         }
     }
+    //添加到活动参与表
     public function addJoins($userID,$activityInfo){
         $data['activity_id'] = $activityInfo['id'];
         $data['user_id'] = $userID;
