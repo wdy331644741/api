@@ -154,7 +154,7 @@ class SendAward
             //发送接口
             $result = $client->interestCoupon($data);
             //发送消息&存储到日志
-            if ($result['result']) {
+            if ($result['result']) {//成功
                 //存储到日志
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
@@ -162,7 +162,7 @@ class SendAward
                 $info['remark'] = json_encode($arr);
                 self::sendMessage($info);
                 return $arr;
-            }else{
+            }else{//失败
                 //记录错误日志
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
                 $info['remark'] = json_encode($err);
@@ -239,7 +239,7 @@ class SendAward
             //发送接口
             $result = $client->redpacket($data);
             //发送消息&存储到日志
-            if ($result['result']) {
+            if ($result['result']) {//成功
                 //存储到日志&发送消息
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
@@ -247,7 +247,7 @@ class SendAward
                 $info['remark'] = json_encode($arr);
                 self::sendMessage($info);
                 return $arr;
-            }else{
+            }else{//失败
                 //记录错误日志
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
                 $info['remark'] = json_encode($err);
@@ -326,7 +326,7 @@ class SendAward
             //发送接口
             $result = $client->redpacket($data);
             //发送消息&存储到日志
-            if ($result['result']) {
+            if ($result['result']) {//成功
                 //存储到日志&发送消息
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
@@ -334,7 +334,7 @@ class SendAward
                 $info['remark'] = json_encode($arr);
                 self::sendMessage($info);
                 return $arr;
-            }else{
+            }else{//失败
                 //记录错误日志
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
                 $info['remark'] = json_encode($err);
