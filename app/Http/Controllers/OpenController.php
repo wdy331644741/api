@@ -8,6 +8,8 @@ use \GuzzleHttp\Client;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
+use Lib\McQueue;
+use Monolog\Logger;
 
 class OpenController extends Controller
 {
@@ -126,6 +128,16 @@ class OpenController extends Controller
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountBind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid'],'userId'=>$userId));
+        if(!isset($res['error'])){
+            $mcQueue = new McQueue();
+            $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
+            $putStatus = $mcQueue->put('binding',$data);
+            if(!$putStatus)
+            {
+                $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
+                file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails'.date('Y-m-d'),FILE_APPEND);
+            }
+        }
         return $res;
 
     }

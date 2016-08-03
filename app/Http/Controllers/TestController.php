@@ -6,11 +6,12 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Service\RuleCheck;
+use Log;
 
 class TestController extends Controller
 {
     public function getIndex(){
-        $res = RuleCheck::register(12,5000032);
-        dd($res);
+        Log::write('error','Send Msg Fails');
     }
+
 }
