@@ -16,7 +16,7 @@ class CreateCouponCodeTable extends Migration
             $table->increments('id');
             $table->Integer('coupon_id',false,true);//关联优惠券信息主表id
             $table->string('code',255);//优惠码
-            $table->tinyInteger('is_use',false,true);//是否可用0正常1删除
+            $table->tinyInteger('is_use',false,true);//是否可用0可用1已使用
         });
     }
 

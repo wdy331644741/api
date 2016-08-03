@@ -15,6 +15,7 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
 use App\Models\Coupon;
+use App\Models\CouponCode;
 use Lib\JsonRpcClient;
 use App\Models\SendRewardLog;
 use App\Service\SendMessage;
@@ -64,10 +65,15 @@ class SendAward
             return self::experience($info);
         } elseif ($award_type == 6) {
             //优惠券
+            return self::coupon($info);
         }
     }
     //加息券
     static function increases($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 1;
+        $info['uuid'] = null;
+        $info['status'] = 0;
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
@@ -99,7 +105,11 @@ class SendAward
             return $input->project_duration_type > 1;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
         }
         //获取出来该信息
         $data = array();
@@ -145,18 +155,28 @@ class SendAward
             $result = $client->interestCoupon($data);
             //发送消息&存储到日志
             if ($result['result']) {
-                //发送消息
-                $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
                 //存储到日志
-                $log = self::addLog($data['source_id'], 1, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
+                //记录错误日志
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
             }
         }
     }
     //直抵红包
     static function redMoney($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 2;
+        $info['uuid'] = null;
+        $info['status'] = 0;
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
@@ -178,7 +198,11 @@ class SendAward
             return $input->project_duration_type > 1;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
         }
         //获取出来该信息
         $data = array();
@@ -216,18 +240,28 @@ class SendAward
             $result = $client->redpacket($data);
             //发送消息&存储到日志
             if ($result['result']) {
-                //发送消息
-                $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
-                //存储到日志
-                $log = self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
+                //存储到日志&发送消息
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
+                //记录错误日志
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
             }
         }
     }
     //百分比红包
     static function redMaxMoney($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 2;
+        $info['uuid'] = null;
+        $info['status'] = 0;
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
@@ -250,7 +284,11 @@ class SendAward
             return $input->project_duration_type > 1;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
         }
         //获取出来该信息
         $data = array();
@@ -264,7 +302,6 @@ class SendAward
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
         $data['project_type'] = $info['project_type'];//项目类型
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
-
         //项目期限时间
         if($data['project_duration_type'] > 1){
             $data['project_duration_time'] = $info['project_duration_time'];
@@ -290,18 +327,28 @@ class SendAward
             $result = $client->redpacket($data);
             //发送消息&存储到日志
             if ($result['result']) {
-                //发送消息
-                $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
-                //存储到日志
-                $log = self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
+                //存储到日志&发送消息
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
+                //记录错误日志
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
             }
         }
     }
     //体验金
     static function experience($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 3;
+        $info['uuid'] = null;
+        $info['status'] = 0;
         //验证必填
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
@@ -319,7 +366,11 @@ class SendAward
             return $input->effective_time_type == 2;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
         }
         $data = array();
         $url = Config::get("award.reward_http_url");
@@ -347,15 +398,63 @@ class SendAward
             //发送接口
             $result = $client->experience($data);
             //发送消息&存储到日志
-            if ($result['result']) {
-                //发送消息
-                $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
-                //存储到日志
-                $log = self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
-            }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
+            if ($result['result']) {//成功
+                //发送消息&存储日志
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
+            }else{//失败
+                //记录错误日志
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
             }
+        }
+    }
+    //优惠券
+    static public function coupon($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 6;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
+            'user_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:1',
+            'name' => 'required|min:2|max:255',
+            'source_name' => 'required|min:2|max:255',
+        ]);
+        if($validator->fails()){
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail');
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        //根据id获取出可用的优惠卷
+        $where = array();
+        $where['coupon_id'] = $info['id'];
+        $where['is_use'] = 0;
+        $data = CouponCode::where($where)->get()->first();
+        if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
+            //发送消息
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
+            $info['remark'] = json_encode($err);
+            $info['status'] = 1;
+            self::sendMessage($info);
+            //修改优惠码状态
+            CouponCode::where("id",$data['id'])->update(array('is_use'=>1));
+            return $err;
+        }else{
+            //存储到日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>false,'err_msg'=>'coupon_empty');
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
         }
     }
     /**
@@ -384,28 +483,6 @@ class SendAward
             return false;
         }
     }
-    /**
-     * 添加到日志
-     * @param $source_id
-     * @param $award_type
-     * @param $uuid
-     * @param $remark
-     * @return mixed
-     */
-    static function addLog($source_id,$award_type,$uuid,$remark,$userID,$award_id){
-        $SendRewardLog = new SendRewardLog;
-        $data['user_id'] = $userID;
-        $data['activity_id'] = $source_id;
-        $data['source_id'] = $source_id;
-        $data['award_type'] = $award_type;
-        $data['uuid'] = $uuid;
-        $data['remark'] = $remark;
-        $data['award_id'] = $award_id;
-        $data['created_at'] = date("Y-m-d H:i:s");
-        $insertID = $SendRewardLog->insertGetId($data);
-        return $insertID;
-    }
-
     /**
      *  根据awardType获取奖品详情 
      * 
@@ -491,19 +568,76 @@ class SendAward
             . substr($charid, 20, 12);
         return $uuid;
     }
-    static function sendMessage($userID,$messageTemp,$mailTemp,$source_name,$award_name){
+
+    /**
+     * 发送站内信及添加日志
+     * @param $info
+     * @return array
+     */
+    static function sendMessage($info){
         $message = array();
-        $message['sourcename'] = $source_name;
-        $message['awardname'] = $award_name;
+        $message['sourcename'] = $info['source_name'];
+        $message['awardname'] = $info['name'];
         $return = array();
-        if(!empty($messageTemp)){
+        $info['message_status'] = 0;
+        $info['mail_status'] = 0;
+        if(!empty($info['message'])){
             //发送短信
-            $return['message'] = SendMessage::Message($userID,$messageTemp,$message);
+            $return['message'] = SendMessage::Message($info['user_id'],$info['message'],$message);
+            //发送成功
+            if($return['message'] == true){
+                $info['message_status'] = 2;
+            }
+            //发送失败
+            if($return['message'] == false){
+                $info['message_status'] = 1;
+            }
+        }else{
+            //发送模板为空
+            $info['message_status'] = 0;
         }
-        if(!empty($mailTemp)){
+        if(!empty($info['mail'])){
             //发送站内信
-            $return['mail'] = SendMessage::Mail($userID,$mailTemp,$message);
+            $return['mail'] = SendMessage::Mail($info['user_id'],$info['mail'],$message);
+            //发送成功
+            if($return['mail'] == true){
+                $info['mail_status'] = 2;
+            }
+            //发送失败
+            if($return['mail'] == false){
+                $info['mail_status'] = 1;
+            }
+        }else{
+            //发送模板为空
+            $info['mail_status'] = 0;
         }
+        //添加日志
+        self::addLog($info);
         return $return;
+    }
+    /**
+     * 添加到日志
+     * @param $source_id
+     * @param $award_type
+     * @param $uuid
+     * @param $remark
+     * @return mixed
+     */
+    static function addLog($info){
+        $SendRewardLog = new SendRewardLog;
+        $data['user_id'] = $info['user_id'];
+        $data['activity_id'] = $info['source_id'];
+        $data['source_id'] = $info['source_id'];
+        $data['award_type'] = $info['award_type'];
+        $data['uuid'] = $info['uuid'];
+        $data['remark'] = $info['remark'];
+        $data['award_id'] = $info['id'];
+        $data['status'] = $info['status'];
+        $data['coupon_code'] = isset($info['code']) ? $info['code'] : '';
+        $data['message_status'] = isset($info['message_status']) ? $info['message_status'] : '';
+        $data['mail_status'] = isset($info['mail_status']) ? $info['mail_status'] : '';
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $insertID = $SendRewardLog->insertGetId($data);
+        return $insertID;
     }
 }
