@@ -19,6 +19,9 @@ class RuleCheck
     public static function check($activity_id,$userId,$sqsmsg){
         $url = Config::get('award.rulecheck_user_http_url');
         $activity = Rule::where('activity_id',$activity_id)->get();
+        if(count($activity) < 1){
+            return array('send'=>true);
+        }
         $client = new JsonRpcClient(self::$user_api_url);
         $userBase = $client->userBasicInfo(array('userId'=>$userId));
         $res = array('send'=>true);
@@ -119,7 +122,7 @@ class RuleCheck
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
         $inviteNum = count($res['result']['data']);
-        if($inviteNum >= $rules['invite_num']){
+        if($inviteNum >= $rules['min_invitenum'] && $inviteNum <= $rules['max_invitenum']){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'邀请规则验证不通过');

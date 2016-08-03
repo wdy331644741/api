@@ -7,6 +7,7 @@ use App\Jobs\SendReward;
 use Config;
 use Lib\McQueue;
 use Lib\JsonRpcClient;
+use App\Models\ActivityJoin;
 /**
  * Created by PhpStorm.
  * User: Administrator
@@ -41,9 +42,14 @@ class MessageCenterController extends Controller{
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
                 if(!empty($item['id'])){
-                    file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID&userID \t".$item['id']."\t**\t".$userID."\t放入队列"."\n",FILE_APPEND);
-                    //放入队列
-                    $this->dispatch(new SendReward($item['id'],$userID,$logUrl,$requests));
+                    $logID = $this->frequency($userID,$item);
+                    if($logID){
+                        file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityID&userID \t".$item['id']."\t**\t".$userID."\t放入队列"."\n",FILE_APPEND);
+                        //放入队列
+                        $this->dispatch(new SendReward($item['id'],$userID,$logUrl,$requests,$logID));
+                    }else{
+                        file_put_contents($logUrl,date("Y-m-d H:i:s")."\t activityJoins \t"."活动发送参照表插入失败"."\n",FILE_APPEND);
+                    }
                 }
             }
         }else{
@@ -74,5 +80,51 @@ class MessageCenterController extends Controller{
             }
         }
         return false;
+    }
+    //验证频次
+    public function frequency($userID,$activityInfo){
+        if(isset($activityInfo['id']) && !empty($activityInfo['id']) && isset($activityInfo['frequency'])){
+            $where = array();
+            $where['user_id'] = $userID;
+            $where['status'] = 2;
+            //不限
+            if($activityInfo['frequency'] == 0){
+                $count = 0;
+            }
+            //一天一次
+            $date = date('Y-m-d');
+            if($activityInfo['frequency'] == 1){
+                $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->get()->count();
+            }
+            //仅一次
+            if($activityInfo['frequency'] == 2){
+                $count = ActivityJoin::where($where)->get()->count();
+            }
+            if($count == 0){
+                $id = $this->addJoins($userID,$activityInfo);
+                if($id){
+                    return $id;
+                }
+                return false;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }
+    //添加到活动参与表
+    public function addJoins($userID,$activityInfo){
+        $data['activity_id'] = $activityInfo['id'];
+        $data['user_id'] = $userID;
+        $data['alias_name'] = $activityInfo['alias_name'];
+        $data['shared'] = 0;
+        $data['continue'] = 0;
+        $data['isExternal'] = 0;
+        $data['status'] = 0;
+        $data['trigger_type'] = $activityInfo['trigger_type'];
+        $data['remark'] = '';
+        $data['created_at'] = date("Y-m-d H:i:s");
+        return ActivityJoin::insertGetId($data);
     }
 }
