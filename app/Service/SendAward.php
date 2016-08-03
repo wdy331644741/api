@@ -99,7 +99,7 @@ class SendAward
             return $input->project_duration_type > 1;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'params_fail');
+            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
         }
         //获取出来该信息
         $data = array();
@@ -149,9 +149,9 @@ class SendAward
                 $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
                 //存储到日志
                 $log = self::addLog($data['source_id'], 1, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'success','successLog'=>$log,'message'=>$message);
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'send_fail');
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
             }
         }
     }
@@ -178,7 +178,7 @@ class SendAward
             return $input->project_duration_type > 1;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'params_fail');
+            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
         }
         //获取出来该信息
         $data = array();
@@ -220,9 +220,9 @@ class SendAward
                 $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
                 //存储到日志
                 $log = self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'success','successLog'=>$log,'message'=>$message);
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'send_fail');
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
             }
         }
     }
@@ -235,7 +235,7 @@ class SendAward
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'red_money' => 'required|integer|min:1',
-            'percentage' => 'required|integer|min:1',
+            'percentage' => 'required|numeric|between:0.001,1',
             'effective_time_type' => 'required|integer|min:1',
             'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
@@ -250,7 +250,7 @@ class SendAward
             return $input->project_duration_type > 1;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'params_fail');
+            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
         }
         //获取出来该信息
         $data = array();
@@ -294,9 +294,9 @@ class SendAward
                 $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
                 //存储到日志
                 $log = self::addLog($data['source_id'], 2, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'success','successLog'=>$log,'message'=>$message);
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'send_fail');
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
             }
         }
     }
@@ -319,7 +319,7 @@ class SendAward
             return $input->effective_time_type == 2;
         });
         if($validator->fails()){
-            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'params_fail');
+            return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'params_fail');
         }
         $data = array();
         $url = Config::get("award.reward_http_url");
@@ -352,9 +352,9 @@ class SendAward
                 $message = self::sendMessage($data['user_id'],$info['message'],$info['mail'],$data['source_name'],$data['name']);
                 //存储到日志
                 $log = self::addLog($data['source_id'], 3, $data['uuid'], $data['remark'], $data['user_id'], $info['id']);
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'success','successLog'=>$log,'message'=>$message);
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>true,'successLog'=>$log,'message'=>$message);
             }else{
-                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>'send_fail');
+                return array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>1,'status'=>false,'err_msg'=>'send_fail');
             }
         }
     }
