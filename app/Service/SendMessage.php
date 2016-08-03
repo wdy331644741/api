@@ -6,7 +6,7 @@ use Lib\JsonRpcClient;
 class SendMessage
 {
 
-    public static function Message($userID,$template,$arr){
+    public static function Mail($userID,$template,$arr){
         if(empty($template)){
             return false;
         }
@@ -25,7 +25,7 @@ class SendMessage
         return false;
     }
 
-    public static function Mail($userID,$template,$arr){
+    public static function Message($userID,$template,$arr){
         if(empty($template)){
             return false;
         }
