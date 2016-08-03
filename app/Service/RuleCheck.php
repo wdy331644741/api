@@ -9,11 +9,14 @@ use Predis\Client;
 
 class RuleCheck
 {
-    private static $user_api_url = 'http://sunfeng.wlpassport.dev.wanglibao.com/service.php?c=account';
+    private static $inside_api_url;
 
-    private static $trade_api_url = 'http://sunfeng.wlpassport.dev.wanglibao.com/service.php?c=trade';
+    private static $account_reward_url;
 
-    private static $account_reward_url = 'http://account.dev.wanglibao.com/service.php?c=reward';
+    private function __construct(){
+        self::$passport_api_url = env('RULECHECK_HTTP_URL');
+        self::$account_reward_url=env('REWARD_HTTP_URL');
+    }
 
     //规则验证
     public static function check($activity_id,$userId,$sqsmsg){
@@ -22,7 +25,7 @@ class RuleCheck
         if(count($activity) < 1){
             return array('send'=>true);
         }
-        $client = new JsonRpcClient(self::$user_api_url);
+        $client = new JsonRpcClient(self::$inside_api_url);
         $userBase = $client->userBasicInfo(array('userId'=>$userId));
         $res = array('send'=>true);
         foreach ($activity as $value){
@@ -218,7 +221,7 @@ class RuleCheck
     //用户投资总金额
     private static function _castAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$trade_api_url);
+        $client = new JsonRpcClient(self::$inside_api_url);
         $res = $client->userTradeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
@@ -233,7 +236,7 @@ class RuleCheck
     //用户充值总金额
     private static function _rechargeAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
-        $client = new JsonRpcClient(self::$trade_api_url);
+        $client = new JsonRpcClient(self::$inside_api_url);
         $res = $client->userRechargeCount(array('userId'=>$userId,'startTime'=>$rules['start_time'],'endTime'=>$rules['end_time']));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
