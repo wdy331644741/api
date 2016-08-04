@@ -14,13 +14,12 @@ class RuleCheck
     private static $account_reward_url;
 
     private function __construct(){
-        self::$passport_api_url = env('RULECHECK_HTTP_URL');
+        self::$inside_api_url = env('INSIDE_HTTP_URL');
         self::$account_reward_url=env('REWARD_HTTP_URL');
     }
 
     //规则验证
     public static function check($activity_id,$userId,$sqsmsg){
-        $url = Config::get('award.rulecheck_user_http_url');
         $activity = Rule::where('activity_id',$activity_id)->get();
         if(count($activity) < 1){
             return array('send'=>true);
