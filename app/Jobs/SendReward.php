@@ -61,9 +61,9 @@ class SendReward extends Job implements ShouldQueue
             $url = Config::get('award.reward_http_url');
             $client = new JsonRpcClient($url);
             //获取邀请人id
-            $res = $client->getInviteList(array('uid'=>$this->userID));
+            $res = $client->getInviteUser(array('uid'=>$this->userID));
             if(isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])){
-                $inviteUserID = isset($res['result']['data'][0]) ? $res['result']['data'][0] : 0;
+                $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
                 if(empty($inviteUserID)){
                     file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."没有邀请人".$info."\n",FILE_APPEND);
                     return true;

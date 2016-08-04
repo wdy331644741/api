@@ -15,7 +15,7 @@ class UpdateSendRewardLog2016080301 extends Migration
         Schema::table('send_reward_log', function (Blueprint $table) {
             $table->string('uuid',64)->nullable()->change();//唯一ID
             $table->string('coupon_code')->nullable();//优惠码
-            $table->tinyInteger('status')->nullable();//状态1失败，2成功
+            $table->tinyInteger('status')->nullable();//状态0失败，1成功
             $table->tinyInteger('message_status')->nullable()->default(null);//短信发送状态0、模板为空 1、发送失败 2、已发送
             $table->tinyInteger('mail_status')->nullable()->default(null);//站内信发送状态0、模板为空 1、发送失败 2、已发送
         });
