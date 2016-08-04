@@ -15,11 +15,12 @@ class RuleCheck
 
     private function __construct(){
         self::$inside_api_url = env('INSIDE_HTTP_URL');
-        self::$account_reward_url=env('REWARD_HTTP_URL');
+        self::$account_reward_url = env('REWARD_HTTP_URL');
     }
 
     //规则验证
     public static function check($activity_id,$userId,$sqsmsg){
+        new self();
         $activity = Rule::where('activity_id',$activity_id)->get();
         if(count($activity) < 1){
             return array('send'=>true);
@@ -120,7 +121,7 @@ class RuleCheck
     private static function _inviteNum($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$account_reward_url);
-        $res = $client->getInviteList(array('userId'=>$userId));
+        $res = $client->getInviteList(array('uid'=>$userId));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
