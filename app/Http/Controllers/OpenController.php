@@ -83,11 +83,11 @@ class OpenController extends Controller
         Session::set('weixin',array('callback'=>$request->callback));
         global $userId;
         if($userId){
-            header("Location:$request->callback");
+            return redirect($request->callback);
         }else{
             $weixin = new Weixin();
             $oauth_url = $weixin->get_authorize_url();
-            header("Location:$oauth_url");
+            return redirect($oauth_url);
         }
     }
 
@@ -108,16 +108,16 @@ class OpenController extends Controller
         $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
         if(isset($res['error']) && $res['error']['code'] == 1442){
             if(isset($weixin['callback'])){
-                header("Location:https://php1.wanglibao.com/wechat/login?next=".$weixin['callback']);
+                return redirect("https://php1.wanglibao.com/wechat/login?next=".$weixin['callback']);
             }else{
-                header("Location:https://php1.wanglibao.com/wechat/login");
+                return redirect("https://php1.wanglibao.com/wechat/login");
             }
         }
         if(!isset($res['error'])){
             if(isset($weixin['callback'])){
-                header("Location:{$weixin['callback']}");
+                return redirect($weixin['callback']);
             }else{
-                header("Location:https://php1.wanglibao.com/wechat/");
+                return redirect("https://php1.wanglibao.com/wechat/");
             }
         }
     }
