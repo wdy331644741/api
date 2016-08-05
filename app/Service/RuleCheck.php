@@ -211,7 +211,7 @@ class RuleCheck
     private static function _payment($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
 
-        $payment_meony = $sqsmsg['回款金额'];
+        $payment_meony = $sqsmsg['amount'];
         if($payment_meony >= $rules['min_payment'] && $payment_meony <= $rules['max_payment']){
             return array('send'=>true);
         }
