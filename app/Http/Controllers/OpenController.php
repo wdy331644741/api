@@ -106,16 +106,16 @@ class OpenController extends Controller
         $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
         if(isset($res['error']) && $res['error']['code'] == 1442){
             if(isset($weixin['callback'])){
-                return redirect("https://php1.wanglibao.com/wechat/login?next=".$weixin['callback']);
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/login?next=".$weixin['callback']);
             }else{
-                return redirect("https://php1.wanglibao.com/wechat/login");
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/login");
             }
         }
         if(!isset($res['error'])){
             if(isset($weixin['callback'])){
                 return redirect($weixin['callback']);
             }else{
-                return redirect("https://php1.wanglibao.com/wechat/");
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/");
             }
         }
     }
