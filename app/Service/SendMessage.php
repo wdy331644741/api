@@ -31,7 +31,7 @@ class SendMessage
         }
         $content = self::msgTemplate($template,$arr);
         //根据用户ID获取手机号
-        $url = Config::get('award.rulecheck_user_http_url');
+        $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
         $userBase = $client->userBasicInfo(array('userId'=>$userID));
         $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
