@@ -49,6 +49,8 @@ class SendReward extends Job implements ShouldQueue
             //调用发奖队列
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."开始发奖".$info."\n",FILE_APPEND);
             //给本人发的奖励
+//            echo $this->userID."&".$this->activityID;
+//            echo 111;exit;
             $status = SendAward::addAwardByActivity($this->userID,$this->activityID);
             //记录日志
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发送成功".$info.json_encode($status)."\n",FILE_APPEND);

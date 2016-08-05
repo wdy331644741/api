@@ -33,12 +33,12 @@ class AwardCommonController extends Controller{
         $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:30', function($input) {
             return $input->rate_increases_type == 2;
         });
-        $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
-            return $input->rate_increases_type == 3;
-        });
-        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
-            return $input->rate_increases_type == 4;
-        });
+//        $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
+//            return $input->rate_increases_type == 3;
+//        });
+//        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
+//            return $input->rate_increases_type == 4;
+//        });
         $validator->sometimes('effective_time_day', 'required|integer|min:1', function($input) {
             return $input->effective_time_type == 1;
         });
@@ -58,14 +58,17 @@ class AwardCommonController extends Controller{
         //加息时长类型
         $data['rate_increases_type'] = $request->rate_increases_type;
         //加息时长天数
-        if($data['rate_increases_type'] == 2 || $data['rate_increases_type'] == 4){
+//        if($data['rate_increases_type'] == 2 || $data['rate_increases_type'] == 4){
+//            $data['rate_increases_time'] = $request->rate_increases_time;
+//        }
+        if($data['rate_increases_type'] == 2){
             $data['rate_increases_time'] = $request->rate_increases_time;
         }
-        //加息时长时间段
-        if($data['rate_increases_type'] == 3) {
-            $data['rate_increases_start'] = empty($request->rate_increases_start) ? null : $request->rate_increases_start;
-            $data['rate_increases_end'] = empty($request->rate_increases_end) ? null : $request->rate_increases_end;
-        }
+//        //加息时长时间段
+//        if($data['rate_increases_type'] == 3) {
+//            $data['rate_increases_start'] = empty($request->rate_increases_start) ? null : $request->rate_increases_start;
+//            $data['rate_increases_end'] = empty($request->rate_increases_end) ? null : $request->rate_increases_end;
+//        }
         //有效时间类型
         $data['effective_time_type'] = $request->effective_time_type;
         //有效时间顺延天数
