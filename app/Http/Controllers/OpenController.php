@@ -4,12 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use Illuminate\Http\Request;
-use \GuzzleHttp\Client;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
 use Lib\McQueue;
-use Monolog\Logger;
 
 class OpenController extends Controller
 {
@@ -127,7 +125,7 @@ class OpenController extends Controller
         global $userId;
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountBind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid'],'userId'=>$userId));
+        $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
         if(!isset($res['error'])){
             $mcQueue = new McQueue();
             $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
@@ -147,7 +145,7 @@ class OpenController extends Controller
     public function postWechatUnbind(){
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid']));
+        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid']));
         return $res;
     }
     
