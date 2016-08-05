@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
 use Illuminate\Http\Request;
@@ -41,6 +42,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new ActivityJsonRpc());
         $jsonRpcServer->addService(new OpinionJsonRpc());
         $jsonRpcServer->addService(new AppUpdateConfigJsonRpc());
+        $jsonRpcServer->addService(new OpenJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');       
     }
