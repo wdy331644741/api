@@ -49,6 +49,8 @@ class SendReward extends Job implements ShouldQueue
             //调用发奖队列
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."开始发奖".$info."\n",FILE_APPEND);
             //给本人发的奖励
+//            echo $this->userID."&".$this->activityID;
+//            echo 111;exit;
             $status = SendAward::addAwardByActivity($this->userID,$this->activityID);
             //记录日志
             file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."本人状态:发送成功".$info.json_encode($status)."\n",FILE_APPEND);
@@ -61,9 +63,9 @@ class SendReward extends Job implements ShouldQueue
             $url = Config::get('award.reward_http_url');
             $client = new JsonRpcClient($url);
             //获取邀请人id
-            $res = $client->getInviteList(array('uid'=>$this->userID));
+            $res = $client->getInviteUser(array('uid'=>$this->userID));
             if(isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])){
-                $inviteUserID = isset($res['result']['data'][0]) ? $res['result']['data'][0] : 0;
+                $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
                 if(empty($inviteUserID)){
                     file_put_contents($this->logUrl,date("Y-m-d H:i:s")."\t"."没有邀请人".$info."\n",FILE_APPEND);
                     return true;

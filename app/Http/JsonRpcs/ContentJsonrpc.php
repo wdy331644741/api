@@ -5,6 +5,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
+use App\Models\Cms\Notice;
 use Validator;
 use Illuminate\Pagination\Paginator;
 use Lib\JsonRpcInvalidParamsException;
@@ -18,9 +19,11 @@ class ContentJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function noticeList($params) {
-        $type_id = ContentType::where('alias_name','notice')->value('id');
+        if (empty($params->platform)) {
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
         $filter = [
-            'type_id' => intval($type_id),
+            'platform'=>$params->platform,
             'release' => 1
         ];
         $page = isset($params->page) ? $params->page : 1;
@@ -28,8 +31,15 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::select('id','title','release_at')->where($filter)->orderBy('release_at','desc')->paginate($pagenum)->toArray();
+        $data = Notice::select('id','title','release_at')->where($filter)->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
 
+        if(empty($data['data'])){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => null
+            );
+        }
         foreach ($data['data'] as $key=>$value){
             $data['data'][$key]['link'] = env('NOTICE_LIST_H5_URL').$value['id'];
         }

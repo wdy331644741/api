@@ -4,12 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use Illuminate\Http\Request;
-use \GuzzleHttp\Client;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
 use Lib\McQueue;
-use Monolog\Logger;
 
 class OpenController extends Controller
 {
@@ -83,11 +81,11 @@ class OpenController extends Controller
         Session::set('weixin',array('callback'=>$request->callback));
         global $userId;
         if($userId){
-            header("Location:$request->callback");
+            return redirect($request->callback);
         }else{
             $weixin = new Weixin();
             $oauth_url = $weixin->get_authorize_url();
-            header("Location:$oauth_url");
+            return redirect($oauth_url);
         }
     }
 
@@ -108,16 +106,16 @@ class OpenController extends Controller
         $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
         if(isset($res['error']) && $res['error']['code'] == 1442){
             if(isset($weixin['callback'])){
-                header("Location:https://php1.wanglibao.com/wechat/login?next=".$weixin['callback']);
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/login?next=".$weixin['callback']);
             }else{
-                header("Location:https://php1.wanglibao.com/wechat/login");
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/login");
             }
         }
         if(!isset($res['error'])){
             if(isset($weixin['callback'])){
-                header("Location:{$weixin['callback']}");
+                return redirect($weixin['callback']);
             }else{
-                header("Location:https://php1.wanglibao.com/wechat/");
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/");
             }
         }
     }
@@ -127,7 +125,7 @@ class OpenController extends Controller
         global $userId;
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountBind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid'],'userId'=>$userId));
+        $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
         if(!isset($res['error'])){
             $mcQueue = new McQueue();
             $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
@@ -147,7 +145,7 @@ class OpenController extends Controller
     public function postWechatUnbind(){
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openid'=>$weixin['openid']));
+        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid']));
         return $res;
     }
     

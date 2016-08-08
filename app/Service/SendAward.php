@@ -89,12 +89,12 @@ class SendAward
         $validator->sometimes('rate_increases_time', 'required|integer', function($input) {
             return $input->rate_increases_type == 2;
         });
-        $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
-            return $input->rate_increases_type == 3;
-        });
-        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
-            return $input->rate_increases_type == 4;
-        });
+//        $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
+//            return $input->rate_increases_type == 3;
+//        });
+//        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
+//            return $input->rate_increases_type == 4;
+//        });
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
             return $input->effective_time_type == 1;
         });
@@ -132,12 +132,13 @@ class SendAward
         $data['rate'] = $info['rate_increases'];//加息值
         if ($info['rate_increases_type'] == 2) {
             $data['continuous_days'] = $info['rate_increases_time'];//加息天数
-        } elseif ($info['rate_increases_type'] == 3) {
-            $data['increases_start'] = $info['rate_increases_start'];//加息开始时间
-            $data['increases_end'] = $info['rate_increases_end'];//加息结束时间
-        } elseif ($info['rate_increases_type'] == 4) {
-            $data['continuous_month'] = $info['rate_increases_time'];//加息开始时间
         }
+//        elseif ($info['rate_increases_type'] == 3) {
+//            $data['increases_start'] = $info['rate_increases_start'];//加息开始时间
+//            $data['increases_end'] = $info['rate_increases_end'];//加息结束时间
+//        } elseif ($info['rate_increases_type'] == 4) {
+//            $data['continuous_month'] = $info['rate_increases_time'];//加息开始时间
+//        }
         if ($info['effective_time_type'] == 1) {
             $data['effective_start'] = date("Y-m-d H:i:s");
             $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+" . $info['effective_time_day'] . " days"));
@@ -154,7 +155,7 @@ class SendAward
             //发送接口
             $result = $client->interestCoupon($data);
             //发送消息&存储到日志
-            if ($result['result']) {//成功
+            if (isset($result['result']) && $result['result']) {//成功
                 //存储到日志
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
@@ -239,7 +240,7 @@ class SendAward
             //发送接口
             $result = $client->redpacket($data);
             //发送消息&存储到日志
-            if ($result['result']) {//成功
+            if (isset($result['result']) && $result['result']) {//成功
                 //存储到日志&发送消息
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
@@ -326,7 +327,7 @@ class SendAward
             //发送接口
             $result = $client->redpacket($data);
             //发送消息&存储到日志
-            if ($result['result']) {//成功
+            if (isset($result['result']) && $result['result']) {//成功
                 //存储到日志&发送消息
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
@@ -398,7 +399,7 @@ class SendAward
             //发送接口
             $result = $client->experience($data);
             //发送消息&存储到日志
-            if ($result['result']) {//成功
+            if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
                 $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
                 $info['status'] = 1;
