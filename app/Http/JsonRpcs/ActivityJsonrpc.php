@@ -54,7 +54,8 @@ class ActivityJsonRpc extends JsonRpc {
 
         //给用户发奖
         $res = SendAward::sendDataRole($userId, $signinRes['award_type'], $signinRes['award_id'], $sharedActivity['id']);
-        $awardName = $res[0]['award_name'];
+        $awardName = $res['award_name'];
+        
         return array(
             'code' => 0,
             'message' => 'success',
