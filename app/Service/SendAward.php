@@ -165,7 +165,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -250,7 +250,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -337,7 +337,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -409,7 +409,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail');
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
