@@ -22,16 +22,12 @@ class ContentJsonRpc extends JsonRpc {
         if (empty($params->platform)) {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        $filter = [
-            'platform'=>$params->platform,
-            'release' => 1
-        ];
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Notice::select('id','title','release_at')->where($filter)->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
+        $data = Notice::select('id','title','release_at')->where('release',1)->whereIn('platform',[0,$params->platform])->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
 
         if(empty($data['data'])){
             return array(
