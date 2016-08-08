@@ -13,20 +13,6 @@ use Validator;
 class ActivityJsonRpc extends JsonRpc {
     
     /**
-     * 发奖
-     *
-     * @JsonRpcMethod
-     */
-    public function sendAward($params) {
-        $res = SendAward::sendDataRole($params->userId, $params->awardType, $params->awardId, 6);
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $res,
-        );
-    }
-    
-    /**
      * 领取分享奖励
      *      
      * @JsonRpcMethod
@@ -68,13 +54,13 @@ class ActivityJsonRpc extends JsonRpc {
 
         //给用户发奖
         $res = SendAward::sendDataRole($userId, $signinRes['award_type'], $signinRes['award_id'], $sharedActivity['id']);
-        
+        $awardName = $res[0]['award_name'];
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
                 'isShared' => false,
-                'award' => [$res],
+                'award' => [$awardName],
             ),
         );
 
@@ -147,13 +133,14 @@ class ActivityJsonRpc extends JsonRpc {
         }
 
         $res = SendAward::addAwardByActivity($userId, $activity['id']);
+        $awardName = $res[0]['award_name'];
         
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
                 'isAward' => false,
-                'awards' => $res,
+                'awards' => [$awardName],
             ),
         );
 
@@ -233,6 +220,7 @@ class ActivityJsonRpc extends JsonRpc {
         
         // 发奖
         $res = SendAward::addAwardByActivity($userId, $activity['id']);
+        $awardName = $res[0]['award_name'];
 
         // 连续登陆
         $yesterdayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$yesterday}'")->first();
@@ -278,7 +266,7 @@ class ActivityJsonRpc extends JsonRpc {
                 'end' => $end,
                 'extra' => $extra,
                 'shared' => false,
-                'award' => $res,
+                'award' => [$awardName],
                 'last' => $last,
             ),
         );
