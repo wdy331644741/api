@@ -21,7 +21,7 @@ class OpenJsonRpc extends JsonRpc {
     public function wechatBind($params) {
         global $userId;
         $weixin = Session::get('weixin');
-        dd($weixin);
+        file_put_contents(storage_path('log/test-error.log'),$weixin['openid'].'--'.$userId.'--'.$this->_weixin,FILE_APPEND);
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
         if(!isset($res['error'])){
