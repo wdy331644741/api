@@ -31,7 +31,7 @@ class ActivityJsonRpc extends JsonRpc {
      *      
      * @JsonRpcMethod
      */
-    public function signinShare($params) {
+    public function signinShare() {
         global $userId;
         
         if(!$userId) {
@@ -164,7 +164,7 @@ class ActivityJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function signin($params) {
+    public function signin() {
         global $userId;
         $aliasName = 'signin';
         $days = array(7, 14, 21, 28);
@@ -229,7 +229,6 @@ class ActivityJsonRpc extends JsonRpc {
                 ),
             );
             
-            throw new OmgException(OmgException::ALREADY_SIGNIN, $data);
         }
         
         // 发奖
@@ -243,11 +242,6 @@ class ActivityJsonRpc extends JsonRpc {
             if($continue > 28) {
                 $continue = 1;
             }
-        }
-        
-        // 强制修改连续登陆天数
-        if(!empty($params->continue)) {
-            $continue = $params->continue;
         }
 
         // 更新连续登陆天数
