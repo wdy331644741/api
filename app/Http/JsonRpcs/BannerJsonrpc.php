@@ -88,7 +88,7 @@ class BannerJsonRpc extends JsonRpc {
             'can_use' => 1,
              'position' => 'pop',
         );
-        $data = BANNER::selectwhere($where)
+        $data = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
             ->where(function($query) {
                 $query->whereNull('start')->orWhereRaw('start < now()');
             })
