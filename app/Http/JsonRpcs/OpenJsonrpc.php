@@ -18,7 +18,7 @@ class OpenJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function wechatBind($params) {
+    public function wechatBind() {
         global $userId;
         $weixin = Session::get('weixin');
         file_put_contents(storage_path('log/test-error.log'),$weixin['openid'].'--'.$userId.'--'.$this->_weixin,FILE_APPEND);
@@ -42,7 +42,7 @@ class OpenJsonRpc extends JsonRpc {
      *      
      * @JsonRpcMethod
      */
-    public function wechatUnbind($params) {
+    public function wechatUnbind() {
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
