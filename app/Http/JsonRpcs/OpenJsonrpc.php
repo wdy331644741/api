@@ -18,9 +18,10 @@ class OpenJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function wechatBind($params) {
+    public function wechatBind() {
         global $userId;
         $weixin = Session::get('weixin');
+        file_put_contents(storage_path('logs/test-error.log'),$weixin['openid'].'--'.$userId.'--'.$this->_weixin,FILE_APPEND);
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
         if(!isset($res['error'])){
@@ -30,7 +31,7 @@ class OpenJsonRpc extends JsonRpc {
             if(!$putStatus)
             {
                 $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
-                file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails'.date('Y-m-d'),FILE_APPEND);
+                file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails-'.date('Y-m-d'),FILE_APPEND);
             }
         }
         return $res;
@@ -41,7 +42,7 @@ class OpenJsonRpc extends JsonRpc {
      *      
      * @JsonRpcMethod
      */
-    public function wechatUnbind($params) {
+    public function wechatUnbind() {
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
