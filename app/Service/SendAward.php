@@ -444,6 +444,7 @@ class SendAward
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
             //发送消息
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
+            $info['code'] = $data['code'];
             $info['remark'] = json_encode($err);
             $info['status'] = 1;
             self::sendMessage($info);
@@ -579,6 +580,7 @@ class SendAward
         $message = array();
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
+        $message['code'] = $info['code'];
         $return = array();
         $info['message_status'] = 0;
         $info['mail_status'] = 0;
