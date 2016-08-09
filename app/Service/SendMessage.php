@@ -39,7 +39,7 @@ class SendMessage
             return false;
         }
         $params = array();
-        $params['phone'] = $phone = "18701656515";
+        $params['phone'] = $phone;
         $params['node_name'] = "custom";
         $params['tplParam'] = array();
         $params['customTpl'] = $content;
