@@ -143,9 +143,9 @@ class OpenController extends Controller
 
     //接触绑定
     public function postWechatUnbind(){
-        $weixin = Session::get('weixin');
+        global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid']));
+        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
         return $res;
     }
     
