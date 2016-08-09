@@ -79,14 +79,9 @@ class OpenController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         Session::set('weixin',array('callback'=>$request->callback));
-        global $userId;
-        if($userId){
-            return redirect($request->callback);
-        }else{
-            $weixin = new Weixin();
-            $oauth_url = $weixin->get_authorize_url();
-            return redirect($oauth_url);
-        }
+        $weixin = new Weixin();
+        $oauth_url = $weixin->get_authorize_url();
+        return redirect($oauth_url);
     }
 
     //获取用户的open_id
