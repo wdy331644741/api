@@ -13,7 +13,7 @@ class UpdateRedeemAward2016080901 extends Migration
     public function up()
     {
         Schema::table('redeem_award', function (Blueprint $table) {
-            $table->tinyInteger('export_status',false,true)->nullable()->default(0);//导出状态1正在导出2导出成功
+            $table->tinyInteger('export_status',false,true)->nullable()->default(0);//导出状态0未生成1正在导出2导出成功
         });
     }
 
