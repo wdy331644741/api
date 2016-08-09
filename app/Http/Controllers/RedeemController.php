@@ -52,10 +52,18 @@ class RedeemController extends Controller
         return $this->outputJson(0,array('error_msg'=>'添加成功'));
     }
     /**
+     * 兑换码关系列表
+     * @param Request $request
+     */
+    public function getList(){
+        $list = RedeemAward::paginate(20);
+        return $this->outputJson(0,$list);
+    }
+    /**
      * 兑换码查看
      * @param Request $request
      */
-    public function getList(Request $request){
+    public function getCodeList(Request $request){
         //验证必填项
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
