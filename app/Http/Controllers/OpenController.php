@@ -79,14 +79,9 @@ class OpenController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         Session::set('weixin',array('callback'=>$request->callback));
-        global $userId;
-        if($userId){
-            return redirect($request->callback);
-        }else{
-            $weixin = new Weixin();
-            $oauth_url = $weixin->get_authorize_url();
-            return redirect($oauth_url);
-        }
+        $weixin = new Weixin();
+        $oauth_url = $weixin->get_authorize_url();
+        return redirect($oauth_url);
     }
 
     //获取用户的open_id
@@ -143,9 +138,9 @@ class OpenController extends Controller
 
     //接触绑定
     public function postWechatUnbind(){
-        $weixin = Session::get('weixin');
+        global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid']));
+        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
         return $res;
     }
     
