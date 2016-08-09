@@ -33,8 +33,9 @@ class OpenJsonRpc extends JsonRpc {
                 $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
                 file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails-'.date('Y-m-d'),FILE_APPEND);
             }
+            return $res['result'];
         }
-        return $res;
+        return $res['error'];
     }
     
     /**
@@ -46,7 +47,10 @@ class OpenJsonRpc extends JsonRpc {
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
-        return $res;
+        if(isset($res['error'])){
+            return $res['error'];
+        }
+        return $res['result'];
     }
 
 }
