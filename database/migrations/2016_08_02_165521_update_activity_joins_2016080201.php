@@ -16,7 +16,7 @@ class UpdateActivityJoins2016080201 extends Migration
             $table->dropColumn('award_type');//删除奖品类型
             $table->dropColumn('award_id');//删除奖品id
             $table->dropColumn('award_name');//删除奖品名称
-            $table->tinyInteger('status',false,true)->nullable()->default(null);//发奖状态 0开始发奖1规则不通过2发奖成功
+            $table->tinyInteger('status',false,true)->nullable()->default(null);//发奖状态 1频次验证不通过2规则不通过3发奖成功
             $table->tinyInteger('trigger_type',false,true)->nullable()->default(null);//触发类型
             $table->text('remark')->nullable();//备注
             $table->text('invite_remark')->nullable();//邀请人备注
