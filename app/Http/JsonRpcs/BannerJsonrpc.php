@@ -30,7 +30,7 @@ class BannerJsonRpc extends JsonRpc {
             // 不做时间限制
             case 'discover':
                 $data = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->orderByRaw('id + sort DESC')->get()->toArray();
+                    ->orderByRaw('sort DESC')->get()->toArray();
                 break;
             // 增加分页
             case 'memorabilia':
@@ -46,7 +46,7 @@ class BannerJsonRpc extends JsonRpc {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
 
-                    ->orderByRaw('id + sort DESC')->paginate($pageNum)->toArray();
+                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
                 $data = $res['data'];
                 $rData['total'] = $res['total'];
                 $rData['per_page'] = $res['per_page'];
