@@ -19,6 +19,8 @@ use App\Models\CouponCode;
 use Lib\JsonRpcClient;
 use App\Models\SendRewardLog;
 use App\Service\SendMessage;
+use App\Service\RuleCheck;
+use App\Models\ActivityJoin;
 use Config;
 use Validator;
 class SendAward
@@ -26,6 +28,158 @@ class SendAward
     static private $userID;
     static private  $activityID;
     static private  $money;
+
+    /**
+     * 验证规则和发送奖品
+     * @param $activityInfo
+     * @param $userID
+     * @param array $triggerData
+     * @return mixed
+     */
+    static function ruleCheckAndSendAward($activityInfo,$userID,$triggerData = array()){
+        //验证频次
+        if(!self::frequency($userID,$activityInfo)){//不通过
+            //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
+            return self::addJoins($userID,$activityInfo,1,json_encode(array('err_msg'=>'pass frequency')));
+        }
+        //验证规则
+        $status = RuleCheck::check($activityInfo['id'],$userID,$triggerData);
+        $activityID = $activityInfo['id'];
+        if($status['send'] === true){
+            //*****给本人发的奖励*****
+            $status = self::addAwardByActivity($userID,$activityID);
+            //******给邀请人发奖励*****
+            $url = Config::get('award.reward_http_url');
+            $client = new JsonRpcClient($url);
+            //获取邀请人id
+            $res = $client->getInviteUser(array('uid'=>$userID));
+            $invite_status = array();
+            if(isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])){
+                $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
+                if(!empty($inviteUserID)){
+                    //调用发奖接口
+                    $status = self::addAwardToInvite($inviteUserID,$activityID);
+                    $invite_status['inviteUserID'] = $inviteUserID;
+                    $invite_status['awards'] = $status;
+                }
+            }
+            //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
+            return self::addJoins($userID,$activityInfo,3,json_encode($status),json_encode($invite_status));
+        }else{
+            //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
+            return self::addJoins($userID,$activityInfo,2,json_encode($status['errmsg']));
+        }
+    }
+
+    /**
+     * 验证频次
+     * @param $userID
+     * @param $activityInfo
+     * @return bool
+     */
+    static function frequency($userID,$activityInfo){
+        if(isset($activityInfo['id']) && !empty($activityInfo['id']) && isset($activityInfo['frequency'])){
+            $where = array();
+            $where['user_id'] = $userID;
+            $where['status'] = 2;
+            //不限
+            if($activityInfo['frequency'] == 0){
+                $count = 0;
+            }
+            //一天一次
+            $date = date('Y-m-d');
+            if($activityInfo['frequency'] == 1){
+                $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->get()->count();
+            }
+            //仅一次
+            if($activityInfo['frequency'] == 2){
+                $count = ActivityJoin::where($where)->get()->count();
+            }
+            if($count == 0){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }
+
+    /**
+     * 添加到活动参与表
+     * @param $userID
+     * @param $activityInfo
+     * @param $status
+     * @param string $remark
+     * @param string $invite_remark
+     * @return mixed
+     */
+    static function addJoins($userID,$activityInfo,$status,$remark = '',$invite_remark = ''){
+        $data['activity_id'] = $activityInfo['id'];
+        $data['user_id'] = $userID;
+        $data['alias_name'] = $activityInfo['alias_name'];
+        $data['shared'] = 0;
+        $data['continue'] = 0;
+        $data['isExternal'] = 0;
+        $data['status'] = $status;
+        $data['trigger_type'] = $activityInfo['trigger_type'];
+        $data['remark'] = $remark;
+        $data['invite_remark'] = $invite_remark;
+        $data['created_at'] = date("Y-m-d H:i:s");
+        ActivityJoin::insertGetId($data);
+        return $data;
+    }
+    /**
+     * 按活动添加奖品
+     *
+     * @param $userId
+     * @param $activityId
+     * @return array
+     */
+    static function addAwardByActivity($userId, $activityId) {
+        $activity = Activity::where('id', $activityId)->with('awards')->first();
+        $awards = $activity['awards'];
+        $res = [];
+        if($activity['award_rule'] == 1) {
+            foreach($awards as $award) {
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+            }
+        }
+        if($activity['award_rule'] == 2) {
+            $awards = $activity['awards'];
+            $priority = 0;
+            foreach($awards as $award) {
+                $priority += $award['priority'];
+            }
+            $target = rand(1, $priority);
+            foreach($awards as $award) {
+                $target = $target - $award['priority'];
+                if($target <= 0) {
+                    break;
+                }
+            }
+            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+        }
+        return $res;
+
+
+    }
+    /**
+     * 邀请人发奖
+     *
+     * @param $userId
+     * @param $activityId
+     * @return array
+     */
+    static function addAwardToInvite($userId, $activityId) {
+        $activity = Activity::where('id', $activityId)->with('award_invite')->first();
+        $awardInvite = $activity['award_invite'];
+        $res = [];
+        foreach($awardInvite as $award) {
+            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+        }
+        return $res;
+    }
     /**
      * @需要提出去
      * @param $userID ，$award_type,$award_id
@@ -89,12 +243,6 @@ class SendAward
         $validator->sometimes('rate_increases_time', 'required|integer', function($input) {
             return $input->rate_increases_type == 2;
         });
-//        $validator->sometimes(array('rate_increases_start','rate_increases_end'), 'required|date', function($input) {
-//            return $input->rate_increases_type == 3;
-//        });
-//        $validator->sometimes('rate_increases_time', 'required|integer|min:1|max:12', function($input) {
-//            return $input->rate_increases_type == 4;
-//        });
         $validator->sometimes('effective_time_day', 'required|integer', function($input) {
             return $input->effective_time_type == 1;
         });
@@ -133,12 +281,6 @@ class SendAward
         if ($info['rate_increases_type'] == 2) {
             $data['continuous_days'] = $info['rate_increases_time'];//加息天数
         }
-//        elseif ($info['rate_increases_type'] == 3) {
-//            $data['increases_start'] = $info['rate_increases_start'];//加息开始时间
-//            $data['increases_end'] = $info['rate_increases_end'];//加息结束时间
-//        } elseif ($info['rate_increases_type'] == 4) {
-//            $data['continuous_month'] = $info['rate_increases_time'];//加息开始时间
-//        }
         if ($info['effective_time_type'] == 1) {
             $data['effective_start'] = date("Y-m-d H:i:s");
             $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+" . $info['effective_time_day'] . " days"));
@@ -497,59 +639,6 @@ class SendAward
         $table = self::_getAwardTable($awardType);    
         return $table->where('id', $awardId)->first();
     }
-
-    /**
-     * 按活动添加奖品
-     * 
-     * @param $userId
-     * @param $activityId
-     * @return array
-     */
-    static function addAwardByActivity($userId, $activityId) {
-        $activity = Activity::where('id', $activityId)->with('awards')->first();
-        $awards = $activity['awards'];
-        $res = [];
-        if($activity['award_rule'] == 1) {
-            foreach($awards as $award) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
-            }
-        }
-        if($activity['award_rule'] == 2) {
-            $awards = $activity['awards'];
-            $priority = 0;
-            foreach($awards as $award) {
-                $priority += $award['priority'];
-            }
-            $target = rand(1, $priority);
-            foreach($awards as $award) {
-                $target = $target - $award['priority'];
-                if($target <= 0) {
-                    break;
-                }
-            }
-            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
-        }
-        return $res;
-
-
-    }
-    /**
-     * 邀请人发奖
-     *
-     * @param $userId
-     * @param $activityId
-     * @return array
-     */
-    static function addAwardToInvite($userId, $activityId) {
-        $activity = Activity::where('id', $activityId)->with('award_invite')->first();
-        $awardInvite = $activity['award_invite'];
-        $res = [];
-        foreach($awardInvite as $award) {
-            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
-        }
-        return $res;
-    }
-    
     //获取奖品
     static function getSendedAwards($userId, $activityId, $day) {
         return SendRewardLog::where(array(
@@ -580,7 +669,7 @@ class SendAward
         $message = array();
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
-        $message['code'] = $info['code'];
+        $message['code'] = isset($info['code']) ? $info['code'] : '';
         $return = array();
         $info['message_status'] = 0;
         $info['mail_status'] = 0;
