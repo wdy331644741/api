@@ -8,6 +8,7 @@ use Lib\JsonRpcClient;
 use Lib\Session;
 use Lib\McQueue;
 use Lib\Weixin;
+use Config;
 
 
 class OpenJsonRpc extends JsonRpc {
@@ -22,6 +23,8 @@ class OpenJsonRpc extends JsonRpc {
     public function wechatBind() {
         global $userId;
         $weixin = Session::get('weixin');
+        /*$userId = 5000032;
+        $weixin['openid'] = 'ovewut6VpqDz6ux4nJg2cKx0srh0';*/
         file_put_contents(storage_path('logs/test-error.log'),$weixin['openid'].'--'.$userId.'--'.$this->_weixin.PHP_EOL,FILE_APPEND);
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
@@ -57,7 +60,7 @@ class OpenJsonRpc extends JsonRpc {
                     )
                 );
                 $wxObj = new Weixin();
-                $status = $wxObj->send_template_msg($weixin['openid'],'pI8t87TM7pcYuPX95798SpY6MHihe0dKoT85y3g0yIk',$data);
+                $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_bind'),$data);
             }
             return $res['result'];
         }
@@ -72,6 +75,8 @@ class OpenJsonRpc extends JsonRpc {
     public function wechatUnbind() {
         global $userId;
         $weixin = Session::get('weixin');
+        /*$userId = 5000032;
+        $weixin['openid'] = 'ovewut6VpqDz6ux4nJg2cKx0srh0';*/
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
         if(isset($res['error'])){
@@ -90,7 +95,7 @@ class OpenJsonRpc extends JsonRpc {
                     'color'=>'#173177'
                 ),
                 'keyword2'=>array(
-                    'value'=>date('Y年m月d日'),
+                    'value'=>date('Y年m月d日 H:i'),
                     'color'=>'#173177'
                 ),
                 'remark'=>array(
@@ -99,7 +104,7 @@ class OpenJsonRpc extends JsonRpc {
                 )
             );
             $wxObj = new Weixin();
-            $status = $wxObj->send_template_msg($weixin['openid'],'S-xfemyge3RBsJQfBRvfnLovFkZ3ZwxLMY5dngGx1kI',$data);
+            $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_unbind'),$data);
         }
         return $res['result'];
     }

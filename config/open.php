@@ -14,6 +14,10 @@ return [
         'state'=>'wanglibao',
         'secret'=>'777cd7abf2a7b63427a660fcec01383f',
         'api_base_uri'=>'https://api.weixin.qq.com',
-        'open_base_uri'=>'https://open.weixin.qq.com'
+        'open_base_uri'=>'https://open.weixin.qq.com',
+        'msg_template' => [
+            'wechat_bind'=>'pI8t87TM7pcYuPX95798SpY6MHihe0dKoT85y3g0yIk',
+            'wechat_unbind'=>'S-xfemyge3RBsJQfBRvfnLovFkZ3ZwxLMY5dngGx1kI',
+        ]
     ]
 ];

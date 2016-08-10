@@ -102,20 +102,24 @@ class Weixin
         }else{
             $access_token = Cache::get('wechat_access_token');
         }
-        $access_token_url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={$access_token}";
+        $access_token_url = "/cgi-bin/message/template/send?access_token={$access_token}";
+        //$access_token_url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={$access_token}";
         $postData = array(
             'touser'=>$openid,
             'template_id'=>$template_id,
             'url'=>'',
             'data'=>$data
         );
-        $res = $this->wx_request($access_token_url,json_encode($postData));
-        $result = json_decode($res);
-        if($result->errcode == 0){
-            return true;
-        }else{
-            file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'：msgid：【'.$result->msgid.'】code:【'.$result->errcode.'】-errormsg:【'.$result->errmsg.'】'.PHP_EOL,FILE_APPEND);
-            return false;
+
+        $res = $this->_client->post($access_token_url,['json'=>$postData]);
+        if($res->getStatusCode() == 200){
+            $result = json_decode($res->getBody());
+            if($result->errcode == 0){
+                return true;
+            }else{
+                file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'：msgid：【'.$result->msgid.'】code:【'.$result->errcode.'】-errormsg:【'.$result->errmsg.'】'.PHP_EOL,FILE_APPEND);
+                return false;
+            }
         }
         return false;
     }
