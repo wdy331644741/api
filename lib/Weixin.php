@@ -41,7 +41,7 @@ class Weixin
      * @params：string $code  用户同意授权后得到的code
      */
 
-    public function get_access_token($code){
+    public function get_openid($code){
         $access_token_url = "/sns/oauth2/access_token?appid=".$this->_appid."&secret=".$this->_appsecret."&code={$code}&grant_type=authorization_code";
         $res = $this->_client->get($access_token_url);
         if($res->getStatusCode() == 200){
@@ -66,4 +66,51 @@ class Weixin
         }
         return false;
     }
+
+    /*
+     *通过appid,secret获取access_token
+     * @params：string access_token
+     * @params：int expires_in
+     */
+
+    public function get_access_token(){
+        $access_token_url = "/cgi-bin/token?grant_type=client_credential&appid={$this->_appid}&secret={$this->_appsecret}";
+        $res = $this->_client->get($access_token_url);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            return $data;
+        }
+        return false;
+    }
+
+
+    /*
+     *通过openid,template_id发送模板消息
+     * @params：string access_token
+     * @params：string openid
+     * @params：string template_id
+     * @params：array data
+     */
+
+    public function send_template_msg($access_token,$openid,$template_id,$data){
+        $access_token_url = "/cgi-bin/template/del_private_template?access_token={$access_token}";
+        $postData = array(
+            'touser'=>$openid,
+            'template_id'=>$template_id,
+            'url'=>'',
+            'data'=>$data
+        );
+        $res = $this->_client->post($access_token_url,json_encode($postData));
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            if($data['errcode'] == 0){
+                return true;
+            }
+            file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log','code:【'.$data['errcode'].'】-errormsg:【'.$data['errmsg'].'】',FILE_APPEND));
+            return false;
+        }
+        return false;
+    }
+
+
 }
