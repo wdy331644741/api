@@ -116,7 +116,7 @@ class OpenController extends Controller
     }
 
     //绑定用户
-    public function postWechatBind(){
+    public function getWechatBind(){
         global $userId;
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
@@ -133,7 +133,7 @@ class OpenController extends Controller
 
 
     //解除绑定
-    public function postWechatUnbind(){
+    public function getWechatUnbind(){
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
