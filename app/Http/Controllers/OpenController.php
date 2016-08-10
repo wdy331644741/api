@@ -90,7 +90,8 @@ class OpenController extends Controller
             return $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
         }
         $weixin = new Weixin();
-        $this->_openid =  $weixin->get_access_token($request->code);
+        $this->_openid =  $weixin->get_openid($request->code);
+        dd($this->_openid);
         $weixin = Session::get('weixin');
         $new_weixin = array();
         if(is_array($weixin)){
