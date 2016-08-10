@@ -120,28 +120,31 @@ class OpenController extends Controller
         global $userId;
         $weixin = Session::get('weixin');
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
-        if(!isset($res['error'])){
-            $mcQueue = new McQueue();
-            $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
-            $putStatus = $mcQueue->put('binding',$data);
-            if(!$putStatus)
-            {
-                $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
-                file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails'.date('Y-m-d'),FILE_APPEND);
+        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+        if(isset($res['result'])){
+            if($res['result']['data']){
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/bindWechat");
+            }else{
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
             }
         }
-        return $res;
-
+        return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
     }
 
 
-    //接触绑定
+    //解除绑定
     public function postWechatUnbind(){
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
-        return $res;
+        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+        if(isset($res['result'])){
+            if($res['result']['data']){
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
+            }else{
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
+            }
+        }
+        return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
     }
     
 }
