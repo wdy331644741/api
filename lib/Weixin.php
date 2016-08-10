@@ -114,7 +114,7 @@ class Weixin
         if($result->errcode == 0){
             return true;
         }else{
-            file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'：code:【'.$data['errcode'].'】-errormsg:【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+            file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'：msgid：【'.$result->msgid.'】code:【'.$result->errcode.'】-errormsg:【'.$result->errmsg.'】'.PHP_EOL,FILE_APPEND);
             return false;
         }
         return false;
