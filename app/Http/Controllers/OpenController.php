@@ -125,10 +125,10 @@ class OpenController extends Controller
             if($res['result']['data']){
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/bindWechat");
             }else{
-                return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
+                return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/bindWechat");
             }
         }
-        return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
+        return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/bindWechat");
     }
 
 
