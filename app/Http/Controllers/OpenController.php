@@ -118,17 +118,18 @@ class OpenController extends Controller
     //绑定用户
     public function getWechatBind(){
         global $userId;
-        $weixin = Session::get('weixin');
+        $wxObj = new Weixin();
+        $oauth_url = $wxObj->get_authorize_url();
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
         if(isset($res['result'])){
             if($res['result']['data']){
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/bindWechat");
             }else{
-                return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/bindWechat");
+                return redirect($oauth_url);
             }
         }
-        return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/bindWechat");
+        return redirect($oauth_url);
     }
 
 
@@ -144,7 +145,7 @@ class OpenController extends Controller
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
             }
         }
-        return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
+        return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
     }
     
 }
