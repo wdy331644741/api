@@ -90,7 +90,7 @@ class OpenController extends Controller
             return $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
         }
         $weixin = new Weixin();
-        $this->_openid =  $weixin->get_access_token($request->code);
+        $this->_openid =  $weixin->get_openid($request->code);
         $weixin = Session::get('weixin');
         $new_weixin = array();
         if(is_array($weixin)){
@@ -116,32 +116,36 @@ class OpenController extends Controller
     }
 
     //绑定用户
-    public function postWechatBind(){
+    public function getWechatBind(){
         global $userId;
-        $weixin = Session::get('weixin');
+        $wxObj = new Weixin();
+        $oauth_url = $wxObj->get_authorize_url();
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
-        if(!isset($res['error'])){
-            $mcQueue = new McQueue();
-            $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
-            $putStatus = $mcQueue->put('binding',$data);
-            if(!$putStatus)
-            {
-                $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
-                file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails'.date('Y-m-d'),FILE_APPEND);
+        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+        if(isset($res['result'])){
+            if($res['result']['data']){
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/bindWechat");
+            }else{
+                return redirect($oauth_url);
             }
         }
-        return $res;
-
+        return redirect($oauth_url);
     }
 
 
-    //接触绑定
-    public function postWechatUnbind(){
+    //解除绑定
+    public function getWechatUnbind(){
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
-        return $res;
+        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+        if(isset($res['result'])){
+            if($res['result']['data']){
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
+            }else{
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
+            }
+        }
+        return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
     }
     
 }

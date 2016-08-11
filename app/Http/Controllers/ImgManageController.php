@@ -280,13 +280,22 @@ class ImgManageController extends Controller
     }
     //banner上移
     public function postSortUp(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+            'position' => 'required|min:2|max:255',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //获取操作的id
-        $id = intval($request->id);
+        $id = $request['id'];
+        $where['position'] = $request['position'];
+        $where['can_use'] = 1;
         //取得当前的值
-        $data = Banner::where('id',$id)->where('can_use',1)->select('sort')->get()->first()->toArray();
+        $data = Banner::where('id',$id)->where($where)->select('sort')->get()->first()->toArray();
         $value = isset($data['sort']) ? $data['sort'] : 0;
         //取得上一个当前的值
-        $data2 = Banner::where('sort','>',$value)->where('can_use',1)->select('id','sort')->orderBy('sort','ASC')->get()->toArray();
+        $data2 = Banner::where('sort','>',$value)->where($where)->select('id','sort')->orderBy('sort','ASC')->get()->toArray();
         $move = isset($data2[0]['sort']) ? $data2[0]['sort'] : 0;
         $moveID = isset($data2[0]['id']) ? $data2[0]['id'] : 0;
         //开始交换值
@@ -299,13 +308,22 @@ class ImgManageController extends Controller
     }
     //banner下移
     public function postSortDown(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+            'position' => 'required|min:2|max:255',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
         //获取操作的id
-        $id = intval($request->id);
+        $id = $request['id'];
+        $where['position'] = $request['position'];
+        $where['can_use'] = 1;
         //取得当前的值
-        $data = Banner::where('id',$id)->where('can_use',1)->select('sort')->get()->first()->toArray();
+        $data = Banner::where('id',$id)->where($where)->select('sort')->get()->first()->toArray();
         $value = isset($data['sort']) ? $data['sort'] : 0;
         //取得上一个当前的值
-        $data2 = Banner::where('sort','<',$value)->where('can_use',1)->select('id','sort')->orderBy('sort','DESC')->take(1)->get()->toArray();
+        $data2 = Banner::where('sort','<',$value)->where($where)->select('id','sort')->orderBy('sort','DESC')->take(1)->get()->toArray();
         $move = isset($data2[0]['sort']) ? $data2[0]['sort'] : 0;
         $moveID = isset($data2[0]['id']) ? $data2[0]['id'] : 0;
         //开始交换值

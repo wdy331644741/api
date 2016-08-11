@@ -2,6 +2,7 @@
 namespace Lib;
 
 use  \GuzzleHttp\Client;
+use Cache;
 
 class Weixin
 {
@@ -41,7 +42,7 @@ class Weixin
      * @params：string $code  用户同意授权后得到的code
      */
 
-    public function get_access_token($code){
+    public function get_openid($code){
         $access_token_url = "/sns/oauth2/access_token?appid=".$this->_appid."&secret=".$this->_appsecret."&code={$code}&grant_type=authorization_code";
         $res = $this->_client->get($access_token_url);
         if($res->getStatusCode() == 200){
@@ -66,4 +67,83 @@ class Weixin
         }
         return false;
     }
+
+    /*
+     *通过appid,secret获取access_token
+     * @params：string access_token
+     * @params：int expires_in
+     */
+
+    public function get_access_token(){
+        $access_token_url = "/cgi-bin/token?grant_type=client_credential&appid={$this->_appid}&secret={$this->_appsecret}";
+        $res = $this->_client->get($access_token_url);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            return $data;
+        }
+        return false;
+    }
+
+
+    /*
+     *通过openid,template_id发送模板消息
+     * @params：string access_token
+     * @params：string openid
+     * @params：string template_id
+     * @params：array data
+     */
+
+    public function send_template_msg($openid,$template_id,$data){
+        $access_token = '';
+        if (!Cache::has('wechat_access_token')) {
+            $wechat_arr = $this->get_access_token();
+            $access_token = $wechat_arr['access_token'];
+            Cache::put('wechat_access_token',$access_token,120);
+        }else{
+            $access_token = Cache::get('wechat_access_token');
+        }
+        $access_token_url = "/cgi-bin/message/template/send?access_token={$access_token}";
+        //$access_token_url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={$access_token}";
+        $postData = array(
+            'touser'=>$openid,
+            'template_id'=>$template_id,
+            'url'=>'',
+            'data'=>$data
+        );
+
+        $res = $this->_client->post($access_token_url,['json'=>$postData]);
+        if($res->getStatusCode() == 200){
+            $result = json_decode($res->getBody());
+            if($result->errcode == 0){
+                return true;
+            }else{
+                file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'：msgid：【'.$result->msgid.'】code:【'.$result->errcode.'】-errormsg:【'.$result->errmsg.'】'.PHP_EOL,FILE_APPEND);
+                return false;
+            }
+        }
+        return false;
+    }
+
+
+    private function wx_request($url,$data=null){
+        $curl = curl_init(); // 启动一个CURL会话
+        curl_setopt($curl, CURLOPT_URL, $url); // 要访问的地址
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 对认证证书来源的检查
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false); // 从证书中检查SSL加密算法是否存在
+        curl_setopt($curl, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']); // 模拟用户使用的浏览器
+        if($data != null){
+            curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
+        }
+        curl_setopt($curl, CURLOPT_TIMEOUT, 300); // 设置超时限制防止死循环
+        curl_setopt($curl, CURLOPT_HEADER, 0); // 显示返回的Header区域内容
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); // 获取的信息以文件流的形式返回
+        $info = curl_exec($curl); // 执行操作
+        if (curl_errno($curl)) {
+            echo 'Errno:'.curl_getinfo($curl);//捕抓异常
+            dump(curl_getinfo($curl));
+        }
+        return $info;
+    }
+
 }

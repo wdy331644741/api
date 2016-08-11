@@ -24,8 +24,9 @@ class Session
         
         $sessionHandler = new SessionHandler();
         $sessionHandler->selectSessionGroup(Config::get('rpcsession.accountgroup'));
-        global $userId;
+        global $userId,$phone;
         $userId = $sessionHandler->get('userData.user_id');
+        $phone = $sessionHandler->get('userData.phone');
         
         return $next($request);
     }
