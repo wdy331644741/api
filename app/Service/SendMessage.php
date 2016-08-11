@@ -15,7 +15,7 @@ class SendMessage
         $params['user_id'] = $userID;
         $params['nodeName'] = "message_custom";
         $params['tplParam'] = array();
-        $params['customTpl'] = array('title'=>'奖品','content'=>$content,'url'=>'','jump_type'=>0);
+        $params['customTpl'] = array('title'=>'奖品','mtype'=>'activity','content'=>$content,'url'=>'','jump_type'=>0);
         $url = Config::get('cms.message_http_url');
         $client = new JsonRpcClient($url);
         $res = $client->send($params);
