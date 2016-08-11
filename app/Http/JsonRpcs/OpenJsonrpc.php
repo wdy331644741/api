@@ -109,4 +109,21 @@ class OpenJsonRpc extends JsonRpc {
         return $res['result'];
     }
 
+    /**
+     * 获取微信签名认证
+     *
+     * @JsonRpcMethod
+     */
+    public function getSignPackage(){
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $url = "$protocol$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $wxObj = new Weixin();
+        $data = $wxObj->get_sign_package($url);
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'sign_package' =>$data,
+        );
+    }
+
 }
