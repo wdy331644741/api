@@ -24,7 +24,7 @@ class AwardCommonController extends Controller{
     function _rateIncreases($request,$award_id,$award_type){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'rate_increases' => 'required|numeric|between:0.001,1',
+            'rate_increases' => 'required|numeric|between:0.1,100',
             'rate_increases_type' => 'required|integer|min:1',
             'effective_time_type' => 'required|integer|min:1',
             'investment_threshold' => 'required|integer|min:0',
@@ -54,7 +54,7 @@ class AwardCommonController extends Controller{
         //名称
         $data['name'] = $request->name;
         //加息值
-        $data['rate_increases'] = $request->rate_increases;
+        $data['rate_increases'] = $request->rate_increases/100;
         //加息时长类型
         $data['rate_increases_type'] = $request->rate_increases_type;
         //加息时长天数
@@ -148,7 +148,7 @@ class AwardCommonController extends Controller{
         $validator->sometimes('red_max_money', 'required|integer|min:1', function($input) {
             return $input->red_type == 2;
         });
-        $validator->sometimes('percentage', 'required|numeric|between:0.001,1', function($input) {
+        $validator->sometimes('percentage', 'required|numeric|between:0.1,100', function($input) {
             return $input->red_type == 2;
         });
         $validator->sometimes('effective_time_day', 'required|integer|min:1', function($input) {
@@ -171,7 +171,7 @@ class AwardCommonController extends Controller{
             //红包最高金额
             $data['red_money'] = $request->red_max_money;
             //百分比例
-            $data['percentage'] = $request->percentage;
+            $data['percentage'] = $request->percentage/100;
         }
         if($data['red_type'] == 1){
             //红包金额
