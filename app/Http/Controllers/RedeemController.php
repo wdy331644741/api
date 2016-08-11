@@ -56,7 +56,7 @@ class RedeemController extends Controller
      * @param Request $request
      */
     public function getList(){
-        $list = RedeemAward::paginate(20);
+        $list = RedeemAward::orderby('id', 'desc')->paginate(20);
         return $this->outputJson(0,$list);
     }
     /**
