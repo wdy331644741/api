@@ -30,8 +30,6 @@ class RedeemExport extends Job implements ShouldQueue
      */
     public function handle()
     {
-        //修改导出状态为正在导出
-        RedeemAward::where('id',$this->id)->update(array('export_status'=>1));
         //获取优惠码
         $where['rel_id'] = $this->id;
         $list = RedeemCode::where($where)->get()->toArray();

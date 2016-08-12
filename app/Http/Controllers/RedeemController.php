@@ -94,6 +94,8 @@ class RedeemController extends Controller
         }
         $name = isset($names[0]['name']) && !empty($names[0]['name']) ? $names[0]['name'] : 'default';
         $this->dispatch(new RedeemExport($request->id,$name));
+        //修改导出状态为正在导出
+        RedeemAward::where('id',$request->id)->update(array('export_status'=>1));
         return $this->outputJson(0,array('error_msg'=>'导出成功'));
     }
     public function getDownload(Request $request){
