@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityJoin;
+use App\Models\SendRewardLog;
 use App\Service\Func;
 use Illuminate\Http\Request;
 
@@ -883,4 +885,13 @@ class ActivityController extends Controller
             $obj->min_cast = $request->min_cast;
             $obj->min_cast = $request->min_cast;
             break;*/
+
+    public function getActivityJoinsList(Request $request){
+        $data = Func::Search($request,new ActivityJoin());
+        return $this->outputJson(0,$data);
+    }
+    public function getSendRewardLogList(Request $request){
+        $data = Func::Search($request,new SendRewardLog());
+        return $this->outputJson(0,$data);
+    }
 }
