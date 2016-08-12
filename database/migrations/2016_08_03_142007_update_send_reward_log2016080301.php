@@ -30,7 +30,7 @@ class UpdateSendRewardLog2016080301 extends Migration
     {
         Schema::table('send_reward_log', function (Blueprint $table) {
             $table->dropColumn('coupon_code');//删除奖品类型
-            $table->dropColumn('status');//删除奖品id
+            $table->dropColumn('status');//状态0失败，1成功
             $table->dropColumn('message_status');//短信发送状态0、模板为空 1、发送失败 2、已发送
             $table->dropColumn('mail_status');//站内信发送状态0、模板为空 1、发送失败 2、已发送
         });
