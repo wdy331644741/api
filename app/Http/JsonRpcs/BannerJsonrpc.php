@@ -27,25 +27,33 @@ class BannerJsonRpc extends JsonRpc {
             $where['position'] = $position;
         }
         switch($position) {
-            // 不做时间限制
+            // 发现页 不做时间限制
             case 'discover':
-                $data = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                $data1 = BANNER::select('id', 'name', 'type','img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                    ->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
                     ->orderByRaw('sort DESC')->get()->toArray();
+                $data2 = BANNER::select('id', 'name', 'type','img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                    ->where($where)
+                    ->whereRaw('end < now()')
+                    ->orderByRaw('sort DESC')->get()->toArray();
+                $data  = array_merge($data1, $data2);
                 break;
-            // 增加分页
+            // 大事记 增加分页
             case 'memorabilia':
                 Paginator::currentPageResolver(function () use ($page) {
                     return $page;
                 });
                 
-                $res = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
                     ->where(function($query) {
                         $query->whereNull('start')->orWhereRaw('start < now()');
                     })
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-
                     ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
                 $data = $res['data'];
                 $rData['total'] = $res['total'];
@@ -57,7 +65,7 @@ class BannerJsonRpc extends JsonRpc {
                 break;
             // 默认
             default:
-                $data = BANNER::select('id', 'name', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
                     ->where(function($query) {
                         $query->whereNull('start')->orWhereRaw('start < now()');
                     })
