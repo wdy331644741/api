@@ -23,16 +23,16 @@ class RedeemController extends Controller
             'award_type' => 'required|integer|min:1',
             'award_id' => 'required|integer|min:1',
             'number' => 'required|integer|min:1',
-            'expire_time' => 'date'
+            'expire_time' => 'required|date'
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         //判断是否添加过该名称
-        $count = RedeemAward::where('name',$request->name)->count();
-        if($count > 0){
-            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该信息已经添加'));
-        }
+//        $count = RedeemAward::where('name',$request->name)->count();
+//        if($count > 0){
+//            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该信息已经添加'));
+//        }
         //添加到关系表
         $data = array();
         $data['name'] = $request->name;
@@ -94,6 +94,8 @@ class RedeemController extends Controller
         }
         $name = isset($names[0]['name']) && !empty($names[0]['name']) ? $names[0]['name'] : 'default';
         $this->dispatch(new RedeemExport($request->id,$name));
+        //修改导出状态为正在导出
+        RedeemAward::where('id',$request->id)->update(array('export_status'=>1));
         return $this->outputJson(0,array('error_msg'=>'导出成功'));
     }
     public function getDownload(Request $request){

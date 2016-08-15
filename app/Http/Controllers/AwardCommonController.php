@@ -61,6 +61,9 @@ class AwardCommonController extends Controller{
 //        if($data['rate_increases_type'] == 2 || $data['rate_increases_type'] == 4){
 //            $data['rate_increases_time'] = $request->rate_increases_time;
 //        }
+        if($data['rate_increases_type'] == 1){
+            $data['rate_increases_time'] = 0;
+        }
         if($data['rate_increases_type'] == 2){
             $data['rate_increases_time'] = $request->rate_increases_time;
         }
@@ -74,9 +77,12 @@ class AwardCommonController extends Controller{
         //有效时间顺延天数
         if($data['effective_time_type'] == 1){
             $data['effective_time_day'] = $request->effective_time_day;
+            $data['effective_time_start'] = null;
+            $data['effective_time_end'] = null;
         }
         //有效时间段
         if($data['effective_time_type'] == 2) {
+            $data['effective_time_day'] = 0;
             $data['effective_time_start'] = empty($request->effective_time_start) ? null : $request->effective_time_start;
             $data['effective_time_end'] = empty($request->effective_time_end) ? null : $request->effective_time_end;
         }
@@ -182,7 +188,10 @@ class AwardCommonController extends Controller{
         //有效时间信息
         if($data['effective_time_type'] == 1){
             $data['effective_time_day'] = $request->effective_time_day;
+            $data['effective_time_start'] = null;
+            $data['effective_time_end'] = null;
         }elseif($data['effective_time_type'] == 2){
+            $data['effective_time_day'] = 0;
             $data['effective_time_start'] = empty($request->effective_time_start) ? null : $request->effective_time_start;
             $data['effective_time_end'] = empty($request->effective_time_end) ? null : $request->effective_time_end;
         }
@@ -263,7 +272,10 @@ class AwardCommonController extends Controller{
         //有效时间信息
         if($data['effective_time_type'] == 1){
             $data['effective_time_day'] = $request->effective_time_day;
+            $data['effective_time_start'] = null;
+            $data['effective_time_end'] = null;
         }elseif($data['effective_time_type'] == 2){
+            $data['effective_time_day'] = 0;
             $data['effective_time_start'] = empty($request->effective_time_start) ? null : $request->effective_time_start;
             $data['effective_time_end'] = empty($request->effective_time_end) ? null : $request->effective_time_end;
         }

@@ -25,7 +25,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('sort','DESC')->paginate(20);
+        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('can_use','DESC')->orderBy('sort','DESC')->paginate(20);
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
@@ -191,6 +191,8 @@ class ImgManageController extends Controller
         $data['end'] = empty($request['end']) ? null : $request['end'];
         //描述
         $data['desc'] = trim($request['desc']);
+        //类型
+        $data['type'] = empty($request['type']) ? null : $request['type'];
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
         //图片活动的时间

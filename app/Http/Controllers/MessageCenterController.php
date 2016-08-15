@@ -35,7 +35,15 @@ class MessageCenterController extends Controller{
         //查询出该用户触发匹配的活动信息
         $where['trigger_type'] = $trigger_type;
         $where['enable'] = 1;
-        $activityInfo = Activity::where('start_at','<',date("Y-m-d H:i:s"))->where('end_at','>',date("Y-m-d H:i:s"))->where($where)->get()->toArray();
+        $activityInfo = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where($where)->get()->toArray();
         //队列
         if(!empty($activityInfo)){
             foreach($activityInfo as $item){
