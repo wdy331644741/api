@@ -124,7 +124,7 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::select('id','title','content','release_at')->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum)->get();
+        $data = Content::select('id','title','content','release_at')->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
 
         return array(
             'code' => 0,
