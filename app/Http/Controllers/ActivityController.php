@@ -104,15 +104,14 @@ class ActivityController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-
         $res = Activity::where('id',$request->id)->update([
             'name'=>$request->name,
             'alias_name'=>$request->alias_name,
             'group_id'=>$request->group_id,
             'frequency'=>$request->frequency,
-            'start_at'=>$request->start_at,
+            'start_at'=>$request->start_at ? $request->start_at : NUll,
             'award_rule'=>$request->award_rule,
-            'end_at'=>$request->end_at,
+            'end_at'=>$request->end_at ? $request->end_at : NUll,
             'trigger_index'=>$request->trigger_index,
             'trigger_type'=>$request->trigger_type,
             'des'=>$request->des ? $request->des : NULL,
