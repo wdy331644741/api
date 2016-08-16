@@ -139,6 +139,7 @@ class Weixin
         $timestamp = time();
         $nonceStr = $this->createNonceStr();
         $jsapiTicket = $this->get_js_apiticket();
+        file_put_contents(storage_path('logs/jsapi_ticket_error.log'),date('Y-m-d H:i:s').'=> 【url】:'.$url.'【js_api_ticket】:'.$jsapiTicket.PHP_EOL,FILE_APPEND);
         $string = "jsapi_ticket=$jsapiTicket&noncestr=$nonceStr&timestamp=$timestamp&url=$url";
         $signature = sha1($string);
         $signPackage = array(
