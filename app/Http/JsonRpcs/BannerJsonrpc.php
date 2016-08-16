@@ -85,6 +85,40 @@ class BannerJsonRpc extends JsonRpc {
             'data' => $rData
         );
     }
+    
+     /**
+     * 分享配置
+     *
+     * @JsonRpcMethod
+     */   
+      public function shareConfig($params) {
+        $where = array(
+            'can_use' => 1,
+        );
+        $position = $params->position;
+        if (empty($position)) {
+            throw new OmgException(OmgException::VALID_POSITION_FAIL);
+        }else{
+            $where['position'] = $position;
+        }
+        $data = BANNER::select('id', 'name', 'desc', 'short_desc', 'img_path', 'url', 'start', 'end', 'created_at', 'updated_at', 'release_time')
+          ->where($where)
+          ->where(function($query) {
+              $query->whereNull('end')->orWhereRaw('end > now()');
+          })
+          ->orderByRaw('sort DESC')->first();
+          
+        if(!$data) {
+            throw new OmgException(OmgException::NO_DATA);
+        }
+
+        $data['Etag'] = isset($data['release_time']) && !empty($data['release_time']) ? $data['release_time'] : '';
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }  
 
     /**
      * 活动弹窗
