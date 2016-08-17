@@ -191,6 +191,8 @@ class ImgManageController extends Controller
         $data['end'] = empty($request['end']) ? null : $request['end'];
         //描述
         $data['desc'] = trim($request['desc']);
+        //简短描述
+        $data['short_desc'] = trim($request['short_desc']);
         //类型
         $data['type'] = empty($request['type']) ? null : $request['type'];
         //修改时间

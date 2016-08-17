@@ -11,6 +11,10 @@ Route::controller('cms/content','Cms\ContentController');
 Route::controller('open','OpenController');
 Route::controller('app','AppUpdateConfigController');
 Route::controller('notice','Cms\NoticeController');
+//测试控制器
+Route::controller('test','TestController');
+//模板控制
+Route::controller('template', 'TemplateController');
 //奖品路由
 Route::controller('award', 'AwardController');
 
