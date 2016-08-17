@@ -39,6 +39,7 @@ class OmgException extends BasicException
     const SENDAEARD_FAIL = 4204;
     const PARAMS_NEED_ERROR = 4205;
     const DATABASE_ERROR = 4026;
+    const FREQUENCY_ERROR = 4027;
 
     //应用错误
     const NO_DATA = 4300;
@@ -82,6 +83,7 @@ class OmgException extends BasicException
         self::DAYS_NOT_ENOUGH => '不满足领取条件',
         self::ALREADY_AWARD => '奖励已领取',
         self::ALREADY_SHARED => '已分享',
+        self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
     );
 
     public function __construct($code, $data = array())
