@@ -147,5 +147,121 @@ class OpenController extends Controller
         }
         return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
     }
+
+    //获取响应事件
+    public function getEvent(Request $request)
+    {
+        $this->valid();
+        $this->responseMsg();
+    }
+
+    public function responseMsg()
+    {
+        $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
+
+        if (!empty($postStr)){
+            $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+            $fromUsername = $postObj->FromUserName;
+            $toUsername = $postObj->ToUserName;
+            $type = $postObj->MsgType;
+
+            //$keyword = trim($postObj->Content);
+            $time = time();
+            $textTpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Content><![CDATA[%s]]></Content>
+                        <FuncFlag>0</FuncFlag>
+                        </xml>";
+            
+            $msgType = "text";
+            if($type == 'event'){
+                $contentStr = $this->receiveEvent($postObj);
+                if($contentStr['key'] == "bind_weixin"){
+                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr['content']);
+                }
+            }
+
+            /*if($contentStr !="您的留言我们已经收到，感谢您对我们的关注和支持！"){
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+            }  */
+
+            echo $resultStr;
+
+        }else{
+            echo "";
+            exit;
+        }
+    }
+
+    public function valid()
+    {
+        $echoStr = $_GET["echostr"];
+        if($this->checkSignature()){
+            echo $echoStr;
+        }
+    }
+
+    private function receiveEvent($object)
+    {
+        $content = "";
+        switch ($object->Event)
+        {
+            case "subscribe":
+                $content = "关注";
+                if (isset($object->EventKey)){
+                    /**
+                     *场景扫码
+                     */
+                }
+                break;
+            case "unsubscribe":
+
+                /**
+                 *取消关注
+                 */
+
+                $content = "取消关注";
+                break;
+            case "SCAN":
+                $content = '您已经关注我们了哟~';
+                break;
+            case "CLICK":
+                if (isset($object->EventKey)){
+                    $content['key'] = $object->EventKey;
+                }
+                $content['content'] = '点击发送消息-Test【<a href="http://www.baidu.com">立即绑定</a>】';
+                break;
+
+        }
+        return $content;
+    }
+
+
+    private function  checkSignature($request)
+    {
+        $token = env('WECHAT_TOKEN');
+        if(!$token){
+            return $this->outputJson(10000,array('error_msg'=>'token is not defined!'));
+        }
+
+        $signature = $request->signature;
+        $timestamp = $request->timestamp;
+        $nonce = $request->nonce;
+
+        $tmpArr = array($token, $timestamp, $nonce);
+
+        sort($tmpArr, SORT_STRING);
+        $tmpStr = implode( $tmpArr );
+        $tmpStr = sha1( $tmpStr );
+
+        if( $tmpStr == $signature ){
+            return true;
+        }else{
+            return false;
+        }
+    }
     
 }
