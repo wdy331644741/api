@@ -21,7 +21,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::VALID_CODE_FAIL);
         }else{
             $where['is_use'] = 1;
-            $where['code'] = $code;
+            $where['code'] = strtoupper($code);
         }
         //用户ID
         if (empty($userId)) {

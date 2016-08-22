@@ -57,7 +57,11 @@ class ContentJsonRpc extends JsonRpc {
         if (empty($params->id)) {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        $data = Content::select('id','type_id','title','content','release','release_at','platform','release_at')->where('id',intval($params->id))->first();
+        $where = array(
+            'id' => intval($params->id),
+            'release' => 1,
+        ); 
+        $data = Notice::select('id','title','content','release','release_at','platform')->where($where)->first();
         return array(
             'code' => 0,
             'message' => 'success',
