@@ -84,7 +84,6 @@ class ImgManageController extends Controller
         $data['updated_at'] = date("Y-m-d H:i:s");
         //是否可用
         $data['can_use'] = 0;
-        $data['type'] = empty($request['type']) ? null : $request['type'];
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
         $id = Banner::insertGetId($data);
@@ -194,7 +193,7 @@ class ImgManageController extends Controller
         //简短描述
         $data['short_desc'] = trim($request['short_desc']);
         //类型
-        $data['type'] = empty($request['type']) ? null : $request['type'];
+        $data['type'] = isset($request['type']) ? $request['type'] : null ;
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
         //图片活动的时间
