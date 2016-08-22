@@ -4,7 +4,10 @@ namespace App\Http\JsonRpcs;
 use App\Models\RedeemAward;
 use App\Models\RedeemCode;
 use App\Service\SendAward;
+use Cache;
 use App\Exceptions\OmgException as OmgException;
+use Illuminate\Support\Facades\Config;
+
 class RedeemCodeJsonRpc extends JsonRpc {
     
     /**
@@ -14,6 +17,13 @@ class RedeemCodeJsonRpc extends JsonRpc {
      */
     public function sendCodeAward($params) {
         global $userId;
+        //防止刷兑换码
+        $key = 'user_id_'.$userId;
+        $frequency = Cache::get($key);
+        $configFrequency = Config::get('redeem.frequency');
+        if($frequency >= $configFrequency){
+            throw new OmgException(OmgException::FREQUENCY_ERROR);
+        }
         $where = array();
         //code码
         $code = $params->code;
@@ -31,6 +41,8 @@ class RedeemCodeJsonRpc extends JsonRpc {
         $code_id = RedeemCode::where($where)->select('rel_id')->get()->toArray();
         $code_id = isset($code_id[0]['rel_id']) && !empty($code_id[0]['rel_id']) ? $code_id[0]['rel_id'] : 0;
         if(empty($code_id)){
+            //错误次数加1
+            Cache::put($key,$frequency+1,60);
             throw new OmgException(OmgException::GET_CODEDATAEMPTY_FAIL);
         }
         //获取奖品类型和奖品id和奖品名称
@@ -67,7 +79,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::SENDAEARD_FAIL);
                 }else{
                     //修改兑换码状态为已使用
-                    RedeemCode::where('code',$code)->update(array('is_use'=>2));
+                    RedeemCode::where('code',$code)->update(array('is_use'=>2,'user_id'=>$userId));
                     return array(
                         'code' => 0,
                         'message' => 'success'
