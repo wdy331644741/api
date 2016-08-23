@@ -103,7 +103,7 @@ class OpenController extends Controller
             if(isset($weixin['callback'])){
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao&next=".$weixin['callback']);
             }else{
-                return redirect(env('WECHAT_BASE_HOST')."/wechat/verify");
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/verify?client=fuwuhao");
             }
         }
         if(!isset($res['error'])){
@@ -117,18 +117,9 @@ class OpenController extends Controller
 
     //绑定用户
     public function getWechatBind(){
-        global $userId;
         $wxObj = new Weixin();
+        Session::set('weixin',array('callback'=>env('WECHAT_BASE_HOST')."/wechat/bindWechat"));
         $oauth_url = $wxObj->get_authorize_url();
-        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
-        if(isset($res['result'])){
-            if($res['result']['data']){
-                return redirect(env('WECHAT_BASE_HOST')."/wechat/bindWechat");
-            }else{
-                return redirect($oauth_url);
-            }
-        }
         return redirect($oauth_url);
     }
 
@@ -137,7 +128,7 @@ class OpenController extends Controller
     public function getWechatUnbind(){
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$userId));
         if(isset($res['result'])){
             if($res['result']['data']){
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
@@ -149,23 +140,22 @@ class OpenController extends Controller
     }
 
     //获取响应事件
-    public function getEvent(Request $request)
+    public function postEvent(Request $request)
     {
         $this->valid($request);
         $this->responseMsg();
     }
 
-    public function responseMsg()
+    private function responseMsg()
     {
-        $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
-
+        $postStr = file_get_contents('php://input');
         if (!empty($postStr)){
             $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
             $fromUsername = $postObj->FromUserName;
             $toUsername = $postObj->ToUserName;
             $type = $postObj->MsgType;
-
             //$keyword = trim($postObj->Content);
+
             $time = time();
             $textTpl = "<xml>
                         <ToUserName><![CDATA[%s]]></ToUserName>
@@ -178,25 +168,20 @@ class OpenController extends Controller
             
             $msgType = "text";
             if($type == 'event'){
-                $contentStr = $this->receiveEvent($postObj);
+                $contentStr = $this->receiveEvent($postObj,$fromUsername);
                 if($contentStr['key'] == "bind_weixin"){
                     $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr['content']);
                 }
             }
-
-            if($contentStr !="您的留言我们已经收到，感谢您对我们的关注和支持！"){
-                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, '11111');
-            }
-
             echo $resultStr;
-
         }else{
             echo "";
             exit;
         }
     }
 
-    public function valid($request)
+    //微信验证
+    private function valid($request)
     {
         $echoStr = $request->echostr;
         if($this->checkSignature($request)){
@@ -204,7 +189,8 @@ class OpenController extends Controller
         }
     }
 
-    private function receiveEvent($object)
+    //获取响应Key回复相应内容
+    private function receiveEvent($object,$openid)
     {
         $content = "";
         switch ($object->Event)
@@ -232,13 +218,13 @@ class OpenController extends Controller
                 if (isset($object->EventKey)){
                     $content['key'] = $object->EventKey;
                 }
-                global $userId;
                 $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
                 $unbindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-unbind';
                 $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$openid));
                 if(isset($res['result'])){
                     if($res['result']['data']){
+                        $userId = $res['result']['data'];
                         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
                         $userBase = $client->userBasicInfo(array('userId'=>$userId));
                         $content['content'] = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
