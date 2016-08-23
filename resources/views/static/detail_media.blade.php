@@ -6,16 +6,25 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
-    <link rel="shortcut icon" href="https://php1.wanglibao.com/images/favicon.ico"/>
+    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/public.css'>
+    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/news_detail.css'>
     <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
     <link href="https://php1.wanglibao.com/css/ylb.css?v=@version@" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
 <div class="container">
-    <div class="container-main">
-        <h1>{!! $title !!}</h1>
-        <div>{!! $content !!}</div>
+    <div class='section'>
+        <div class="page_nav">
+            <a href="../list/1.html" target="_blank">媒体报道</a>&gt;报道详情
+        </div>
+        <div class='media_box detail_box clearfix'>
+            <h3>{!! $title !!}</h3>
+            <div class="media_coverage_time">{!! date('Y-m-d H:i',strtotime($release_at)) !!}</div>
+            <div class='medil_detail'>
+                {!! $content !!}
+            </div>
+        </div>
     </div>
 </div>
 <div id="sfooter"></div>

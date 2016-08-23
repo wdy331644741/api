@@ -6,25 +6,80 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
-    <link rel="shortcut icon" href="https://php1.wanglibao.com/images/favicon.ico"/>
+    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/public.css'>
+    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/news_list.css'>
     <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
     <link href="https://php1.wanglibao.com/css/ylb.css?v=@version@" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
 <div class="container">
-    <div class="container-main">
-        @foreach($data as $media)
-        <div>
-            <h1>{!! $media->title !!}</h1>
-            <div>{!! $media->content !!}</div>
+    <div class='section'>
+        <div class='media_box clearfix'>
+            <div class='media_list'>
+                @foreach($data as $dynamic)
+                <dl class='clearfix milestone_dd'>
+                    <dd class='media_title'>
+                        <a href='../detail/@if($dynamic->updated_at){!! $dynamic->id.strtotime($dynamic->updated_at) !!}@else{!! $dynamic->id !!}@endif.html' target="_blank">
+                            {!! $dynamic->title !!}
+                        </a>
+                    </dd>
+                    <dd class='media_content postion_dd'>
+                        <a href='../detail/@if($dynamic->updated_at){!! $dynamic->id.strtotime($dynamic->updated_at) !!}@else{!! $dynamic->id !!}@endif.html' target="_blank" class='contentA'>{!! mb_substr(strip_tags($dynamic->content),0,130,'utf-8') !!}</a>
+                        <a href='../detail/@if($dynamic->updated_at){!! $dynamic->id.strtotime($dynamic->updated_at) !!}@else{!! $dynamic->id !!}@endif.html' target="_blank" class='link'>[详细介绍]</a>
+                    </dd>
+                    <dd class="media_time">{!! date('Y-m-d H:i',strtotime($dynamic->release_at)) !!}</dd>
+                </dl>
+                @endforeach
+            </div>
+            <div class="pager">
+                <ul>
+                    {!! $lastPage = $data->lastPage(); $currentPage = $data->currentPage() !!}
+                    {!! $countPage = ($currentPage+5)< $lastPage ? $currentPage+5 : $lastPage-1 !!}
+                    @if($currentPage <= 1 )
+                        <li class="pager-prev disabled">
+                            <a href="javascript:void(0)" class="pager-anchor">&lt;</a>
+                        </li>
+                    @else
+                        <li class="pager-prev">
+                            <a href="./{!! $currentPage-1 !!}.html" class="pager-anchor">&lt;</a>
+                        </li>
+                    @endif
+                    <li class="pager-page-number @if($currentPage == 1) active @endif">
+                        <a href="./1.html" class="pager-anchor">1</a>
+                    </li>
+                    @if($currentPage > 2)
+                        @for($i=$data->currentPage(); $i<=$countPage; $i++)
+                            <li class="pager-page-number @if($currentPage == $i) active @endif">
+                                <a href="./{!! $i !!}.html" class="pager-anchor">{!! $i !!}</a>
+                            </li>
+                        @endfor
+                    @endif
+                    @if($lastPage>1)
+                        <li class="pager-page-number @if($currentPage == $lastPage) active @endif">
+                            <a href="./{!! $lastPage  !!}.html" class="pager-anchor">{!! $lastPage !!}</a>
+                        </li>
+                    @endif
+                    @if($lastPage == $currentPage)
+                        <li class="pager-next disabled">
+                            <a href="javascript:void(0)" class="pager-anchor">&gt;</a>
+                        </li>
+                    @else
+                        <li class="pager-next ">
+                            <a href="./{!! $currentPage+1 !!}.html" class="pager-anchor">&gt;</a>
+                        </li>
+                    @endif
+
+                </ul>
+            </div>
         </div>
-        @endforeach
     </div>
 </div>
 <div id="sfooter"></div>
 <script type="text/javascript" src="https://php1.wanglibao.com/js/sea.js"></script>
 <script type="text/javascript" src="https://php1.wanglibao.com/js/sea-config.js"></script>
+<script src='{!! env("STYLE_BASE_URL") !!}/js/jquery.min.js'></script>
+<script src='{!! env("STYLE_BASE_URL") !!}/js/news_list.js'></script>
 <script type="text/javascript">
 seajs.use(['jquery'],function($){
     seajs.use(['public', 'template', 'header'],function(){
