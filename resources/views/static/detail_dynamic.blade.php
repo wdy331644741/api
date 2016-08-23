@@ -6,20 +6,28 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
-    <link rel="shortcut icon" href="https://php1.wanglibao.com/images/favicon.ico"/>
+    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/public.css'>
+    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/news_detail.css'>
     <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
     <link href="https://php1.wanglibao.com/css/ylb.css?v=@version@" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
 <div class="container">
-    <div class="container-main">
-        @foreach($data as $media)
-        <div>
-            <h1>{!! $media->title !!}</h1>
-            <div>{!! $media->content !!}</div>
+    <div class='section'>
+        <div class="page_nav">
+            <a href="../list/1.html" target="_blank">网利动态</a>&gt;动态详情
         </div>
-        @endforeach
+        <div class='media_box detail_box clearfix'>
+            <div class='announcement_detail clearfix'>
+                <h3>{!! $title !!}</h3>
+                <span>{!! data('Y-m-d H:i',strtotime($release_at)) !!}</span>
+            </div>
+
+            <div class='medil_detail'>
+                {!! $content !!}
+            </div>
+        </div>
     </div>
 </div>
 <div id="sfooter"></div>
