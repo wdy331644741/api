@@ -147,5 +147,133 @@ class OpenController extends Controller
         }
         return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
     }
+
+    //获取响应事件
+    public function getEvent(Request $request)
+    {
+        $this->valid($request);
+        $this->responseMsg();
+    }
+
+    public function responseMsg()
+    {
+        $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
+
+        if (!empty($postStr)){
+            $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+            $fromUsername = $postObj->FromUserName;
+            $toUsername = $postObj->ToUserName;
+            $type = $postObj->MsgType;
+
+            //$keyword = trim($postObj->Content);
+            $time = time();
+            $textTpl = "<xml>
+                        <ToUserName><![CDATA[%s]]></ToUserName>
+                        <FromUserName><![CDATA[%s]]></FromUserName>
+                        <CreateTime>%s</CreateTime>
+                        <MsgType><![CDATA[%s]]></MsgType>
+                        <Content><![CDATA[%s]]></Content>
+                        <FuncFlag>0</FuncFlag>
+                        </xml>";
+            
+            $msgType = "text";
+            if($type == 'event'){
+                $contentStr = $this->receiveEvent($postObj);
+                if($contentStr['key'] == "bind_weixin"){
+                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr['content']);
+                }
+            }
+
+            if($contentStr !="您的留言我们已经收到，感谢您对我们的关注和支持！"){
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, '11111');
+            }
+
+            echo $resultStr;
+
+        }else{
+            echo "";
+            exit;
+        }
+    }
+
+    public function valid($request)
+    {
+        $echoStr = $request->echostr;
+        if($this->checkSignature($request)){
+            echo $echoStr;
+        }
+    }
+
+    private function receiveEvent($object)
+    {
+        $content = "";
+        switch ($object->Event)
+        {
+            case "subscribe":
+                $content = "关注";
+                if (isset($object->EventKey)){
+                    /**
+                     *场景扫码
+                     */
+                }
+                break;
+            case "unsubscribe":
+
+                /**
+                 *取消关注
+                 */
+
+                $content = "取消关注";
+                break;
+            case "SCAN":
+                $content = '您已经关注我们了哟~';
+                break;
+            case "CLICK":
+                if (isset($object->EventKey)){
+                    $content['key'] = $object->EventKey;
+                }
+                global $userId;
+                $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
+                $unbindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-unbind';
+                $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+                if(isset($res['result'])){
+                    if($res['result']['data']){
+                        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+                        $userBase = $client->userBasicInfo(array('userId'=>$userId));
+                        $content['content'] = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
+                    }else{
+                        $content['content'] = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
+                    }
+                }
+                break;
+
+        }
+        return $content;
+    }
+
+
+    private function checkSignature($request)
+    {
+        $token = env('WECHAT_TOKEN');
+        if(!$token){
+            return $this->outputJson(10000,array('error_msg'=>'token is not defined!'));
+        }
+        $signature = $request->signature;
+        $timestamp = $request->timestamp;
+        $nonce = $request->nonce;
+
+        $tmpArr = array($token, $timestamp, $nonce);
+
+        sort($tmpArr, SORT_STRING);
+        $tmpStr = implode( $tmpArr );
+        $tmpStr = sha1( $tmpStr );
+
+        if( $tmpStr == $signature ){
+            return true;
+        }else{
+            return false;
+        }
+    }
     
 }
