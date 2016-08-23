@@ -151,7 +151,7 @@ class OpenController extends Controller
     //获取响应事件
     public function getEvent(Request $request)
     {
-        $this->valid();
+        $this->valid($request);
         $this->responseMsg();
     }
 
@@ -184,9 +184,9 @@ class OpenController extends Controller
                 }
             }
 
-            /*if($contentStr !="您的留言我们已经收到，感谢您对我们的关注和支持！"){
-                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
-            }  */
+            if($contentStr !="您的留言我们已经收到，感谢您对我们的关注和支持！"){
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, '11111');
+            }
 
             echo $resultStr;
 
@@ -196,10 +196,10 @@ class OpenController extends Controller
         }
     }
 
-    public function valid()
+    public function valid($request)
     {
-        $echoStr = $_GET["echostr"];
-        if($this->checkSignature()){
+        $echoStr = $request->echostr;
+        if($this->checkSignature($request)){
             echo $echoStr;
         }
     }
@@ -232,7 +232,20 @@ class OpenController extends Controller
                 if (isset($object->EventKey)){
                     $content['key'] = $object->EventKey;
                 }
-                $content['content'] = '点击发送消息-Test【<a href="http://www.baidu.com">立即绑定</a>】';
+                global $userId;
+                $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
+                $unbindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-unbind';
+                $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'userId'=>$userId));
+                if(isset($res['result'])){
+                    if($res['result']['data']){
+                        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+                        $userBase = $client->userBasicInfo(array('userId'=>$userId));
+                        $content['content'] = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
+                    }else{
+                        $content['content'] = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
+                    }
+                }
                 break;
 
         }
@@ -240,13 +253,12 @@ class OpenController extends Controller
     }
 
 
-    private function  checkSignature($request)
+    private function checkSignature($request)
     {
         $token = env('WECHAT_TOKEN');
         if(!$token){
             return $this->outputJson(10000,array('error_msg'=>'token is not defined!'));
         }
-
         $signature = $request->signature;
         $timestamp = $request->timestamp;
         $nonce = $request->nonce;
