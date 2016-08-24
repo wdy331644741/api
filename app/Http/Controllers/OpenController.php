@@ -140,9 +140,13 @@ class OpenController extends Controller
     }
 
     //获取响应事件
-    public function postEvent(Request $request)
+    public function getEvent(Request $request)
     {
         $this->valid($request);
+    }
+
+    public function postEvent(Request $request)
+    {
         $this->responseMsg();
     }
 
