@@ -6,8 +6,8 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
-    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/public.css'>
-    <link type="text/css" rel="styleSheet" href='{!! env("STYLE_BASE_URL") !!}/css/announcement_detail.css'>
+    <link type="text/css" rel="styleSheet" href='../../css/public.css'>
+    <link type="text/css" rel="styleSheet" href='../../css/announcement_detail.css'>
     <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
     <link href="https://php1.wanglibao.com/css/ylb.css?v=@version@" rel="stylesheet" type="text/css"/>
 </head>
@@ -33,8 +33,8 @@
 <div id="sfooter"></div>
 <script type="text/javascript" src="https://php1.wanglibao.com/js/sea.js"></script>
 <script type="text/javascript" src="https://php1.wanglibao.com/js/sea-config.js"></script>
-<script src='{!! env("STYLE_BASE_URL") !!}/js/jquery.min.js'></script>
-<script src='{!! env("STYLE_BASE_URL") !!}/js/news_list.js'></script>
+<script src='../../js/jquery.min.js'></script>
+<script src='../../js/news_list.js'></script>
 <script type="text/javascript">
 seajs.use(['jquery'],function($){
     seajs.use(['public', 'template', 'header'],function(){

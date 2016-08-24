@@ -21,7 +21,7 @@ class TemplateController extends Controller
         if(!$contentType) {
             return $this->outputJson(10002, array('error_msg' => '类型不存在'));
         }
-        $pageNum = 1;
+        $pageNum = 10;
         $total = Content::where('type_id',$contentType->id)->count();
         $totalPage = ceil($total/$pageNum);
         $where = array('type_id' => $contentType->id, 'release' => 1);
@@ -36,8 +36,8 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('static/news/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('static/news/detail/'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/news/detail/'.$media->id.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/news/detail/'.$media->id.'*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
@@ -45,7 +45,7 @@ class TemplateController extends Controller
                         Storage::disk('static')->put("news/detail/".$media->id.$timeStamp.".html", $res);
                     }
                 }else{
-                    if(!file_exists(storage_path('static/news/detail/'.$media->id.'.html'))){
+                    if(!file_exists(storage_path('cms/news/detail/'.$media->id.'.html'))){
                         $res = view('static.detail_media', $media)->render();
                         Storage::disk('static')->put("news/detail/".$media->id.".html", $res);
                     }
@@ -74,8 +74,8 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('static/dynamic/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('static/dynamic/detail/'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/dynamic/detail/'.$media->id.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/dynamic/detail/'.$media->id.'*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
@@ -83,7 +83,7 @@ class TemplateController extends Controller
                         Storage::disk('static')->put("dynamic/detail/".$media->id.$timeStamp.".html", $res);
                     }
                 }else{
-                    if(!file_exists(storage_path('static/dynamic/detail/'.$media->id.'.html'))){
+                    if(!file_exists(storage_path('cms/dynamic/detail/'.$media->id.'.html'))){
                         $res = view('static.detail_dynamic', $media)->render();
                         Storage::disk('static')->put("dynamic/detail/".$media->id.".html", $res);
                     }
@@ -108,8 +108,8 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('static/notice/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('static/notice/detail/'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/notice/detail/'.$media->id.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/notice/detail/'.$media->id.'*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
@@ -117,7 +117,7 @@ class TemplateController extends Controller
                         Storage::disk('static')->put("notice/detail/".$media->id.$timeStamp.".html", $res);
                     }
                 }else{
-                    if(!file_exists(storage_path('static/notice/detail/'.$media->id.'.html'))){
+                    if(!file_exists(storage_path('cms/notice/detail/'.$media->id.'.html'))){
                         $res = view('static.detail_notice', $media)->render();
                         Storage::disk('static')->put("notice/detail/".$media->id.".html", $res);
                     }
@@ -153,8 +153,8 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('static/news/detail/notice_'.$media->id.'_'.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('static/news/detail/notice_'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/news/detail/notice_'.$media->id.'_'.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/news/detail/notice_'.$media->id.'*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
@@ -162,7 +162,7 @@ class TemplateController extends Controller
                         Storage::disk('static')->put("news/detail/notice_".$media->id.'_'.$timeStamp.".html", $res);
                     }
                 }else{
-                    if(!file_exists(storage_path('static/news/detail/notice_'.$media->id.'.html'))){
+                    if(!file_exists(storage_path('cms/news/detail/notice_'.$media->id.'.html'))){
                         $res = view('static.detail_notice', $media)->render();
                         Storage::disk('static')->put("news/detail/notice_".$media->id.".html", $res);
                     }
