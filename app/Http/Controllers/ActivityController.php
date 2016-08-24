@@ -723,7 +723,7 @@ class ActivityController extends Controller
         //优惠券id
         $data['award_id'] = intval($request->award_id);
         //查看是否重复
-        $count = Award::where($data)->count();
+        $count = AwardInvite::where($data)->count();
         if($count > 0){
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'已经有该数据'));
         }
