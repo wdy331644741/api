@@ -33,14 +33,37 @@ class RedeemCodeCreate extends Job implements ShouldQueue
         $where['id'] = $this->insertID;
         RedeemAward::where($where)->update(array('status'=>1));
         //根据数量生成兑换码后添加
-        $pc = mt_rand(1000,9999);//生成批次
-        for($i=1;$i<=$this->number;$i++){
+        for($i=0;$i<$this->number;$i++){
             $code['rel_id'] = $this->insertID;
-            $code['code'] = $pc."-".mt_rand(1000,9999)."-".mt_rand(1000,9999);
+            $code['code'] = $this->initCode($this->insertID, $i);
             $code['is_use'] = 1;
             $code['created_at'] = date("Y-m-d H:i:s");
             RedeemCode::insertGetId($code);
         }
         RedeemAward::where($where)->update(array('status'=>2));
     }
+    
+    private function initCode($typeId, $id)
+    {
+        $arr = array('n', 'w', 't', 'b', 's', '9', '8', 'g', '6', 'd', 'k', 'm', '2', '5', 'p', 'q', 'y', 'r', 'u', 'e', '4', '7', 'c', 'j', 'z', 'f', 'h', 'y', 'a', '3', 'x');
+        $length = count($arr);
+        $codeArr = array();
+        for ($i = 0, $int = $typeId; $i < 2; $i++) {
+            $index = $int % $length;
+            $codeArr[] = $arr[$index];
+            $int = $int / $length;
+        }
+        for ($i = 0, $int = $id; $i < 4; $i++) {
+            $index = $int % $length;
+            $codeArr[] = $arr[$index];
+            $int = $int / $length;
+        }
+
+        for ($i = 0; $i < 4; $i++) {
+            $index = rand(0, $length - 1);
+            $codeArr[] = $arr[$index];
+        }
+        return strtoupper(join($codeArr, ''));
+    }
+
 }
