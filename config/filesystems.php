@@ -49,7 +49,7 @@ return [
         ],
         'static' => [
             'driver' => 'local',
-            'root' => storage_path('static'),
+            'root' => storage_path('cms'),
             'visibility' => 'public',
         ],
         'public' => [
