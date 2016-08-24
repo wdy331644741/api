@@ -136,7 +136,7 @@ class OpenController extends Controller
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
             }
         }
-        return redirect(env('YY_BASE_HOST')."/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
+        return redirect(env('YY_BASE_HOST')."/yunying/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
     }
 
     //获取响应事件
