@@ -225,10 +225,10 @@ class OpenController extends Controller
                 $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
                 $unbindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-unbind';
                 $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$openid));
+                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>strval($openid)));
                 if(isset($res['result'])){
                     if($res['result']['data']){
-                        $userId = $res['result']['data'];
+                        $userId = intval($res['result']['data']);
                         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
                         $userBase = $client->userBasicInfo(array('userId'=>$userId));
                         $content['content'] = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
@@ -241,7 +241,11 @@ class OpenController extends Controller
         }
         return $content;
     }
-
+    public function getTest() {
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $res = $client->accountIsBind(array('channel'=>'wechat','key'=>'ovewut6VpqDz6ux4nJg2cKx0srh0'));
+        dd($res);
+    }
 
     private function checkSignature($request)
     {
