@@ -133,7 +133,7 @@ class OpenController extends Controller
             if($res['result']['data']){
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
             }else{
-
+                return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
             }
         }
         return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
