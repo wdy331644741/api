@@ -207,12 +207,12 @@ class RuleCheck
         return array('send'=>false,'errmsg'=>'单笔充值规则验证不通过');
     }
 
-    #TODO //用户回款（payment消息通知未添加）
+    //用户回款
     private static function _payment($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
 
         $payment_meony = $sqsmsg['amount'];
-        if($payment_meony >= $rules['min_payment'] && $payment_meony <= $rules['max_payment']){
+        if($payment_meony >= $rules['min_payment'] && ceil(floatval($payment_meony)) <= $rules['max_payment']){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'回款规则验证不通过');
