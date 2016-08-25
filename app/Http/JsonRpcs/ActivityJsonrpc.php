@@ -154,6 +154,10 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function signin() {
         global $userId;
+        return $this->innerSignin($userId);
+    }
+
+    public function innerSignin($userId) {
         $aliasName = 'signin';
         $days = array(7, 14, 21, 28);
         $daysLength = count($days);
@@ -169,9 +173,9 @@ class ActivityJsonRpc extends JsonRpc {
 
         $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
         if(!$activity) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);   
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        
+
         // 今日是否签到
         $where = array(
             'user_id' => $userId,
@@ -182,11 +186,11 @@ class ActivityJsonRpc extends JsonRpc {
             $remark = json_decode($todayRes['remark'], true);
             $award = SendAward::getAward($todayRes['award_type'], $todayRes['award_id']);
             $continue = intval($remark['continue']);
-            
-            
+
+
             // 是否分享
             $shared = $this->isShared($userId);
-            
+
             //获取额外奖励记录
             $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
 
@@ -216,8 +220,7 @@ class ActivityJsonRpc extends JsonRpc {
                     'award' => [$award['name']],
                 ),
             );
-            
-        }
+         }
         
         // 发奖
         $res = SendAward::addAwardByActivity($userId, $activity['id']);
@@ -270,7 +273,7 @@ class ActivityJsonRpc extends JsonRpc {
                 'award' => [$awardName],
                 'last' => $last,
             ),
-        );
+        );           
     }
 
     // 获取额外奖励领取记录
