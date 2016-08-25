@@ -27,7 +27,7 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Notice::select('id','title','release_at')->where('release',1)->whereIn('platform',[0,$params->platform])->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
+        $data = Notice::select('id','title','release_at','updated_at')->where('release',1)->whereIn('platform',[0,$params->platform])->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
 
         if(empty($data['data'])){
             return array(
@@ -104,7 +104,7 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::select('id','title','content','release_at')->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
+        $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
 
         return array(
             'code' => 0,
@@ -128,7 +128,7 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::select('id','title','content','release_at')->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
+        $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
 
         return array(
             'code' => 0,
