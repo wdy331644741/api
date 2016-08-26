@@ -21,6 +21,7 @@ class TemplateController extends Controller
         if(!$contentType) {
             return $this->outputJson(10002, array('error_msg' => '类型不存在'));
         }
+        error_reporting(0);
         $pageNum = 10;
         $total = Content::where('type_id',$contentType->id)->count();
         $totalPage = ceil($total/$pageNum);
@@ -52,6 +53,7 @@ class TemplateController extends Controller
                 }
             }
         }
+        return $this->outputJson(0);
     }
 
     //生成网利动态html
@@ -90,6 +92,7 @@ class TemplateController extends Controller
                 }
             }
         }
+        return $this->outputJson(0);
     }
 
     //生成网站公告html
@@ -124,6 +127,7 @@ class TemplateController extends Controller
                 }
             }
         }
+        return $this->outputJson(0);
     }
 
     public function postHelpList() {
@@ -138,6 +142,7 @@ class TemplateController extends Controller
         $often = Content::select('id','type_id','title')->where(['release'=>1,'platform'=>1])->get();
         $res = view('static.help', array('data'=>$data,'types'=>$typeArr,'oftens'=>$often))->render();
         Storage::disk('static')->put("help.html", $res);
+        return $this->outputJson(0);
     }
     #TODO //生成加入我们html
     public function postJoinList() {

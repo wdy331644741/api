@@ -8,6 +8,7 @@ use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
 use Lib\McQueue;
+use App\Http\JsonRpcs\ActivityJsonRpc;
 
 class OpenController extends Controller
 {
@@ -160,23 +161,12 @@ class OpenController extends Controller
             $toUsername = $postObj->ToUserName;
             $type = $postObj->MsgType;
             //$keyword = trim($postObj->Content);
-
             $time = time();
-            $textTpl = "<xml>
-                        <ToUserName><![CDATA[%s]]></ToUserName>
-                        <FromUserName><![CDATA[%s]]></FromUserName>
-                        <CreateTime>%s</CreateTime>
-                        <MsgType><![CDATA[%s]]></MsgType>
-                        <Content><![CDATA[%s]]></Content>
-                        <FuncFlag>0</FuncFlag>
-                        </xml>";
-            
+            $textTpl = config('open.weixin.xml_template.textTpl');
             $msgType = "text";
             if($type == 'event'){
-                $contentStr = $this->receiveEvent($postObj,$fromUsername);
-                if($contentStr['key'] == "bind_weixin"){
-                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr['content']);
-                }
+                $content = $this->receiveEvent($postObj,$fromUsername);
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $content);
             }
             echo $resultStr;
         }else{
@@ -209,11 +199,9 @@ class OpenController extends Controller
                 }
                 break;
             case "unsubscribe":
-
                 /**
                  *取消关注
                  */
-
                 $content = "取消关注";
                 break;
             case "SCAN":
@@ -221,22 +209,69 @@ class OpenController extends Controller
                 break;
             case "CLICK":
                 if (isset($object->EventKey)){
-                    $content['key'] = $object->EventKey;
+                    $EventKey = $object->EventKey;
                 }
-                $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
-                $unbindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-unbind';
-                $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-                $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>strval($openid)));
-                if(isset($res['result'])){
-                    if($res['result']['data']){
-                        $userId = intval($res['result']['data']);
-                        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
-                        $userBase = $client->userBasicInfo(array('userId'=>$userId));
-                        $content['content'] = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
-                    }else{
-                        $content['content'] = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
-                    }
+                switch ($EventKey){
+                    case 'bind_weixin':
+                        $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
+                        $unbindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-unbind';
+                        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+                        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>strval($openid)));
+                        if(isset($res['result'])){
+                            if($res['result']['data']){
+                                $userId = intval($res['result']['data']);
+                                $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+                                $userBase = $client->userBasicInfo(array('userId'=>$userId));
+                                $content = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
+                            }else{
+                                $content = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
+                            }
+                        }
+                        break;
+                    case 'daily_sign':
+                        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+                        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>strval($openid)));
+
+                        if($res['result']['data']){
+                            $userId = intval($res['result']['data']);
+                            $actRpcObj = new ActivityJsonRpc();
+                            $res = $actRpcObj->innerSignin($userId);
+                            if(!$res['code']){
+                                $is_sign = $res['data']['isSignin'];
+                                if($is_sign){
+                                    $content = "今日你已签到，连续签到可获得更多奖励，记得明天再来哦！";
+                                }else{
+                                    $data = array(
+                                        'first'=>array(
+                                            'value'=>$res['data']['award'][0]['name'],
+                                            'color'=>'#000000'
+                                        ),
+                                        'keyword1'=>array(
+                                            'value'=>date('Y-m-d H:i'),
+                                            'color'=>'#000000'
+                                        ),
+                                        'keyword2'=>array(
+                                            'value'=>$res['data']['current'],
+                                            'color'=>'#00000'
+                                        ),
+                                        'remark'=>array(
+                                            'value'=>'分享活动拿更多奖励，速戳详情领取！。',
+                                            'color'=>'#173177'
+                                        )
+                                    );
+                                    $wxObj = new Weixin();
+                                    $status = $wxObj->send_template_msg($openid,Config::get('open.weixin.msg_template.sign_daily'),$data);
+                                    $content = 'hahaha';
+                                }
+                            }
+                        }else{
+                            $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
+                            $content = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
+                        }
+                        break;
+
                 }
+
                 break;
 
         }

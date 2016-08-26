@@ -104,7 +104,7 @@ class Weixin
      * @params：array data
      */
 
-    public function send_template_msg($openid,$template_id,$data){
+    public function send_template_msg($openid,$template_id,$data,$url=null){
         $access_token_url = '';
         $access_token = $this->get_access_token();
         if($access_token){
@@ -114,9 +114,11 @@ class Weixin
         $postData = array(
             'touser'=>$openid,
             'template_id'=>$template_id,
-            'url'=>'',
             'data'=>$data
         );
+        if($url !== null){
+            $postData['url'] = $url;
+        }
 
         $res = $this->_client->post($access_token_url,['json'=>$postData]);
         if($res->getStatusCode() == 200){
