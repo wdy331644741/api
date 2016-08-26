@@ -30,16 +30,22 @@ class OmgException extends BasicException
     const PARAMS_ERROR = 4102;
     const VALID_CODE_FAIL = 4111;
     const VALID_USERID_FAIL = 4112;
+    const VALID_NAME_FAIL = 4113;
+    const VALID_PHONE_FAIL = 4114;
+    const VALID_CITY_FAIL = 4115;
+    const VALID_COLLATERAL_FAIL = 4116;
+    const VALID_AMOUNT_FAIL = 4117;
 
     //服务器错误
     const GET_BANNER_FAIL = 4200;
-    const GET_CODEDATAEMPTY_FAIL = 4113;
+    const GET_CODEDATAEMPTY_FAIL = 4201;
     const GET_AWARDDATAEMPTY_FAIL = 4202;
     const GET_AWARDDATAEXIST_FAIL = 4203;
     const SENDAEARD_FAIL = 4204;
     const PARAMS_NEED_ERROR = 4205;
     const DATABASE_ERROR = 4026;
     const FREQUENCY_ERROR = 4027;
+    const INSERT_FAIL = 4028;
 
     //应用错误
     const NO_DATA = 4300;
@@ -63,6 +69,11 @@ class OmgException extends BasicException
         self::VALID_CODE_FAIL => "兑换码不能为空",
         self::PARAMS_ERROR => "参数错误",
         self::VALID_USERID_FAIL => "用户ID不能为空",
+        self::VALID_NAME_FAIL => "名称不能为空",
+        self::VALID_PHONE_FAIL => "手机号不能为空",
+        self::VALID_CITY_FAIL => "城市不能为空",
+        self::VALID_COLLATERAL_FAIL => "抵押物不能为空",
+        self::VALID_AMOUNT_FAIL => "金额不能为空",
         self::PARAMS_NOT_NULL => "参数不能为空",
         self::PARAMS_NEED_ERROR => "缺少必要的参数",
         //服务器错误
@@ -72,6 +83,7 @@ class OmgException extends BasicException
         self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在或已过期",
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
+        self::INSERT_FAIL => "插入失败",
 
         //应用错误
         self::NO_DATA => "暂无数据",

@@ -15,6 +15,7 @@ use App\Http\JsonRpcs\ContentJsonRpc;
 use App\Http\JsonRpcs\RedeemCodeJsonRpc;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 use App\Http\JsonRpcs\OpinionJsonRpc;
+use App\Http\JsonRpcs\LoanBookJsonRpc;
 use App\Http\JsonRpcs\AppUpdateConfigJsonRpc;
 
 class RpcController extends Controller
@@ -58,4 +59,14 @@ class RpcController extends Controller
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
+    /**
+     * 贷款提交
+     */
+    public function postLoanBook() {
+        $jsonRpcServer = new JsonRpcServer();
+        $jsonRpcServer->addService(new LoanBookJsonRpc());
+        $jsonRpcServer->processingRequests();
+        return response('')->header('Content-Type', 'application/json');
+    }
+
 }
