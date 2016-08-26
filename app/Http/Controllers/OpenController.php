@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
-use Lib\McQueue;
+use Config;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 
 class OpenController extends Controller
@@ -166,7 +166,18 @@ class OpenController extends Controller
             $msgType = "text";
             if($type == 'event'){
                 $content = $this->receiveEvent($postObj,$fromUsername);
-                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $content);
+                if($content['error']){
+                    $resultStr = 'success';
+                }else{
+                    switch ($content['content']){
+                        case 'template':
+                            $resultStr = 'success';
+                            break;
+                        default :
+                            $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $content['content']);
+                            break;
+                    }
+                }
             }
             echo $resultStr;
         }else{
@@ -211,6 +222,7 @@ class OpenController extends Controller
                 if (isset($object->EventKey)){
                     $EventKey = $object->EventKey;
                 }
+                $content['error'] = 1;
                 switch ($EventKey){
                     case 'bind_weixin':
                         $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
@@ -222,10 +234,14 @@ class OpenController extends Controller
                                 $userId = intval($res['result']['data']);
                                 $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
                                 $userBase = $client->userBasicInfo(array('userId'=>$userId));
-                                $content = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
+                                $content['error'] = 0;
+                                $content['content'] = "您的微信账号为:{$userBase['result']['data']['username']}，如需解绑当前账号。请点击<a href='$unbindHref'>【立即解绑】</a>";
                             }else{
-                                $content = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
+                                $content['error'] = 0;
+                                $content['content'] = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
                             }
+                        }else{
+                            $content['content'] = 'success';
                         }
                         break;
                     case 'daily_sign':
@@ -239,11 +255,12 @@ class OpenController extends Controller
                             if(!$res['code']){
                                 $is_sign = $res['data']['isSignin'];
                                 if($is_sign){
-                                    $content = "今日你已签到，连续签到可获得更多奖励，记得明天再来哦！";
+                                    $content['error'] = 0;
+                                    $content['content'] = "今日你已签到，连续签到可获得更多奖励，记得明天再来哦！";
                                 }else{
                                     $data = array(
                                         'first'=>array(
-                                            'value'=>$res['data']['award'][0]['name'],
+                                            'value'=>$res['data']['award'][0],
                                             'color'=>'#000000'
                                         ),
                                         'keyword1'=>array(
@@ -260,13 +277,15 @@ class OpenController extends Controller
                                         )
                                     );
                                     $wxObj = new Weixin();
-                                    $status = $wxObj->send_template_msg($openid,Config::get('open.weixin.msg_template.sign_daily'),$data);
-                                    $content = 'hahaha';
+                                    $status = $wxObj->send_template_msg(strval($openid),Config::get('open.weixin.msg_template.sign_daily'),$data);
+                                    $content['error'] = 0;
+                                    $content['content'] = 'template';
                                 }
                             }
                         }else{
+                            $content['error'] = 0;
                             $bindHref = env('WECHAT_BASE_HOST').'/yunying/open/wechat-bind';
-                            $content = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
+                            $content['content'] = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
                         }
                         break;
 
