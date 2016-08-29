@@ -128,6 +128,9 @@ class OpenController extends Controller
     //解除绑定
     public function getWechatUnbind(){
         global $userId;
+        if(!$userId){
+            return redirect(env('YY_BASE_HOST')."/yunying/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
+        }
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$userId));
         if(isset($res['result'])){
@@ -138,7 +141,6 @@ class OpenController extends Controller
             }
         }
         return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
-        //return redirect(env('YY_BASE_HOST')."/yunying/open/login?client=fuwuhao&callback=".env('WECHAT_BASE_HOST')."/wechat/unbindWechat");
     }
 
     //获取响应事件
