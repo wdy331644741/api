@@ -6,9 +6,9 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
-    <link type="text/css" rel="styleSheet" href='./css/public.css'>
-    <link type="text/css" rel="styleSheet" href='./css/help.css'>
-    <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
+    <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
+    <link type="text/css" rel="styleSheet" href='/css/cms/help.css'>
+    <link href="/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
