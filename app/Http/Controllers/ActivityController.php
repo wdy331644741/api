@@ -344,8 +344,32 @@ class ActivityController extends Controller
         }
     }
 
-    //用户渠道
+    //用户渠道白名单
     private function rule_channel($type,$request){
+        $validator = Validator::make($request->all(), [
+            'channels' => 'required',
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('channels'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //用户渠道黑名单
+    private function rule_channelblist($type,$request){
         $validator = Validator::make($request->all(), [
             'channels' => 'required',
             'activity_id'=>'required|alpha_num|exists:activities,id',

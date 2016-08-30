@@ -54,6 +54,10 @@ return [
             'name'=>'标明',
             'model_name'=>'Castname',
         ],
+        13=>[
+            'name'=>'用户渠道黑名单',
+            'model_name'=>'Channelblist',
+        ],
     ],
     'activity_type'=>[
         0=>[
