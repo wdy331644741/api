@@ -2,18 +2,27 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <title>月利宝</title>
+    <title>网站公告-网利宝</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
+    <meta name="apple-itunes-app" content="app-id=881326898 affiliate-data=, app-argument="/>
+    <meta name="keywords" content="网利宝,网利宝官网,p2p金融,p2p理财,p2p网贷,P2p贷款,p2p平台,P2P网贷平台,互联网金融">
+    <meta name="description" content="网利宝（www.wanglibao.com）是中国领先的互联网金融p2p理财、p2p网贷平台，网利宝官网提供安全、精准的网贷平台投资及互联网金融服务，大型机构100%本息担保，保障投资人资金安全，P2P投资理财网贷客户首选的互联网金融平台。">
+    <link rel="shortcut icon" href="/favicon.ico"/>
     <link type="text/css" rel="styleSheet" href='../../css/public.css'>
-    <link type="text/css" rel="styleSheet" href='../../css/announcement.css'>
+    <link type="text/css" rel="styleSheet" href='../../css/news_list.css'>
+    <link href="https://php1.wanglibao.com/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="https://php1.wanglibao.com/theme/about/css/pc.css" rel="stylesheet" type="text/css"/>
     <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
-    <link href="https://php1.wanglibao.com/css/ylb.css?v=@version@" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
 <div class="container">
+    <div class="about_sidebar clearfix">
+        <div class="about_sidebar_div"><a href="/cms/theme/about/" class="about_sidebar_a">关于我们</a><a href="/cms/news/list/1.html" class="about_sidebar_a">媒体报道</a><a href="/cms/dynamic/list/1.html" class="about_sidebar_a">网利动态</a><a href="/cms/notice/list/1.html" class="active">网站公告</a><!-- <a href="/hiring" class="">加入我们</a> -->
+        </div>
+    </div>
     <div class='section'>
         <div class='media_box clearfix'>
             <div class='notice_list clearfix'>

@@ -37,7 +37,12 @@ class ContentJsonRpc extends JsonRpc {
             );
         }
         foreach ($data['data'] as $key=>$value){
-            $data['data'][$key]['link'] = env('NOTICE_LIST_H5_URL').$value['id'];
+            if($params->platform == 1){
+                $data['data'][$key]['link'] = env('PC_NOTICE_LIST_H5_URL').$value['id'];
+            }elseif($params->platform == 2){
+                $data['data'][$key]['link'] = env('APP_NOTICE_LIST_H5_URL').$value['id'];
+            }
+
         }
         $data['Etag'] = strval(strtotime($data['data'][0]['release_at']));
         return array(

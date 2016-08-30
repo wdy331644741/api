@@ -2,14 +2,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
-    <title>月利宝</title>
+    <title>网利宝安全吗?让您赚的盆满钵满，网利宝与您共同成长_网利宝-网利宝</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
     <link type="text/css" rel="styleSheet" href='./css/public.css'>
     <link type="text/css" rel="styleSheet" href='./css/help.css'>
     <link href="https://php1.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
-    <link href="https://php1.wanglibao.com/css/ylb.css?v=@version@" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
@@ -24,7 +23,7 @@
         </ul>
     </div>
     <div class='help-content'>
-        <div data-source="topic_0" class="hot-items help-box">
+        <div data-source="topic_0" class="hot-items help-box list-items">
             <h1>常见问题</h1>
             <ul>
                 @foreach($oftens as $often)

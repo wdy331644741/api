@@ -74,8 +74,8 @@ class Weixin
      * @params：int expires_in
      */
 
-    public function get_access_token(){
-        if (!Cache::has('wechat_access_token')) {
+    public function get_access_token($refresh = false){
+        if (!Cache::has('wechat_access_token') || $refresh) {
             $access_token_url = "/cgi-bin/token?grant_type=client_credential&appid={$this->_appid}&secret={$this->_appsecret}";
             $res = $this->_client->get($access_token_url);
             if($res->getStatusCode() == 200){
