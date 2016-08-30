@@ -77,6 +77,19 @@ return [
             'prefix' => '',
             'schema' => 'public',
         ],
+        'python' =>[
+            'driver'=>'mysql',
+            'host' => '192.168.20.227',
+            'port' => 3003,
+            'database'=>'wanglibao',
+            'username' => 'liuqi',
+            'password' => 'W22zOY7w',
+            "charset" => 'utf8',
+            "collation" => 'utf8_unicode_ci',
+            "prefix" => '',
+            "strict" => false,
+            "engine" => null,
+        ]
 
     ],
 

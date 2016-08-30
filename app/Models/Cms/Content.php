@@ -14,4 +14,6 @@ class Content extends Model
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
+
+    protected $fillable = ['type_id','cover','title','content','release','release_at','created_at','description','keywords'];
 }

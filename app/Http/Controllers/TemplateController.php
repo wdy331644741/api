@@ -131,7 +131,7 @@ class TemplateController extends Controller
     }
 
     public function postHelpList() {
-        $contentType = ContentType::where('alias_name','questions')->first();
+        $contentType = ContentType::where('alias_name','pc_questions')->first();
         $typeArr = ContentType::select('id','parent_id','name')->where('parent_id',$contentType->id)->orderByRaw('id + sort DESC')->orderBy('id','desc')->get();
         $typeId = array();
         foreach ($typeArr as $item){
