@@ -475,7 +475,7 @@ class ActivityController extends Controller
     }
 
     //投资总金额
-    private function rule_casename($type,$request){
+    private function rule_castname($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
             'name'=>'required',
