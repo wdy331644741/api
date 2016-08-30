@@ -32,3 +32,5 @@ Route::get('/enclosures/{url}',function ($url) {
 });
 //兑换码
 Route::controller('redeem', 'RedeemController');
+//贷款提交
+Route::controller('loan', 'LoanBookController');

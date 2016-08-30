@@ -27,7 +27,7 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Notice::select('id','title','release_at','updated_at')->where('release',1)->whereIn('platform',[0,$params->platform])->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
+        $data = Notice::selectRaw("`id`,`title`,`release_at`,UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where('release',1)->whereIn('platform',[0,$params->platform])->orderByRaw('id + sort DESC')->orderBy('release_at','DESC')->paginate($pagenum)->toArray();
 
         if(empty($data['data'])){
             return array(
@@ -37,7 +37,12 @@ class ContentJsonRpc extends JsonRpc {
             );
         }
         foreach ($data['data'] as $key=>$value){
-            $data['data'][$key]['link'] = env('NOTICE_LIST_H5_URL').$value['id'];
+            if($params->platform == 1){
+                $data['data'][$key]['link'] = env('PC_NOTICE_LIST_H5_URL').$value['id'];
+            }elseif($params->platform == 2){
+                $data['data'][$key]['link'] = env('APP_NOTICE_LIST_H5_URL').$value['id'];
+            }
+
         }
         $data['Etag'] = strval(strtotime($data['data'][0]['release_at']));
         return array(

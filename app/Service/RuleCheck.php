@@ -66,6 +66,9 @@ class RuleCheck
                 case $value->rule_type === 11:
                     $res = self::_rechargeAll($userId,$value);
                     break;
+                case $value->rule_type === 12:
+                    $res = self::_castName($userId,$value);
+                    break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
                     break;
@@ -246,5 +249,22 @@ class RuleCheck
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'投资总金额规则验证不通过');
+    }
+
+    //投资表名称，期名
+    private static function _castName($rule,$sqsmsg){
+        $rules = (array)json_decode($rule->rule_info);
+        $name = $sqsmsg['name'];
+        $short_name = $sqsmsg['short_name'];
+        if($rules['stage_name'] == null){
+            if($rules['name'] == $name){
+                return array('send'=>true);
+            }
+        }else{
+            if($rules['name'] == $name && $rules['stage_name'] == $short_name){
+                return array('send'=>true);
+            }
+        }
+        return array('send'=>false,'errmsg'=>'投资标名称规则验证不通过');
     }
 }

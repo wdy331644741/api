@@ -249,7 +249,7 @@ class OpenController extends Controller
                     case 'daily_sign':
                         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
                         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>strval($openid)));
-
+                        $url = env('WECHAT_BASE_HOST').'/app/check';
                         if($res['result']['data']){
                             $userId = intval($res['result']['data']);
                             $actRpcObj = new ActivityJsonRpc();
@@ -274,12 +274,12 @@ class OpenController extends Controller
                                             'color'=>'#00000'
                                         ),
                                         'remark'=>array(
-                                            'value'=>'分享活动拿更多奖励，速戳详情领取！。',
+                                            'value'=>'分享活动拿更多奖励，速戳详情领取！',
                                             'color'=>'#173177'
                                         )
                                     );
                                     $wxObj = new Weixin();
-                                    $status = $wxObj->send_template_msg(strval($openid),Config::get('open.weixin.msg_template.sign_daily'),$data);
+                                    $status = $wxObj->send_template_msg(strval($openid),Config::get('open.weixin.msg_template.sign_daily'),$data,$url);
                                     $content['error'] = 0;
                                     $content['content'] = 'template';
                                 }
