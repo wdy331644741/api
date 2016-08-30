@@ -50,6 +50,10 @@ return [
             'name'=>'充值总金额',
             'model_name'=>'Rechargeall',
         ],
+        12=>[
+            'name'=>'标明',
+            'model_name'=>'Castname',
+        ],
     ],
     'activity_type'=>[
         0=>[

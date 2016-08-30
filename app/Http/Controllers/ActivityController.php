@@ -474,6 +474,33 @@ class ActivityController extends Controller
         }
     }
 
+    //投资总金额
+    private function rule_casename($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'name'=>'required',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        if(!isset($request->stage_name)){
+            $request->stage_name = null;
+        }
+        DB::beginTransaction();
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('name','stage_name'));
+        $rule->save();
+        if($rule->id){
+            DB::commit();
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     //是否邀请
     private function rule_invite($type,$request){
         $validator = Validator::make($request->all(), [
