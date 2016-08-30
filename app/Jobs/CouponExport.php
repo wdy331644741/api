@@ -1,13 +1,13 @@
 <?php
 
 namespace App\Jobs;
-use App\Models\RedeemCode;
-use App\Models\RedeemAward;
+use App\Models\CouponCode;
+use App\Models\Coupon;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Excel;
-class RedeemExport extends Job implements ShouldQueue
+class CouponExport extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
     private $id;
@@ -31,14 +31,14 @@ class RedeemExport extends Job implements ShouldQueue
     public function handle()
     {
         //获取优惠码
-        $where['rel_id'] = $this->id;
-        $list = RedeemCode::where($where)->get()->toArray();
+        $where['coupon_id'] = $this->id;
+        $list = CouponCode::where($where)->get()->toArray();
         $cellData = array();
         foreach($list as $key => $item){
             if($key == 0){
-                $cellData[$key] = array('id','name','code','is_use','created_at','updated_at');
+                $cellData[$key] = array('id','name','code','is_use');
             }
-            $cellData[$key+1] = array($item['id'],$this->name,$item['code'],$item['is_use'],$item['created_at'],$item['updated_at']);
+            $cellData[$key+1] = array($item['id'],$this->name,$item['code'],$item['is_use']);
         }
         $fileName = date("YmdHis").mt_rand(1000,9999);
         $typeName = "xls";
@@ -47,8 +47,8 @@ class RedeemExport extends Job implements ShouldQueue
                 $sheet->rows($cellData);
             });
         })->store($typeName);
-        RedeemAward::where('id',$this->id)->update(array('file_name'=>$fileName.".".$typeName));
+        Coupon::where('id',$this->id)->update(array('file'=>$fileName.".".$typeName));
         //修改导出状态为导出成功
-        RedeemAward::where('id',$this->id)->update(array('export_status'=>2));
+        Coupon::where('id',$this->id)->update(array('export_status'=>2));
     }
 }

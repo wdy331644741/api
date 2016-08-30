@@ -30,7 +30,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
         if (empty($code)) {
             throw new OmgException(OmgException::VALID_CODE_FAIL);
         }else{
-            $where['is_use'] = 1;
+            $where['is_use'] = 0;
             $where['code'] = strtoupper($code);
         }
         //用户ID
@@ -79,7 +79,7 @@ class RedeemCodeJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::SENDAEARD_FAIL);
                 }else{
                     //修改兑换码状态为已使用
-                    RedeemCode::where('code',$code)->update(array('is_use'=>2,'user_id'=>$userId));
+                    RedeemCode::where('code',$code)->update(array('is_use'=>1,'user_id'=>$userId));
                     return array(
                         'code' => 0,
                         'message' => 'success'
