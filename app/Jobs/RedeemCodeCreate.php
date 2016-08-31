@@ -36,7 +36,7 @@ class RedeemCodeCreate extends Job implements ShouldQueue
         for($i=0;$i<$this->number;$i++){
             $code['rel_id'] = $this->insertID;
             $code['code'] = $this->initCode($this->insertID, $i);
-            $code['is_use'] = 1;
+            $code['is_use'] = 0;
             $code['created_at'] = date("Y-m-d H:i:s");
             RedeemCode::insertGetId($code);
         }

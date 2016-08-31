@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Jobs\Job;
 use App\Models\CouponCode;
+use App\Models\Coupon;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -33,12 +34,14 @@ class FileImport extends Job implements ShouldQueue
     public function handle()
     {
         if(!file_exists($this->file)){
+            Coupon::where('id',$this->insertID)->update(array('import_status'=>2));
             return "file not find!";
         }
         Excel::load($this->file,function($reader) {
             $reader = $reader->getSheet(0);
             $data = $reader->toArray();
             if(empty($data[0][0])){
+                Coupon::where('id',$this->insertID)->update(array('import_status'=>2));
                 return "file empty!";
             }
             //获取出code和isuse的key
@@ -53,7 +56,8 @@ class FileImport extends Job implements ShouldQueue
                 }
             }
             //如果没有code和isusekey就不插入
-            if(empty($codeKey) || empty($isUseKey)){
+            if(empty($codeKey)){
+                Coupon::where('id',$this->insertID)->update(array('import_status'=>2));
                 return ;
             }
             foreach($data as $key => $item){
@@ -62,8 +66,10 @@ class FileImport extends Job implements ShouldQueue
                     continue;
                 }
                 //如果大于等于1就不插入
-                if($item[$isUseKey] >= 1){
-                    continue;
+                if(!empty($isUseKey)){
+                    if($item[$isUseKey] >= 1){
+                        continue;
+                    }
                 }
                 //替换字符串
                 $conn = trim(str_replace("rn","<br/>",$item[$codeKey]));
@@ -82,5 +88,6 @@ class FileImport extends Job implements ShouldQueue
                 }
             }
         });
+        Coupon::where('id',$this->insertID)->update(array('import_status'=>2));
     }
 }

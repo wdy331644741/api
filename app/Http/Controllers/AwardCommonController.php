@@ -486,6 +486,8 @@ class AwardCommonController extends Controller{
             //插入数据
             $insertID = Coupon::insertGetId($data);
             if($insertID){
+                //修改导出状态为正在导入
+                Coupon::where('id',$insertID)->update(array('import_status'=>1));
                 $this->dispatch(new FileImport($insertID,$file));
                 return array('code' => 200, 'insert_id' => $insertID);
             }else{

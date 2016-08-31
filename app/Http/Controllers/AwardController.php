@@ -6,10 +6,11 @@ use App\Models\CouponCode;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use Validator;
-use App\Jobs\FileImport;
+use App\Models\Coupon;
+use App\Jobs\CouponExport;
 use DB;
 use App\Service\SendAward;
-
+use Response;
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -248,5 +249,38 @@ class AwardController extends AwardCommonController
         //获取一个可用的优惠券
         $list = CouponCode::where($where)->paginate(20);
         return $this->outputJson(0,$list);
+    }
+    /**
+     * 优惠券导出
+     * @param Request $request
+     */
+    public function getCouponExport(Request $request){
+        //验证必填项
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        $where['id'] = $request->id;
+        $names = Coupon::where($where)->select('name')->get()->toArray();
+        if(empty($names)){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该数据不存在'));
+        }
+        $name = isset($names[0]['name']) && !empty($names[0]['name']) ? $names[0]['name'] : 'default';
+        $this->dispatch(new CouponExport($request->id,$name));
+        //修改导出状态为正在导出
+        Coupon::where('id',$request->id)->update(array('export_status'=>1));
+        return $this->outputJson(0,array('error_msg'=>'导出成功'));
+    }
+    public function getCouponDownload(Request $request){
+        //验证必填项
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|min:2|max:255',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        return Response::download(base_path()."/storage/exports/{$request->file}");
     }
 }

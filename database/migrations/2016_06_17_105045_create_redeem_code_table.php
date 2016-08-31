@@ -16,7 +16,7 @@ class CreateRedeemCodeTable extends Migration
             $table->increments('id');
             $table->integer('rel_id',false,true);
             $table->string('code');
-            $table->tinyInteger('is_use',false,true);
+            $table->tinyInteger('is_use',false,true);//是否可用0可用1已使用
             $table->timestamps();
         });
     }

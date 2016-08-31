@@ -118,7 +118,55 @@ class BannerJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $data
         );
-    }  
+    }
+
+    /**
+     * 渠道落地页
+     *
+     * @JsonRpcMethod
+     */
+     public function bannerChannel($params) {
+         if(!isset($params->channel)) {
+             throw new OmgException(OmgException::VALID_POSITION_FAIL);
+         }
+         $where = array(
+             'can_use' => 1,
+             'position' => 'channel',
+             'name' => strtolower($params->channel),
+         );
+         $data = BANNER::select('id', 'name', 'type', 'img_path', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+             ->where(function($query) {
+                 $query->whereNull('start')->orWhereRaw('start < now()');
+             })
+             ->where(function($query) {
+                 $query->whereNull('end')->orWhereRaw('end > now()');
+             })
+             ->orderByRaw('id + sort DESC')->first();
+         if(!$data) {
+             $where = array(
+                 'can_use' => 1,
+                 'position' => 'channel',
+                 'name' => '',
+             );
+             $data = BANNER::select('id', 'name', 'type', 'img_path', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                 ->where(function($query) {
+                     $query->whereNull('start')->orWhereRaw('start < now()');
+                 })
+                 ->where(function($query) {
+                     $query->whereNull('end')->orWhereRaw('end > now()');
+                 })
+                 ->orderByRaw('id + sort DESC')->first();
+         }
+         if(!$data) {
+             throw new OmgException(OmgException::NO_DATA);
+         }
+         $data['Etag'] = $data['release_time'];
+         return array(
+             'code' => 0,
+             'message' => 'success',
+             'data' => $data
+         );
+    }   
 
     /**
      * 活动弹窗
