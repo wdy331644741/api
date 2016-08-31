@@ -200,8 +200,12 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $isfirst = $sqsmsg['is_first'];
         $recharge_meony = $sqsmsg['money'];
-        if ($rules['isfirst']){
+        if ($rules['isfirst'] == 1){
             if($isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['max_recharge']){
+                return array('send'=>true);
+            }
+        }elseif ($rules['isfirst'] == 2){
+            if(!$isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['max_recharge']){
                 return array('send'=>true);
             }
         }else{
