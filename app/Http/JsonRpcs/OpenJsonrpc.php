@@ -61,6 +61,9 @@ class OpenJsonRpc extends JsonRpc {
                 );
                 $wxObj = new Weixin();
                 $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_bind'),$data);
+                if($status['errcode'] == 40001){
+                    $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_bind'),$data,null,true);
+                }
             }
             return $res['result'];
         }
@@ -105,6 +108,9 @@ class OpenJsonRpc extends JsonRpc {
             );
             $wxObj = new Weixin();
             $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_unbind'),$data);
+            if($status['errcode'] == 40001){
+                $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_bind'),$data,null,true);
+            }
         }
         return $res['result'];
     }

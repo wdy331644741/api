@@ -104,9 +104,9 @@ class Weixin
      * @params：array data
      */
 
-    public function send_template_msg($openid,$template_id,$data,$url=null){
+    public function send_template_msg($openid,$template_id,$data,$url=null,$refresh=false){
         $access_token_url = '';
-        $access_token = $this->get_access_token();
+        $access_token = $this->get_access_token($refresh);
         if($access_token){
             $access_token_url = "/cgi-bin/message/template/send?access_token={$access_token}";
         }
@@ -124,10 +124,13 @@ class Weixin
         if($res->getStatusCode() == 200){
             $result = json_decode($res->getBody());
             if($result->errcode == 0){
-                return true;
+                return ['errcode'=>0];
+            }elseif ($result->errcode == 40001){
+                file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'=> code:【'.$result->errcode.'】-errormsg:【'.$result->errmsg.'】'.PHP_EOL,FILE_APPEND);
+                return ['errcode'=>40001 ];
             }else{
                 file_put_contents(storage_path('logs/send_template_msg-error'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'=> code:【'.$result->errcode.'】-errormsg:【'.$result->errmsg.'】'.PHP_EOL,FILE_APPEND);
-                return false;
+                return ['errcode'=>1 ];
             }
         }
         return false;

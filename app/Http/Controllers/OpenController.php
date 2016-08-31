@@ -282,6 +282,9 @@ class OpenController extends Controller
                                     );
                                     $wxObj = new Weixin();
                                     $status = $wxObj->send_template_msg(strval($openid),Config::get('open.weixin.msg_template.sign_daily'),$data,$url);
+                                    if($status['errcode'] == 40001){
+                                        $status = $wxObj->send_template_msg(strval($openid),Config::get('open.weixin.msg_template.sign_daily'),$data,$url,true);
+                                    }
                                     $content['error'] = 0;
                                     $content['content'] = 'template';
                                 }
