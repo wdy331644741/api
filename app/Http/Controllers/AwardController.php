@@ -10,7 +10,7 @@ use App\Models\Coupon;
 use App\Jobs\CouponExport;
 use DB;
 use App\Service\SendAward;
-
+use Response;
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -272,5 +272,15 @@ class AwardController extends AwardCommonController
         //修改导出状态为正在导出
         Coupon::where('id',$request->id)->update(array('export_status'=>1));
         return $this->outputJson(0,array('error_msg'=>'导出成功'));
+    }
+    public function getCouponDownload(Request $request){
+        //验证必填项
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|min:2|max:255',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        return Response::download(base_path()."/storage/exports/{$request->file}");
     }
 }
