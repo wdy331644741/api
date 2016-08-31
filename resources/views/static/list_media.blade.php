@@ -69,9 +69,11 @@
                     </li>
                     @endfor
                 @endif
-                <li class="pager-page-number @if($currentPage == $lastPage) active @endif">
-                    <a href="./{!! $lastPage  !!}.html" class="pager-anchor">{!! $lastPage !!}</a>
-                </li>
+                @if($lastPage>1)
+                    <li class="pager-page-number @if($currentPage == $lastPage) active @endif">
+                        <a href="./{!! $lastPage  !!}.html" class="pager-anchor">{!! $lastPage !!}</a>
+                    </li>
+                @endif
                 @if($lastPage == $currentPage)
                     <li class="pager-next disabled">
                         <a href="javascript:void(0)" class="pager-anchor">&gt;</a>
