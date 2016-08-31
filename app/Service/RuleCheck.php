@@ -183,12 +183,16 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $isfirst = $sqsmsg['is_first'];
         $cast_meony = $sqsmsg['Investment_amount'];
-        if($rules['isfirst']){
-            if($isfirst && $cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
+        if ($rules['isfirst'] == 1){
+            if($isfirst && $cast_meony >= $rules['min_recharge'] && $cast_meony <= $rules['max_recharge']){
+                return array('send'=>true);
+            }
+        }elseif ($rules['isfirst'] == 2){
+            if(!$isfirst && $cast_meony >= $rules['min_recharge'] && $cast_meony <= $rules['max_recharge']){
                 return array('send'=>true);
             }
         }else{
-            if($cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
+            if($cast_meony >= $rules['min_recharge'] && $cast_meony <= $rules['max_recharge']){
                 return array('send'=>true);
             }
         }
