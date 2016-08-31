@@ -180,6 +180,8 @@ class OpenController extends Controller
                             break;
                     }
                 }
+            }else{
+                $resultStr = "success";
             }
             echo $resultStr;
         }else{

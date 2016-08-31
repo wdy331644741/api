@@ -119,7 +119,11 @@ class TestController extends Controller
             $new_data[] = $new_item;
         }
         DB::beginTransaction();
-        $res = DB::table('cms_notices')->insert($new_data);
+        for ($i=0; $i<4;$i++){
+            $offset = $i*200;
+            $insdata = array_slice($new_data,$offset,200);
+            $res = DB::table('cms_notices')->insert($insdata);
+        }
         if($res){
             DB::commit();
             return $this->outputJson(0);
@@ -127,6 +131,7 @@ class TestController extends Controller
             DB::rollBack();
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
+
     }
 
 }
