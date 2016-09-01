@@ -36,39 +36,95 @@ class SendAward
      * @param array $triggerData
      * @return mixed
      */
-    static function ruleCheckAndSendAward($activityInfo,$userID,$triggerData = array()){
+    static function ruleCheckAndSendAward($activityInfo, $userID, $triggerData = array()){
         //验证频次
-        if(!self::frequency($userID,$activityInfo)){//不通过
+        if (!self::frequency($userID, $activityInfo)) {//不通过
             //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
-            return self::addJoins($userID,$activityInfo,1,json_encode(array('err_msg'=>'pass frequency')));
+            return self::addJoins($userID, $activityInfo, 1, json_encode(array('err_msg' => 'pass frequency')));
         }
+
         //验证规则
-        $status = RuleCheck::check($activityInfo['id'],$userID,$triggerData);
+        $ruleStatus = RuleCheck::check($activityInfo['id'], $userID, $triggerData);
         $activityID = $activityInfo['id'];
-        if($status['send'] === true){
-            //*****给本人发的奖励*****
-            $status = self::addAwardByActivity($userID,$activityID);
-            //******给邀请人发奖励*****
-            $url = Config::get('award.reward_http_url');
-            $client = new JsonRpcClient($url);
-            //获取邀请人id
-            $res = $client->getInviteUser(array('uid'=>$userID));
-            $invite_status = array();
-            if(isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])){
-                $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
-                if(!empty($inviteUserID)){
-                    //调用发奖接口
-                    $status = self::addAwardToInvite($inviteUserID,$activityID);
-                    $invite_status['inviteUserID'] = $inviteUserID;
-                    $invite_status['awards'] = $status;
-                }
-            }
+        if ($ruleStatus['send'] !== true) {
             //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
-            return self::addJoins($userID,$activityInfo,3,json_encode($status),json_encode($invite_status));
-        }else{
-            //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
-            return self::addJoins($userID,$activityInfo,2,json_encode($status['errmsg']));
+            return self::addJoins($userID, $activityInfo, 2, json_encode($ruleStatus['errmsg']));
         }
+
+        //*****发奖之前做的附加条件操作*****
+        $additional_status = self::beforeSendAward($activityInfo, $triggerData);
+
+        //*****给本人发的奖励*****
+        $status = self::addAwardByActivity($userID, $activityID);
+
+        //******给邀请人发奖励*****
+        $invite_status = self::InviteSendAward($userID, $activityID);
+
+        //拼接状态
+        if(!empty($additional_status)){
+            if(!empty($status)) {
+                $status[] = $additional_status;
+            }
+            if(isset($invite_status['awards']) && !empty($invite_status['awards'])) {
+                $invite_status['awards'][] = $additional_status;
+            }
+        }
+
+        //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
+        return self::addJoins($userID, $activityInfo, 3, json_encode($status), json_encode($invite_status));
+    }
+
+    /**
+     * 给邀请人发奖
+     * @param $userID
+     * @param $activityID
+     * @return array
+     */
+    static function InviteSendAward($userID, $activityID)
+    {
+        $url = Config::get('award.reward_http_url');
+        $client = new JsonRpcClient($url);
+        //获取邀请人id
+        $res = $client->getInviteUser(array('uid' => $userID));
+        $invite_status = array();
+        if (isset($res['result']['code']) && $res['result']['code'] === 0 && isset($res['result']['data']) && !empty($res['result']['data'])) {
+            $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
+            if (!empty($inviteUserID)) {
+                //调用发奖接口
+                $status = self::addAwardToInvite($inviteUserID, $activityID);
+                $invite_status['inviteUserID'] = $inviteUserID;
+                $invite_status['awards'] = $status;
+            }
+        }
+        return $invite_status;
+    }
+
+    /**
+     * 按照投资金额送体验金
+     * @param $activityInfo
+     * @param $triggerData
+     * @return mixed
+     */
+    static function beforeSendAward($activityInfo, $triggerData){
+        $return = array();
+        $investmentAmount = $triggerData['Investment_amount'];
+        switch ($activityInfo['alias_name']) {
+            case 'songtiyanjin':
+                $experience_amount_money = intval($investmentAmount / 10000);
+                $awards['id'] = 0;
+                $awards['user_id'] = $triggerData['user_id'];
+                $awards['source_id'] = $activityInfo['id'];
+                $awards['name'] = '按投资金额送体验金';
+                $awards['source_name'] = $activityInfo['name'];
+                $awards['experience_amount_money'] = $experience_amount_money * 1000;
+                $awards['effective_time_type'] = 1;
+                $awards['effective_time_day'] = 7;
+                $awards['platform_type'] = 0;
+                $awards['limit_desc'] = '';
+                $return = self::experience($awards);
+        }
+        //发奖
+        return $return;
     }
 
     /**
@@ -258,7 +314,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -346,7 +402,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -432,7 +488,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -498,7 +554,7 @@ class SendAward
         $info['status'] = 0;
         //验证必填
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
@@ -514,7 +570,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -577,7 +633,7 @@ class SendAward
             'source_name' => 'required|min:2|max:255',
         ]);
         if($validator->fails()){
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
