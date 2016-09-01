@@ -314,7 +314,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -402,7 +402,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -488,7 +488,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -570,7 +570,7 @@ class SendAward
         });
         if($validator->fails()){
             //记录错误日志
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -586,7 +586,6 @@ class SendAward
         $data['name'] = $info['name'];
         //体验金额
         $data['amount'] = $info['experience_amount_money'];
-        echo $info['experience_amount_money'];exit;
         if ($info['effective_time_type'] == 1) {
             $data['effective_start'] = date("Y-m-d H:i:s");
             $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+" . $info['effective_time_day'] . " days"));
@@ -634,7 +633,7 @@ class SendAward
             'source_name' => 'required|min:2|max:255',
         ]);
         if($validator->fails()){
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail');
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
