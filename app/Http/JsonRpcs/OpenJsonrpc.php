@@ -111,6 +111,8 @@ class OpenJsonRpc extends JsonRpc {
             if($status['errcode'] == 40001){
                 $status = $wxObj->send_template_msg($weixin['openid'],Config::get('open.weixin.msg_template.wechat_bind'),$data,null,true);
             }
+            $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+            $res = $client->signout();
         }
         return $res['result'];
     }
