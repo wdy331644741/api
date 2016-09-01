@@ -7,8 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
     <meta name="apple-itunes-app" content="app-id=881326898 affiliate-data=, app-argument="/>
-    <meta name="keywords" content="">
-    <meta name="description" content="">
+    <meta name="keywords" content="@if($keywords != null) {!! $keywords !!} @endif">
+    <meta name="description" content="@if($description != null) {!! $description !!} @endif">
     <link rel="shortcut icon" href="/favicon.ico"/>
     <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
     <link type="text/css" rel="styleSheet" href='/css/cms/news_list.css'>
