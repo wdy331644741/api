@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityJoin;
+use App\Models\AwardBatch;
 use App\Models\SendRewardLog;
 use App\Service\Func;
 use Illuminate\Http\Request;
@@ -856,12 +857,31 @@ class ActivityController extends Controller
         }
     }
 
+    /**
+     * 活动参与列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getActivityJoinsList(Request $request){
         $data = Func::Search($request,new ActivityJoin());
         return $this->outputJson(0,$data);
     }
+    /**
+     * 奖品发送记录列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getSendRewardLogList(Request $request){
         $data = Func::Search($request,new SendRewardLog());
+        return $this->outputJson(0,$data);
+    }
+    /**
+     * 奖品发送记录列表
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getBatchAwardList(Request $request){
+        $data = Func::Search($request,new AwardBatch());
         return $this->outputJson(0,$data);
     }
 }
