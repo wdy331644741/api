@@ -209,7 +209,7 @@ return [
         'min_payment'           => '最小用户回款',
         'max_payment'           => '最大用户回款',
         'structure'             => '构建号',
-
+        'source_name'           => '来源名'
     ],
 
 ];
