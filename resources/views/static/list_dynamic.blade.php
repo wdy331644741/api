@@ -85,10 +85,10 @@
     </div>
 </div>
 <div id="sfooter"></div>
-<script type="text/javascript" src="https://php1.wanglibao.com/js/sea.js"></script>
-<script type="text/javascript" src="https://php1.wanglibao.com/js/sea-config.js"></script>
-<script src='../../js/jquery.min.js'></script>
-<script src='../../js/news_list.js'></script>
+<script type="text/javascript" src="/js/sea.js"></script>
+<script type="text/javascript" src="/js/sea-config.js"></script>
+<script src='/js/cms/jquery.min.js'></script>
+<script src='/js/cms/news_list.js'></script>
 <script type="text/javascript">
 seajs.use(['jquery'],function($){
     seajs.use(['public', 'template', 'header'],function(){
