@@ -11,6 +11,8 @@ use App\Jobs\CouponExport;
 use DB;
 use App\Service\SendAward;
 use Response;
+use App\Models\AwardBatch;
+use App\Jobs\BatchAward;
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -46,7 +48,7 @@ class AwardController extends AwardCommonController
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = SendAward::sendDataRole($request->userId, $request->awardType, $request->awardId, 1, $request->sourceName );
+        $res = SendAward::sendDataRole($request->userId, $request->awardType, $request->awardId, 0, $request->sourceName );
         return $this->outputJson(0, $res);
     }
 
@@ -282,5 +284,34 @@ class AwardController extends AwardCommonController
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         return Response::download(base_path()."/storage/exports/{$request->file}");
+    }
+    /**
+     * 批次发奖品
+     */
+    public function postBatchAward(Request $request){
+        $uids = $request->uids;
+        if(!preg_match('/^\d+(,\d+$)/', $uids)){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'用户id必须是以逗号隔开'));
+        }
+        //验证必填项
+        $validator = Validator::make($request->all(), [
+            'award_type' => 'required|integer|min:1',
+            'award_id' => 'required|integer|min:1',
+            'source_name' => 'required|string|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        //插入日志
+        $data['uids'] = $request->uids;
+        $data['award_type'] = $request->award_type;
+        $data['award_id'] = $request->award_id;
+        $data['source_name'] = $request->source_name;
+        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['updated_at'] = date("Y-m-d H:i:s");
+        $insertID = AwardBatch::insertGetId($data);
+        //放入队列
+        $this->dispatch(new BatchAward($request->uids,$request->award_type,$request->award_id,$request->source_name,$insertID));
+        return $this->outputJson(0,array('error_msg'=>'成功'));
     }
 }

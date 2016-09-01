@@ -185,7 +185,7 @@ class SendAward
      * @param $userID ，$award_type,$award_id
      *
      */
-    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '')
+    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0)
     {
         self::$userID = $userID;
         self::$activityID = $activityID;
@@ -203,6 +203,10 @@ class SendAward
         $info['source_name'] = isset($activity[0]['name']) ? $activity[0]['name'] : $sourceName;
         //用户id
         $info['user_id'] = $userID;
+        //批次id
+        if(!empty($batch_id)){
+            $info['batch_id'] = $batch_id;
+        }
         if ($award_type == 1) {
             //加息券
             return self::increases($info);
@@ -231,7 +235,7 @@ class SendAward
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
-            'source_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'rate_increases' => 'required|numeric|between:0.0001,1',
@@ -323,7 +327,7 @@ class SendAward
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
-            'source_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'red_money' => 'required|integer|min:1',
@@ -408,7 +412,7 @@ class SendAward
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
-            'source_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'red_money' => 'required|integer|min:1',
@@ -496,7 +500,7 @@ class SendAward
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
-            'source_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
             'experience_amount_money' => 'required|integer|min:1',
@@ -568,7 +572,7 @@ class SendAward
         $validator = Validator::make($info, [
             'id' => 'required|integer|min:1',
             'user_id' => 'required|integer|min:1',
-            'source_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
         ]);
@@ -729,6 +733,9 @@ class SendAward
         $data['message_status'] = isset($info['message_status']) ? $info['message_status'] : '';
         $data['mail_status'] = isset($info['mail_status']) ? $info['mail_status'] : '';
         $data['created_at'] = date("Y-m-d H:i:s");
+        if(isset($info['batch_id']) && !empty($info['batch_id'])){
+            $data['batch_id'] = $info['batch_id'];
+        }
         $insertID = $SendRewardLog->insertGetId($data);
         return $insertID;
     }
