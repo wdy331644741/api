@@ -47,16 +47,18 @@ class FileImport extends Job implements ShouldQueue
             //获取出code和isuse的key
             $codeKey = '';
             $isUseKey = '';
+            $codeIsExist = '';
             foreach($data[0] as $k=>$v){
                 if($v == "code"){
                     $codeKey = $k;
+                    $codeIsExist = 1;
                 }
                 if($v == "is_use"){
                     $isUseKey = $k;
                 }
             }
             //如果没有code和isusekey就不插入
-            if(empty($codeKey)){
+            if(empty($codeIsExist)){
                 Coupon::where('id',$this->insertID)->update(array('import_status'=>2));
                 return ;
             }
@@ -74,18 +76,18 @@ class FileImport extends Job implements ShouldQueue
                 //替换字符串
                 $conn = trim(str_replace("rn","<br/>",$item[$codeKey]));
                 //判断是否添加过
-                $isExist = CouponCode::where('code',$conn)->get()->count();
-                if($isExist){
+//                $isExist = CouponCode::where('code',$conn)->get()->count();
+//                if($isExist){
+//                    continue;
+//                }else{
+                if(empty($conn)){
                     continue;
-                }else{
-                    if(empty($conn)){
-                        continue;
-                    }
-                    //添加到数据库
-                    $insert['coupon_id'] = intval($this->insertID);
-                    $insert['code'] = $conn;
-                    CouponCode::insertGetId($insert);
                 }
+                //添加到数据库
+                $insert['coupon_id'] = intval($this->insertID);
+                $insert['code'] = $conn;
+                CouponCode::insertGetId($insert);
+//                }
             }
         });
         Coupon::where('id',$this->insertID)->update(array('import_status'=>2));
