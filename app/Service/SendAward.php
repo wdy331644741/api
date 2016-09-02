@@ -109,11 +109,10 @@ class SendAward
         $return = array();
         switch ($activityInfo['alias_name']) {
             case 'songtiyanjin':
-                $money = isset($triggerData['money']) ? $triggerData['money'] : 0;
-                if(empty($money)){
+                $recharge_money = isset($triggerData['money']) && !empty($triggerData['money']) ? intval($triggerData['money'] / 10000) : 0;
+                if(empty($recharge_money)){
                     return $return;
                 }
-                $recharge_money = intval($money / 10000);
                 $awards['id'] = 0;
                 $awards['user_id'] = $triggerData['user_id'];
                 $awards['source_id'] = $activityInfo['id'];
