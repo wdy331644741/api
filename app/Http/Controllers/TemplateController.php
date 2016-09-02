@@ -31,7 +31,7 @@ class TemplateController extends Controller
             Paginator::currentPageResolver(function () use ($page) {
                 return $page;
             });
-            $data = Content::select('id','cover','title','content','release_at','updated_at')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
+            $data = Content::select('id','cover','title','content','release_at','updated_at','description','keywords')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
             $res = view('static.list_media', array('data'=>$data))->render();
             Storage::disk('static')->put("news/list/{$page}.html", $res);
             foreach($data as $media){
@@ -70,7 +70,7 @@ class TemplateController extends Controller
             Paginator::currentPageResolver(function () use ($page) {
                 return $page;
             });
-            $data = Content::select('id','cover','title','content','release_at','updated_at')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
+            $data = Content::select('id','cover','title','content','release_at','updated_at','description','keywords')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
             $res = view('static.list_dynamic', array('data'=>$data))->render();
             Storage::disk('static')->put("dynamic/list/{$page}.html", $res);
             foreach($data as $media){
@@ -143,36 +143,5 @@ class TemplateController extends Controller
         $res = view('static.help', array('data'=>$data,'types'=>$typeArr,'oftens'=>$often))->render();
         Storage::disk('static')->put("help.html", $res);
         return $this->outputJson(0);
-    }
-    #TODO //生成加入我们html
-    public function postJoinList() {
-        $pageNum = 10;
-        $total = Notice::count();
-        $totalPage = ceil($total/$pageNum);
-        $where = array('release' => 1);
-        for($page=1; $page<=$totalPage; $page++){
-            $skip = ($page-1)*$pageNum;
-            $data = Notice::select('id','title','content','release_at','updated_at')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->skip($skip)->take($pageNum)->get();
-            $res = view('static.list_notice', array('data'=>$data))->render();
-            Storage::disk('static')->put("news/list/list_notice_{$page}.html", $res);
-            foreach($data as $media){
-                if($media->updated_at){
-                    $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('cms/news/detail/notice_'.$media->id.'_'.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('cms/news/detail/notice_'.$media->id.'*.html'));
-                        for($i=0; $i<count($fileArr); $i++){
-                            unlink($fileArr[$i]);
-                        }
-                        $res = view('static.detail_notice', $media)->render();
-                        Storage::disk('static')->put("news/detail/notice_".$media->id.'_'.$timeStamp.".html", $res);
-                    }
-                }else{
-                    if(!file_exists(storage_path('cms/news/detail/notice_'.$media->id.'.html'))){
-                        $res = view('static.detail_notice', $media)->render();
-                        Storage::disk('static')->put("news/detail/notice_".$media->id.".html", $res);
-                    }
-                }
-            }
-        }
     }
 }

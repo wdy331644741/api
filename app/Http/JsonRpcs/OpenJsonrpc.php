@@ -66,6 +66,10 @@ class OpenJsonRpc extends JsonRpc {
                 }
             }
             return $res['result'];
+        }elseif ($res['error']['code'] == 1443){
+            $wxObj = new Weixin();
+            $wechatUserbase = $wxObj->get_user_info('ovewut6VpqDz6ux4nJg2cKx0srh0');
+            $nickname = $wechatUserbase['nickname'];
         }
         return $res['error'];
     }

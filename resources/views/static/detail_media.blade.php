@@ -7,8 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="baidu-site-verification" content="iBKXouRC1a"/>
     <meta name="apple-itunes-app" content="app-id=881326898 affiliate-data=, app-argument="/>
-    <meta name="keywords" content="">
-    <meta name="description" content="">
+    <meta name="keywords" content="@if($keywords != null) {!! $keywords !!} @endif">
+    <meta name="description" content="@if($description != null) {!! $description !!} @endif">
     <link rel="shortcut icon" href="/favicon.ico"/>
     <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
     <link type="text/css" rel="styleSheet" href='/css/cms/news_list.css'>
@@ -20,7 +20,7 @@
 <div id="sheader"></div>
 <div class="container">
     <div class="about_sidebar clearfix">
-        <div class="about_sidebar_div"><a href="/cms/theme/about/" class="about_sidebar_a">关于我们</a><a href="/cms/news/list/1.html" class="about_sidebar_a active">媒体报道</a><a href="/cms/dynamic/list/1.html" class="about_sidebar_a">网利动态</a><a href="/cms/notice/list/1.html" class="">网站公告</a><!-- <a href="/hiring" class="">加入我们</a> -->
+        <div class="about_sidebar_div"><a href="/theme/about/" class="about_sidebar_a">关于我们</a><a href="/cms/news/list/1.html" class="about_sidebar_a active">媒体报道</a><a href="/cms/dynamic/list/1.html" class="about_sidebar_a">网利动态</a><a href="/cms/notice/list/1.html" class="">网站公告</a><!-- <a href="/hiring" class="">加入我们</a> -->
         </div>
     </div>
     <div class='section'>
@@ -37,8 +37,8 @@
     </div>
 </div>
 <div id="sfooter"></div>
-<script type="text/javascript" src="https://php1.wanglibao.com/js/sea.js"></script>
-<script type="text/javascript" src="https://php1.wanglibao.com/js/sea-config.js"></script>
+<script type="text/javascript" src="/js/sea.js"></script>
+<script type="text/javascript" src="/js/sea-config.js"></script>
 <script type="text/javascript">
 seajs.use(['jquery'],function($){
     seajs.use(['public', 'template', 'header'],function(){

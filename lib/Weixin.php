@@ -59,11 +59,27 @@ class Weixin
      * @params：string open_id
      */
 
-    static public function get_user_info($access_token,$open_id){
-        $get_user_url = "/sns/userinfo?access_token={$access_token}&openid={asdasda}&lang=zh_CN";
+    public function get_user_info($open_id){
+        $access_token = $this->get_access_token();
+        $get_user_url = "/cgi-bin/user/info?access_token={$access_token}&openid={$open_id}&lang=zh_CN";
         $res = $this->_client->get($get_user_url);
         if($res->getStatusCode() == 200){
-            return json_decode($res->getBody());
+            $data =  (array)json_decode($res->getBody());
+            if(!isset($data['errcode'])){
+                return $data;
+            }
+            if($data['errcode'] == 40001){
+                $access_token = $this->get_access_token(true);
+                $get_user_url = "/cgi-bin/user/info?access_token={$access_token}&openid={$open_id}&lang=zh_CN";
+                $res = $this->_client->get($get_user_url);
+                if($res->getStatusCode() == 200){
+                    $data =  (array)json_decode($res->getBody());
+                    if(!isset($data['errcode'])){
+                        return $data;
+                    }
+                }
+            }
+            file_put_contents(storage_path('logs/wechat_userinfo_error_'.date('Y-m-d').'log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
         }
         return false;
     }
