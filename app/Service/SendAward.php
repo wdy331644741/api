@@ -109,23 +109,27 @@ class SendAward
         $return = array();
         switch ($activityInfo['alias_name']) {
             case 'songtiyanjin':
-                $money = isset($triggerData['money']) ? $triggerData['money'] : 0;
-                if(empty($money)){
-                    return $return;
+                //如果是充值触发
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'recharge'){
+                    $recharge_money = isset($triggerData['money']) && !empty($triggerData['money']) ? intval($triggerData['money'] / 10000) : 0;
+                    //金额不大于一万九不发奖
+                    if(empty($recharge_money)){
+                        return $return;
+                    }
+                    $money = $recharge_money * 1000;
+                    $awards['id'] = 0;
+                    $awards['user_id'] = $triggerData['user_id'];
+                    $awards['source_id'] = $activityInfo['id'];
+                    $awards['name'] = $money.'体验金';
+                    $awards['source_name'] = $activityInfo['name'];
+                    $awards['experience_amount_money'] = $money;
+                    $awards['effective_time_type'] = 1;
+                    $awards['effective_time_day'] = 7;
+                    $awards['platform_type'] = 0;
+                    $awards['limit_desc'] = '';
+                    $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+                    $return = self::experience($awards);
                 }
-                $recharge_money = intval($money / 10000);
-                $awards['id'] = 0;
-                $awards['user_id'] = $triggerData['user_id'];
-                $awards['source_id'] = $activityInfo['id'];
-                $awards['name'] = '按充值金额送体验金';
-                $awards['source_name'] = $activityInfo['name'];
-                $awards['experience_amount_money'] = $recharge_money * 1000;
-                $awards['effective_time_type'] = 1;
-                $awards['effective_time_day'] = 7;
-                $awards['platform_type'] = 0;
-                $awards['limit_desc'] = '';
-                $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
-                $return = self::experience($awards);
         }
         //发奖
         return $return;
