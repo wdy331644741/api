@@ -121,6 +121,7 @@ class SendAward
                 $awards['effective_time_day'] = 7;
                 $awards['platform_type'] = 0;
                 $awards['limit_desc'] = '';
+                $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
                 $return = self::experience($awards);
         }
         //发奖
