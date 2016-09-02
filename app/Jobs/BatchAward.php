@@ -43,7 +43,11 @@ class BatchAward extends Job implements ShouldQueue
         //循环发奖
         $uids = explode(',',$this->uids);
         foreach($uids as $item){
-            SendAward::sendDataRole($item, $this->award_id, $this->award_id, 0, $this->source_name,$this->batch_id);
+            $item = trim($item);
+            if(!$item || !is_numeric($item)) {
+                continue;
+            }
+            SendAward::sendDataRole($item, $this->award_type, $this->award_id, 0, $this->source_name,$this->batch_id);
         }
         //状态改为发奖完成
         AwardBatch::where('id',$this->batch_id)->update(array('status'=>2));
