@@ -100,23 +100,26 @@ class SendAward
     }
 
     /**
-     * 按照投资金额送体验金
+     * 按照充值金额送体验金
      * @param $activityInfo
      * @param $triggerData
      * @return mixed
      */
     static function beforeSendAward($activityInfo, $triggerData){
         $return = array();
-        $investmentAmount = $triggerData['Investment_amount'];
         switch ($activityInfo['alias_name']) {
             case 'songtiyanjin':
-                $experience_amount_money = intval($investmentAmount / 10000);
+                $money = isset($triggerData['money']) ? $triggerData['money'] : 0;
+                if(empty($money)){
+                    return $return;
+                }
+                $recharge_money = intval($money / 10000);
                 $awards['id'] = 0;
                 $awards['user_id'] = $triggerData['user_id'];
                 $awards['source_id'] = $activityInfo['id'];
-                $awards['name'] = '按投资金额送体验金';
+                $awards['name'] = '按充值金额送体验金';
                 $awards['source_name'] = $activityInfo['name'];
-                $awards['experience_amount_money'] = $experience_amount_money * 1000;
+                $awards['experience_amount_money'] = $recharge_money * 1000;
                 $awards['effective_time_type'] = 1;
                 $awards['effective_time_day'] = 7;
                 $awards['platform_type'] = 0;
