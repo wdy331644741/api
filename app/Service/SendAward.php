@@ -141,7 +141,8 @@ class SendAward
         if(isset($activityInfo['id']) && !empty($activityInfo['id']) && isset($activityInfo['frequency'])){
             $where = array();
             $where['user_id'] = $userID;
-            $where['status'] = 2;
+            $where['activity_id'] = $activityInfo['id'];
+            $where['status'] = 3;
             //不限
             if($activityInfo['frequency'] == 0){
                 $count = 0;
