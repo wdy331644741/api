@@ -44,6 +44,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new OpinionJsonRpc());
         $jsonRpcServer->addService(new AppUpdateConfigJsonRpc());
         $jsonRpcServer->addService(new OpenJsonRpc());
+        $jsonRpcServer->addService(new LoanBookJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');       
     }
@@ -56,15 +57,6 @@ class RpcController extends Controller
         $jsonRpcServer = new JsonRpcServer();
         $jsonRpcServer->addService(new RedeemCodeJsonRpc());
         $jsonRpcServer->addService(new ActivityJsonRpc());
-        $jsonRpcServer->processingRequests();
-        return response('')->header('Content-Type', 'application/json');
-    }
-    /**
-     * 贷款提交
-     */
-    public function postLoanBook() {
-        $jsonRpcServer = new JsonRpcServer();
-        $jsonRpcServer->addService(new LoanBookJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
