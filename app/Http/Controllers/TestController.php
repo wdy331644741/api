@@ -43,7 +43,7 @@ class TestController extends Controller
     //导入媒体报道数据
     public function getMtJoin(){
         $contentTypeId = ContentType::where('alias_name','report')->value('id');
-        $data = DB::connection('python')->select('select name,link,created_at,image,keywords,description,content from marketing_newsandreport ORDER BY created_at DESC ');
+        $data = DB::connection('python')->select('select name,link,created_at,image,keywords,description,content from marketing_newsandreport ORDER BY created_at ASC ');
         $new_data = array();
         foreach ($data as $item){
             $new_data[] = array(
@@ -73,7 +73,7 @@ class TestController extends Controller
     //导入网利动态数据
     public function getWldtJoin(){
         $contentTypeId = ContentType::where('alias_name','trends')->value('id');
-        $data = DB::connection('python')->select('select title,created_at,description,content from wanglibao_banner_aboutdynamic order by priority desc');
+        $data = DB::connection('python')->select('select title,created_at,description,content from wanglibao_banner_aboutdynamic order by created_at ASC');
         $new_data = array();
         foreach ($data as $item){
             $new_data[] = array(
@@ -99,7 +99,7 @@ class TestController extends Controller
 
     //导入网站公告数据
     public function getNoticeJoin(){
-        $data = DB::connection('python')->select('select device,title,createtime,content from wanglibao_announcement_announcement order by priority desc');
+        $data = DB::connection('python')->select('select device,title,createtime,content from wanglibao_announcement_announcement order by createtime ASC');
         $new_data = array();
         foreach ($data as $item){
             $new_item = array(
