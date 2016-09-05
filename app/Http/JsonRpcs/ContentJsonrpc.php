@@ -141,4 +141,26 @@ class ContentJsonRpc extends JsonRpc {
             'data' => $data
         );
     }
+
+    /**
+     * 获取文章内容
+     *
+     * @JsonRpcMethod
+     */
+    public function contentInfo($params){
+
+        if (empty($params->id)) {
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $where = array(
+            'id' => intval($params->id),
+            'release' => 1,
+        );
+        $data = Content::select('id','cover','title','content','release','release_at')->where($where)->first();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
 }
