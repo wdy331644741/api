@@ -290,9 +290,7 @@ class AwardController extends AwardCommonController
      */
     public function postBatchAward(Request $request){
         $uids = $request->uids;
-        if(!preg_match('/^\d+(,\d+$)/', $uids)){
-            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'用户id必须是以逗号隔开'));
-        }
+        
         //验证必填项
         $validator = Validator::make($request->all(), [
             'award_type' => 'required|integer|min:1',

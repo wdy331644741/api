@@ -259,7 +259,7 @@ class RuleCheck
         if($cast_all_money >= $rules['min_recharge_all'] && $cast_all_money <= $rules['max_recharge_all']){
             return array('send'=>true);
         }
-        return array('send'=>false,'errmsg'=>'投资总金额规则验证不通过');
+        return array('send'=>false,'errmsg'=>'充值总金额规则验证不通过');
     }
 
     //投资表名称，期名
