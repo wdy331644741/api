@@ -97,7 +97,7 @@ class OmgException extends BasicException
         self::ALREADY_AWARD => '奖励已领取',
         self::ALREADY_SHARED => '已分享',
         self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
-        self::IS_DINED_TO_WECHAT =>"账户已经与微信绑定过了"
+        self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定"
     );
 
     public function __construct($code, $data = array())
