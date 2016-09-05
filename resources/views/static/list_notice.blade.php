@@ -13,7 +13,7 @@
     <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
     <link type="text/css" rel="styleSheet" href='/css/cms/news_list.css'>
     <link href="/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
-    <link href="/theme/about/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="/css/pc.css" rel="stylesheet" type="text/css"/>
     <link href="/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
@@ -37,7 +37,8 @@
                 <div class="pager">
                     <ul>
                         {!! $lastPage = $data->lastPage(); $currentPage = $data->currentPage() !!}
-                        {!! $countPage = ($currentPage+5)< $lastPage ? $currentPage+5 : $lastPage-1 !!}
+                        {!! $countPage = ($currentPage+2)< $lastPage ? $currentPage+2 : $lastPage-1 !!}
+                        {!! $smCountPage = ($currentPage+3)< $lastPage ? $currentPage+3 : $lastPage-1 !!}
                         @if($currentPage <= 1 )
                             <li class="pager-prev disabled">
                                 <a href="javascript:void(0)" class="pager-anchor">&lt;</a>
@@ -50,8 +51,26 @@
                         <li class="pager-page-number @if($currentPage == 1) active @endif">
                             <a href="./1.html" class="pager-anchor">1</a>
                         </li>
-                        @if($currentPage > 2)
-                            @for($i=$data->currentPage(); $i<=$countPage; $i++)
+                        @if($currentPage < 4 && $currentPage >2)
+                            @for($i=$currentPage-1; $i<=$smCountPage; $i++)
+                                <li class="pager-page-number @if($currentPage == $i) active @endif">
+                                    <a href="./{!! $i !!}.html" class="pager-anchor">{!! $i !!}</a>
+                                </li>
+                            @endfor
+                        @elseif($currentPage>=4)
+                            @for($i=$data->currentPage()-2; $i<=$countPage; $i++)
+                                <li class="pager-page-number @if($currentPage == $i) active @endif">
+                                    <a href="./{!! $i !!}.html" class="pager-anchor">{!! $i !!}</a>
+                                </li>
+                            @endfor
+                        @elseif($currentPage == 2)
+                            @for($i=$currentPage; $i<=$smCountPage; $i++)
+                                <li class="pager-page-number @if($currentPage == $i) active @endif">
+                                    <a href="./{!! $i !!}.html" class="pager-anchor">{!! $i !!}</a>
+                                </li>
+                            @endfor
+                        @else
+                            @for($i=$currentPage+1; $i<=$smCountPage; $i++)
                                 <li class="pager-page-number @if($currentPage == $i) active @endif">
                                     <a href="./{!! $i !!}.html" class="pager-anchor">{!! $i !!}</a>
                                 </li>

@@ -13,7 +13,8 @@
     <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
     <link type="text/css" rel="styleSheet" href='/css/cms/news_list.css'>
     <link href="/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
-    <link href="/theme/about/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
