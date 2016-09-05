@@ -56,6 +56,7 @@ class OmgException extends BasicException
     const DAYS_NOT_ENOUGH = 4305;
     const ALREADY_AWARD = 4306;
     const ALREADY_SHARED = 4307;
+    const IS_DINED_TO_WECHAT = 4308;
 
 
     protected static $errorArray = array(
@@ -96,6 +97,7 @@ class OmgException extends BasicException
         self::ALREADY_AWARD => '奖励已领取',
         self::ALREADY_SHARED => '已分享',
         self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
+        self::IS_DINED_TO_WECHAT =>"账户已经与微信绑定过了"
     );
 
     public function __construct($code, $data = array())
