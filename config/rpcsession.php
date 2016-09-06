@@ -6,4 +6,5 @@ return [
     'name' => env('SESSION_NAME'),
     'domain' => env('SESSION_DOMAIN'),
     'accountgroup' => env('ACCOUNT_BASE_HOST'),
+    'token_lefetime' => env('APP_TOKEN_MAXLIFETIME'),
 ];

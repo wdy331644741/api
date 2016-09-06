@@ -12,7 +12,7 @@ use Validator;
 class NoticeController extends Controller
 {
     //获取公告列表
-    public function getList($pagenum=5){
+    public function getList($pagenum=30){
         $data = Notice::orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pagenum);
         return $this->outputJson(0,$data);
     }

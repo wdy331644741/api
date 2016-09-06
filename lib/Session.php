@@ -2,6 +2,7 @@
 namespace Lib;
 /**
  * Class session
+ *
  * @package Lib
  * 获取$_SESSION
  * Lib\Session::get();
@@ -12,52 +13,69 @@ namespace Lib;
  */
 class Session
 {
-    static private $group; //session数据组名
+    //session cookie作用域
+    const COOKIE_DOMAIN = ".wanglibao.com";
+    //session 名称
+    const SESSION_NAME = "WANGLIBAO_TOKEN";
 
-    public function constructor() {
+    private $group; //session数据组名
 
+    public function __construct($sid = '')
+    {
+        self::init($sid);
     }
 
-    static public function get($key = '')
+    public static function init($sid = '')
     {
-        return self::_session('get', $key);
-    }
+        @session_name(self::SESSION_NAME);
+        @ini_set("session.cookie_domain", self::COOKIE_DOMAIN);
 
-    static public function set($key = '', $val)
-    {
-        return self::_session('set', $key, $val);
-
-    }
-
-    static public function del($key = '')
-    {
-        return self::_session('del', $key);
-    }
-
-    static public function selectSessionGroup($group = '')
-    {
-        if ($group) {
-            self::$group = $group;
-        } else {
-            $baseHost = env('APP_URL', 'wanglibao.com') ;
-            $host = parse_url($baseHost, PHP_URL_HOST);
-            if (!$host) {
-                die('未定义 BASE_HOST,或未配置BASE_HOST');
-            }
-            self::$group = $host;
-        }
-    }
-
-    static private function _session($action, $key = '', $val = '')
-    {
-        if(!self::$group) {
-            self::selectSessionGroup();
+        //判断请求来源
+        $device = getAgent('platform');
+        if ($device == 'IOS' || $device == 'ANDROID') {
+            $maxLifeTime = env('APP_TOKEN_MAXLIFETIME') ? env('APP_TOKEN_MAXLIFETIME') : 604800;
+            @ini_set('session.gc_maxlifetime', $maxLifeTime);
         }
 
-        session_start();
-        $data = &$_SESSION[self::$group];
-        //session_write_close();
-        
+        $sessionId = empty($sid) ? I('cookie.'.self::SESSION_NAME, '') : $sid;
+        if ($sessionId)
+            session_id($sessionId);
+        @session_start();
+        @session_commit();
+    }
+
+
+    public function get($key = '')
+    {
+        @session_start();
+        $data = $this->_session('get', $key);
+        @session_commit();
+        return $data;
+    }
+
+    public function set($key = '', $val)
+    {
+        @session_start();
+        $status = $this->_session('set', $key, $val);
+        @session_commit();
+        return $status;
+
+    }
+
+    public function del($key = '')
+    {
+        @session_start();
+        $status = $this->_session('del', $key);
+        @session_commit();
+        return $status;
+    }
+
+    private function _session($action, $key = '', $val = '')
+    {
+        //获取session分组
+        $group = $this->getGroup();
+
+        $data = &$_SESSION[$group];
         if ($key) {
             $deepKeys = explode('.', $key);
             foreach ($deepKeys as $deepKey) {
@@ -68,7 +86,6 @@ class Session
                         $data[$deepKey] = null;
                         $data = &$data[$deepKey];
                     } else {
-                        session_write_close();
                         return null;
                     }
                 }
@@ -76,18 +93,36 @@ class Session
         }
         switch ($action) {
             case 'get' :
-                session_write_close();
                 return $data;
             case 'set':
                 $data = $val;
-                session_write_close();
                 return true;
             case 'del':
                 $data = null;
-                session_write_close();
                 return true;
         }
 
+    }
+
+    //设置分组
+    public function setGroup($group)
+    {
+        $this->group = $group;
+        return true;
+    }
+
+    //获取分组
+    public function getGroup()
+    {
+        if (!$this->group) {
+            $baseHost = env('APP_URL');
+            $host = parse_url($baseHost, PHP_URL_HOST);
+            if (!$host) {
+                die('未配置 BASE_HOST');
+            }
+            $this->group = $host;
+        }
+        return $this->group;
     }
 
 }
