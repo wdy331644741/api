@@ -79,7 +79,8 @@ class OpenController extends Controller
         if(!isset($request->callback)){
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
-        Session::set('weixin',array('callback'=>$request->callback));
+        $session = new Session();
+        $session->set('weixin',array('callback'=>$request->callback));
         $weixin = new Weixin();
         $oauth_url = $weixin->get_authorize_url();
         return redirect($oauth_url);
@@ -92,12 +93,13 @@ class OpenController extends Controller
         }
         $weixin = new Weixin();
         $this->_openid =  $weixin->get_openid($request->code);
-        $weixin = Session::get('weixin');
+        $session = new Session();
+        $weixin = $session->get('weixin');
         $new_weixin = array();
         if(is_array($weixin)){
             $new_weixin = array_merge($weixin,array('openid'=>$this->_openid));
         }
-        Session::set('weixin',$new_weixin);
+        $session->set('weixin',$new_weixin);
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
         if(isset($res['error']) && $res['error']['code'] == 1442){
@@ -119,7 +121,8 @@ class OpenController extends Controller
     //绑定用户
     public function getWechatBind(){
         $wxObj = new Weixin();
-        Session::set('weixin',array('callback'=>env('WECHAT_BASE_HOST')."/wechat/bindWechat"));
+        $session = new Session();
+        $session->set('weixin',array('callback'=>env('WECHAT_BASE_HOST')."/wechat/bindWechat"));
         $oauth_url = $wxObj->get_authorize_url();
         return redirect($oauth_url);
     }
