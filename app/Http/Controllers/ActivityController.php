@@ -397,7 +397,7 @@ class ActivityController extends Controller
     private function rule_recharge($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
-            'isfirst' => 'required|in:0,1',
+            'isfirst' => 'required|in:0,2',
             'min_recharge'=>'required|numeric',
             'max_recharge'=>'required|numeric|min:'.$request->min_recharge,
         ]);
@@ -450,7 +450,7 @@ class ActivityController extends Controller
     private function rule_cast($type,$request){
         $validator = Validator::make($request->all(), [
             'activity_id'=>'required|alpha_num|exists:activities,id',
-            'isfirst' => 'required|in:0,1',
+            'isfirst' => 'required|in:0,2',
             'min_cast'=>'required|numeric',
             'max_cast'=>'required|numeric|min:'.$request->min_cast,
         ]);
