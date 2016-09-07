@@ -17,6 +17,7 @@ Route::controller('test','TestController');
 Route::controller('template', 'TemplateController');
 //奖品路由
 Route::controller('award', 'AwardController');
+Route::controller('media', 'MediaController');
 
 //触发发奖路由
 Route::controller('mc', 'MessageCenterController');
