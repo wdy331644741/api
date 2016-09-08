@@ -9,7 +9,6 @@
 return [
     'weixin' => [
         'appid'=> 'wx169c6925918fe915',
-        'redirect_uri'=>'http://f1e07acd.ngrok.io/',
         'scope'=>'snsapi_base',
         'state'=>'wanglibao',
         'secret'=>'777cd7abf2a7b63427a660fcec01383f',
