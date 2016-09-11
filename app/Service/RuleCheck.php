@@ -70,7 +70,7 @@ class RuleCheck
                     $res = self::_castName($value,$sqsmsg);
                     break;
                 case $value->rule_type === 13:
-                    $res = self::_ChannelBlist($userId,$value);
+                    $res = self::_ChannelBlist($userBase,$value);
                     break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
