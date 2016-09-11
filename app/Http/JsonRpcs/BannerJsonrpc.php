@@ -224,8 +224,8 @@ class BannerJsonRpc extends JsonRpc {
             ->first();
         if($data){
             $data['Etag'] = strval(strtotime($data['release_at']));
+            $data['img'] = $data["img{$params->value}"];
         }
-        $data['img'] = $data["img{$params->value}"];
         return array(
             'code' => 0,
             'message' => 'success',

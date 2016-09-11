@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Lib\Session as SessionHandler; 
 use Config;
-use Route;
 
 class Session
 {
@@ -23,20 +22,11 @@ class Session
         ini_set("session.name", Config::get('rpcsession.name'));
         ini_set("session.cookie_domain", Config::get('rpcsession.domain'));
          
-
-        // $this->handleRequest();
-        
         $sessionHandler = new SessionHandler();
+        $sessionHandler->setGroup(env('ACCOUNT_BASE_HOST'));
         global $userId,$phone;
         $userId = $sessionHandler->get('userData.user_id');
-        $phone = $sessionHandler->get('userData.phone');
-        
+        $phone = $sessionHandler->get('userData.user_name');
         return $next($request);
-    }
-
-    private function handleRequest() {
-        $action = Route::currentRouteAction();
-        $actionArr = explode('@', $action);
-        dd($actionArr);
     }
 }

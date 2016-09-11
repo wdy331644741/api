@@ -22,8 +22,11 @@ class MediaController extends Controller
         } catch(OssException $e) {
             abort(404); 
         }
-        
-        return response($content)->header('Content-Type', getMimeTypeByExtension($path));
+        return response($content)->withHeaders([
+            'Content-type' => getMimeTypeByExtension($path),
+            'Cache-Control'=> "max-age=" . 60*60*24*30,
+            'Expires' => gmdate('r', time()+60*60*24*30),
+        ]);
     }
 
 }

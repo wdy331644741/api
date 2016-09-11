@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Models\JsonRpc;
-use Validator;
+use App\Models\Admin;
+use Validator, Config;
 
 class AccountController extends Controller
 {
@@ -34,8 +35,30 @@ class AccountController extends Controller
     }
     
     public function getProfile() {
-        $result = $this->jsonRpc->account()->profile();
-        return $this->outputRpc($result);       
+        $res = $this->jsonRpc->account()->profile();
+
+        if(isset($res['error'])){
+            $response['error_code']  = $res['error']['code'];      
+            $response['data'] = array( 'error_msg' => $res['error']['message']);
+            return response()->json($response);
+        }
+    
+        $response['error_code']  = $res['result']['code'];
+        $data = isset($res['result']['data']) ? $res['result']['data'] : [];
+
+        $mobile = $data['phone'];
+        $admin = Admin::where('mobile', $mobile)->first();
+        if(!$admin || !$admin['level']) {
+            $level = 0;
+        }else{
+            $admin->last_login = date('Y-m-d H:i:s');
+            $admin->update();
+            $level = $admin['level'] ? $admin['level'] : 0;
+        }
+        $permission = Config::get("permission.{$level}");
+        $data['permission'] = $permission;
+        $response['data'] = $data;
+        return response()->json($response);
     }
     public function getLogout() {
         $result = $this->jsonRpc->account()->signout();

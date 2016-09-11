@@ -15,7 +15,6 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
-        \App\Http\Middleware\Permission::class,
     ];
 
     /**
@@ -32,12 +31,12 @@ class Kernel extends HttpKernel
             /*\Illuminate\View\Middleware\ShareErrorsFromSession::class,*/
             /*\App\Http\Middleware\VerifyCsrfToken::class,*/
         ],
-
-        'api' => [
-            'throttle:60,1',
-        ],
-        'permission' => [
+        'admin' => [
+            \App\Http\Middleware\Session::class,
             \App\Http\Middleware\Permission::class,
+        ],
+        'internal' => [
+            \App\Http\Middleware\CheckInternal::class,
         ]
     ];
 
