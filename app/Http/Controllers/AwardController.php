@@ -13,6 +13,7 @@ use App\Service\SendAward;
 use Response;
 use App\Models\AwardBatch;
 use App\Jobs\BatchAward;
+use App\Jobs\ReissueAward;
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -311,5 +312,15 @@ class AwardController extends AwardCommonController
         //放入队列
         $this->dispatch(new BatchAward($request->uids,$request->award_type,$request->award_id,$request->source_name,$insertID));
         return $this->outputJson(0,array('error_msg'=>'成功'));
+    }
+    /**
+     * 一键补发奖品
+     *
+     * @param Request $request
+     * @return json
+     */
+    function postReissueAward() {
+        $this->dispatch(new ReissueAward());
+        return $this->outputJson(0, array('error_msg'=>'成功'));
     }
 }
