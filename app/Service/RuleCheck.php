@@ -103,8 +103,8 @@ class RuleCheck
             return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
         $user_channel = $userBase['result']['data']['from_channel'];
-        $channel_arr = explode(';',$rules['channels']);
-        if(in_array($user_channel,$channel_arr)){
+        $channel_arr = explode(';',strtolower($rules['channels']));
+        if(in_array(strtolower($user_channel),$channel_arr)){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'渠道白名单规则验证不通过');
@@ -265,8 +265,8 @@ class RuleCheck
     //投资表名称，期名
     private static function _castName($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
-        $name = $sqsmsg['name'];
-        $short_name = $sqsmsg['short_name'];
+        $name = trim($sqsmsg['name']);
+        $short_name = trim($sqsmsg['short_name']);
         if($rules['stage_name'] == null){
             if($rules['name'] == $name){
                 return array('send'=>true);
@@ -286,8 +286,8 @@ class RuleCheck
             return array('send'=>false,'errmsg'=>$userBase['error']['message']);
         }
         $user_channel = $userBase['result']['data']['from_channel'];
-        $channel_arr = explode(';',$rules['channels']);
-        if(!in_array($user_channel,$channel_arr)){
+        $channel_arr = explode(';',strtolower($rules['channels']));
+        if(!in_array(strtolower($user_channel),$channel_arr)){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'渠道黑名单规则验证不通过');
