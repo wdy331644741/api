@@ -672,7 +672,7 @@ class ActivityController extends Controller
     private function Params2json($request,$params){
         $arr = array();
         foreach($params as $val){
-            $arr[$val] = $request->$val;
+            $arr[$val] = trim($request->$val);
         }
         return json_encode($arr);
     }

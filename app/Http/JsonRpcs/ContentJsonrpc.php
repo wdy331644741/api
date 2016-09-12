@@ -105,11 +105,12 @@ class ContentJsonRpc extends JsonRpc {
         }
 
         $page = isset($params->page) ? $params->page : 1;
+        $where = array('type_id'=>$params->type_id,'release'=>1);
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where('type_id',$params->type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
+        $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum);
 
         return array(
             'code' => 0,
@@ -129,11 +130,12 @@ class ContentJsonRpc extends JsonRpc {
         }
         $type_id = ContentType::where('alias_name',$params->alias_name)->value('id');
         $page = isset($params->page) ? $params->page : 1;
+        $where = array('type_id'=>$type_id,'release'=>1);
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where('type_id',$type_id)->orderByRaw('id + sort desc')->paginate($pagenum);
+        $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum);
 
         return array(
             'code' => 0,
