@@ -15,9 +15,9 @@ return [
         'api_base_uri'=>'https://api.weixin.qq.com',
         'open_base_uri'=>'https://open.weixin.qq.com',
         'msg_template' => [
-            'wechat_bind'=>'pI8t87TM7pcYuPX95798SpY6MHihe0dKoT85y3g0yIk',
-            'wechat_unbind'=>'S-xfemyge3RBsJQfBRvfnLovFkZ3ZwxLMY5dngGx1kI',
-            'sign_daily'=>'UrrX3l-ORVFEPEQfsZzcCXpaaT1z9AeeTW1McqseLZU',
+            'wechat_bind'=>'8a21nArPQS0XWct6AGCASDqoaaaE_Ir5SaqarSqkNws',
+            'wechat_unbind'=>'BR08JlAXbQ_JUCnKWmhrSNe4pNL2PF9PQxV1QLcxrNo',
+            'sign_daily'=>'kE8xpyj2o1vc1toTjdNPyMqWLO6cxMRZCwBR92ZYCd8',
         ],
         'xml_template'=>[
             'textTpl'=>"<xml>
