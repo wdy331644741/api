@@ -267,7 +267,7 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $name = trim($sqsmsg['name']);
         $short_name = trim($sqsmsg['short_name']);
-        if($rules['stage_name'] == null){
+        if(!$rules['stage_name']){
             if(substr_count($name,$rules['name'])){
                 return array('send'=>true);
             }
