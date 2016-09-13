@@ -23,6 +23,8 @@ class ChannelController extends Controller
             'name' => 'required|min:2|max:255',
             'alias_name'=>'required|alpha_num',
             'pre'=>'alpha_num|unique:channels,pre',
+            'coop_status'=>'required|in:0,1,2,3',
+            'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -35,6 +37,8 @@ class ChannelController extends Controller
         $channel = new Channel();
         $channel->name = $request->name;
         $channel->alias_name = $request->alias_name;
+        $channel->coop_status = $request->coop_status;
+        $channel->classification = $request->classification;
         $channel->pre = $request->pre;
         $res = $channel->save();
         if($res){
@@ -66,6 +70,8 @@ class ChannelController extends Controller
             'id'=>'required|exists:channels,id',
             'name' => 'required|min:2|max:255',
             'alias_name'=>'required|alpha_num',
+            'coop_status'=>'required|in:0,1,2,3',
+            'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS',
             'pre'=>'alpha_num|unique:channels,pre'.$request->pre,
         ]);
         if($validator->fails()){
@@ -81,6 +87,8 @@ class ChannelController extends Controller
             'name' => $request->name,
             'alias_name' => $request->alias_name,
             'pre'=>$request->pre,
+            'coop_status'=>$request->coop_status,
+            'classification'=>$request->classification,
         ];
 
         $res = Channel::where('id',$request->id)->update($updata);
@@ -102,5 +110,37 @@ class ChannelController extends Controller
         }
         $data = Channel::find($id)->toArray();
         return $this->outputJson(0,$data);
+    }
+
+    //舍弃渠道
+    public function postAbandon(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:channels,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Channel::where('id',$request->id)->update(array('is_abandoned'=>1));
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+    }
+
+    //舍弃活动
+    public function postReduction(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:channels,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Channel::where('id',$request->id)->update(array('is_abandoned'=>0));
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
     }
 }
