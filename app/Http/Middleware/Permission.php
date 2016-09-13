@@ -19,6 +19,9 @@ class Permission
     public function handle($request, Closure $next)
     {
         global $phone;
+        if(!env('ADMIN_AUTH', true)){
+            return $next($request);
+        }
         $admin = Admin::where('mobile', $phone)->first();
         if(!$admin || !$admin['level']) {
             $level = 0;

@@ -47,11 +47,15 @@ class OpenJsonRpc extends JsonRpc {
                         'value'=>'绑定通知',
                         'color'=>'#173177'
                     ),
-                    'keyword1'=>array(
+                    'name1'=>array(
+                        'value'=>'微信',
+                        'color'=>'#000000'
+                    ),
+                    'name2'=>array(
                         'value'=>$userBase['result']['data']['username'],
                         'color'=>'#173177'
                     ),
-                    'keyword2'=>array(
+                    'time'=>array(
                         'value'=>date('Y年m月d日'),
                         'color'=>'#173177'
                     ),

@@ -16,13 +16,23 @@ class Controller extends BaseController
     }
     
     protected function outputRpc($res) {
+        return response()->json($this->rpc2json($res));
+    }
+    
+    protected function rpc2json($res) {
         if(isset($res['error'])){
             $response['error_code']  = $res['error']['code'];      
             $response['data'] = array( 'error_msg' => $res['error']['message']);
-        }else{
+        }elseif(isset($res['result'])){
+            foreach ($res['result'] as $key => $value) {
+                if($key === 'code'){
+                    $response['error_code']  = $res['result']['code'];
+                    continue;
+                } 
+                $response[$key] = $res['result'][$key];
+            }
             $response['error_code']  = $res['result']['code'];
-            $response['data'] = isset($res['result']['data']) ? $res['result']['data'] : [];
         }
-        return response()->json($response);
+        return $response;
     }
 }
