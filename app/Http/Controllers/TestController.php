@@ -134,4 +134,30 @@ class TestController extends Controller
 
     }
 
+    //导入渠道数据
+    public function getChannelJoin(){
+        $data = DB::connection('python')->select('select code,description,created_at,coop_status,classification,is_abandoned from marketing_channels order by created_at ASC');
+        $new_data = array();
+        foreach ($data as $item){
+            $new_item = array(
+                'name'=>$item->description,
+                'alias_name'=>$item->code,
+                'coop_status'=>$item->coop_status,
+                'created_at'=>$item->created_at,
+                'classification'=>$item->classification,
+                'is_abandoned'=>$item->is_abandoned
+            );
+            $insdata[] = $new_item;
+        }
+        DB::beginTransaction();
+        $res = DB::table('channels')->insert($insdata);
+        if($res){
+            DB::commit();
+            return $this->outputJson(0);
+        }else{
+            DB::rollBack();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
 }

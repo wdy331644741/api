@@ -209,7 +209,10 @@ return [
         'min_payment'           => '最小用户回款',
         'max_payment'           => '最大用户回款',
         'structure'             => '构建号',
-        'source_name'           => '来源名'
+        'source_name'           => '来源名',
+        'coop_status'           => '合作状态',
+        'classification'        => '渠道分类',
+        'is_abandoned'          => '是否废弃'
     ],
 
 ];
