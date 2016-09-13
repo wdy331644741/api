@@ -268,11 +268,11 @@ class RuleCheck
         $name = trim($sqsmsg['name']);
         $short_name = trim($sqsmsg['short_name']);
         if($rules['stage_name'] == null){
-            if($rules['name'] == $name){
+            if(substr_count($name,$rules['name'])){
                 return array('send'=>true);
             }
         }else{
-            if($rules['name'] == $name && $rules['stage_name'] == $short_name){
+            if(substr_count($name,$rules['name']) && substr_count($short_name,$rules['stage_name'])){
                 return array('send'=>true);
             }
         }
