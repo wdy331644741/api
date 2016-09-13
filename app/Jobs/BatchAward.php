@@ -3,11 +3,13 @@
 namespace App\Jobs;
 
 use Illuminate\Queue\SerializesModels;
+
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 use App\Service\SendAward;
 use App\Models\AwardBatch;
+use App\Models\JsonRpc;
 
 class BatchAward extends Job implements ShouldQueue
 {
@@ -41,15 +43,27 @@ class BatchAward extends Job implements ShouldQueue
         //状态改为正在发奖
         AwardBatch::where('id',$this->batch_id)->update(array('status'=>1));
         //循环发奖
-        $uids = explode(',',$this->uids);
+        $uids = preg_split('/[\s\n,]+/is', $this->uids);
+        $i=0;
         foreach($uids as $item){
             $item = trim($item);
             if(!$item || !is_numeric($item)) {
                 continue;
             }
+            if(strlen($item) == 11) {
+                $jsonRpc = new JsonRpc();
+                $rpcRes = $jsonRpc->inside()->getUserIdByPhone(array('phone'=>$item));
+                if(isset($rpcRes['result']) && $rpcRes['result']['code'] == 0 && $rpcRes['result']['message'] == 'success') {
+                    $item = $rpcRes['result']['user_id'];
+                }else{
+                    continue;
+                }
+            } 
             SendAward::sendDataRole($item, $this->award_type, $this->award_id, 0, $this->source_name,$this->batch_id);
+            echo $i++;
+            echo PHP_EOL;
         }
         //状态改为发奖完成
-        AwardBatch::where('id',$this->batch_id)->update(array('status'=>2));
+        AwardBatch::where('id',$this->batch_id)->update(array('status'=>2, 'send_num'=>$i));
     }
 }
