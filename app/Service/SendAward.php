@@ -250,7 +250,7 @@ class SendAward
      * @param $userID ，$award_type,$award_id
      *
      */
-    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0)
+    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0,$unSendID = 0)
     {
         self::$userID = $userID;
         self::$activityID = $activityID;
@@ -271,6 +271,10 @@ class SendAward
         //批次id
         if(!empty($batch_id)){
             $info['batch_id'] = $batch_id;
+        }
+        //补发id
+        if(!empty($unSendID)){
+            $info['unSendID'] = $unSendID;
         }
         if ($award_type == 1) {
             //加息券
@@ -798,6 +802,23 @@ class SendAward
         $data['message_status'] = isset($info['message_status']) ? $info['message_status'] : '';
         $data['mail_status'] = isset($info['mail_status']) ? $info['mail_status'] : '';
         $data['created_at'] = date("Y-m-d H:i:s");
+        if(!empty($info['unSendID'])){
+            if(empty($info['status'])){
+                //取出失败的信息和新的错误信息合并
+                $remark = $SendRewardLog->where('id',$info['unSendID'])->select('remark')->get()->toArray();
+                $remark = isset($remark[0]['remark']) && !empty($remark[0]['remark']) ? $remark[0]['remark'] : array();
+                if(!empty($remark)){
+                    $unRemark = '['.$remark.','.$info['remark'].']';
+                }else{
+                    $unRemark = $info['remark'];
+                }
+                $SendRewardLog->where('id',$info['unSendID'])->update(array('remark'=>$unRemark));
+                return true;
+            }
+            //修改为补发成功状态
+            $SendRewardLog->where('id',$info['unSendID'])->update(array('status'=>'2','remark'=>$info['remark']));
+            return true;
+        }
         if(isset($info['batch_id']) && !empty($info['batch_id'])){
             $data['batch_id'] = $info['batch_id'];
         }
