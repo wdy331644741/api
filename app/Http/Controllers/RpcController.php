@@ -16,6 +16,7 @@ use App\Http\JsonRpcs\RedeemCodeJsonRpc;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 use App\Http\JsonRpcs\OpinionJsonRpc;
 use App\Http\JsonRpcs\LoanBookJsonRpc;
+use App\Http\JsonRpcs\InsideJsonrpc;
 use App\Http\JsonRpcs\AppUpdateConfigJsonRpc;
 
 class RpcController extends Controller
@@ -57,6 +58,16 @@ class RpcController extends Controller
         $jsonRpcServer = new JsonRpcServer();
         $jsonRpcServer->addService(new RedeemCodeJsonRpc());
         $jsonRpcServer->addService(new ActivityJsonRpc());
+        $jsonRpcServer->processingRequests();
+        return response('')->header('Content-Type', 'application/json');
+    }
+
+    /**
+     * 发送奖品
+     */
+    public function postInside() {
+        $jsonRpcServer = new JsonRpcServer();
+        $jsonRpcServer->addService(new InsideJsonrpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }

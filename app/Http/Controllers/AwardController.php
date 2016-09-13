@@ -14,6 +14,8 @@ use Response;
 use App\Models\AwardBatch;
 use App\Jobs\BatchAward;
 use App\Jobs\ReissueAward;
+use App\Models\JsonRpc;
+
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -35,9 +37,9 @@ class AwardController extends AwardCommonController
 
     /**
      * 给用户添加奖品
-     * 
+     *
      * @param Request $request
-     * @return json 
+     * @return json
      */
     function postAddAwardToUser(Request $request) {
         $validator = Validator::make($request->all(), [
@@ -45,7 +47,17 @@ class AwardController extends AwardCommonController
             'awardType' => 'required|integer',
             'awardId' => 'required|integer',
             'sourceName' => 'string',
-        ]); 
+        ]);
+        $userId = $request->userId;
+        if(strlen($userId) == 11) {
+            $jsonRpc = new JsonRpc();
+            $rpcRes = $jsonRpc->inside()->getUserIdByPhone(array('phone'=>$userId));
+            if(isset($rpcRes['result']) && $rpcRes['result']['code'] == 0 && $rpcRes['result']['message'] == 'success') {
+                $userId = $rpcRes['result']['user_id'];
+            }else{
+                return $this->outputRpc($rpcRes);
+            }
+        }
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
@@ -291,7 +303,7 @@ class AwardController extends AwardCommonController
      */
     public function postBatchAward(Request $request){
         $uids = $request->uids;
-        
+
         //验证必填项
         $validator = Validator::make($request->all(), [
             'award_type' => 'required|integer|min:1',
