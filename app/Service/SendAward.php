@@ -257,6 +257,9 @@ class SendAward
         //获取数据
         $table = self::_getAwardTable($award_type);
         $info = $table::where('id', $award_id)->select()->get()->toArray();
+        if(empty($info)){
+            return '奖品不存在';
+        }
         if(count($info) >= 1){
             $info = $info[0];
         }

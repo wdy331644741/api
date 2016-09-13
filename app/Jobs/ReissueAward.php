@@ -20,15 +20,16 @@ class ReissueAward extends Job implements ShouldQueue
      */
     public function handle()
     {
-        //获取出发送失败的奖品列表
-        $unSendList = SendRewardLog::where('status',0)->get()->toArray();
+
         //循环发奖
-        foreach($unSendList as $item){
+        for($i=0;$i<100;$i++){
+            //获取出发送失败的奖品列表
+            $item = SendRewardLog::where('status',0)->where('activity_id','!=','0')->where('award_id','!=','0')->first();
             if(empty($item['award_id']) || empty($item['award_type']) || empty($item['user_id']) || empty($item['id']) || empty($item['activity_id'])){
                 continue;
             }
-            $activityName = Activity::where('id',$item['activity_id'])->select("name")->get()->toArray();
-            $activityName = isset($activityName[0]['name']) ? $activityName[0]['name'] : '';
+            $activityName = Activity::where('id',$item['activity_id'])->select("name")->first();
+            $activityName = isset($activityName['name']) ? $activityName['name'] : '';
             if(empty($activityName)){
                 continue;
             }
