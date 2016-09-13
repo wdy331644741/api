@@ -17,7 +17,7 @@ return [
         'msg_template' => [
             'wechat_bind'=>'8a21nArPQS0XWct6AGCASDqoaaaE_Ir5SaqarSqkNws',
             'wechat_unbind'=>'BR08JlAXbQ_JUCnKWmhrSNe4pNL2PF9PQxV1QLcxrNo',
-            'sign_daily'=>'kE8xpyj2o1vc1toTjdNPyMqWLO6cxMRZCwBR92ZYCd8',
+            'sign_daily'=>'U0rO2rk56wviOegolXECWRlSlMo3V6g_GweOZ3a7spI',
         ],
         'xml_template'=>[
             'textTpl'=>"<xml>

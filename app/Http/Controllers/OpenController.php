@@ -267,14 +267,18 @@ class OpenController extends Controller
                                 }else{
                                     $data = array(
                                         'first'=>array(
-                                            'value'=>$res['data']['award'][0],
+                                            'value'=>'恭喜您签到成功，连续签到可获得更多奖励，记得明天再来哦！',
                                             'color'=>'#000000'
                                         ),
                                         'keyword1'=>array(
-                                            'value'=>date('Y-m-d H:i'),
+                                            'value'=>$res['data']['award'][0],
                                             'color'=>'#000000'
                                         ),
                                         'keyword2'=>array(
+                                            'value'=>date('Y-m-d H:i'),
+                                            'color'=>'#000000'
+                                        ),
+                                        'keyword3'=>array(
                                             'value'=>$res['data']['current'],
                                             'color'=>'#00000'
                                         ),
