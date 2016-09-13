@@ -13,6 +13,7 @@ use App\Service\SendAward;
 use Response;
 use App\Models\AwardBatch;
 use App\Jobs\BatchAward;
+use App\Models\JsonRpc;
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -45,6 +46,16 @@ class AwardController extends AwardCommonController
             'awardId' => 'required|integer',
             'sourceName' => 'string',
         ]); 
+        $userId = $request->userId;
+        if(strlen($userId) == 11) {
+            $jsonRpc = new JsonRpc();
+            $rpcRes = $jsonRpc->inside()->getUserIdByPhone(array('phone'=>$userId));
+            if(isset($rpcRes['result']) && $rpcRes['result']['code'] == 0 && $rpcRes['result']['message'] == 'success') {
+                $userId = $rpcRes['result']['user_id'];    
+            }else{
+                return $this->outputRpc($rpcRes);    
+            }
+        }
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
