@@ -56,7 +56,7 @@ class OpenJsonRpc extends JsonRpc {
                         'color'=>'#173177'
                     ),
                     'time'=>array(
-                        'value'=>date('Y年m月d日'),
+                        'value'=>date('Y年m月d日',time()),
                         'color'=>'#173177'
                     ),
                     'remark'=>array(
