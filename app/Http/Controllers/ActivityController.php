@@ -39,6 +39,7 @@ class ActivityController extends Controller
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
             'trigger_type'=>'required',
+            'join_max'=>'required|integer'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -57,6 +58,7 @@ class ActivityController extends Controller
         $activity->group_id = $request->group_id;
         $activity->trigger_index = $request->trigger_index;
         $activity->trigger_type = $request->trigger_type;
+        $activity->join_max = $request->join_max;
         $activity->des = $request->des;
         $activity->enable = 0;
         $res = $activity->save();
@@ -101,6 +103,7 @@ class ActivityController extends Controller
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
             'trigger_type'=>'required',
+            'join_max'=>'required|integer'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -115,6 +118,7 @@ class ActivityController extends Controller
             'end_at'=>$request->end_at ? $request->end_at : NUll,
             'trigger_index'=>$request->trigger_index,
             'trigger_type'=>$request->trigger_type,
+            'join_max' => $request->join_max,
             'des'=>$request->des ? $request->des : NULL,
         ]);
         if($res){

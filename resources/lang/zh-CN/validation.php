@@ -212,7 +212,8 @@ return [
         'source_name'           => '来源名',
         'coop_status'           => '合作状态',
         'classification'        => '渠道分类',
-        'is_abandoned'          => '是否废弃'
+        'is_abandoned'          => '是否废弃',
+        'join_max'              => '参与人数上限'
     ],
 
 ];
