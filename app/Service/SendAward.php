@@ -51,6 +51,9 @@ class SendAward
             return self::addJoins($userID, $activityInfo, 2, json_encode($ruleStatus['errmsg']));
         }
 
+        //*****活动参与人数加1*****
+        Activity::where('id',$activityInfo['id'])->increment('join_num');
+
         //*****发奖之前做的附加条件操作*****
         $additional_status = self::beforeSendAward($activityInfo, $triggerData);
 
@@ -134,7 +137,7 @@ class SendAward
                 //如果是投资触发
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    //金额不大于一万九不发奖
+                    //金额不小于2万不发奖
                     if(empty($investment_amount) || $investment_amount < 20000){
                         return $return;
                     }
