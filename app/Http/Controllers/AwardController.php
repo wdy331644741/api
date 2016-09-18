@@ -61,7 +61,7 @@ class AwardController extends AwardCommonController
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = SendAward::sendDataRole($request->userId, $request->awardType, $request->awardId, 0, $request->sourceName );
+        $res = SendAward::sendDataRole($userId, $request->awardType, $request->awardId, 0, $request->sourceName );
         return $this->outputJson(0, $res);
     }
 
