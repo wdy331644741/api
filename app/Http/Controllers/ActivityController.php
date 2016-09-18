@@ -38,8 +38,7 @@ class ActivityController extends Controller
             'award_rule'=>'required|integer',
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
-            'trigger_type'=>'required',
-            'join_max'=>'required|integer'
+            'trigger_type'=>'required'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -58,7 +57,6 @@ class ActivityController extends Controller
         $activity->group_id = $request->group_id;
         $activity->trigger_index = $request->trigger_index;
         $activity->trigger_type = $request->trigger_type;
-        $activity->join_max = $request->join_max;
         $activity->des = $request->des;
         $activity->enable = 0;
         $res = $activity->save();
@@ -102,8 +100,7 @@ class ActivityController extends Controller
             'start_at'=> 'date',
             'end_at' => 'date',
             'trigger_index'=>'required|integer',
-            'trigger_type'=>'required',
-            'join_max'=>'required|integer'
+            'trigger_type'=>'required'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -118,7 +115,6 @@ class ActivityController extends Controller
             'end_at'=>$request->end_at ? $request->end_at : NUll,
             'trigger_index'=>$request->trigger_index,
             'trigger_type'=>$request->trigger_type,
-            'join_max' => $request->join_max,
             'des'=>$request->des ? $request->des : NULL,
         ]);
         if($res){
@@ -654,6 +650,48 @@ class ActivityController extends Controller
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
         $rule->rule_info = $this->Params2json($request,array('min_payment','max_payment'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //投资标类型
+    private function rule_casttype($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'type' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('type'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //活动参与人数
+    private function rule_joinnum($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'join_max' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('join_max'));
         $rule->save();
         if($rule->id){
             return array('error_code'=>0,'insert_id'=>$rule->id);
