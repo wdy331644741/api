@@ -143,7 +143,6 @@ class TemplateController extends Controller
                 $query->orderByRaw('id + sort DESC')->orderBy('id','desc');
             }])->orderByRaw('id + sort DESC')
             ->orderBy('id','desc')->get();
-        dd($data);
         $often = Content::select('id','type_id','title')->where(['release'=>1,'platform'=>1])->get();
         $res = view('static.help', array('data'=>$data,'types'=>$typeArr,'oftens'=>$often))->render();
         Storage::disk('static')->put("help.html", $res);
