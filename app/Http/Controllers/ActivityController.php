@@ -662,6 +662,48 @@ class ActivityController extends Controller
         }
     }
 
+    //投资标类型
+    private function rule_casttype($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'type' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('type'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //活动参与人数
+    private function rule_joinnum($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'join_max' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('join_max'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
 
     private function getStorageTypeByName($type_name){
         $rules = config('activity.rule_child');

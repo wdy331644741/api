@@ -58,6 +58,14 @@ return [
             'name'=>'用户渠道黑名单',
             'model_name'=>'Channelblist',
         ],
+        14=>[
+            'name'=>'投资标类型',
+            'model_name'=>'Casttype',
+        ],
+        15=>[
+            'name'=>'参与人数',
+            'model_name'=>'Joinnum',
+        ]
     ],
     'activity_type'=>[
         0=>[
