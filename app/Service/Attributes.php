@@ -64,4 +64,10 @@ class Attributes
         }
         return false;
     }
+
+    public function rank($key){
+        $data = UserAttribute::where('key',$key)->orderBy('number','DESC')->paginate(100);
+        return $data;
+
+    }
 }

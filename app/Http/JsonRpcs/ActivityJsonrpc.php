@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\ActivityJoin;
 use App\Models\SendRewardLog;
 use App\Service\SendAward;
+use App\Models\UserAttribute;
 use Validator;
 
 
@@ -304,6 +305,24 @@ class ActivityJsonRpc extends JsonRpc {
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * 获取闯关状态
+     *
+     * @JsonRpcMethod
+     */
+    public function getStatus($params) {
+        if (empty($params->user_id) || empty($params->key)) {
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $json = UserAttribute::where(['user_id'=>$params->user_id,'key'=>$params->key])->value('text');
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => json_decode($json)
+        );
     }
 
 }
