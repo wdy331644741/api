@@ -49,8 +49,10 @@ class Attributes
             $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
             $status = (array)json_decode($res->text);
             $status['gq_'.$kvarr[0]] = intval($kvarr[1]);
+            $countArr = array_count_values($status);
             $json = json_encode($status);
             $res->text = $json;
+            $res->number = $countArr[1];
             $res->update();
             if($res) return $res->text;
         }else{
@@ -58,6 +60,7 @@ class Attributes
             $UserAttribute = new UserAttribute();
             $UserAttribute->user_id = $uid;
             $UserAttribute->key = $key;
+            $UserAttribute->number = 1;
             $UserAttribute->text = json_encode($this->default);
             $UserAttribute->save();
             if($UserAttribute->id) return $UserAttribute->text;
