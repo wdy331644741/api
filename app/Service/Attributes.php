@@ -66,7 +66,7 @@ class Attributes
     }
 
     public function rank($key){
-        $data = UserAttribute::where('key',$key)->orderBy('number','DESC')->paginate(100);
+        $data = UserAttribute::where('key',$key)->orderBy('number','DESC')->paginate(100)->toArray();
         return $data;
 
     }
