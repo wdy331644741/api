@@ -21,13 +21,13 @@ use App\Models\SendRewardLog;
 use App\Service\SendMessage;
 use App\Service\RuleCheck;
 use App\Models\ActivityJoin;
+use App\Service\Attributes;
 use Config;
 use Validator;
 class SendAward
 {
     static private $userID;
     static private  $activityID;
-    static private  $money;
 
     /**
      * 验证规则和发送奖品
@@ -110,7 +110,9 @@ class SendAward
      */
     static function beforeSendAward($activityInfo, $triggerData){
         $return = array();
+        $Attributes = new Attributes();
         switch ($activityInfo['alias_name']) {
+            //按照充值金额送比例体验金
             case 'songtiyanjin':
                 //如果是充值触发
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'recharge'){
@@ -133,6 +135,8 @@ class SendAward
                     $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
                     $return = self::experience($awards);
                 }
+                break;
+            //按投资金额送体验金全额
             case 'songtiyanjinAll':
                 //如果是投资触发
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
@@ -155,6 +159,74 @@ class SendAward
                     $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
                     $return = self::experience($awards);
                 }
+                break;
+            //当天天标累计投资
+            case 'cast_tianbiao':
+                //如果是投资触发
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    //金额不不能为空
+                    if(empty($investment_amount)){
+                        return $return;
+                    }
+                    $Attributes->increment($triggerData['user_id'],'investment_'.date('md'),$investment_amount);
+                }
+                break;
+            //当天月标累计投资
+            case 'cast_yuebiao':
+                //如果是投资触发
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    //金额不不能为空
+                    if(empty($investment_amount)){
+                        return $return;
+                    }
+                    $Attributes->increment($triggerData['user_id'],'investment_'.date('md'),$investment_amount);
+                }
+                break;
+            //9月30日闯关状态修改
+            case 'gq_0930':
+                $Attributes->status($triggerData['user_id'],'cg_success','0930:1');
+                break;
+            //10月01日闯关状态修改
+            case 'gq_1001':
+                $Attributes->status($triggerData['user_id'],'cg_success','1001:1');
+                break;
+            //10月02日闯关状态修改
+            case 'gq_1002':
+                $Attributes->status($triggerData['user_id'],'cg_success','1002:1');
+                break;
+            //10月03日闯关状态修改&邀请人累计投资
+            case 'gq_1003':
+                //如果是邀请人投资触发
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    //金额不不能为空
+                    if(empty($investment_amount)){
+                        return $return;
+                    }
+                    $investment = $Attributes->increment($triggerData['user_id'],'investment_'.date('ymd'),$investment_amount);
+                    if($investment >= 10000){
+                        $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
+                    }
+                }
+                break;
+            //10月04日闯关状态修改
+            case 'gq_1004':
+                $Attributes->status($triggerData['user_id'],'cg_success','1004:1');
+                break;
+            //10月05日闯关状态修改
+            case 'gq_1005':
+                $Attributes->status($triggerData['user_id'],'cg_success','1005:1');
+                break;
+            //10月06日闯关状态修改
+            case 'gq_1006':
+                $Attributes->status($triggerData['user_id'],'cg_success','1006:1');
+                break;
+            //10月07日闯关状态修改
+            case 'gq_1007':
+                $Attributes->status($triggerData['user_id'],'cg_success','1007:1');
+                break;
         }
         //发奖
         return $return;
