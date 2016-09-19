@@ -51,6 +51,9 @@ class SendAward
             return self::addJoins($userID, $activityInfo, 2, json_encode($ruleStatus['errmsg']));
         }
 
+        //*****活动参与人数加1*****
+        Activity::where('id',$activityInfo['id'])->increment('join_num');
+
         //*****发奖之前做的附加条件操作*****
         $additional_status = self::beforeSendAward($activityInfo, $triggerData);
 
@@ -125,6 +128,28 @@ class SendAward
                     $awards['experience_amount_money'] = $money;
                     $awards['effective_time_type'] = 1;
                     $awards['effective_time_day'] = 7;
+                    $awards['platform_type'] = 0;
+                    $awards['limit_desc'] = '';
+                    $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+                    $return = self::experience($awards);
+                }
+            case 'songtiyanjinAll':
+                //如果是投资触发
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    //金额不小于2万不发奖
+                    if(empty($investment_amount) || $investment_amount < 20000){
+                        return $return;
+                    }
+                    $awards['id'] = 0;
+                    $awards['user_id'] = $triggerData['user_id'];
+                    $awards['source_id'] = $activityInfo['id'];
+                    $awards['name'] = $investment_amount.'元体验金';
+                    $awards['source_name'] = $activityInfo['name'];
+                    $awards['experience_amount_money'] = $investment_amount;
+                    $awards['effective_time_type'] = 2;
+                    $awards['effective_time_start'] = "2016-10-01 00:00:00";
+                    $awards['effective_time_end'] = "2016-10-15 23:59:59";
                     $awards['platform_type'] = 0;
                     $awards['limit_desc'] = '';
                     $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
