@@ -73,4 +73,10 @@ class Attributes
         return $data;
 
     }
+
+    public function prize($key){
+        $where = ['number'=>8,'key'=>$key];
+        $data = UserAttribute::where($where)->get()->toArray();
+        return $data;
+    }
 }
