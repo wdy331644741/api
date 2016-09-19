@@ -72,6 +72,12 @@ class RuleCheck
                 case $value->rule_type === 13:
                     $res = self::_ChannelBlist($userBase,$value);
                     break;
+                case $value->rule_type === 14:
+                    $res = self::_castType($value,$sqsmsg);
+                    break;
+                case $value->rule_type === 15:
+                    $res = self::_joinNum($activity_id,$value);
+                    break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
                     break;
@@ -280,7 +286,7 @@ class RuleCheck
     }
 
     //用户渠道黑名单
-    private  static function _ChannelBlist($userBase,$rule){
+    private static function _ChannelBlist($userBase,$rule){
         $rules = (array)json_decode($rule->rule_info);
         if(isset($userBase['error'])){
             return array('send'=>false,'errmsg'=>$userBase['error']['message']);
@@ -291,5 +297,30 @@ class RuleCheck
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'渠道黑名单规则验证不通过');
+    }
+
+    //投资标期类型规则验证（验证参数）
+    private static function _castType($rule,$sqsmsg) {
+        $rules = (array)json_decode($rule->rule_info);
+        $scatter_type = $sqsmsg['scatter_type'];
+        if($scatter_type){
+            if($scatter_type == $rules['type']){
+                return array('send'=>true);
+            }
+        }else{
+            return array('send'=>true);
+        }
+        return array('send'=>false,'errmsg'=>'投资标期类型规则验证不通过');
+    }
+
+    //投资标期类型规则验证(验证参数)
+    private static function _joinNum($activity_id,$rule) {
+        $rules = (array)json_decode($rule->rule_info);
+        $join_num = Activity::find($activity_id)->value('join_num');
+        $join_max = $rules['join_max'];
+        if($join_num < $join_max){
+            return array('send'=>true);
+        }
+        return array('send'=>false,'errmsg'=>'活动参与人数超过限制');
     }
 }
