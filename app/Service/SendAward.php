@@ -169,7 +169,7 @@ class SendAward
                     if(empty($investment_amount)){
                         return $return;
                     }
-                    $Attributes->increment($triggerData['user_id'],'investment_'.date('md'),$investment_amount);
+                    $Attributes->increment($triggerData['user_id'],$activityInfo['alias_name'].'_'.date('ymd'),$investment_amount);
                 }
                 break;
             //当天月标累计投资
@@ -181,7 +181,7 @@ class SendAward
                     if(empty($investment_amount)){
                         return $return;
                     }
-                    $Attributes->increment($triggerData['user_id'],'investment_'.date('md'),$investment_amount);
+                    $Attributes->increment($triggerData['user_id'],$activityInfo['alias_name'].'_'.date('ymd'),$investment_amount);
                 }
                 break;
             //9月30日闯关状态修改
@@ -205,11 +205,12 @@ class SendAward
                     if(empty($investment_amount)){
                         return $return;
                     }
-                    $investment = $Attributes->increment($triggerData['user_id'],'investment_'.date('ymd'),$investment_amount);
-                    if($investment >= 10000){
-                        $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
+                    $investment = $Attributes->increment($triggerData['user_id'],$activityInfo['alias_name'].'_'.date('ymd'),$investment_amount);
+                    if($investment < 10000){
+                        return $return;
                     }
                 }
+                $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
                 break;
             //10月04日闯关状态修改
             case 'gq_1004':
