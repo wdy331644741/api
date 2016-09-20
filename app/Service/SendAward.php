@@ -356,7 +356,12 @@ class SendAward
         self::$activityID = $activityID;
         //获取数据
         $table = self::_getAwardTable($award_type);
-        $info = $table::where('id', $award_id)->select()->get()->toArray();
+        if($award_type == 6){
+            $info = $table::where('id', $award_id)->where('is_del', 0)->select()->get()->toArray();
+        }else{
+            $info = $table::where('id', $award_id)->select()->get()->toArray();
+        }
+
         if(empty($info)){
             return '奖品不存在';
         }

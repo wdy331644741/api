@@ -335,4 +335,21 @@ class AwardController extends AwardCommonController
         $this->dispatch(new ReissueAward());
         return $this->outputJson(0, array('error_msg'=>'成功'));
     }
+    /**
+     * 优惠券失效
+     *
+     * @param Request $request
+     * @return json
+     */
+    function postInvalidCoupon(Request $request) {
+        $id = intval($request->id);
+        if(empty($id)){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'ID不能为空'));
+        }
+        $return = Coupon::where('id',$id)->update(array('is_del'=>1));
+        if(empty($return)){
+            return $this->outputJson(DATABASE_ERROR, array('error_msg'=>'修改失败'));
+        }
+        return $this->outputJson(0, array('error_msg'=>'成功'));
+    }
 }
