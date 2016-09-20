@@ -303,6 +303,9 @@ class RuleCheck
     private static function _castType($rule,$sqsmsg) {
         $rules = (array)json_decode($rule->rule_info);
         $scatter_type = $sqsmsg['scatter_type'];
+        if(!in_array(intval($scatter_type),array(0,1,2))){
+            return array('send'=>false,'errmsg'=>'非法标期类型');
+        }
         if($scatter_type){
             if($scatter_type == $rules['type']){
                 return array('send'=>true);
@@ -313,7 +316,7 @@ class RuleCheck
         return array('send'=>false,'errmsg'=>'投资标期类型规则验证不通过');
     }
 
-    //投资标期类型规则验证(验证参数)
+    //参与人数规则验证(验证参数)
     private static function _joinNum($activity_id,$rule) {
         $rules = (array)json_decode($rule->rule_info);
         $join_num = Activity::find($activity_id)->value('join_num');
