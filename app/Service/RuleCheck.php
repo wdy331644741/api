@@ -303,7 +303,7 @@ class RuleCheck
     private static function _castType($rule,$sqsmsg) {
         $rules = (array)json_decode($rule->rule_info);
         $scatter_type = $sqsmsg['scatter_type'];
-        if(!in_array(intval($scatter_type),array(0,1,2))){
+        if(!in_array(strval($scatter_type),array('0','1','2'))){
             return array('send'=>false,'errmsg'=>'非法标期类型');
         }
         if($scatter_type){
