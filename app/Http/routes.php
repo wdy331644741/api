@@ -27,6 +27,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('loan', 'LoanBookController');
     //图片管理
     Route::controller('img', 'ImgManageController');
+    //果粉专享
+    Route::controller('mark', 'MarkController');
 });
 
 // 对外接口
