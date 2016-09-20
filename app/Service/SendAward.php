@@ -56,6 +56,15 @@ class SendAward
 
         //*****发奖之前做的附加条件操作*****
         $additional_status = self::beforeSendAward($activityInfo, $triggerData);
+        //10月03日闯关状态修改
+        if($activityInfo['alias_name'] == 'gq_1003' && isset($additional_status['investment'])){
+            if(empty($additional_status) || $additional_status['investment'] < 10000){
+                return '不发奖';
+            }else{
+                $Attributes = new Attributes();
+                $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
+            }
+        }
 
         //*****给本人发的奖励*****
         $status = self::addAwardByActivity($userID, $activityID);
@@ -196,7 +205,7 @@ class SendAward
             case 'gq_1002':
                 $Attributes->status($triggerData['user_id'],'cg_success','1002:1');
                 break;
-            //10月03日闯关状态修改&邀请人累计投资
+            //10月03日邀请人累计投资
             case 'gq_1003':
                 //如果是邀请人投资触发
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
@@ -205,12 +214,8 @@ class SendAward
                     if(empty($investment_amount)){
                         return $return;
                     }
-                    $investment = $Attributes->increment($triggerData['user_id'],$activityInfo['alias_name'].'_'.date('ymd'),$investment_amount);
-                    if($investment < 10000){
-                        return $return;
-                    }
+                    $return['investment'] = $Attributes->increment($triggerData['user_id'],$activityInfo['alias_name'].'_'.date('ymd'),$investment_amount);
                 }
-                $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
                 break;
             //10月04日闯关状态修改
             case 'gq_1004':
