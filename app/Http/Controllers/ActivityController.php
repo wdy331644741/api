@@ -23,7 +23,10 @@ use App\Models\Coupon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Monolog\Handler\NullHandlerTest;
+use App\Service\Attributes;
+use Excel;
 use Validator;
+use Response;
 
 class ActivityController extends Controller
 {
@@ -925,5 +928,66 @@ class ActivityController extends Controller
     public function getBatchAwardList(Request $request){
         $data = Func::Search($request,new AwardBatch());
         return $this->outputJson(0,$data);
+    }
+    /**
+     * 投资总额排行
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getInvestmentList(Request $request){
+        $key = trim($request->key);
+        if(empty($key)){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'要导出的key不能为空'));
+        }
+        $Attributes = new Attributes();
+        $list = $Attributes->rank($key);
+        if(empty($list['data'])){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'没有数据'));
+        }
+        $list = $list['data'];
+        foreach($list as $key => $item){
+            if($key == 0){
+                $cellData[$key] = array('id','user_id','key','number','string','text','created_at','updated_at');
+            }
+            $cellData[$key+1] = array($item['id'],$item['user_id'],$item['key'],$item['number'],$item['string'],$item['text'],$item['created_at'],$item['updated_at']);
+        }
+        $fileName = date("YmdHis").mt_rand(1000,9999);
+        $typeName = "xls";
+        Excel::create($fileName,function($excel) use ($cellData){
+            $excel->sheet('investmentList', function($sheet) use ($cellData){
+                $sheet->rows($cellData);
+            });
+        })->store($typeName);
+        return Response::download(base_path()."/storage/exports/".$fileName.'.'.$typeName);
+    }
+    /**
+     * 闯关成功列表导出
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCgList(Request $request){
+        $key = trim($request->key);
+        if(empty($key)){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'要导出的key不能为空'));
+        }
+        $Attributes = new Attributes();
+        $list = $Attributes->prize($key);
+        if(empty($list)){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'没有数据'));
+        }
+        foreach($list as $key => $item){
+            if($key == 0){
+                $cellData[$key] = array('id','user_id','key','number','string','text','created_at','updated_at');
+            }
+            $cellData[$key+1] = array($item['id'],$item['user_id'],$item['key'],$item['number'],$item['string'],$item['text'],$item['created_at'],$item['updated_at']);
+        }
+        $fileName = date("YmdHis").mt_rand(1000,9999);
+        $typeName = "xls";
+        Excel::create($fileName,function($excel) use ($cellData){
+            $excel->sheet('investmentList', function($sheet) use ($cellData){
+                $sheet->rows($cellData);
+            });
+        })->store($typeName);
+        return Response::download(base_path()."/storage/exports/".$fileName.'.'.$typeName);
     }
 }

@@ -72,7 +72,7 @@ class ChannelController extends Controller
             'alias_name'=>'required|alpha_num',
             'coop_status'=>'required|in:0,1,2,3',
             'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS',
-            'pre'=>'alpha_num|unique:channels,pre'.$request->pre,
+            'pre'=>'alpha_num|unique:channels,pre,'.$request->pre,
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
