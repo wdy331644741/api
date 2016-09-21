@@ -331,7 +331,7 @@ class ActivityController extends Controller
             return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
         }
         $request->min_time = $request->min_time ? $request->min_time : NULL;
-        $request->min_time = $request->max_time ? $request->max_time : NULL;
+        $request->max_time = $request->max_time ? $request->max_time : NULL;
 
         DB::beginTransaction();
         $rule = new Rule();

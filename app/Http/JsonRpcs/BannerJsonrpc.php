@@ -63,6 +63,17 @@ class BannerJsonRpc extends JsonRpc {
                 $rData['from'] = $res['from'];
                 $rData['to'] = $res['to'];
                 break;
+            // 移动端banner限制只显示前5张图
+            case 'mobile':
+                 $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+                    ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();          
+                break;
             // 默认
             default:
                 $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
@@ -72,10 +83,8 @@ class BannerJsonRpc extends JsonRpc {
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-
                     ->orderByRaw('id + sort DESC')->get()->toArray();
         }
-        
 
         $rData['list'] = $data;
         $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : '';
