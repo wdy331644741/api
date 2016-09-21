@@ -143,4 +143,10 @@ class ChannelController extends Controller
             return $this->outputJson(10002,array('error_msg'=>"Database Error"));
         }
     }
+
+    //统计用的渠道数据
+    public function getCountJson(){
+        $data = Channel::orderBy('id','desc')->get();
+        return $this->outputJson(0,$data);
+    }
 }
