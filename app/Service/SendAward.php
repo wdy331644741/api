@@ -145,30 +145,6 @@ class SendAward
                     $return = self::experience($awards);
                 }
                 break;
-            //按投资金额送体验金全额
-            case 'songtiyanjinAll':
-                //如果是投资触发
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
-                    $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    //金额不小于2万不发奖
-                    if(empty($investment_amount) || $investment_amount < 20000){
-                        return $return;
-                    }
-                    $awards['id'] = 0;
-                    $awards['user_id'] = $triggerData['user_id'];
-                    $awards['source_id'] = $activityInfo['id'];
-                    $awards['name'] = $investment_amount.'元体验金';
-                    $awards['source_name'] = $activityInfo['name'];
-                    $awards['experience_amount_money'] = $investment_amount;
-                    $awards['effective_time_type'] = 2;
-                    $awards['effective_time_start'] = "2016-10-01 00:00:00";
-                    $awards['effective_time_end'] = "2016-10-15 23:59:59";
-                    $awards['platform_type'] = 0;
-                    $awards['limit_desc'] = '';
-                    $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
-                    $return = self::experience($awards);
-                }
-                break;
             //当天天标累计投资
             case 'cast_tianbiao':
                 //如果是投资触发
@@ -199,6 +175,27 @@ class SendAward
                 break;
             //10月01日闯关状态修改
             case 'gq_1001':
+                //如果是投资触发
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $investment_amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    //金额不小于2万不发奖
+                    if(empty($investment_amount) || $investment_amount < 20000){
+                        return $return;
+                    }
+                    $awards['id'] = 0;
+                    $awards['user_id'] = $triggerData['user_id'];
+                    $awards['source_id'] = $activityInfo['id'];
+                    $awards['name'] = $investment_amount.'元体验金';
+                    $awards['source_name'] = $activityInfo['name'];
+                    $awards['experience_amount_money'] = $investment_amount;
+                    $awards['effective_time_type'] = 2;
+                    $awards['effective_time_start'] = "2016-10-01 00:00:00";
+                    $awards['effective_time_end'] = "2016-10-15 23:59:59";
+                    $awards['platform_type'] = 0;
+                    $awards['limit_desc'] = '';
+                    $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+                    $return = self::experience($awards);
+                }
                 $Attributes->status($triggerData['user_id'],'cg_success','1001:1');
                 break;
             //10月02日闯关状态修改
@@ -359,7 +356,12 @@ class SendAward
         self::$activityID = $activityID;
         //获取数据
         $table = self::_getAwardTable($award_type);
-        $info = $table::where('id', $award_id)->select()->get()->toArray();
+        if($award_type == 6){
+            $info = $table::where('id', $award_id)->where('is_del', 0)->select()->get()->toArray();
+        }else{
+            $info = $table::where('id', $award_id)->select()->get()->toArray();
+        }
+
         if(empty($info)){
             return '奖品不存在';
         }
