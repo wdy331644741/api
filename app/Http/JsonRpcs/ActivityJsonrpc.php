@@ -314,10 +314,11 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getStatus($params) {
-        if (empty($params->user_id) || empty($params->key)) {
+        global $userId;
+        if (empty($params->key)) {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        $json = UserAttribute::where(['user_id'=>$params->user_id,'key'=>$params->key])->value('text');
+        $json = UserAttribute::where(['user_id'=>$userId,'key'=>$params->key])->value('text');
         return array(
             'code' => 0,
             'message' => 'success',
