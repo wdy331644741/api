@@ -25,12 +25,13 @@ class MarkController extends Controller
         if(empty($param['startTime'])){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>'开始时间不能为空'));
         }
+        $param['page'] = $request->page;
         $url = Config::get("mark.mark_http_url");
         $client = new JsonRpcClient($url);
         $list = $client->exclusiveStandard($param);
         if(isset($list['result']['code']) && $list['result']['code'] === 0){
             if(!empty($list['result']['data'])){
-                $fileName = date("YmdHis").mt_rand(1000,9999);
+                $fileName = date("YmdHis").mt_rand(1000,9999)."_".$param['page'];
                 $typeName = "xls";
                 $cellData = $list['result']['data'];
 
