@@ -6,6 +6,14 @@ Route::get('/ip', function () {
     return Request::getClientIp();
 });
 
+// 内部调用接口,需要放到上边,先生效。
+Route::group(['middleware' => 'internal'], function() {
+    // 触发发奖路由
+    Route::get('channel/count-json', 'ChannelController@getCountJson'); // 数据获取渠道列表
+    Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口 
+    Route::controller('mc', 'MessageCenterController');
+});
+
 // admin接口
 Route::group(['middleware' => 'admin'], function(){
     Route::controller('activity', 'ActivityController');
@@ -14,35 +22,30 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('cms/content','Cms\ContentController');
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
-    //测试控制器
+    // 测试控制器
     Route::controller('test','TestController');
-    //模板控制
+    // 模板控制
     Route::controller('template', 'TemplateController');
-    //奖品路由
-    Route::controller('award', 'AwardController');
-    Route::controller('admin', 'AdminController');
-    //兑换码
+    // 奖品路由
+    Route::controller('award', 'AwardController'); 
+    // 权限管理
+    Route::controller('admin', 'AdminController'); 
+    // 兑换码
     Route::controller('redeem', 'RedeemController');
-    //贷款提交
+    // 贷款提交
     Route::controller('loan', 'LoanBookController');
-    //图片管理
+    // 图片管理
     Route::controller('img', 'ImgManageController');
-    //果粉专享
+    // 果粉专享
     Route::controller('mark', 'MarkController');
 });
 
 // 对外接口
 Route::group(['middleware' => 'web'], function() {
-    Route::controller('rpc', 'RpcController');
-    Route::controller('open', 'OpenController');
+    Route::post('rpc', 'RpcController@postIndex');  //对外rpc接口
+    Route::post('rpc/index', 'RpcController@postIndex');  //对外rpc接口
+    Route::controller('open', 'OpenController'); //微信相关
 });
-
-
-// 内部调用接口
-Route::group(['middleware' => 'internal'], function() {
-    // 触发发奖路由
-    Route::controller('mc', 'MessageCenterController');
-});   
 
 //图片地址转调
 Route::get('/enclosures/{url}',function ($url) {
