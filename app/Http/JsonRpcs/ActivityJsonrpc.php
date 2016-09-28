@@ -110,7 +110,11 @@ class ActivityJsonRpc extends JsonRpc {
 
         $remark = json_decode($signinRes['remark'], true);
         //获取连续签到天数
-        $continue = intval($remark['continue']);
+        if(isset($remark['continue'])) {
+            $continue = intval($remark['continue']);
+        }else {
+            $continue = 0; 
+        }
 
         if($day > $continue) {
             throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
@@ -186,8 +190,11 @@ class ActivityJsonRpc extends JsonRpc {
         if($todayRes) {
             $remark = json_decode($todayRes['remark'], true);
             $award = SendAward::getAward($todayRes['award_type'], $todayRes['award_id']);
-            $continue = intval($remark['continue']);
-
+            if(isset($remark['continue'])) {
+                $continue = intval($remark['continue']);
+            }else {
+                $continue = 0;
+            }
 
             // 是否分享
             $shared = $this->isShared($userId);
@@ -231,7 +238,12 @@ class ActivityJsonRpc extends JsonRpc {
         $yesterdayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$yesterday}'")->first();
         if(!empty($yesterdayRes)){
             $remark = json_decode($yesterdayRes['remark'], true);
-            $continue = $remark['continue'] + 1;
+            if(isset($remark['continue'])) {
+                $continue = intval($remark['continue']);
+            }else {
+                $continue = 0;
+            }
+            $continue += 1;
             if($continue > 28) {
                 $continue = 1;
             }
