@@ -37,7 +37,7 @@ class MarkController extends Controller
 
                 foreach($cellData as $key => $item){
                     if($key == 0){
-                        $cellData[$key] = array('散标id','用户id','投资金额','期限','标类型','天标或月标');
+                        $cellData[$key] = array('散标id','用户id','投资金额','期限','标类型','天标或月标','手机号');
                     }
                     if($item['type'] == 3){
                         $type = "月利宝";
@@ -51,7 +51,7 @@ class MarkController extends Controller
                     if($item['scatter_type'] == 2){
                         $scatter_type = "月标";
                     }
-                    $cellData[$key+1] = array($item['project_id'],$item['user_id'],$item['amount'],$item['term'],$type,$scatter_type);
+                    $cellData[$key+1] = array($item['project_id'],$item['user_id'],$item['amount'],$item['term'],$type,$scatter_type,$item['mobile']);
                 }
                 Excel::create($fileName,function($excel) use ($cellData){
                     $excel->sheet('investmentList', function($sheet) use ($cellData){
