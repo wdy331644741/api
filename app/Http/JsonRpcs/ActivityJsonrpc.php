@@ -318,6 +318,9 @@ class ActivityJsonRpc extends JsonRpc {
         if (empty($params->key)) {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $json = UserAttribute::where(['user_id'=>$userId,'key'=>$params->key])->value('text');
         return array(
             'code' => 0,
