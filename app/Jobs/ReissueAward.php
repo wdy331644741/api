@@ -24,7 +24,7 @@ class ReissueAward extends Job implements ShouldQueue
         //循环发奖
         for($i=0;$i<100;$i++){
             //获取出发送失败的奖品列表
-            $item = SendRewardLog::where('status',0)->where('activity_id','!=','0')->where('award_id','!=','0')->first();
+            $item = SendRewardLog::where('status',0)->where('activity_id','!=','0')->where('award_id','!=','0')->where('award_type','!=','6')->first();
             if(empty($item['award_id']) || empty($item['award_type']) || empty($item['user_id']) || empty($item['id']) || empty($item['activity_id'])){
                 continue;
             }

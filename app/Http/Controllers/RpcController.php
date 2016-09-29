@@ -63,7 +63,7 @@ class RpcController extends Controller
     }
 
     /**
-     * 发送奖品
+     * 内部接口
      */
     public function postInside() {
         $jsonRpcServer = new JsonRpcServer();
