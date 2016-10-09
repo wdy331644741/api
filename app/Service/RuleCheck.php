@@ -188,7 +188,7 @@ class RuleCheck
     private static function _cast($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $isfirst = $sqsmsg['is_first'];
-        $cast_meony = $sqsmsg['Investment_amount'];
+        $cast_meony = ceil(floatval($sqsmsg['Investment_amount']));
         if ($rules['isfirst'] == 1){
             if($isfirst && $cast_meony >= $rules['min_cast'] && $cast_meony <= $rules['max_cast']){
                 return array('send'=>true);
@@ -209,7 +209,7 @@ class RuleCheck
     private static function _recharge($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $isfirst = $sqsmsg['is_first'];
-        $recharge_meony = $sqsmsg['money'];
+        $recharge_meony = ceil(floatval($sqsmsg['money']));
         if ($rules['isfirst'] == 1){
             if($isfirst && $recharge_meony >= $rules['min_recharge'] && $recharge_meony <= $rules['max_recharge']){
                 return array('send'=>true);
@@ -231,8 +231,8 @@ class RuleCheck
     private static function _payment($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
 
-        $payment_meony = $sqsmsg['amount'];
-        if($payment_meony >= $rules['min_payment'] && ceil(floatval($payment_meony)) <= $rules['max_payment']){
+        $payment_meony = ceil(floatval($sqsmsg['amount']));
+        if($payment_meony >= $rules['min_payment'] && $payment_meony <= $rules['max_payment']){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'回款规则验证不通过');
@@ -246,7 +246,7 @@ class RuleCheck
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
-        $cast_all_money = intval($res['result']['data']);
+        $cast_all_money = ceil(floatval($res['result']['data']));
         if($cast_all_money >= $rules['min_cast_all'] && $cast_all_money <= $rules['max_cast_all']){
             return array('send'=>true);
         }
@@ -261,7 +261,7 @@ class RuleCheck
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>$res['error']['message']);
         }
-        $cast_all_money = intval($res['result']['data']);
+        $cast_all_money = ceil(floatval($res['result']['data']));
         if($cast_all_money >= $rules['min_recharge_all'] && $cast_all_money <= $rules['max_recharge_all']){
             return array('send'=>true);
         }
