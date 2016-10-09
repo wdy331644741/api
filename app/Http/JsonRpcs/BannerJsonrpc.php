@@ -27,19 +27,22 @@ class BannerJsonRpc extends JsonRpc {
             $where['position'] = $position;
         }
         switch($position) {
-            // 发现页 不做时间限制
+            // 发现页 不做时间限制 @修改为作时间限制
             case 'discover':
-                $data1 = BANNER::select('id', 'name', 'type','img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                $data = BANNER::select('id', 'name', 'type','img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
                     ->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
                     ->orderByRaw('sort DESC')->get()->toArray();
-                $data2 = BANNER::select('id', 'name', 'type','img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
-                    ->where($where)
-                    ->whereRaw('end < now()')
-                    ->orderByRaw('sort DESC')->get()->toArray();
-                $data  = array_merge($data1, $data2);
+//                $data2 = BANNER::select('id', 'name', 'type','img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+//                    ->where($where)
+//                    ->whereRaw('end < now()')
+//                    ->orderByRaw('sort DESC')->get()->toArray();
+//                $data  = array_merge($data1, $data2);
                 break;
             // 大事记 增加分页
             case 'memorabilia':
