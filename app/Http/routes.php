@@ -20,6 +20,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('account', 'AccountController');
     Route::controller('channel', 'ChannelController');
     Route::controller('cms/content','Cms\ContentController');
+    Route::controller('cms/idiom','Cms\IdiomController');
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
     // 测试控制器

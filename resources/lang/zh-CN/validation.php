@@ -213,7 +213,8 @@ return [
         'coop_status'           => '合作状态',
         'classification'        => '渠道分类',
         'is_abandoned'          => '是否废弃',
-        'join_max'              => '参与人数上限'
+        'join_max'              => '参与人数上限',
+        'contents'              => '内容'
     ],
 
 ];
