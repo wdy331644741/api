@@ -273,14 +273,8 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $name = trim($sqsmsg['name']);
         $short_name = trim($sqsmsg['short_name']);
-        if(!$rules['stage_name']){
-            if(substr_count($name,$rules['name'])){
-                return array('send'=>true);
-            }
-        }else{
-            if(substr_count($name.$short_name,$rules['name'])){
-                return array('send'=>true);
-            }
+        if(substr_count($name.$short_name,$rules['name'])){
+            return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'投资标名称规则验证不通过');
     }
