@@ -16,6 +16,7 @@ use App\Http\JsonRpcs\RedeemCodeJsonRpc;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 use App\Http\JsonRpcs\OpinionJsonRpc;
 use App\Http\JsonRpcs\LoanBookJsonRpc;
+use App\Http\JsonRpcs\CouponCountJsonRpc;
 use App\Http\JsonRpcs\InsideJsonrpc;
 use App\Http\JsonRpcs\AppUpdateConfigJsonRpc;
 use App\Http\JsonRpcs\IdiomJsonrpc;
@@ -48,6 +49,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new OpenJsonRpc());
         $jsonRpcServer->addService(new LoanBookJsonRpc());
         $jsonRpcServer->addService(new IdiomJsonrpc());
+        $jsonRpcServer->addService(new CouponCountJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');       
     }
