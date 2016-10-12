@@ -268,7 +268,7 @@ class RuleCheck
         return array('send'=>false,'errmsg'=>'充值总金额规则验证不通过');
     }
 
-    //投资表名称，期名
+    //投资 标名称+期名
     private static function _castName($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
         $name = trim($sqsmsg['name']);
@@ -278,7 +278,7 @@ class RuleCheck
                 return array('send'=>true);
             }
         }else{
-            if(substr_count($name,$rules['name']) && substr_count($short_name,$rules['stage_name'])){
+            if(substr_count($name.$short_name,$rules['name'])){
                 return array('send'=>true);
             }
         }
