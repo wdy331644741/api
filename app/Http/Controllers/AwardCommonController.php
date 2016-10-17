@@ -326,30 +326,31 @@ class AwardCommonController extends Controller{
      * @return bool
      */
     function _integral($request,$award_id,$award_type){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:2|max:255',
+            'integral' => 'required|integer|min:0'
+        ]);
+        if($validator->fails()){
+            return array('code'=>404,'error_msg'=>$validator->errors()->first());
+        }
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
         if($data['name'] == ''){
             return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
         }
         //积分值
-        $data['integral_type'] = isset($request->integral_type) ? intval($request->integral_type) : 0;
-        if($data['integral_type'] == 0){
-            return array('code'=>404,'params'=>'integral_type','error_msg'=>'请选择积分值');
+        $data['integral'] = isset($request->integral) ? intval($request->integral) : 0;
+        if($data['integral'] == 0){
+            return array('code'=>404,'params'=>'integral','error_msg'=>'请输入积分值');
         }
-        //积分值信息
-        if($data['integral_type'] == 1){
-            $integral_money = $this->FormValidation($request,'integral_value','required','integer');
-            if($integral_money == false){
-                return array('code'=>404,'params'=>'integral_value','error_msg'=>'固定数值不能为空');
-            }
-            $data['integral_value'] = $integral_money;
-        }elseif($data['integral_type'] == 2){
-            $integral_multiple = $this->FormValidation($request,'integral_multiple','required','integer');
-            if($integral_multiple == false){
-                return array('code'=>404,'params'=>'integral_multiple','error_msg'=>'投资额倍数不能为空');
-            }
-            $data['integral_multiple'] = $integral_multiple;
-        }
+        //投资门槛
+        $data['investment_threshold'] = $request->investment_threshold;
+        //会员等级
+        $data['member_level'] = $request->member_level;
+        //短信模板
+        $data['message'] = $request->message;
+        //站内信模板
+        $data['mail'] = $request->mail;
         //判断是添加还是修改
         if($award_id != 0 && $award_type != 0){
             //查询该信息是否存在
