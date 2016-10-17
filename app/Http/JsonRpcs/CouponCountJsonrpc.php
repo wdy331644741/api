@@ -42,7 +42,7 @@ class CouponCountJsonRpc extends JsonRpc {
 
         $id = array_column($award_ids, 'id');
         //获取最新收到金锤的用户id
-        $user_id = SendRewardLog::where('award_type',6)->whereIn('award_id',$id)->where('status','>=',1)->select('user_id')->orderBy('created_at', 'desc')->take(1)->first()->toArray();
+        $user_id = SendRewardLog::where('award_type',6)->whereIn('award_id',$id)->where('status','>=',1)->select('user_id')->orderBy('created_at', 'desc')->first()->toArray();
         if(empty($user_id)){
             throw new OmgException(OmgException::NO_DATA);
         }
