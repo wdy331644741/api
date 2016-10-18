@@ -1,13 +1,14 @@
 <?php
 namespace App\Http\JsonRpcs;
 use App\Models\SendRewardLog;
+use Lib\JsonRpcClient;
 use App\Models\Coupon;
 use App\Exceptions\OmgException as OmgException;
 
 class CouponCountJsonRpc extends JsonRpc {
     
     /**
-     *  获取得到的金锤数
+     *  获取改用户得到的金锤数
      *
      * @JsonRpcMethod
      */
@@ -26,6 +27,41 @@ class CouponCountJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => array('count'=>$count)
+        );
+    }
+    /**
+     *  获取最新得到的金锤数
+     *
+     * @JsonRpcMethod
+     */
+    public function getNewUserCouponCount() {
+        $award_ids = Coupon::where('name','LIKE','%金锤%')->where('is_del',0)->select('id')->get()->toArray();
+        if(empty($award_ids)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+
+        $id = array_column($award_ids, 'id');
+        //获取最新收到金锤的用户id
+        $user_id = SendRewardLog::where('award_type',6)->whereIn('award_id',$id)->where('status','>=',1)->select('user_id')->orderBy('id', 'desc')->first()->toArray();
+        if(empty($user_id)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //获取该用户收到多少金锤
+        $count = SendRewardLog::where('award_type',6)->whereIn('award_id',$id)->where('status','>=',1)->where('user_id',$user_id['user_id'])->count();
+        //根据用户ID获取真实姓名
+        $url = env('INSIDE_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $user_id = $user_id['user_id'];
+        if(empty($user_id)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $userBase = $client->userBasicInfo(array('userId'=>$user_id));
+        $realName = isset($userBase['result']['data']['realname']) ? $userBase['result']['data']['realname'] : '';
+        $message = $realName."获得金锤码".$count."个！";
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => array('message'=>$message)
         );
     }
 }
