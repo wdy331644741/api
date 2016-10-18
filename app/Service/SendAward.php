@@ -398,6 +398,9 @@ class SendAward
         } elseif ($award_type == 3) {
             //体验金
             return self::experience($info);
+        } elseif ($award_type == 4) {
+            //用户积分
+            return self::integral($info);
         } elseif ($award_type == 6) {
             //优惠券
             return self::coupon($info);
@@ -721,6 +724,60 @@ class SendAward
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->experience($data);
+            //发送消息&存储到日志
+            if (isset($result['result']) && $result['result']) {//成功
+                //发送消息&存储日志
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
+            }else{//失败
+                //记录错误日志
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
+            }
+        }
+    }
+    //用户积分
+    static public function integral($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 4;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
+            'user_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
+            'source_name' => 'required|min:2|max:255',
+            'name' => 'required|min:2|max:255',
+            'integral' => 'required|min:2|max:255',
+        ]);
+        if($validator->fails()){
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        $data = array();
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        $uuid = self::create_guid();
+        //用户积分
+        $data['user_id'] = $info['user_id'];
+        $data['uuid'] = $uuid;
+        $data['source_id'] = $info['source_id'];
+        $data['name'] = $info['name'];
+        $data['integral'] = $info['integral'];
+        $data['limit_desc'] = $info['limit_desc'];
+        $data['remark'] = '';
+        if (!empty($data) && !empty($url)) {
+            //发送接口
+            $result = $client->memberScoreAdd($data);
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志

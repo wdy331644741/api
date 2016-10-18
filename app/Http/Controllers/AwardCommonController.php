@@ -328,25 +328,15 @@ class AwardCommonController extends Controller{
     function _integral($request,$award_id,$award_type){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'integral' => 'required|integer|min:0'
+            'integral' => 'required|integer|min:1'
         ]);
         if($validator->fails()){
             return array('code'=>404,'error_msg'=>$validator->errors()->first());
         }
         //名称
         $data['name'] = isset($request->name) ? trim($request->name) : '';
-        if($data['name'] == ''){
-            return array('code'=>404,'params'=>'name','error_msg'=>'名称不能为空');
-        }
         //积分值
         $data['integral'] = isset($request->integral) ? intval($request->integral) : 0;
-        if($data['integral'] == 0){
-            return array('code'=>404,'params'=>'integral','error_msg'=>'请输入积分值');
-        }
-        //投资门槛
-        $data['investment_threshold'] = $request->investment_threshold;
-        //会员等级
-        $data['member_level'] = $request->member_level;
         //短信模板
         $data['message'] = $request->message;
         //站内信模板

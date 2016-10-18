@@ -214,7 +214,8 @@ return [
         'classification'        => '渠道分类',
         'is_abandoned'          => '是否废弃',
         'join_max'              => '参与人数上限',
-        'contents'              => '内容'
+        'contents'              => '内容',
+        'integral'              => '积分值'
     ],
 
 ];

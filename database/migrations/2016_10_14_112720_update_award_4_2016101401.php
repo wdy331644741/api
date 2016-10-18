@@ -16,10 +16,9 @@ class UpdateAward42016101401 extends Migration
             $table->dropColumn('integral_type');
             $table->dropColumn('integral_value');
             $table->dropColumn('integral_multiple');
+            $table->string('limit_desc',32)->after('name')->nullable();//限制说明
             $table->string('mail',255)->after('name');//站内信
             $table->string('message',255)->after('name');//短信
-            $table->string('member_level',10)->after('name');//会员级别
-            $table->integer('investment_threshold',false,true)->after('name');//投资门槛
             $table->integer('integral',false,true)->after('name');//会员值
         });
     }
@@ -34,9 +33,8 @@ class UpdateAward42016101401 extends Migration
         Schema::table('award_4', function (Blueprint $table) {
             $table->varchar('mail');
             $table->dropColumn('message');
-            $table->dropColumn('member_level');
-            $table->dropColumn('investment_threshold');
             $table->dropColumn('integral');
+            $table->dropColumn('limit_desc');
         });
     }
 }
