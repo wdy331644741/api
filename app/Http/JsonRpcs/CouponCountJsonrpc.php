@@ -61,7 +61,7 @@ class CouponCountJsonRpc extends JsonRpc {
             if(!empty($phone)){
                 $phone = substr_replace($phone, '*****', 3, 5);
             }
-            $data[] = $phone." 获得金锤码".$count."个！";
+            $data[] = "用户：".$phone." 获得金锤码".$count."个！";
         }
         return array(
             'code' => 0,
