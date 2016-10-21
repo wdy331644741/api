@@ -371,9 +371,11 @@ class SendAward
         //来源id
         $info['source_id'] = $activityID;
         //获取出活动的名称
-        $activity = Activity::where('id',$activityID)->select('name')->get()->toArray();
+        $activity = Activity::where('id',$activityID)->select('name','trigger_type')->first()->toArray();
         //来源名称
-        $info['source_name'] = isset($activity[0]['name']) ? $activity[0]['name'] : $sourceName;
+        $info['source_name'] = isset($activity['name']) ? $activity['name'] : $sourceName;
+        //触发类型
+        $info['trigger'] = isset($activity['trigger_type']) ? $activity['trigger_type'] : '-1';
         //用户id
         $info['user_id'] = $userID;
         //批次id
@@ -476,6 +478,7 @@ class SendAward
         $data['source_name'] = $info['source_name'];
         $data['platform'] = $info['platform_type'];
         $data['limit_desc'] = $info['limit_desc'];
+        $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
@@ -561,6 +564,7 @@ class SendAward
         $data['source_name'] = $info['name'];
         $data['platform'] = $info['platform_type'];
         $data['limit_desc'] = $info['limit_desc'];
+        $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
@@ -648,6 +652,7 @@ class SendAward
         $data['source_name'] = $info['name'];
         $data['platform'] = $info['platform_type'];
         $data['limit_desc'] = $info['limit_desc'];
+        $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
@@ -720,6 +725,7 @@ class SendAward
         $data['source_name'] = $info['source_name'];
         $data['platform'] = $info['platform_type'];
         $data['limit_desc'] = $info['limit_desc'];
+        $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
@@ -774,6 +780,7 @@ class SendAward
         $data['name'] = $info['name'];
         $data['integral'] = $info['integral'];
         $data['limit_desc'] = $info['limit_desc'];
+        $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
