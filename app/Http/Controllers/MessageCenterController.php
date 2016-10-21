@@ -8,7 +8,6 @@ use Config;
 use Lib\McQueue;
 use Lib\JsonRpcClient;
 use App\Models\ActivityJoin;
-use App\Jobs\SendRewardMore;
 /**
  * Created by PhpStorm.
  * User: Administrator
@@ -81,13 +80,5 @@ class MessageCenterController extends Controller{
         }
         return false;
     }
-    /**
-     * 王小春那批量发送奖品放入队列
-     *
-     * @param $userId,$awardType,$awardId,$sourceName
-     * @return json
-     */
-    function _putRewardMore($userId,$awardType,$awardId,$sourceName) {
-        return $this->dispatch(new SendRewardMore($userId,$awardType,$awardId,$sourceName));
-    }
+
 }

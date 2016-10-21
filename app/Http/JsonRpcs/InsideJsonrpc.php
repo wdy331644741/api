@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Http\JsonRpcs;
-use App\Http\Controllers\MessageCenterController;
 use App\Exceptions\OmgException;
+use App\Service\SendAward;
 class InsideJsonrpc extends JsonRpc {
-    
+
     /**
      *  发送奖品
      *
@@ -17,9 +18,7 @@ class InsideJsonrpc extends JsonRpc {
         if(empty($userId) || empty($awardType) || empty($awardId) || empty($sourceName)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        //放入队列
-        $obj = new MessageCenterController();
-        $res = $obj->_putRewardMore($userId,$awardType,$awardId,$sourceName);
+        $res = SendAward::sendDataRole($userId, $awardType, $awardId, 0, $sourceName);
         return array(
             'code' => 0,
             'message' => 'success',
