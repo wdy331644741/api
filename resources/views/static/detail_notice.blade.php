@@ -44,10 +44,13 @@
 <script src='/js/cms/jquery.min.js'></script>
 <script src='/js/cms/news_list.js'></script>
 <script type="text/javascript">
-seajs.use(['jquery'],function($){
-    seajs.use(['public', 'template', 'header'],function(){
+    seajs.use(['jquery'],function($){
+        seajs.use(['public','template'],function(){
+            seajs.use(['header'],function($){
+
+            });
+        });
     });
-});
 </script>
 </body>
 </html>

@@ -42,10 +42,13 @@
 <script type="text/javascript" src="/js/sea.js"></script>
 <script type="text/javascript" src="/js/sea-config.js"></script>
 <script type="text/javascript">
-seajs.use(['jquery'],function($){
-    seajs.use(['public', 'template', 'header'],function(){
+    seajs.use(['jquery'],function($){
+        seajs.use(['public','template'],function(){
+            seajs.use(['header'],function($){
+
+            });
+        });
     });
-});
 </script>
 </body>
 </html>
