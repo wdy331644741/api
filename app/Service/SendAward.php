@@ -98,6 +98,10 @@ class SendAward
         if(empty($alias_name)){
             return array('msg'=>'活动别名不能为空');
         }
+        global $user_id;
+        if(empty($user_id)){
+            return array('msg'=>'未获取到用户id');
+        }
         //获取该主动触发活动信息
         $where = array();
         $where['alias_name'] = $alias_name;
@@ -108,8 +112,6 @@ class SendAward
             return array('msg'=>'活动不存在！');
         }
         //获取活动下的奖品
-        global $user_id;
-        $user_id = 1;
         $data = self::ruleCheckAndSendAward($list,$user_id,array());
         if(!empty($data) && isset($data['status'])){
             if($data['status'] == 3){
