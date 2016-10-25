@@ -17,12 +17,14 @@ require __DIR__.'/functions.php';
 
 require __DIR__.'/../vendor/autoload.php';
 
+/*
 // wanglibao.cn 读取其它配置
 $host = $_SERVER['HTTP_HOST'];
 if(strstr($host, 'wanglibao.cn')) {
     $dotenv = new Dotenv\Dotenv(__DIR__.'/../', '.env.cn');
     $dotenv->load();
 }
+*/
 
 
 /*
