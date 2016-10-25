@@ -148,4 +148,43 @@ class TemplateController extends Controller
         Storage::disk('static')->put("help.html", $res);
         return $this->outputJson(0);
     }
+
+    //生成理财课堂html
+    public function postStudyList(){
+        $contentType = ContentType::where(array('alias_name' =>'classroom'))->first();
+        if(!$contentType) {
+            return $this->outputJson(10002, array('error_msg' => '类型不存在'));
+        }
+        $pageNum = 10;
+        $total = Content::where('type_id',$contentType->id)->count();
+        $totalPage = ceil($total/$pageNum);
+        $where = array('type_id' => $contentType->id, 'release' => 1);
+        for($page=1; $page<=$totalPage; $page++){
+            Paginator::currentPageResolver(function () use ($page) {
+                return $page;
+            });
+            $data = Content::select('id','cover','title','content','release_at','updated_at','description','keywords')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
+            $res = view('static.list_study', array('data'=>$data))->render();
+            Storage::disk('static')->put("study/list/{$page}.html", $res);
+            foreach($data as $media){
+                if($media->updated_at){
+                    $timeStamp = strtotime($media->updated_at);
+                    if(!file_exists(storage_path('cms/study/detail/'.$media->id.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/study/detail/'.$media->id.'*.html'));
+                        for($i=0; $i<count($fileArr); $i++){
+                            unlink($fileArr[$i]);
+                        }
+                        $res = view('static.detail_study', $media)->render();
+                        Storage::disk('static')->put("study/detail/".$media->id.$timeStamp.".html", $res);
+                    }
+                }else{
+                    if(!file_exists(storage_path('cms/study/detail/'.$media->id.'.html'))){
+                        $res = view('static.detail_study', $media)->render();
+                        Storage::disk('static')->put("study/detail/".$media->id.".html", $res);
+                    }
+                }
+            }
+        }
+        return $this->outputJson(0);
+    }
 }
