@@ -87,6 +87,45 @@ class SendAward
     }
 
     /**
+     * 主动触发活动发奖
+     * @param $userID
+     * @param $activityID
+     * @return array
+     */
+    static function ActiveSendAward($param)
+    {
+        $alias_name = $param['alias_name'];
+        if(empty($alias_name)){
+            return array('msg'=>'活动别名不能为空');
+        }
+        global $user_id;
+        if(empty($user_id)){
+            return array('msg'=>'未获取到用户id');
+        }
+        //获取该主动触发活动信息
+        $where = array();
+        $where['alias_name'] = $alias_name;
+        $where['trigger_type'] = 0;
+        $where['enable'] = 1;
+        $list = Activity::where($where)->first();
+        if(empty($list)){
+            return array('msg'=>'活动不存在！');
+        }
+        //获取活动下的奖品
+        $data = self::ruleCheckAndSendAward($list,$user_id,array());
+        if(!empty($data) && isset($data['status'])){
+            if($data['status'] == 3){
+                return json_decode($data['remark'],1);
+            }
+            if($data['status'] == 1){
+                return array('msg'=>'频次验证不通过');
+            }
+            return array('msg'=>json_decode($data['remark'],1));
+        }
+        return array('msg'=>'发奖失败！');
+    }
+
+    /**
      * 给邀请人发奖
      * @param $userID
      * @param $activityID
@@ -371,7 +410,7 @@ class SendAward
         //来源id
         $info['source_id'] = $activityID;
         //获取出活动的名称
-        $activity = Activity::where('id',$activityID)->select('name','trigger_type')->first()->toArray();
+        $activity = Activity::where('id',$activityID)->select('name','trigger_type')->first();
         //来源名称
         $info['source_name'] = isset($activity['name']) ? $activity['name'] : $sourceName;
         //触发类型
