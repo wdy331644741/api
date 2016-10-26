@@ -37,7 +37,7 @@
                         <a href='../detail/@if($dynamic->updated_at){!! $dynamic->id.strtotime($dynamic->updated_at) !!}@else{!! $dynamic->id !!}@endif.html' target="_blank" class='contentA'>{!! mb_substr(strip_tags($dynamic->content),0,130,'utf-8') !!}</a>
                         <a href='../detail/@if($dynamic->updated_at){!! $dynamic->id.strtotime($dynamic->updated_at) !!}@else{!! $dynamic->id !!}@endif.html' target="_blank" class='link'>[详细介绍]</a>
                     </dd>
-                    <dd class="media_time">{!! date('Y-m-d H:i',strtotime($dynamic->release_at)) !!}</dd>
+                    {{--<dd class="media_time">{!! date('Y-m-d H:i',strtotime($dynamic->release_at)) !!}</dd>--}}
                 </dl>
                 @endforeach
             </div>
