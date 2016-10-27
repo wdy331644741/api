@@ -510,6 +510,7 @@ class OpenController extends Controller
         if(!is_array($data)){
             return '';
         }
+        ksort($data);
         $sign_str='';
         foreach($data as $key=>$val){
             if(isset($val) && !is_null($val) && @$val!=''){
