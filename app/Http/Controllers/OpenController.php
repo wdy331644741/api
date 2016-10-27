@@ -3,74 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests;
+use App\Models\JsonRpc;
 use Illuminate\Http\Request;
+use Lib\JsonRpcServer;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
 use Config;
 use App\Http\JsonRpcs\ActivityJsonRpc;
+use App\Models\Channel;
 
 class OpenController extends Controller
 {
     private $_weixin = 'wechat';
     private $_openid;
-
-    public function postBind(Request $request){
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
-            'openid' => 'required',
-            'open_src' => 'required',
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
-        }
-        $model_name = config('open.'.$request->open_src.'.model');
-        $model = new $model_name;
-        $model->user_id = $request->user_id;
-        $model->open_id = $request->open_id;
-        $res = $model->save();
-        if($res->id){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-    public function postLogin(Request $request){
-        $validator = Validator::make($request->all(), [
-            'open_src' => 'required',
-            'openid' => 'required',
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
-        }
-        $model_name = config('open.'.$request->open_src.'.model');
-        $model = new $model_name;
-        $isbind = $model->where('openid',$request->openid)->get();
-        if(!empty($isbind)){
-            return $this->outputJson(0,array('token'=>$this->getTokenByUserId($isbind->user_id)));
-        }else{
-            return $this->outputJson(10004,array('error_msg'=>'The User Is UnBind'));
-        }
-    }
-
-    public function postUnbind(Request $request){
-        $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
-            'openid' => 'required',
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
-        }
-        $model_name = config('open.'.$request->open_src.'.model');
-        $model = new $model_name;
-        $res = $model->where('openid',$request->openid)->delete();
-        if($res){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10001,array('error_msg'=>'Database Error'));
-        }
-    }
 
     //---------------------------微信相关----------------------------//
 
@@ -310,12 +256,285 @@ class OpenController extends Controller
         }
         return $content;
     }
-    public function getTest() {
+
+    //---------------------------------爱有钱----------------------------------//
+
+    public function postAyqRegister(Request $request){
+        if(!$request->sign){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        if(!$request->mobile){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $phone = $request->mobile;
+        if(!$request->realname){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $realname = $request->realname;
+        if(!$request->uid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $uid = $request->uid;
+        if(!$request->cardno){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $cardno = $request->cardno;
+        if(!$request->service){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $service = $request->service;
+        if(!$request->time){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $time = $request->time;
+        if(!$request->cid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $cid = $request->cid;
+        $channel_id = octdec($cid)-100000;
+        $channels = Channel::where('coop_status',0)->where('is_abandoned',0)->where('id',$channel_id)->value('alias_name');
+        if(!$channels){
+            return $this->outputJson(4009,array('error_msg'=>'非法渠道'));
+        }
+        if($service !== "register_bind"){
+            return $this->outputJson(4005,array('error_msg'=>'接口不存在'));
+        }
+        $nowtime = time();
+        if($nowtime-$time>60){
+            return $this->outputJson(4010,array('error_msg'=>'请求超时'));
+        }
+        $sign = $request->sign;
+        $signStr = $this->createSignStr(array('uid'=>$uid,'mobile'=>$phone,'realname'=>$realname,'cardno'=>$cardno,'service'=>$service,'time'=>$time,'cid'=>$cid));
+        $createSign = md5($signStr);
+        if($sign !== $createSign){
+            return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
+        }
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountIsBind(array('channel'=>'wechat','key'=>'ovewut6VpqDz6ux4nJg2cKx0srh0'));
-        dd($res);
+        $res = $client->accountRegister(array('channel'=>$channels,'phone'=>$phone));
+        if(isset($res['error']) && $res['error']['code'] == 1104){
+            return response()->json(array('result'=>2,'remark'=>$res['error']['message'],'data'=>null,'bind_uid'=>null,'is_realname'=>0));
+        }
+        if(isset($res['error'])){
+            return $this->outputJson(500,array('error_msg'=>'服务器内部错误-REGISTER'));
+        }
+
+        $bindres = $client->accountBind(array('channel'=>$channels,'openId'=>$uid,'userId'=>$res['result']['data']['id']));
+        if(isset($bindres['error'])){
+            return $this->outputJson(500,array('error_msg'=>'服务器内部错误-BIND'));
+        }
+        /*$signRes = $client->accountSignIn(array('channel'=>$channels->alias_name,'openId'=>md5($uid)));
+        if(isset($signRes['error'])){
+            return $this->outputJson(500,array('error_msg'=>'服务器内部错误'));
+        }*/
+        $verifRes = $client->verified(array('name'=>$realname,'id_number'=>$cardno));
+        if(isset($verifRes['error']) && in_array($verifRes['error']['code'],array(1106,1112,1206,1209,1210,1405))){
+            return $this->outputJson(500,array('error_msg'=>'服务器内部错误-VERIFED'));
+        }
+        return response()->json(array('result'=>1,'remark'=>$res['result']['message'],'data'=>array('bind_uid'=>$res['result']['data']['id'],'is_realname'=>1)));
     }
 
+    //爱有钱个人中心
+    public function getAyqLogin(Request $request){
+        if(!$request->sign){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        if(!$request->bind_uid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $bind_uid = $request->bind_uid;
+        if(!$request->service){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        if(!$request->uid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $uid = $request->uid;
+        if(!$request->service){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $service = $request->service;
+        if(!$request->time){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $time = $request->time;
+        if(!$request->cid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $cid = $request->cid;
+        $channel_id = octdec($cid)-100000;
+        $channels = Channel::where('coop_status',0)->where('is_abandoned',0)->where('id',$channel_id)->value('alias_name');
+        if(!$channels){
+            return $this->outputJson(4009,array('error_msg'=>'非法渠道'));
+        }
+        $nowtime = time();
+        if($nowtime-$time>60){
+            return $this->outputJson(4010,array('error_msg'=>'请求超时'));
+        }
+        $sign = $request->sign;
+        $signStr = $this->createSignStr(array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid,'uid'=>$uid));
+        $createSign = md5($signStr);
+        if($sign !== $createSign){
+            return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
+        }
+        $client = new JsonRpcClient(env("ACCOUNT_HTTP_URL"));
+        $res = $client->accountIsBind(array('channel'=>$channels,'key'=>$uid));
+        if(!$res['result']['data']){
+            return $this->outputJson(4011,array('error_msg'=>'账户未绑定'));
+        }
+        if($service === 'member_info'){
+            $res = $this->redirectUrl($bind_uid,'profile');
+            if(!$res){
+                return $this->outputJson(500,array('error_msg'=>'服务器内部错误-USER'));
+            }
+            return redirect($res);
+        }elseif ($service === 'member_recharge'){
+            $res = $this->redirectUrl($bind_uid,'recharge');
+            if(!$res){
+                return $this->outputJson(500,array('error_msg'=>'服务器内部错误-USER'));
+            }
+            return redirect($res);
+        }elseif ($service === 'member_withdraw'){
+            $res = $this->redirectUrl($bind_uid,'withdraw');
+            if(!$res){
+                return $this->outputJson(500,array('error_msg'=>'服务器内部错误-USER'));
+            }
+            return redirect($res);
+        }else{
+            return $this->outputJson(4005,array('error_msg'=>'接口不存在'));
+        }
+    }
+
+    //爱有钱老用户绑定
+    public function getAyqBind(Request $request){
+        if(!$request->sign){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        if(!$request->uid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $uid = $request->uid;
+        if(!$request->service){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $service = $request->service;
+        if(!$request->time){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        if(!$request->time){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $time = $request->time;
+        if(!$request->cid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $cid = $request->cid;
+        $channel_id = octdec($cid)-100000;
+        $channels = Channel::where('coop_status',0)->where('is_abandoned',0)->where('id',$channel_id)->value('alias_name');
+        if(!$channels){
+            return $this->outputJson(4009,array('error_msg'=>'非法渠道'));
+        }
+        if($service !== "login_bind"){
+            return $this->outputJson(4005,array('error_msg'=>'接口不存在'));
+        }
+        $nowtime = time();
+        if($nowtime-$time>60){
+            return $this->outputJson(4010,array('error_msg'=>'请求超时'));
+        }
+        $sign = $request->sign;
+        $signStr = $this->createSignStr(array('uid'=>$uid,'service'=>$service,'time'=>$time,'cid'=>$cid));
+        $createSign = md5($signStr);
+        if($sign !== $createSign){
+            return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
+        }
+        $time = time();
+        $sign = hash('sha256',$time.'3d07dd21b5712a1c221207bf2f46e4ft');
+        $client = new JsonRpcClient(env('CNANNEL_HTTP_URL'));
+        $res = $client->getSigninUrl(array('uid'=>$uid,'channel'=>'aiyouqian','timestamp'=>$time,'sign'=>$sign));
+        if(isset($res['error'])){
+            return $this->outputJson(500,array('error_msg'=>'服务器内部错误-USER'));
+        }
+        return $res['result']['url'];
+    }
+
+    //爱有钱用户资产接口
+    public function postAyqUserinfo(Request $request){
+        if(!$request->sign){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        if(!$request->bind_uid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $bind_uid = $request->bind_uid;
+        if(!$request->service){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $service = $request->service;
+        if(!$request->time){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $time = $request->time;
+        if(!$request->cid){
+            return $this->outputJson(4001,array('error_msg'=>'参数不正确'));
+        }
+        $cid = $request->cid;
+        $channel_id = octdec($cid)-100000;
+        $channels = Channel::where('coop_status',0)->where('is_abandoned',0)->where('id',$channel_id)->value('alias_name');
+        if(!$channels){
+            return $this->outputJson(4009,array('error_msg'=>'非法渠道'));
+        }
+        if($service !== "get_userinfo"){
+            return $this->outputJson(4005,array('error_msg'=>'接口不存在'));
+        }
+        $nowtime = time();
+        if($nowtime-$time>60){
+            return $this->outputJson(4010,array('error_msg'=>'请求超时'));
+        }
+        $sign = $request->sign;
+        $signStr = $this->createSignStr(array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid));
+        $createSign = md5($signStr);
+        if($sign !== $createSign){
+            return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
+        }
+        $time = time();
+        $sign = hash('sha256',$time.'3d07dd21b5712a1c221207bf2f46e4ft');
+        $client = new JsonRpcClient(env('CNANNEL_HTTP_URL'));
+        $res = $client->accountCallback(array('userId'=>$bind_uid,'channel'=>$channels,'timestamp'=>$time,'sign'=>$sign));
+        if(isset($res['error'])){
+            return $this->outputJson(500,array('error_msg'=>'服务器内部错误-USER'));
+        }
+        return response()->json(array('result'=>1,'remark'=>'请求成功','data'=>$res['result']['data']));
+    }
+
+    //爱有钱生成签名字符串
+    private function createSignStr($data){
+        if(!is_array($data)){
+            return '';
+        }
+        $sign_str='';
+        foreach($data as $key=>$val){
+            if(isset($val) && !is_null($val) && @$val!=''){
+                $sign_str.='&'.$key.'='.urlencode(urldecode(trim($val)));
+            }
+        }
+        if ($sign_str!='') {
+            $sign_str = substr ( $sign_str, 1 );
+        }
+        return $sign_str."U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=";
+    }
+
+    //获取登录页面地址
+    private function redirectUrl($userId,$action){
+        $time = time();
+        $sign = hash('sha256',$time.'3d07dd21b5712a1c221207bf2f46e4ft');
+        $client = new JsonRpcClient(env('CNANNEL_HTTP_URL'));
+        $res = $client->getUrl(array('userId'=>$userId,'channel'=>'aiyouqian','timestamp'=>$time,'action'=>$action,'sign'=>$sign));
+        if(isset($res['error'])){
+            return false;
+        }
+        return $res['result']['url'];
+    }
+
+    //微信验签
     private function checkSignature($request)
     {
         $token = env('WECHAT_TOKEN');
