@@ -304,9 +304,7 @@ class OpenController extends Controller
             return $this->outputJson(4010,array('error_msg'=>'请求超时'));
         }
         $sign = $request->sign;
-        $data = array('uid'=>$uid,'mobile'=>$phone,'realname'=>$realname,'cardno'=>$cardno,'service'=>$service,'time'=>$time,'cid'=>$cid,'secret'=>"U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=");
-        krsort($data);
-        $signStr = json_encode($data);
+        $signStr = $this->createSignStr(array('uid'=>$uid,'mobile'=>$phone,'realname'=>$realname,'cardno'=>$cardno,'service'=>$service,'time'=>$time,'cid'=>$cid));
         $createSign = md5($signStr);
         if($sign !== $createSign){
             return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
@@ -373,9 +371,7 @@ class OpenController extends Controller
             return $this->outputJson(4010,array('error_msg'=>'请求超时'));
         }
         $sign = $request->sign;
-        $data = array('bind_uid'=>$bind_uid,'uid'=>$uid,'service'=>$service,'time'=>$time,'cid'=>$cid,'secret'=>"U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=");
-        krsort($data);
-        $signStr = json_encode($data);
+        $signStr = $this->createSignStr(array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid,'uid'=>$uid));
         $createSign = md5($signStr);
         if($sign !== $createSign){
             return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
@@ -445,9 +441,7 @@ class OpenController extends Controller
             return $this->outputJson(4010,array('error_msg'=>'请求超时'));
         }
         $sign = $request->sign;
-        $data = array('uid'=>$uid,'service'=>$service,'time'=>$time,'cid'=>$cid,'secret'=>"U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=");
-        krsort($data);
-        $signStr = json_encode($data);
+        $signStr = $this->createSignStr(array('uid'=>$uid,'service'=>$service,'time'=>$time,'cid'=>$cid));
         $createSign = md5($signStr);
         if($sign !== $createSign){
             return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
@@ -496,9 +490,7 @@ class OpenController extends Controller
             return $this->outputJson(4010,array('error_msg'=>'请求超时'));
         }
         $sign = $request->sign;
-        $data = array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid,'secret'=>"U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=");
-        krsort($data);
-        $signStr = json_encode($data);
+        $signStr = $this->createSignStr(array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid));
         $createSign = md5($signStr);
         if($sign !== $createSign){
             return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
@@ -511,6 +503,23 @@ class OpenController extends Controller
             return $this->outputJson(500,array('error_msg'=>'服务器内部错误-USER'));
         }
         return response()->json(array('result'=>1,'remark'=>'请求成功','data'=>$res['result']['data']));
+    }
+
+    //爱有钱生成签名字符串
+    private function createSignStr($data){
+        if(!is_array($data)){
+            return '';
+        }
+        $sign_str='';
+        foreach($data as $key=>$val){
+            if(isset($val) && !is_null($val) && @$val!=''){
+                $sign_str.='&'.$key.'='.urlencode(urldecode(trim($val)));
+            }
+        }
+        if ($sign_str!='') {
+            $sign_str = substr ( $sign_str, 1 );
+        }
+        return $sign_str."U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=";
     }
 
     //获取登录页面地址
