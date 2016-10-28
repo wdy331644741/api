@@ -300,7 +300,7 @@ class OpenController extends Controller
             return $this->outputJson(4005,array('error_msg'=>'接口不存在'));
         }
         $nowtime = time();
-        if($nowtime-$time>60){
+        if($nowtime-$time>6000000){
             return $this->outputJson(4010,array('error_msg'=>'请求超时'));
         }
         $sign = $request->sign;
@@ -520,7 +520,7 @@ class OpenController extends Controller
         if ($sign_str!='') {
             $sign_str = substr ( $sign_str, 1 );
         }
-        return $sign_str."U2FsdGVkX1+XERYL1Del/JwutiBSSbICp3Tv0uSqm70=";
+        return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
     }
 
     //获取登录页面地址
