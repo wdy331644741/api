@@ -18,25 +18,38 @@ class Attributes
        'gq_1007'=>0
    ];
 
-    public function increment($uid,$key,$number){
-        $attribute = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->count();
-        if($attribute >1){
-            return false;
-        }
-        if($attribute){
-            $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
+   static public function increment($uid,$key,$number = 1){
+        $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
+        
+        if($res){
             $userAttr = $res;
             $res->increment('number', $number);
-            if($res) return $userAttr->number;
-        }else{
-            $UserAttribute = new UserAttribute();
-            $UserAttribute->user_id = $uid;
-            $UserAttribute->key = $key;
-            $UserAttribute->number = $number;
-            $res = $UserAttribute->save();
-            if($res) return $number;
+            return $userAttr->number+$number;
         }
-        return false;
+        
+        $attribute = new UserAttribute();
+        $attribute->user_id = $uid;
+        $attribute->key = $key;
+        $attribute->number = $number;
+        $attribute->save();
+        return $number;
+    }
+    
+    static public function decrement($uid,$key,$number = 1){
+        $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
+        
+        if($res){
+            $userAttr = $res;
+            $res->decrement('number', $number);
+            return $userAttr->number-$number;
+        }
+        
+        $attribute = new UserAttribute();
+        $attribute->user_id = $uid;
+        $attribute->key = $key;
+        $attribute->number = -$number;
+        $attribute->save();
+        return $number;
     }
 
     public function status($uid,$key,$status){
@@ -79,4 +92,63 @@ class Attributes
         $data = UserAttribute::where($where)->get()->toArray();
         return $data;
     }
+    
+   static public function getNumber($uid, $key, $default = null) {
+        if(empty($uid) || empty($key)) {
+            return false;
+        }
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        if(!$res) {
+            if(!is_null($default)) {
+                $attribute = new UserAttribute();
+                $attribute->user_id  = $uid;
+                $attribute->key = $key;
+                $attribute->number = intval($default);
+                $attribute->save();
+            }
+            return $default;
+        }
+       
+        return $res['number'];
+    }
+
+    // 按json格式获取text字段
+    static public function getJsonText($uid, $key, $default = array()) {
+        if(empty($uid) || empty($key)) {
+            return false;
+        }
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        if(!$res) {
+            if(count($default) !== 0 ) {
+                $attribute = new UserAttribute();
+                $attribute->user_id  = $uid;
+                $attribute->key = $key;
+                $attribute->text = json_encode($default);
+                $attribute->save();
+            }
+            return $default;
+        }
+       
+        return json_decode($res['text'], true);
+    }
+    
+    // 设置text字段
+    static public function setText($uid, $key, $value = '') {
+        if(empty($uid) || empty($key)) {
+            return false;
+        }
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        if(!$res) {
+            $attribute = new UserAttribute();       
+            $attribute->user_id = $uid;
+            $attribute->key = $key;
+            $attribute->text = $value;
+            $attribute->save();
+            return true;
+        }
+        $res->text = $value;
+        $res->update();
+        return true;
+    }
+    
 }

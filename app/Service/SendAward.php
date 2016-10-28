@@ -82,6 +82,7 @@ class SendAward
             }
         }
 
+
         //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
         return self::addJoins($userID, $activityInfo, 3, json_encode($status), json_encode($invite_status));
     }
@@ -92,27 +93,27 @@ class SendAward
      * @param $activityID
      * @return array
      */
-    static function ActiveSendAward($param)
+    static function ActiveSendAward($userId, $aliasName)
     {
-        $alias_name = $param['alias_name'];
-        if(empty($alias_name)){
+        if(empty($aliasName)){
             return array('msg'=>'活动别名不能为空');
         }
-        global $user_id;
-        if(empty($user_id)){
+        if(empty($userId)){
             return array('msg'=>'未获取到用户id');
         }
         //获取该主动触发活动信息
         $where = array();
-        $where['alias_name'] = $alias_name;
+        $where['alias_name'] = $aliasName;
         $where['trigger_type'] = 0;
         $where['enable'] = 1;
         $list = Activity::where($where)->first();
         if(empty($list)){
             return array('msg'=>'活动不存在！');
         }
+
         //获取活动下的奖品
-        $data = self::ruleCheckAndSendAward($list,$user_id,array());
+        $data = self::ruleCheckAndSendAward($list,$userId,array('tag' => 'active', 'user_id' => $userId));
+
         if(!empty($data) && isset($data['status'])){
             if($data['status'] == 3){
                 return json_decode($data['remark'],1);
@@ -159,7 +160,26 @@ class SendAward
     static function beforeSendAward($activityInfo, $triggerData){
         $return = array();
         $Attributes = new Attributes();
+
+        if(!$activityInfo['alias_name']) {
+            return $return;    
+        }
+
         switch ($activityInfo['alias_name']) {
+            //双十一抱团取暖活动
+            case Config::get('activity.double_eleven.baotuan'):
+                $probability =  Config::get('activity.double_eleven.baotuan_probability');
+                $rand = rand(1, $probability);
+                if($rand === 1){
+                    $url = env('INSIDE_HTTP_URL');
+                    $client = new JsonRpcClient($url);
+                    $userBase = $client->userBasicInfo(array('userId' =>$triggerData['user_id']));
+                    $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';            
+                    if(!empty($phone)) {
+                        $res = $Attributes::setText($triggerData['user_id'], Config::get('activity.double_eleven.baotuan'), $phone);    
+                    }
+                }
+                break;
             //按照充值金额送比例体验金
             case 'songtiyanjin':
                 //如果是充值触发
@@ -351,18 +371,24 @@ class SendAward
         }
         if($activity['award_rule'] == 2) {
             $awards = $activity['awards'];
+            $finalAward = null;
             $priority = 0;
             foreach($awards as $award) {
                 $priority += $award['priority'];
             }
+
             $target = rand(1, $priority);
             foreach($awards as $award) {
                 $target = $target - $award['priority'];
                 if($target <= 0) {
+                    $finalAward = $award;
                     break;
                 }
             }
-            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+
+            if($finalAward) {
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'] );
+            }
         }
         return $res;
 
