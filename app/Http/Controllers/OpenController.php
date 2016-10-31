@@ -300,11 +300,12 @@ class OpenController extends Controller
             return $this->outputJson(4005,array('error_msg'=>'接口不存在'));
         }
         $nowtime = time();
-        if($nowtime-$time>6000000){
+        if($nowtime-$time>60000000){
             return $this->outputJson(4010,array('error_msg'=>'请求超时'));
         }
         $sign = $request->sign;
         $signStr = $this->createSignStr(array('uid'=>$uid,'mobile'=>$phone,'realname'=>$realname,'cardno'=>$cardno,'service'=>$service,'time'=>$time,'cid'=>$cid));
+        dd($signStr);
         $createSign = md5($signStr);
         if($sign !== $createSign){
             return $this->outputJson(4002,array('error_msg'=>'签名认证失败'));
@@ -514,7 +515,11 @@ class OpenController extends Controller
         $sign_str='';
         foreach($data as $key=>$val){
             if(isset($val) && !is_null($val) && @$val!=''){
-                $sign_str.='&'.$key.'='.urlencode(urldecode(trim($val)));
+                if($key == "realname"){
+                    $sign_str.='&'.$key.'='.trim($val);
+                }else{
+                    $sign_str.='&'.$key.'='.trim($val);
+                }
             }
         }
         if ($sign_str!='') {
