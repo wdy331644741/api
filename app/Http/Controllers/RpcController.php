@@ -20,6 +20,7 @@ use App\Http\JsonRpcs\CouponCountJsonRpc;
 use App\Http\JsonRpcs\InsideJsonrpc;
 use App\Http\JsonRpcs\AppUpdateConfigJsonRpc;
 use App\Http\JsonRpcs\IdiomJsonrpc;
+use App\Http\JsonRpcs\InvestmentJsonrpc;
 
 class RpcController extends Controller
 {
@@ -50,6 +51,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new LoanBookJsonRpc());
         $jsonRpcServer->addService(new IdiomJsonrpc());
         $jsonRpcServer->addService(new CouponCountJsonRpc());
+        $jsonRpcServer->addService(new InvestmentJsonrpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');       
     }

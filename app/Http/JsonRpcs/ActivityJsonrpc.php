@@ -351,8 +351,10 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getDoubleElevenChance() {
         global $userId;
-        $userId = 5100076;
-        $config = Config::get('activity.double_eleven'); 
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $config = Config::get('activity.double_eleven');
         
         $res1 = Attributes::getNumber($userId, $config['key1'], 1);
         $res2 = Attributes::getNumber($userId, $config['key2'], 0);
@@ -377,21 +379,24 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function useDoubleElevenChance() {
         global $userId;
-        $userId = 5100076;
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $config = Config::get('activity.double_eleven'); 
+        $awardList = Config::get('activity.double_eleven.award_list'); 
         
         $res1 = Attributes::getNumber($userId, $config['key1'], 1);
         $res2 = Attributes::getNumber($userId, $config['key2'], 0);
         $res3 = Attributes::getNumber($userId, $config['key3'], 0);
         if($res1 > 0) {
             Attributes::decrement($userId, $config['key1']);
-            $award = SendAward::ActiveSendAward($userId, $config['key1']);
+            $awards = SendAward::ActiveSendAward($userId, $config['key1']);
         }elseif($res2 > 0) {
             Attributes::decrement($userId, $config['key2']);
-            $award = SendAward::ActiveSendAward($userId, $config['key2']);
+            $awards = SendAward::ActiveSendAward($userId, $config['key2']);
         }elseif($res3 > 0) {
             Attributes::decrement($userId, $config['key3']);
-            $award = SendAward::ActiveSendAward($userId, $config['key3']);
+            $awards = SendAward::ActiveSendAward($userId, $config['key3']);
         }else{
             return array(
                 'code' => 0,
@@ -402,12 +407,30 @@ class ActivityJsonRpc extends JsonRpc {
                 ],
             );
         }
+        
+        if(!isset($awards[0])) {
+            $awardName = '服务器错误,请重试';     
+            $awardId = -1;
+        }else{
+            $award = $awards[0];
+            if(!isset($awardList[$award['award_name']])) {
+                $awardId = -2;
+                $awardName = '服务器错误,请重试';
+            }elseif(!$award['status']){
+                $awardId = -3;
+                $awardName = '服务器错误,请重试';
+            }else{
+                $awardId = $awardList[$award['award_name']];
+                $awardName = $award['award_name'];
+            }
+        }
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => [
                 'status' => 0,
-                'award' => $award['0'],
+                'award' => $award['award_name'],
+                'awardId' => $awardId,
             ],
         );
     }
@@ -445,14 +468,17 @@ class ActivityJsonRpc extends JsonRpc {
                 }
             }
         }
+        if(count($awardList) > 0) {
+            $curAwardList = $awardList[count($awardList)-1];
+        }else{
+            $curAwardList = [];
+        }
         
-        
-
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'curAwardList' => $awardList[count($awardList)-1],
+                'curAwardList' => $curAwardList,
                 'awardList' => $awardList,
                 'joinNum' => $joinNum, 
             ], 
