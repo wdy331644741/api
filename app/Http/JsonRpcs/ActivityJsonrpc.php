@@ -351,7 +351,10 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getDoubleElevenChance() {
         global $userId;
-        $config = Config::get('activity.double_eleven'); 
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $config = Config::get('activity.double_eleven');
         
         $res1 = Attributes::getNumber($userId, $config['key1'], 1);
         $res2 = Attributes::getNumber($userId, $config['key2'], 0);
@@ -376,6 +379,9 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function useDoubleElevenChance() {
         global $userId;
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $config = Config::get('activity.double_eleven'); 
         $awardList = Config::get('activity.double_eleven.award_list'); 
         

@@ -182,11 +182,11 @@ class SendAward
                 break;
             //双十一大转盘送次数
             case Config::get('activity.double_eleven.chance1'):
-                $alias = Config::get('activity.double_eleven.chance1');
+                $alias = Config::get('activity.double_eleven.key2');
                 $Attributes::increment($triggerData['user_id'], $alias);    
                 break;
             case Config::get('activity.double_eleven.chance2'):
-                $alias = Config::get('activity.double_eleven.chance2');
+                $alias = Config::get('activity.double_eleven.key3');
                 $Attributes::increment($triggerData['user_id'], $alias);    
                 break;
             //按照充值金额送比例体验金
