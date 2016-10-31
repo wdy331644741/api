@@ -169,19 +169,11 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('cms/study/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('cms/study/detail/'.$media->id.'*.html'));
-                        for($i=0; $i<count($fileArr); $i++){
-                            unlink($fileArr[$i]);
-                        }
-                        $res = view('static.detail_study', $media)->render();
-                        Storage::disk('static')->put("study/detail/".$media->id.$timeStamp.".html", $res);
-                    }
+                    $res = view('static.detail_study', $media)->render();
+                    Storage::disk('static')->put("study/detail/".$media->id.$timeStamp.".html", $res);
                 }else{
-                    if(!file_exists(storage_path('cms/study/detail/'.$media->id.'.html'))){
-                        $res = view('static.detail_study', $media)->render();
-                        Storage::disk('static')->put("study/detail/".$media->id.".html", $res);
-                    }
+                    $res = view('static.detail_study', $media)->render();
+                    Storage::disk('static')->put("study/detail/".$media->id.".html", $res);
                 }
             }
         }

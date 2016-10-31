@@ -29,7 +29,7 @@
         <div class='media_box detail_box clearfix'>
             <div class='announcement_detail clearfix'>
                 <h3>{!! $title !!}</h3>
-                <span>{!! date('Y-m-d H:i',strtotime($release_at)) !!}</span>
+                {{--<span>{!! date('Y-m-d H:i',strtotime($release_at)) !!}</span>--}}
             </div>
 
             <div class='medil_detail'>

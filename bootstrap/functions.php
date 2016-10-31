@@ -5,6 +5,13 @@
  * Date: 16/9/5
  * Time: 下午4:35
  */
+
+function protectPhone($phone) {
+    $prefix = substr($phone, 0, 3);
+    $suffix = substr($phone, -4, 4);
+    return $prefix . '****' . $suffix;
+}
+
 function getMimeTypeByExtension($path)
 {
 

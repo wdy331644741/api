@@ -6,9 +6,12 @@ use App\Exceptions\OmgException;
 use App\Models\Activity;
 use App\Models\ActivityJoin;
 use App\Models\SendRewardLog;
+use App\Models\User;
 use App\Service\SendAward;
+use App\Service\Attributes;
 use App\Models\UserAttribute;
-use Validator;
+use Lib\JsonRpcClient;
+use Validator, Config;
 
 
 class ActivityJsonRpc extends JsonRpc {
@@ -340,5 +343,121 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => json_decode($json)
         );
     }
+    
+    /**
+     * 获取双十一抽奖次数
+     * 
+     * @JsonRpcMethod
+     */
+    public function getDoubleElevenChance() {
+        global $userId;
+        $userId = 5100076;
+        $config = Config::get('activity.double_eleven'); 
+        
+        $res1 = Attributes::getNumber($userId, $config['key1'], 1);
+        $res2 = Attributes::getNumber($userId, $config['key2'], 0);
+        $res3 = Attributes::getNumber($userId, $config['key3'], 0);
 
+        $totalNumber = $res1 + $res2 + $res3;
+        if(!is_numeric($totalNumber)){
+            $totalNumber = 0;    
+        }
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $totalNumber,
+        );           
+    }
+
+    /**
+     * 使用双十一抽奖次数
+     *
+     * @JsonRpcMethod
+     */
+    public function useDoubleElevenChance() {
+        global $userId;
+        $userId = 5100076;
+        $config = Config::get('activity.double_eleven'); 
+        
+        $res1 = Attributes::getNumber($userId, $config['key1'], 1);
+        $res2 = Attributes::getNumber($userId, $config['key2'], 0);
+        $res3 = Attributes::getNumber($userId, $config['key3'], 0);
+        if($res1 > 0) {
+            Attributes::decrement($userId, $config['key1']);
+            $award = SendAward::ActiveSendAward($userId, $config['key1']);
+        }elseif($res2 > 0) {
+            Attributes::decrement($userId, $config['key2']);
+            $award = SendAward::ActiveSendAward($userId, $config['key2']);
+        }elseif($res3 > 0) {
+            Attributes::decrement($userId, $config['key3']);
+            $award = SendAward::ActiveSendAward($userId, $config['key3']);
+        }else{
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => [
+                    'status'=> 1 ,   
+                    'msg' => '抽奖次数已用完', 
+                ],
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'status' => 0,
+                'award' => $award['0'],
+            ],
+        );
+    }
+    /**
+     * 获取双11抱团投资人数
+     *
+     * @JsonRpcMethod
+     */
+    function getDoubleElevenBaotuan() {
+        $joinNum = 0;
+        $awardNum = 0;
+        $awardList = [];
+        $aliasName = Config::get('activity.double_eleven.baotuan');
+        $baotuanLevels = Config::get('activity.double_eleven.baotuan_level');
+        $where = array();
+        $where['alias_name'] = $aliasName;
+        $where['trigger_type'] = 0;
+        $where['enable'] = 1;
+        $activity = Activity::where($where)->first();
+        if($activity && $activity['join_num']) {
+            $joinNum = $activity['join_num'];
+        }
+
+        $awardUsers = UserAttribute::where(array('key' => $aliasName))->orderBy('id', 'asc')->limit(100)->get();
+
+        foreach($baotuanLevels as $item) {
+            if($joinNum >= $item['min']) {
+                $curAwardList = [];
+                for($i = $awardNum; $i < $awardNum+$item['number'] && $i< count($awardUsers); $i++) {
+                    $curAwardList[] = array('userId' => $awardUsers[$i]['user_id'], 'phone'=> protectPhone($awardUsers[$i]['text']), 'award' => $item['award']);
+                }                           
+                $awardNum += $item['number'];
+                if(count($curAwardList) !== 0) {
+                    $awardList[] = $curAwardList;
+                }
+            }
+        }
+        
+        
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'curAwardList' => $awardList[count($awardList)-1],
+                'awardList' => $awardList,
+                'joinNum' => $joinNum, 
+            ], 
+        );
+    }
+
+    
 }
