@@ -351,7 +351,6 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getDoubleElevenChance() {
         global $userId;
-        $userId = 5100076;
         $config = Config::get('activity.double_eleven'); 
         
         $res1 = Attributes::getNumber($userId, $config['key1'], 1);
@@ -377,7 +376,6 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function useDoubleElevenChance() {
         global $userId;
-        $userId = 5100076;
         $config = Config::get('activity.double_eleven'); 
         $awardList = Config::get('activity.double_eleven.award_list'); 
         
@@ -464,14 +462,17 @@ class ActivityJsonRpc extends JsonRpc {
                 }
             }
         }
+        if(count($awardList) > 0) {
+            $curAwardList = $awardList[count($awardList)-1];
+        }else{
+            $curAwardList = [];
+        }
         
-        
-
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'curAwardList' => $awardList[count($awardList)-1],
+                'curAwardList' => $curAwardList,
                 'awardList' => $awardList,
                 'joinNum' => $joinNum, 
             ], 

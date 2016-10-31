@@ -8,7 +8,7 @@ return [
         'key3' => 'double_eleven_level2',
         'chance1' => 'double_eleven_chance1',
         'chance2' => 'double_eleven_chance2',
-        'baotuan' => 'double_eleven_baotuan',
+        'baotuan' => 'double_eleven_default',
         'baotuan_probability' => 1,
         /*
         'baotuan_level' => [
