@@ -539,22 +539,22 @@ class ActivityJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    function aliasNameToRewardList($params){
-        $where['alias_name'] = trim($params->aliasName);
-        if(empty($where['alias_name'])){
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
-        }
+    function aliasNameToRewardList(){
         $where['enable'] = 1;
         //获取活动信息
-        $activity = Activity::where($where)->first();
+        $aliasNameKey = array(Config::get("activity.double_eleven.key2"),Config::get("activity.double_eleven.key3"));
+        $activity = Activity::where($where)->whereIn('alias_name',$aliasNameKey)->select('id')->get()->toArray();
         if(empty($activity)){
             throw new OmgException(OmgException::NO_DATA);
         }
-        $activityID = isset($activity['id']) ? $activity['id'] : 0;
-        if(empty($activity)){
+        $activityIDs = array();
+        foreach($activity as $id){
+            $activityIDs[] = $id['id'];
+        }
+        if(empty($activityIDs)){
             throw new OmgException(OmgException::NO_DATA);
         }
-        $list = SendRewardLog::where('activity_id',$activityID)->where('status','>=',1)->select('user_id','award_type','award_id')->orderBy('id', 'desc')->take(3)->get()->toArray();
+        $list = SendRewardLog::whereIn('activity_id',$activityIDs)->where('status','>=',1)->select('user_id','award_type','award_id')->orderBy('id', 'desc')->take(3)->get()->toArray();
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
         }
