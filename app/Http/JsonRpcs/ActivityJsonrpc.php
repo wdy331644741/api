@@ -13,6 +13,13 @@ use App\Models\UserAttribute;
 use Lib\JsonRpcClient;
 use Validator, Config;
 
+use App\Models\Award;
+use App\Models\Award1;
+use App\Models\Award2;
+use App\Models\Award3;
+use App\Models\Award4;
+use App\Models\Award5;
+use App\Models\Coupon;
 
 class ActivityJsonRpc extends JsonRpc {
     
@@ -484,6 +491,126 @@ class ActivityJsonRpc extends JsonRpc {
             ], 
         );
     }
+    /**
+     * 根据活动别名获取奖品信息
+     *
+     * @JsonRpcMethod
+     */
+    function aliasNameToAwardInfo($params){
+        $where['alias_name'] = trim($params->aliasName);
+        if(empty($where['alias_name'])){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $where['enable'] = 1;
+        //获取活动信息
+        $activity = Activity::where($where)->first();
+        if(empty($activity)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //获取奖品id
+        $activityID = isset($activity['id']) ? $activity['id'] : 0;
+        if(empty($activityID)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $awardsList = Award::where('activity_id',$activityID)->get()->toArray();
+        if(empty($awardsList)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $awardList = array();
+        foreach($awardsList as $item){
+            //获取奖品信息
+            $table = $this->_getAwardTable($item['award_type']);
+            $awardInfo = $table::where('id',$item['award_id'])->get()->toArray();
+            if(!empty($awardInfo)){
+                foreach($awardInfo as $value){
+                    $awardList[] = $value;
+                }
+            }
 
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $awardList
+        );
+    }
+    /**
+     * 根据活动别名获取中奖纪录
+     *
+     * @JsonRpcMethod
+     */
+    function aliasNameToRewardList($params){
+        $where['alias_name'] = trim($params->aliasName);
+        if(empty($where['alias_name'])){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $where['enable'] = 1;
+        //获取活动信息
+        $activity = Activity::where($where)->first();
+        if(empty($activity)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $activityID = isset($activity['id']) ? $activity['id'] : 0;
+        if(empty($activity)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $list = SendRewardLog::where('activity_id',$activityID)->where('status','>=',1)->select('user_id','award_type','award_id')->orderBy('id', 'desc')->take(3)->get()->toArray();
+        if(empty($list)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $awardList = array();
+        $i = 0;
+        foreach($list as $item){
+            //根据用户ID获取手机号
+            $url = env('INSIDE_HTTP_URL');
+            $client = new JsonRpcClient($url);
+            $userBase = $client->userBasicInfo(array('userId'=>$item['user_id']));
+            $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+            if(empty($phone)){
+                throw new OmgException(OmgException::API_FAILED);
+            }
+            $phone = substr_replace($phone, '*****', 3, 5);
+            //获取奖品信息
+            $table = $this->_getAwardTable($item['award_type']);
+            $awardInfo = $table::where('id',$item['award_id'])->select('name')->first();
+            if(empty($awardInfo)){
+                throw new OmgException(OmgException::NO_DATA);
+            }
+            $awardList[$i]['phone'] = $phone;
+            $awardList[$i]['name'] = $awardInfo['name'];
+            $i++;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $awardList
+        );
+    }
+    /**
+     * 获取表对象
+     * @param $awardType
+     * @return Award1|Award2|Award3|Award4|Award5|Coupon|bool
+     */
+    function _getAwardTable($awardType){
+        if($awardType >= 1 && $awardType <= 6) {
+            if ($awardType == 1) {
+                return new Award1;
+            } elseif ($awardType == 2) {
+                return new Award2;
+            } elseif ($awardType == 3) {
+                return new Award3;
+            } elseif ($awardType == 4) {
+                return new Award4;
+            } elseif ($awardType == 5) {
+                return new Award5;
+            } elseif ($awardType == 6){
+                return new Coupon;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }
     
 }
