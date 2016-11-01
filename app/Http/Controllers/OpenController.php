@@ -524,7 +524,7 @@ class OpenController extends Controller
         if ($sign_str!='') {
             $sign_str = substr ( $sign_str, 1 );
         }
-        file_put_contents(storage_path('logs/signstr-'.date('Y-m-d')).'.log','sign：'.$sign_str.'-4b701c4aca7dd5ee6ddc78c9e0b741df'.date('Y-m-d').PHP_EOL,FILE_APPEND);
+        file_put_contents(storage_path('logs/signstr-'.date('Y-m-d')).'.log',date('Y-m-d').'   sign：'.$sign_str.'-4b701c4aca7dd5ee6ddc78c9e0b741df'.PHP_EOL,FILE_APPEND);
         return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
     }
 
