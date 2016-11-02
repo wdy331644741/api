@@ -383,19 +383,19 @@ class OpenController extends Controller
             if(!$res){
                 return response()->json(array('result'=>0,'remark'=>"服务器内部错误-USER",'data'=>array()));
             }
-            return response()->json(array('result'=>1,'remark'=>"请求成功",'data'=>array('url'=>$res)));
+            return redirect($res);
         }elseif ($service === 'member_recharge'){
             $res = $this->redirectUrl($bind_uid,'recharge');
             if(!$res){
                 return response()->json(array('result'=>0,'remark'=>"服务器内部错误-USER",'data'=>array()));
             }
-            return response()->json(array('result'=>1,'remark'=>"请求成功",'data'=>array('url'=>$res)));
+            return redirect($res);
         }elseif ($service === 'member_withdraw'){
             $res = $this->redirectUrl($bind_uid,'withdraw');
             if(!$res){
                 return response()->json(array('result'=>0,'remark'=>"服务器内部错误-USER",'data'=>array()));
             }
-            return response()->json(array('result'=>1,'remark'=>"请求成功",'data'=>array('url'=>$res)));
+            return redirect($res);
         }else{
             return response()->json(array('result'=>0,'remark'=>"接口不存在",'data'=>array()));
         }
@@ -450,7 +450,7 @@ class OpenController extends Controller
         if(isset($res['error'])){
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-USER",'data'=>array()));
         }
-        return response()->json(array('result'=>1,'remark'=>"请求成功",'data'=>array('url'=>$res['result']['url'])));
+        return redirect($res['result']['url']);
     }
 
     //爱有钱用户资产接口
