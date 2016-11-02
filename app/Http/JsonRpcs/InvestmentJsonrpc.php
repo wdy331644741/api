@@ -38,7 +38,7 @@ class InvestmentJsonrpc extends JsonRpc {
                     $i = 0;
                     foreach($data['result']['list'] as $item){
                         $returnData['list'][$i]['user_id'] = $item['user_id'];
-                        $returnData['list'][$i]['phone'] = $item['display_name'];
+                        $returnData['list'][$i]['display_name'] = $item['display_name'];
                         $returnData['list'][$i]['sumAmount'] = $item['sumAmount'];
                         $returnData['list'][$i]['create_time'] = $item['create_time'];
                         $i++;
