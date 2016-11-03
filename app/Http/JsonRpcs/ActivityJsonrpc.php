@@ -542,7 +542,7 @@ class ActivityJsonRpc extends JsonRpc {
     function aliasNameToRewardList(){
         $where['enable'] = 1;
         //获取活动信息
-        $aliasNameKey = array(Config::get("activity.double_eleven.key2"),Config::get("activity.double_eleven.key3"));
+        $aliasNameKey = array(Config::get("activity.double_eleven.key1"),Config::get("activity.double_eleven.key2"),Config::get("activity.double_eleven.key3"));
         $activity = Activity::where($where)->whereIn('alias_name',$aliasNameKey)->select('id')->get()->toArray();
         if(empty($activity)){
             throw new OmgException(OmgException::NO_DATA);
