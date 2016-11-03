@@ -5,7 +5,6 @@ namespace App\Jobs;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-
 use App\Service\SendAward;
 
 class SendReward extends Job implements ShouldQueue

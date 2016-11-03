@@ -9,22 +9,13 @@ return [
         'chance1' => 'double_eleven_chance1',
         'chance2' => 'double_eleven_chance2',
         'baotuan' => 'double_eleven_baotuan',
-        'baotuan_probability' => 1,
-        /*
+        'baotuan_probability' => 100,
         'baotuan_level' => [
             ['min'=> 2000,'max'=>4999, 'award'=>'30元红包', 'number' => 5],
             ['min'=> 5000, 'max'=>7999, 'award'=>'80元红包', 'number' => 10],
             ['min'=> 8000, 'max'=>9999, 'award'=>'100元宝贝格子礼品卡', 'number' => 20],
             ['min'=> 10000, 'max'=>11999, 'award'=>'夹克的虾套餐', 'number' => 30],
             ['min'=> 12000, 'max'=>1000000, 'award'=>'百度音乐vip', 'number' => 50],
-        ]
-        */
-        'baotuan_level' => [
-            ['min'=> 5,'max'=>4999, 'award'=>'30元红包', 'number' => 5],
-            ['min'=> 10, 'max'=>7999, 'award'=>'80元红包', 'number' => 10],
-            ['min'=> 15, 'max'=>9999, 'award'=>'100元宝贝格子礼品卡', 'number' => 15],
-            ['min'=> 20, 'max'=>11999, 'award'=>'夹克的虾套餐', 'number' => 20],
-            ['min'=> 25, 'max'=>1000000, 'award'=>'百度音乐vip', 'number' => 25],
         ],
         'award_list' => [
             '1111体验金' => 0,
