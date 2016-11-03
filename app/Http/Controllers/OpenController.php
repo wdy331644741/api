@@ -315,12 +315,12 @@ class OpenController extends Controller
             return response()->json(array('result'=>2,'remark'=>$res['error']['message'],'data'=>array()));
         }
         if(isset($res['error'])){
-            file_put_contents(storage_path('logs/verifed-'.date('Y-m-d')).'.log',date('Y-m-d').'  code:'.$res['error']['code'].'  msg:'.$res['error']['message'].'  phone:'.$phone.PHP_EOL,FILE_APPEND);
+            file_put_contents(storage_path('logs/register-'.date('Y-m-d')).'.log',date('Y-m-d').'  code:'.$res['error']['code'].'  msg:'.$res['error']['message'].'  phone:'.$phone.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-REGISTER",'data'=>array()));
         }
         $bindres = $client->accountBind(array('channel'=>$channels,'openId'=>$uid,'userId'=>$res['result']['data']['id']));
         if(isset($bindres['error'])){
-            file_put_contents(storage_path('logs/verifed-'.date('Y-m-d')).'.log',date('Y-m-d').'  code:'.$bindres['error']['code'].'  msg:'.$bindres['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
+            file_put_contents(storage_path('logs/bind-'.date('Y-m-d')).'.log',date('Y-m-d').'  code:'.$bindres['error']['code'].'  msg:'.$bindres['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-BIND",'data'=>array()));
         }
         /*$signRes = $client->accountSignIn(array('channel'=>$channels->alias_name,'openId'=>md5($uid)));
