@@ -126,6 +126,6 @@ return [
             'type_name'=>'网利动态'
         ],
     ],
-    'double_eleven_start_time'=>'2016-09-28 00:00:00',//双十一活动开始时间
-    'double_eleven_end_time'=>'2016-10-28 00:00:00'//双十一活动结束时间
+    'double_eleven_start_time'=>'2016-11-04 00:00:00',//双十一活动开始时间
+    'double_eleven_end_time'=>'2016-11-15 00:00:00'//双十一活动结束时间
 ];
