@@ -454,7 +454,6 @@ class ActivityJsonRpc extends JsonRpc {
         $baotuanLevels = Config::get('activity.double_eleven.baotuan_level');
         $where = array();
         $where['alias_name'] = $aliasName;
-        $where['trigger_type'] = 0;
         $where['enable'] = 1;
         $activity = Activity::where($where)->first();
         if($activity && $activity['join_num']) {
