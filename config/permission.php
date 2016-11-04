@@ -1,7 +1,7 @@
 <?php
 return [
     0 => [ // 游客
-        'default' => true,
+        'default' => false,
         'items' => [
             'account' => [
                 'default' => false,
