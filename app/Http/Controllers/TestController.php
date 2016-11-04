@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
-use App\Models\Cms\Notice;
+use  \GuzzleHttp\Client;
 use Lib\Weixin;
-
+use Lib\JsonRpcClient;
 use Config;
 use DB;
 
@@ -39,6 +39,52 @@ class TestController extends Controller
         $status = $wxObj->send_template_msg("ovewut6VpqDz6ux4nJg2cKx0srh0",Config::get('open.weixin.msg_template.sign_daily'),$data,"http://www.baidu.com");
     }
 
+    //模拟爱有钱请求
+    public function getAyqPost(){
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $res = $client->accountRegister(array('channel'=>'test','phone'=>'10000000023'));
+        $client = new Client([
+            'base_uri'=>"https://php1.wanglibao.com",
+            'timeout'=>9999.0
+        ]);
+        $time = time();
+        $data = [
+            'mobile'=>'15831458983',
+            'realname'=>'赵东冉',
+            'uid'=>123000,
+            'cardno'=>'13082119911208257X',
+            'service'=>'register_bind',
+            'time'=>$time,
+            'cid'=>303250,
+        ];
+        $signStr = md5($this->createSignStr($data));
+        $data['sign'] = $signStr;
+        $res = $client->post('/yunying/open/ayq-register',['form_params'=>$data]);
+        dd(json_decode($res->getBody()));
+    }
+
+
+    function createSignStr($data){
+        if(!is_array($data)){
+            return '';
+        }
+        ksort($data);
+        $sign_str='';
+        foreach($data as $key=>$val){
+            if(isset($val) && !is_null($val) && @$val!=''){
+                if($key == "realname"){
+                    $sign_str.='&'.$key.'='.trim($val);
+                }else{
+                    $sign_str.='&'.$key.'='.trim($val);
+                }
+            }
+        }
+        if ($sign_str!='') {
+            $sign_str = substr ( $sign_str, 1 );
+        }
+        //file_put_contents(storage_path('logs/signstr-'.date('Y-m-d')).'.log',date('Y-m-d').'   sign：'.$sign_str.'-4b701c4aca7dd5ee6ddc78c9e0b741df'.PHP_EOL,FILE_APPEND);
+        return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
+    }
 
     //导入媒体报道数据
     public function getMtJoin(){
