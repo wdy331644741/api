@@ -19,6 +19,7 @@ class InvestmentJsonrpc extends JsonRpc {
         $s = 600;
         $redis = new Redis();
         $redis->connect(env("REDIS_HOST"), env("REDIS_PORT"));
+        $redis->auth(env("REDIS_PASSWORD"));
         //判断redis是否存在该数据
         $exist = $redis->exists($redisKey);
         if(!$exist){
