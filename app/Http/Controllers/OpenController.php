@@ -315,19 +315,22 @@ class OpenController extends Controller
             return response()->json(array('result'=>2,'remark'=>$res['error']['message'],'data'=>array()));
         }
         if(isset($res['error'])){
+            file_put_contents(storage_path('logs/register-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$res['error']['code'].'  msg:'.$res['error']['message'].'  phone:'.$phone.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-REGISTER",'data'=>array()));
         }
-
         $bindres = $client->accountBind(array('channel'=>$channels,'openId'=>$uid,'userId'=>$res['result']['data']['id']));
         if(isset($bindres['error'])){
+            file_put_contents(storage_path('logs/bind-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$bindres['error']['code'].'  msg:'.$bindres['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-BIND",'data'=>array()));
         }
-        /*$signRes = $client->accountSignIn(array('channel'=>$channels->alias_name,'openId'=>md5($uid)));
+        /*$signRes = $client->accountSignIn(array('channel'=>$channels,'openId'=>$uid));
         if(isset($signRes['error'])){
-            return $this->outputJson(500,array('error_msg'=>'服务器内部错误'));
+            file_put_contents(storage_path('logs/login-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$signRes['error']['code'].'  msg:'.$signRes['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
+            return response()->json(array('result'=>0,'remark'=>"服务器内部错误-LOGIN",'data'=>array()));
         }*/
-        $verifRes = $client->verified(array('name'=>$realname,'id_number'=>$cardno));
+        $verifRes = $client->verified(array('name'=>$realname,'id_number'=>$cardno,'userId'=>$res['result']['data']['id']));
         if(isset($verifRes['error']) && in_array($verifRes['error']['code'],array(1106,1112,1206,1209,1210,1405))){
+            file_put_contents(storage_path('logs/verifed-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$verifRes['error']['code'].'  msg:'.$verifRes['error']['message'].'  name:'.$realname.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-VERIFED",'data'=>array()));
         }
         return response()->json(array('result'=>1,'remark'=>$res['result']['message'],'data'=>array('bind_uid'=>$res['result']['data']['id'],'is_realname'=>1)));
@@ -521,7 +524,6 @@ class OpenController extends Controller
         if ($sign_str!='') {
             $sign_str = substr ( $sign_str, 1 );
         }
-        file_put_contents(storage_path('logs/signstr-'.date('Y-m-d')).'.log',date('Y-m-d').'   sign：'.$sign_str.'-4b701c4aca7dd5ee6ddc78c9e0b741df'.PHP_EOL,FILE_APPEND);
         return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
     }
 
