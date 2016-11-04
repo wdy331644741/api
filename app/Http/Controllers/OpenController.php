@@ -318,6 +318,11 @@ class OpenController extends Controller
             file_put_contents(storage_path('logs/register-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$res['error']['code'].'  msg:'.$res['error']['message'].'  phone:'.$phone.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-REGISTER",'data'=>array()));
         }
+        $bindres = $client->accountBind(array('channel'=>$channels,'openId'=>$uid,'userId'=>$res['result']['data']['id']));
+        if(isset($bindres['error'])){
+            file_put_contents(storage_path('logs/bind-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$bindres['error']['code'].'  msg:'.$bindres['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
+            return response()->json(array('result'=>0,'remark'=>"服务器内部错误-BIND",'data'=>array()));
+        }
         $signRes = $client->accountSignIn(array('channel'=>$channels,'openId'=>$uid));
         if(isset($signRes['error'])){
             file_put_contents(storage_path('logs/login-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$signRes['error']['code'].'  msg:'.$signRes['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
@@ -328,12 +333,6 @@ class OpenController extends Controller
             file_put_contents(storage_path('logs/verifed-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$verifRes['error']['code'].'  msg:'.$verifRes['error']['message'].'  name:'.$realname.PHP_EOL,FILE_APPEND);
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-VERIFED",'data'=>array()));
         }
-        $bindres = $client->accountBind(array('channel'=>$channels,'openId'=>$uid,'userId'=>$res['result']['data']['id']));
-        if(isset($bindres['error'])){
-            file_put_contents(storage_path('logs/bind-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  code:'.$bindres['error']['code'].'  msg:'.$bindres['error']['message'].'  uid:'.$uid.PHP_EOL,FILE_APPEND);
-            return response()->json(array('result'=>0,'remark'=>"服务器内部错误-BIND",'data'=>array()));
-        }
-
         return response()->json(array('result'=>1,'remark'=>$res['result']['message'],'data'=>array('bind_uid'=>$res['result']['data']['id'],'is_realname'=>1)));
     }
 
