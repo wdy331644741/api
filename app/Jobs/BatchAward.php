@@ -60,8 +60,6 @@ class BatchAward extends Job implements ShouldQueue
                 }
             } 
             SendAward::sendDataRole($item, $this->award_type, $this->award_id, 0, $this->source_name,$this->batch_id);
-            echo $i++;
-            echo PHP_EOL;
         }
         //状态改为发奖完成
         AwardBatch::where('id',$this->batch_id)->update(array('status'=>2, 'send_num'=>$i));

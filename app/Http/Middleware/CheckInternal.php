@@ -23,7 +23,7 @@ class CheckInternal
         $ipList = explode(',', $ipString);
         $res = array_search($ip, $ipList);
         if($res === false) {
-            return response()->json(array('error_code'=> '11002', 'data'=>array('error_msg' => 'IP 不合法')));
+            return response()->json(array('error_code'=> '11002', 'data'=>array('error_msg' => "IP:{$ip} 不合法: ")));
         }
         return $next($request);
     }
