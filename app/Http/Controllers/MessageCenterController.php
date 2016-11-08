@@ -49,7 +49,11 @@ class MessageCenterController extends Controller{
             foreach($activityInfo as $item){
                 if(!empty($item['id'])){
                     //放入队列
-                    $this->dispatch(new SendReward($item,$userID,$requests));
+                    if($event == 'payment'){//如果是回款触发
+                        $this->dispatch((new SendReward($item,$userID,$requests))->onQueue('lazy'));
+                    }else{
+                        $this->dispatch(new SendReward($item,$userID,$requests));
+                    }
                 }
             }
         }else{

@@ -176,6 +176,7 @@ class SendAwardBatch
                 return $arr;
             }else{//失败
                 //记录错误日志
+                $result['result']['fail'] = isset($result['result']['fail']) ? $result['result']['fail'] : $result;
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result['result']['fail'],'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
@@ -261,6 +262,7 @@ class SendAwardBatch
                 return $arr;
             }else{//失败
                 //记录错误日志
+                $result['result']['fail'] = isset($result['result']['fail']) ? $result['result']['fail'] : $result;
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result['result']['fail'],'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
@@ -348,6 +350,7 @@ class SendAwardBatch
                 return $arr;
             }else{//失败
                 //记录错误日志
+                $result['result']['fail'] = isset($result['result']['fail']) ? $result['result']['fail'] : $result;
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result['result']['fail'],'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
