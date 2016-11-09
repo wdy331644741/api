@@ -345,10 +345,6 @@ class OpenController extends Controller
             return response()->json(array('result'=>0,'remark'=>"参数不正确",'data'=>array()));
         }
         $bind_uid = $request->bind_uid;
-        if(!$request->uid){
-            return response()->json(array('result'=>0,'remark'=>"参数不正确",'data'=>array()));
-        }
-        $uid = $request->uid;
         if(!$request->service){
             return response()->json(array('result'=>0,'remark'=>"参数不正确",'data'=>array()));
         }
@@ -371,7 +367,7 @@ class OpenController extends Controller
             return response()->json(array('result'=>0,'remark'=>"请求超时",'data'=>array()));
         }
         $sign = $request->sign;
-        $signStr = $this->createSignStr(array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid,'uid'=>$uid));
+        $signStr = $this->createSignStr(array('bind_uid'=>$bind_uid,'service'=>$service,'time'=>$time,'cid'=>$cid));
         $createSign = md5($signStr);
         if($sign !== $createSign){
             return response()->json(array('result'=>0,'remark'=>"签名认证失败",'data'=>array()));
