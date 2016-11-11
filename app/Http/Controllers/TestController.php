@@ -9,7 +9,7 @@ use App\Models\Cms\Content;
 use App\Models\Cms\ContentType;
 use App\Models\Cms\Notice;
 use Lib\Weixin;
-
+use \GuzzleHttp\Client;
 use Config;
 use DB;
 
@@ -39,7 +39,45 @@ class TestController extends Controller
         $status = $wxObj->send_template_msg("ovewut6VpqDz6ux4nJg2cKx0srh0",Config::get('open.weixin.msg_template.sign_daily'),$data,"http://www.baidu.com");
     }
 
+    public function getAyq(){
+        $time = time();
+        $data = array(
+            'bind_uid'=>5100195,
+            'service'=>'get_userinfo',
+            'time'=>$time,
+            'cid'=>303250
+        );
+        $sign = md5($this->createSignStr($data));
+        $data['sign'] = $sign;
+        $client = new Client([
+            'base_uri'=>"https://php1.wanglibao.com",
+            'timeout'=>9999.0
+        ]);
+        //echo 'https://php1.wanglibao.com/yunying/open/ayq-login?bind_uid=5100195&service=member_withdraw&time='.$time.'&cid=303250&sign='.$sign;
+        $res = $client->post('/yunying/open/ayq-userinfo',['form_params'=>$data]);
+        dd($res->getBody());
+    }
 
+    private function createSignStr($data){
+        if(!is_array($data)){
+            return '';
+        }
+        ksort($data);
+        $sign_str='';
+        foreach($data as $key=>$val){
+            if(isset($val) && !is_null($val) && @$val!=''){
+                if($key == "realname"){
+                    $sign_str.='&'.$key.'='.trim($val);
+                }else{
+                    $sign_str.='&'.$key.'='.trim($val);
+                }
+            }
+        }
+        if ($sign_str!='') {
+            $sign_str = substr ( $sign_str, 1 );
+        }
+        return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
+    }
     //导入媒体报道数据
     public function getMtJoin(){
         $contentTypeId = ContentType::where('alias_name','report')->value('id');
