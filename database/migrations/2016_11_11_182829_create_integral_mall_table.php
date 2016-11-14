@@ -30,6 +30,9 @@ class CreateIntegralMallTable extends Migration
             $table->timestamp('release_time');//上线时间
             $table->timestamps();
         });
+        Schema::table('integral_mall', function (Blueprint $table) {
+            $table->softDeletes();
+        });
     }
 
     /**

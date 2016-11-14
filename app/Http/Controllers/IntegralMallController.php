@@ -135,8 +135,9 @@ class IntegralMallController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该商品不存在'));
         }
         //删除修改
-        $status = IntegralMall::where('id',$mall_id)->update(array('status'=>2));
-        if($status){
+        $integralMall = IntegralMall::find($mall_id);
+        $res = $integralMall->delete();
+        if($res){
             return $this->outputJson(0, array('error_msg'=>'删除成功'));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
