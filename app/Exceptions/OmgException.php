@@ -46,6 +46,9 @@ class OmgException extends BasicException
     const DATABASE_ERROR = 4026;
     const FREQUENCY_ERROR = 4027;
     const INSERT_FAIL = 4028;
+    const INTEGRAL_FAIL = 4029;
+    const INTEGRAL_LACK_FAIL = 4030;
+    const EXCEED_FAIL = 4031;
 
     //应用错误
     const NO_DATA = 4300;
@@ -85,6 +88,10 @@ class OmgException extends BasicException
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
         self::INSERT_FAIL => "插入失败",
+        self::INTEGRAL_FAIL => "积分值配置错误",
+        self::INTEGRAL_LACK_FAIL => "积分值不足",
+        self::EXCEED_FAIL => "超过了兑换数量",
+
 
         //应用错误
         self::NO_DATA => "暂无数据",

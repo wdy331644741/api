@@ -16,7 +16,7 @@ class CreateIntegralMallExchangeTable extends Migration
             $table->increments('id');
             $table->integer('user_id',false,true);//用户id
             $table->integer('mall_id',false,true);//商品id
-            $table->integer('snapshot',false,true)->nullable()->default(0);//快照
+            $table->text('snapshot');//快照
             $table->tinyInteger('send_status',false,true);//发送状态0、未发送1、已发送
             $table->timestamps();
             //索引
