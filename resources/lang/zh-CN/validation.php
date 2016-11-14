@@ -215,7 +215,10 @@ return [
         'is_abandoned'          => '是否废弃',
         'join_max'              => '参与人数上限',
         'contents'              => '内容',
-        'integral'              => '积分值'
+        'integral'              => '积分值',
+        'photo'                 => '图片地址',
+        'total_quantity'        => '总数量',
+        'groups'                => '分组',
     ],
 
 ];
