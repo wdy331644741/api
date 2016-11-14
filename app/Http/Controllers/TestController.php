@@ -40,23 +40,20 @@ class TestController extends Controller
     }
 
     //模拟爱有钱请求
-    public function getAyqPost(){
-        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountRegister(array('channel'=>'test','phone'=>'10000000023'));
+    public function getAyq(){
+        $time = time();
+        $data = array(
+            'bind_uid'=>5100195,
+            'service'=>'get_userinfo',
+            'time'=>$time,
+            'cid'=>303250
+        );
+        $sign = md5($this->createSignStr($data));
+        $data['sign'] = $sign;
         $client = new Client([
             'base_uri'=>"https://php1.wanglibao.com",
             'timeout'=>9999.0
         ]);
-        $time = time();
-        $data = [
-            'mobile'=>'15831458983',
-            'realname'=>'赵东冉',
-            'uid'=>123000,
-            'cardno'=>'13082119911208257X',
-            'service'=>'register_bind',
-            'time'=>$time,
-            'cid'=>303250,
-        ];
         $signStr = md5($this->createSignStr($data));
         $data['sign'] = $signStr;
         $res = $client->post('/yunying/open/ayq-register',['form_params'=>$data]);
@@ -64,7 +61,8 @@ class TestController extends Controller
     }
 
 
-    function createSignStr($data){
+
+    private function createSignStr($data){
         if(!is_array($data)){
             return '';
         }
@@ -82,10 +80,8 @@ class TestController extends Controller
         if ($sign_str!='') {
             $sign_str = substr ( $sign_str, 1 );
         }
-        //file_put_contents(storage_path('logs/signstr-'.date('Y-m-d')).'.log',date('Y-m-d').'   sign：'.$sign_str.'-4b701c4aca7dd5ee6ddc78c9e0b741df'.PHP_EOL,FILE_APPEND);
         return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
     }
-
     //导入媒体报道数据
     public function getMtJoin(){
         $contentTypeId = ContentType::where('alias_name','report')->value('id');
