@@ -41,6 +41,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('mark', 'MarkController');
     // 积分商城
     Route::controller('integral', 'IntegralMallController');
+    // 1元夺宝
+    Route::controller('one', 'OneYuanController');
 });
 
 // 对外接口
