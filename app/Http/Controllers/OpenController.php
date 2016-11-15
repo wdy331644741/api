@@ -151,11 +151,10 @@ class OpenController extends Controller
     //获取响应Key回复相应内容
     private function receiveEvent($object,$openid)
     {
-        $content = "";
+        $content = array('error'=>1,'content'=>'success');
         switch ($object->Event)
         {
             case "subscribe":
-                $content = "关注";
                 if (isset($object->EventKey)){
                     /**
                      *场景扫码
@@ -166,10 +165,8 @@ class OpenController extends Controller
                 /**
                  *取消关注
                  */
-                $content = "取消关注";
                 break;
             case "SCAN":
-                $content = '您已经关注我们了哟~';
                 break;
             case "CLICK":
                 if (isset($object->EventKey)){
@@ -194,7 +191,7 @@ class OpenController extends Controller
                                 $content['content'] = "终于等到你，还好我没放弃。绑定网利宝账号，轻松投资，随时随地查看收益!<a href='$bindHref'>【立即绑定】</a>";
                             }
                         }else{
-                            $content['content'] = 'success';
+                            $content = array('error'=>1,'content'=>'success');
                         }
                         break;
                     case 'daily_sign':
@@ -250,9 +247,7 @@ class OpenController extends Controller
                         break;
 
                 }
-
                 break;
-
         }
         return $content;
     }

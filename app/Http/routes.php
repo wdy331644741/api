@@ -12,6 +12,8 @@ Route::group(['middleware' => 'internal'], function() {
     Route::get('channel/count-json', 'ChannelController@getCountJson'); // 数据获取渠道列表
     Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口 
     Route::controller('mc', 'MessageCenterController');
+    Route::controller('wsm', 'WechatSendmsgController'); //微信模板消息发送
+
 });
 
 // admin接口
