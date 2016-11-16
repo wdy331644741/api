@@ -7,6 +7,7 @@ use App\Models\IntegralMallExchange;
 use App\Exceptions\OmgException;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
+use Config;
 
 class IntegralMallJsonRpc extends JsonRpc {
 
@@ -85,10 +86,29 @@ class IntegralMallJsonRpc extends JsonRpc {
         $return = SendAward::sendDataRole($userId,$data['award_type'],$data['award_id'],0,'积分兑换',0,0);
         if($return['status'] === true){
             //调用孙峰接口减去积分
-
-            //修改发送成功人数+1
-            IntegralMall::where($where)->increment('send_quantity');
-            $insert['send_status'] = 1;
+            $url = Config::get("award.reward_http_url");
+            $client = new JsonRpcClient($url);
+            //用户积分
+            $iData['user_id'] = $userId;
+            $iData['uuid'] = SendAward::create_guid();
+            $iData['source_id'] = 0;
+            $iData['name'] = $data['integral']."积分";
+            $iData['integral'] = $data['integral'];
+            //获取奖品名
+            $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
+            $iData['limit_desc'] = "积分兑换 '".$awardInfo['name']."' 消耗了".$data['integral']."积分";
+            //发送接口
+            $result = $client->integralUsageRecord($iData);
+            print_r($result);exit;
+            //发送消息&存储到日志
+            if (isset($result['result']) && $result['result']) {//成功
+                //修改发送成功人数+1
+                IntegralMall::where($where)->increment('send_quantity');
+                $insert['send_status'] = 1;
+            }else{
+                //积分扣除失败
+                throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
+            }
         }
         $id = IntegralMallExchange::insertGetId($insert);
         if($id && $insert['send_status'] == 1){

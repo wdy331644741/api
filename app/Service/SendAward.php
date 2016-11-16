@@ -859,7 +859,7 @@ class SendAward
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
-            $result = $client->memberScoreAdd($data);
+            $result = $client->integralIncrease($data);
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
@@ -1111,7 +1111,7 @@ class SendAward
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
-            $result = $client->memberScoreAdd($data);
+            $result = $client->integralIncrease($data);
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
@@ -1129,5 +1129,19 @@ class SendAward
                 return $err;
             }
         }
+    }
+    /**
+     * 根据奖品类型和奖品id获取奖品信息
+     */
+    static function _getAwardInfo($award_type,$award_id){
+        $return = array();
+        if(empty(intval($award_type)) || empty(intval($award_id))){
+            return $return;
+        }
+        //获取数据
+        $table = self::_getAwardTable($award_type);
+        $info = $table::where('id', $award_id)->select()->get()->toArray();
+        $return = isset($info[0]) ? $info[0] : array();
+        return $return;
     }
 }

@@ -49,6 +49,7 @@ class OmgException extends BasicException
     const INTEGRAL_FAIL = 4029;
     const INTEGRAL_LACK_FAIL = 4030;
     const EXCEED_FAIL = 4031;
+    const INTEGRAL_REMOVE_FAIL = 4032;
 
     //应用错误
     const NO_DATA = 4300;
@@ -91,6 +92,7 @@ class OmgException extends BasicException
         self::INTEGRAL_FAIL => "积分值配置错误",
         self::INTEGRAL_LACK_FAIL => "积分值不足",
         self::EXCEED_FAIL => "超过了兑换数量",
+        self::INTEGRAL_REMOVE_FAIL => "积分扣除失败",
 
 
         //应用错误

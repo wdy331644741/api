@@ -22,6 +22,7 @@ use App\Http\JsonRpcs\AppUpdateConfigJsonRpc;
 use App\Http\JsonRpcs\IdiomJsonrpc;
 use App\Http\JsonRpcs\InvestmentJsonrpc;
 use App\Http\JsonRpcs\IntegralMallJsonRpc;
+use App\Http\JsonRpcs\OneYuanJsonRpc;
 class RpcController extends Controller
 {
 
@@ -75,6 +76,7 @@ class RpcController extends Controller
         $jsonRpcServer = new JsonRpcServer();
         $jsonRpcServer->addService(new InsideJsonrpc());
         $jsonRpcServer->addService(new IntegralMallJsonRpc());
+        $jsonRpcServer->addService(new OneYuanJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
