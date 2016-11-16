@@ -53,11 +53,11 @@ class IntegralMallJsonRpc extends JsonRpc {
         $data = IntegralMall::where($where)->get()->toArray();
         //判断数据是否存在
         if(empty($data)){
-            throw new OmgException(OmgException::NO_DATA);
+            throw new OmgException(OmgException::AWARD_NOT_EXIST);
         }
         $data = isset($data[0]) ? $data[0] : array();
         if(empty($data)){
-            throw new OmgException(OmgException::NO_DATA);
+            throw new OmgException(OmgException::AWARD_NOT_EXIST);
         }
         //判断值是否有效
         if($data['integral'] < 1){
@@ -96,10 +96,12 @@ class IntegralMallJsonRpc extends JsonRpc {
             $iData['integral'] = $data['integral'];
             //获取奖品名
             $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
+            if(empty($awardInfo)){
+                throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            }
             $iData['limit_desc'] = "积分兑换 '".$awardInfo['name']."' 消耗了".$data['integral']."积分";
             //发送接口
             $result = $client->integralUsageRecord($iData);
-            print_r($result);exit;
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //修改发送成功人数+1

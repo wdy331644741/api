@@ -61,7 +61,7 @@ class OmgException extends BasicException
     const ALREADY_AWARD = 4306;
     const ALREADY_SHARED = 4307;
     const IS_DINED_TO_WECHAT = 4308;
-
+    const AWARD_NOT_EXIST = 4309;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -106,7 +106,8 @@ class OmgException extends BasicException
         self::ALREADY_AWARD => '奖励已领取',
         self::ALREADY_SHARED => '已分享',
         self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
-        self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定"
+        self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定",
+        self::AWARD_NOT_EXIST => "奖品不存在"
     );
 
     public function __construct($code, $data = array())
