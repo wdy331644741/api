@@ -11,6 +11,7 @@ use Config;
 class WechatSendmsgController extends Controller
 {
     public function postSendmsg(Request $request){
+        ignore_user_abort(true);
         $tag = $request->tag;
         if($tag !== 'wechatMSG'){
             return array('error_code'=>10000, 'data'=>array('error_msg'=>'通知错误'));
@@ -37,8 +38,8 @@ class WechatSendmsgController extends Controller
                 $res = $this->_sendWithdraw($openId,$requests);
                 return response()->json($res);
                 break;
-            case 'invest_success' :
-                $res = $this->_sendInvest($openId,$requests);
+            case 'get_account' :
+                $res = $this->_sendGetAccount($openId,$requests);
                 return response()->json($res);
                 break;
             default :
@@ -113,7 +114,7 @@ class WechatSendmsgController extends Controller
 
 
     //发送回款成功消息
-    private function _sendInvest($openId,$data){
+    private function _sendGetAccount($openId,$data){
         if(!$data['args']['username'] || !$data['args']['money'] || !$data['args']['project_name']){
             return array('error_code'=>10001, 'data'=>array('error_msg'=>'参数错误'));
         }
@@ -135,7 +136,7 @@ class WechatSendmsgController extends Controller
                 'color'=>'#000000'
             )
         );
-        $template_id = Config::get('open.weixin.msg_template.invest_success');
+        $template_id = Config::get('open.weixin.msg_template.get_account');
         $weixin = new Weixin();
         $res = $weixin->send_template_msg($openId,$template_id,$postData);
         if($res === false) {

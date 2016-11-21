@@ -18,9 +18,9 @@ return [
             'wechat_bind'=>'8a21nArPQS0XWct6AGCASDqoaaaE_Ir5SaqarSqkNws',
             'wechat_unbind'=>'BR08JlAXbQ_JUCnKWmhrSNe4pNL2PF9PQxV1QLcxrNo',
             'sign_daily'=>'U0rO2rk56wviOegolXECWRlSlMo3V6g_GweOZ3a7spI',
-            'recharge_success'=>'roPXb_XgHYVOzYqYX4tMWQrRR6OrZc505ITXRj8Sv7k',
-            'withdraw_success'=>'pQ_xTHHJVS7lyjSu__L9Ud1ZoTwpKx9QQSwWDHUxK2w',
-            'invest_success'=>'rGf26tsSMvN7-lCvzQvfbJuOoxk647lYdWhhvl5DIQ8'
+            'recharge_success'=>env('WECHAT_RECHARGE_SUCCESS'),
+            'withdraw_success'=>env('WECHAT_WITHDRAW_SUCCESS'),
+            'get_account'=>env('WECHAT_GET_ACCOUNT'),
         ],
         'xml_template'=>[
             'textTpl'=>"<xml>
