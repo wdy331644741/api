@@ -82,6 +82,7 @@ class IntegralMallController extends Controller
      * 商品列表
      */
     function getList(Request $request){
+        $request->data = array('order'=>array('id + priority' => "desc"));
         $data = Func::Search($request,new IntegralMall());
         return $this->outputJson(0,$data);
     }
