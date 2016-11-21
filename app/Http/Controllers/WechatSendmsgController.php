@@ -11,6 +11,7 @@ use Config;
 class WechatSendmsgController extends Controller
 {
     public function postSendmsg(Request $request){
+        ignore_user_abort(true);
         $tag = $request->tag;
         if($tag !== 'wechatMSG'){
             return array('error_code'=>10000, 'data'=>array('error_msg'=>'通知错误'));
