@@ -43,8 +43,6 @@ class IntegralMallController extends Controller
         $data['award_id'] = $request->award_id;
         //用户兑换总量
         $data['user_quantity'] = $request->user_quantity;
-        //优先级
-        $data['priority'] = $request->priority;
         //分组
         $data['groups'] = $request->groups;
         //开始时间
