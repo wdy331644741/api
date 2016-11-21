@@ -20,7 +20,7 @@ return [
             'sign_daily'=>'U0rO2rk56wviOegolXECWRlSlMo3V6g_GweOZ3a7spI',
             'recharge_success'=>env('WECHAT_RECHARGE_SUCCESS'),
             'withdraw_success'=>env('WECHAT_WITHDRAW_SUCCESS'),
-            'invest_success'=>env('WECHAT_INVEST_SUCCESS'),
+            'get_account'=>env('WECHAT_GET_ACCOUNT'),
         ],
         'xml_template'=>[
             'textTpl'=>"<xml>

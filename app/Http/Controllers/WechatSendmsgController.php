@@ -135,7 +135,7 @@ class WechatSendmsgController extends Controller
                 'color'=>'#000000'
             )
         );
-        $template_id = Config::get('open.weixin.msg_template.invest_success');
+        $template_id = Config::get('open.weixin.msg_template.get_account');
         $weixin = new Weixin();
         $res = $weixin->send_template_msg($openId,$template_id,$postData);
         if($res === false) {
