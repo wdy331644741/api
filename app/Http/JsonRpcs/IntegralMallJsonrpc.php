@@ -91,15 +91,15 @@ class IntegralMallJsonRpc extends JsonRpc {
             //用户积分
             $iData['user_id'] = $userId;
             $iData['uuid'] = SendAward::create_guid();
-            $iData['source_id'] = 0;
-            $iData['name'] = $data['integral']."积分";
-            $iData['integral'] = $data['integral'];
             //获取奖品名
             $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
             if(empty($awardInfo)){
                 throw new OmgException(OmgException::AWARD_NOT_EXIST);
             }
-            $iData['limit_desc'] = "积分兑换 '".$awardInfo['name']."' 消耗了".$data['integral']."积分";
+            $iData['source_id'] = 0;
+            $iData['source_name'] = "兑换".$awardInfo['name'];
+            $iData['integral'] = $data['integral'];
+            $iData['remark'] = $awardInfo['name']." * 1";
             //发送接口
             $result = $client->integralUsageRecord($iData);
             //发送消息&存储到日志

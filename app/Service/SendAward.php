@@ -68,7 +68,7 @@ class SendAward
         }
 
         //*****给本人发的奖励*****
-        $status = self::addAwardByActivity($userID, $activityID);
+        $status = self::addAwardByActivity($userID, $activityID,$triggerData);
 
         //******给邀请人发奖励*****
         $invite_status = self::InviteSendAward($userID, $activityID);
@@ -180,6 +180,23 @@ class SendAward
                             }
                         }
                     }
+                }
+                break;
+            //积分商城按投资金额送积分
+            case 'investment_to_integral':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $level = $triggerData['level'] >= 1 ? $triggerData['level'] : 1;
+                    $period = $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
+                    $integral = ($amount/100)*$level*$period;
+                    $info = array();
+                    $info['user_id'] = $triggerData['user_id'];
+                    $info['trigger'] = 4;
+                    $info['source_name'] = "投资";
+                    $info['integral'] = $integral;
+                    $info['remark'] = "标的：".$triggerData['name'].$triggerData['short_name']." 投资金额 ".$triggerData['Investment_amount']."元";
+                    $data = self::integralSend($info);
+                    print_R($data);exit;
                 }
                 break;
             //双十一大转盘送次数
@@ -391,13 +408,13 @@ class SendAward
      * @param $activityId
      * @return array
      */
-    static function addAwardByActivity($userId, $activityId) {
+    static function addAwardByActivity($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('awards')->first();
         $awards = $activity['awards'];
         $res = [];
         if($activity['award_rule'] == 1) {
             foreach($awards as $award) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'],$triggerData);
             }
         }
         if($activity['award_rule'] == 2) {
@@ -418,7 +435,7 @@ class SendAward
             }
 
             if($finalAward) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'] );
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'], $triggerData);
             }
         }
         return $res;
@@ -446,7 +463,7 @@ class SendAward
      * @param $userID ，$award_type,$award_id
      *
      */
-    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0,$unSendID = 0)
+    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0,$unSendID = 0,$triggerData = array())
     {
         self::$userID = $userID;
         self::$activityID = $activityID;
@@ -471,7 +488,7 @@ class SendAward
         //来源名称
         $info['source_name'] = isset($activity['name']) ? $activity['name'] : $sourceName;
         //触发类型
-        $info['trigger'] = isset($activity['trigger_type']) ? $activity['trigger_type'] : '-1';
+        $info['trigger'] = isset($activity['trigger_type']) ? $activity['trigger_type'] : -1;
         //用户id
         $info['user_id'] = $userID;
         //批次id
@@ -498,7 +515,7 @@ class SendAward
             return self::experience($info);
         } elseif ($award_type == 4) {
             //用户积分
-            return self::integral($info);
+            return self::integral($info,$triggerData);
         } elseif ($award_type == 6) {
             //优惠券
             return self::coupon($info);
@@ -845,7 +862,7 @@ class SendAward
         }
     }
     //用户积分
-    static public function integral($info){
+    static public function integral($info,$triggerData){
         //添加info里添加日志需要的参数
         $info['award_type'] = 4;
         $info['uuid'] = null;
@@ -856,7 +873,6 @@ class SendAward
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'source_name' => 'required|min:2|max:255',
-            'name' => 'required|min:2|max:255',
             'integral' => 'required|min:2|max:255',
         ]);
         if($validator->fails()){
@@ -872,12 +888,15 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['source_id'];
-        $data['name'] = $info['name'];
+        $data['source_id'] = $info['trigger'];
+        $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
-        $data['limit_desc'] = $info['limit_desc'];
-        $data['trigger'] = $info['trigger'];
-        $data['remark'] = '';
+        if(isset($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+            $remark = "标的：".$triggerData['name'].$triggerData['short_name']." 投资金额 ".$triggerData['Investment_amount']."元";
+        }else{
+            $remark = "活动赠送";
+        }
+        $data['remark'] = $remark;
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->integralIncrease($data);
@@ -1103,16 +1122,16 @@ class SendAward
         $info['status'] = 0;
         $info['id'] = 0;
         $info['source_id'] = 0;
-        $info['name'] = $info['integral']."积分";
         //验证必填
         $validator = Validator::make($info, [
             'user_id' => 'required|integer|min:1',
-            'source_id' => 'required|integer|min:0',
             'source_name' => 'required|min:2|max:255',
+            'trigger'=>'required|integer|min:0',
             'integral' => 'required|min:2|max:255',
+            'remark' => 'required|min:1'
         ]);
         if($validator->fails()){
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $err = array('award_type'=>4,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
             $info['remark'] = json_encode($err);
             self::addLog($info);
             return $err;
@@ -1124,19 +1143,18 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['source_id'];
-        $data['name'] = $info['name'];
+        $data['source_id'] = $info['trigger'];
+        $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
-        $data['limit_desc'] = isset($info['limit_desc']) ? $info['limit_desc'] : '';
-        $data['trigger'] = isset($info['trigger']) ? $info['trigger'] : '1';
-        $data['remark'] = '';
+        $data['remark'] = $info['remark'];
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->integralIncrease($data);
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
-                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $arr = array('award_type'=>$info['award_type'],'status'=>true);
+                $info['name'] = $info['integral']."积分";
                 $info['status'] = 1;
                 $info['uuid'] = $uuid;
                 $info['remark'] = json_encode($arr);
@@ -1144,7 +1162,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $err = array('award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
