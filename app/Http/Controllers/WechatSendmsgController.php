@@ -22,11 +22,12 @@ class WechatSendmsgController extends Controller
             return array('error_code'=>10001, 'data'=>array('error_msg'=>'参数错误'));
         }
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountOpenId($userId,'wechat');
+        $res = $client->accountOpenId(array('channel'=>'wechat','userId'=>$userId));
         if(isset($res['error'])){
             return array('error_code'=>10000, 'data'=>array('error_msg'=>'获取openid出现错误'));
         }
         $openId = $res['result']['data']['openid'];//'ovewut6VpqDz6ux4nJg2cKx0srh0';
+        file_put_contents(storage_path('logs/wsm-data'.date('Y-m-d').'.log'),date('y-m-d H:i:s').'=>'.json_encode($requests).PHP_EOL,FILE_APPEND);
         switch ($type){
             case 'recharge_success' :
                 $res = $this->_sendRecharge($openId,$requests);

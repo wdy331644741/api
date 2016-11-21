@@ -515,7 +515,7 @@ class OpenController extends Controller
         if ($sign_str!='') {
             $sign_str = substr ( $sign_str, 1 );
         }
-        return $sign_str."4b701c4aca7dd5ee6ddc78c9e0b741df";
+        return $sign_str.env('AYQ_MD5_KEY');//"4b701c4aca7dd5ee6ddc78c9e0b741df";
     }
 
     //获取登录页面地址

@@ -13,7 +13,11 @@ Route::group(['middleware' => 'internal'], function() {
     Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口 
     Route::controller('mc', 'MessageCenterController');
     Route::controller('wsm', 'WechatSendmsgController'); //微信模板消息发送
-
+    //---------------爱有钱--------------------//
+    Route::post('open/ayq-register', 'OpenController@postAyqRegister');
+    Route::get('open/ayq-login', 'OpenController@getAyqLogin');
+    Route::get('open/ayq-bind', 'OpenController@getAyqBind');
+    Route::post('open/ayq-userinfo', 'OpenController@postAyqUserinfo');
 });
 
 // admin接口
