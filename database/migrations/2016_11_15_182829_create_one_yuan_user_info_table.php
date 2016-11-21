@@ -14,8 +14,8 @@ class CreateOneYuanUserInfoTable extends Migration
     {
         Schema::create('one_yuan_user_info', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id', false, true);//用户id
-            $table->integer('num', false, true);//次数
+            $table->integer('user_id', false, true)->default(0);//用户id
+            $table->integer('num', false, true)->default(0);//次数
             $table->timestamps();
         });
     }
