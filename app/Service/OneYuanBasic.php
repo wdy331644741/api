@@ -36,7 +36,7 @@ class OneYuanBasic
         return array("status"=>true,"msg"=>"添加失败");
     }
     /**
-     * 给用户添加抽奖次数
+     * 给用户减少抽奖次数
      * @param $userId
      * @param $num
      * @return array

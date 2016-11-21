@@ -22,6 +22,7 @@ use App\Service\SendMessage;
 use App\Service\RuleCheck;
 use App\Models\ActivityJoin;
 use App\Service\Attributes;
+use App\Service\OneYuanBasic;
 use Config;
 use Validator;
 class SendAward
@@ -166,6 +167,26 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //一元购按投资金额送抽奖参与次数
+            case Config::get('activity.one_yuan.alias_name'):
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 1000){
+                        $investmentNum = Config::get('activity.one_yuan.investment_num');
+                        foreach($investmentNum as $num =>$value){
+                            if($amount >= $value['min'] && $amount <= $value['max'] && !empty($triggerData['user_id'])){
+                                //给用户加次数
+                                OneYuanBasic::addNum($triggerData['user_id'],$num);
+                            }
+                        }
+                    }
+                }
+                break;
+            //双十一大转盘送次数
+            case Config::get('activity.double_eleven.chance1'):
+                $alias = Config::get('activity.double_eleven.key2');
+                $Attributes::increment($triggerData['user_id'], $alias);
+                break;
             //双十一抱团取暖活动
             case Config::get('activity.double_eleven.baotuan'):
                 $probability =  Config::get('activity.double_eleven.baotuan_probability');
