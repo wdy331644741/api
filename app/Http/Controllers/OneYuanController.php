@@ -32,8 +32,6 @@ class OneYuanController extends Controller
         $data['photo'] = $request->photo;
         //总数量
         $data['total_num'] = $request->total_num;
-        //展示日期
-        $data['exhibition'] = $request->exhibition;
         //判断是添加还是修改
         if($mall_id != 0){
             //查询该信息是否存在
@@ -99,7 +97,7 @@ class OneYuanController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该商品不存在'));
         }
         //下线修改
-        $status = OneYuan::where('id',$mall_id)->update(array('status'=>0));
+        $status = OneYuan::where('id',$mall_id)->update(array('status'=>0,'offline_time'=>date("Y-m-d H:i:s")));
         if($status){
             return $this->outputJson(0, array('error_msg'=>'下线成功'));
         }else{
