@@ -81,7 +81,7 @@ class IntegralMallController extends Controller
      * 商品列表
      */
     function getList(Request $request){
-        $request->data = array('order'=>array('id + priority' => "desc"));
+        $request->data = array('order'=>array('id + priority' => "desc",'status' => 'desc'));
         $data = Func::Search($request,new IntegralMall());
         $awardCommon = new AwardCommonController;
         foreach($data as &$item){
@@ -163,7 +163,7 @@ class IntegralMallController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $current = IntegralMall::where('id',$id)->where('status',1)->first()->toArray();
+        $current = IntegralMall::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['priority'];
         $pre = IntegralMall::whereRaw("id + priority > $current_num")->where('status',1)->orderByRaw('id + priority ASC')->first();
         if(!$pre){
@@ -189,7 +189,7 @@ class IntegralMallController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $current = IntegralMall::where('id',$id)->where('status',1)->first()->toArray();
+        $current = IntegralMall::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['priority'];
         $pre = IntegralMall::whereRaw("id + priority < $current_num")->where('status',1)->orderByRaw('id + priority DESC')->first();
         if(!$pre){
