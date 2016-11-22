@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OneYuanBuyInfo;
 use Illuminate\Http\Request;
 use App\Models\OneYuan;
 use App\Service\Func;
@@ -63,6 +64,7 @@ class OneYuanController extends Controller
      * 商品列表
      */
     function getList(Request $request){
+        $request->data = array('order'=>array('id + priority' => "desc"));
         $data = Func::Search($request,new OneYuan());
         return $this->outputJson(0,$data);
     }
@@ -132,9 +134,9 @@ class OneYuanController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $current = OneYuan::where('id',$id)->first()->toArray();
+        $current = OneYuan::where('id',$id)->where('status',1)->first()->toArray();
         $current_num = $current['id'] + $current['priority'];
-        $pre = OneYuan::whereRaw("id + priority > $current_num")->orderByRaw('id + priority ASC')->first();
+        $pre = OneYuan::whereRaw("id + priority > $current_num")->where('status',1)->orderByRaw('id + priority ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -158,9 +160,9 @@ class OneYuanController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $current = OneYuan::where('id',$id)->first()->toArray();
+        $current = OneYuan::where('id',$id)->where('status',1)->first()->toArray();
         $current_num = $current['id'] + $current['priority'];
-        $pre = OneYuan::whereRaw("id + priority < $current_num")->orderByRaw('id + priority DESC')->first();
+        $pre = OneYuan::whereRaw("id + priority < $current_num")->where('status',1)->orderByRaw('id + priority DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
         }
@@ -174,5 +176,9 @@ class OneYuanController extends Controller
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
+    }
+    function postCodeInsert(Request $request){
+        $mall_id = intval($request->mall_id);
+        $code = intval($request->code);
     }
 }

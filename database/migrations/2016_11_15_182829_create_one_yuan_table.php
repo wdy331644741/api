@@ -24,7 +24,7 @@ class CreateOneYuanTable extends Migration
             $table->timestamp('offline_time')->nullable()->default(NULL);//下线时间
             $table->integer('user_id',false,true)->default(0);//中奖的用户id
             $table->integer('buy_id',false,true)->default(0);//参与的奖品id
-            $table->string('code',64);//开奖码
+            $table->integer('code',false,true);//开奖码
             $table->bigInteger('total_times',false,true)->default(0);//50个用户的时间戳之和
             $table->integer('priority',false,true)->default(0);//优先级
             $table->timestamps();

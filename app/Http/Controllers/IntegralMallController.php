@@ -163,9 +163,9 @@ class IntegralMallController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $current = IntegralMall::where('id',$id)->first()->toArray();
+        $current = IntegralMall::where('id',$id)->where('status',1)->first()->toArray();
         $current_num = $current['id'] + $current['priority'];
-        $pre = IntegralMall::whereRaw("id + priority > $current_num")->orderByRaw('id + priority ASC')->first();
+        $pre = IntegralMall::whereRaw("id + priority > $current_num")->where('status',1)->orderByRaw('id + priority ASC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
@@ -189,9 +189,9 @@ class IntegralMallController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $current = IntegralMall::where('id',$id)->first()->toArray();
+        $current = IntegralMall::where('id',$id)->where('status',1)->first()->toArray();
         $current_num = $current['id'] + $current['priority'];
-        $pre = IntegralMall::whereRaw("id + priority < $current_num")->orderByRaw('id + priority DESC')->first();
+        $pre = IntegralMall::whereRaw("id + priority < $current_num")->where('status',1)->orderByRaw('id + priority DESC')->first();
         if(!$pre){
             return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
         }

@@ -93,7 +93,7 @@ class OmgException extends BasicException
         self::INTEGRAL_LACK_FAIL => "积分值不足",
         self::EXCEED_FAIL => "超过了兑换数量",
         self::INTEGRAL_REMOVE_FAIL => "积分扣除失败",
-
+        self::EXCEED_NUM_FAIL => "超过了剩余次数",
 
         //应用错误
         self::NO_DATA => "暂无数据",
