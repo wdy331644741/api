@@ -62,6 +62,10 @@ class WechatSendmsgController extends Controller
                 'value'=>$data['args']['amount'].'元',
                 'color'=>'#173177'
             ),
+            'keyword2'=>array(
+                'value'=>date('Y年m月d日 H时i分'),
+                'color'=>'#000000'
+            ),
             'remark'=>array(
                 'value'=>'请登录您的网利宝账户进行查看。',
                 'color'=>'#000000'
@@ -93,6 +97,10 @@ class WechatSendmsgController extends Controller
             'keyword1'=>array(
                 'value'=>$data['args']['amount'].'元',
                 'color'=>'#173177'
+            ),
+            'keyword2'=>array(
+                'value'=>date('Y年m月d日 H时i分'),
+                'color'=>'#000000'
             ),
             'remark'=>array(
                 'value'=>'请注意查收。',
