@@ -7,6 +7,7 @@ use App\Models\IntegralMallExchange;
 use App\Exceptions\OmgException;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
+use App\Http\Controllers\AwardCommonController;
 use Config;
 
 class IntegralMallJsonRpc extends JsonRpc {
@@ -23,7 +24,19 @@ class IntegralMallJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $where['status'] = 1;
-        $list = IntegralMall::where($where)->orderBy('release_time','desc')->get()->toArray();
+        $list = IntegralMall::where($where)->orderByRaw('id + priority desc')->get()->toArray();
+        $awardCommon = new AwardCommonController;
+        foreach($list as &$item){
+            $params = array();
+            $params['award_type'] = $item['award_type'];
+            $params['award_id'] = $item['award_id'];
+            $awardList = $awardCommon->_getAwardList($params,1);
+            if(!empty($awardList) && isset($awardList['name']) && !empty($awardList['name'])){
+                $item['name'] = $awardList['name'];
+            }else{
+                $item['name'] = '';
+            }
+        }
         return array(
             'code' => 0,
             'message' => 'success',

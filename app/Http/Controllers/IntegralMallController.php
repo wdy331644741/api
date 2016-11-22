@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\IntegralMall;
 use App\Models\IntegralMallExchange;
 use App\Service\Func;
+use App\Http\Controllers\AwardCommonController;
 use Validator;
 
 class IntegralMallController extends Controller
@@ -82,6 +83,18 @@ class IntegralMallController extends Controller
     function getList(Request $request){
         $request->data = array('order'=>array('id + priority' => "desc"));
         $data = Func::Search($request,new IntegralMall());
+        $awardCommon = new AwardCommonController;
+        foreach($data as &$item){
+            $params = array();
+            $params['award_type'] = $item->award_type;
+            $params['award_id'] = $item->award_id;
+            $awardList = $awardCommon->_getAwardList($params,1);
+            if(!empty($awardList) && isset($awardList['name']) && !empty($awardList['name'])){
+                $item->name = $awardList['name'];
+            }else{
+                $item->name = '';
+            }
+        }
         return $this->outputJson(0,$data);
     }
     /**
