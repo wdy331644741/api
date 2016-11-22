@@ -64,7 +64,7 @@ class OneYuanController extends Controller
      * 商品列表
      */
     function getList(Request $request){
-        $request->data = array('order'=>array('id + priority' => "desc",'status' => 'desc'));
+        $request->data = array('order'=>array("status desc," => "id + priority desc"));
         $data = Func::Search($request,new OneYuan());
         return $this->outputJson(0,$data);
     }
