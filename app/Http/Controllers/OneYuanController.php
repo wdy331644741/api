@@ -118,12 +118,63 @@ class OneYuanController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该商品不存在'));
         }
         //删除修改
-        $integralMall = OneYuan::find($mall_id);
-        $res = $integralMall->delete();
+        $oneYuan = OneYuan::find($mall_id);
+        $res = $oneYuan->delete();
         if($res){
             return $this->outputJson(0, array('error_msg'=>'删除成功'));
         }else{
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
+        }
+    }
+    //商品上移
+    public function getUp($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|integer|min:1'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $current = OneYuan::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['priority'];
+        $pre = OneYuan::whereRaw("id + priority > $current_num")->orderByRaw('id + priority ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = OneYuan::where('id',$id)->update(array('priority'=>$curremt_sort));
+        $pre_res = OneYuan::where('id',$pre['id'])->update(array('priority'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //商品下移
+    public function getDown($id){
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:cms_contents,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $current = OneYuan::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['priority'];
+        $pre = OneYuan::whereRaw("id + priority < $current_num")->orderByRaw('id + priority DESC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = OneYuan::where('id',$id)->update(array('priority'=>$curremt_sort));
+        $pre_res = OneYuan::where('id',$pre['id'])->update(array('priority'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 }
