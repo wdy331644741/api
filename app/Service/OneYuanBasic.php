@@ -2,6 +2,7 @@
 namespace App\Service;
 use App\Models\OneYuanUserInfo;
 use App\Models\OneYuanBuyInfo;
+use App\Models\OneYuanUserRecord;
 class OneYuanBasic
 {
     /**
@@ -10,11 +11,19 @@ class OneYuanBasic
      * @param $num
      * @return array
      */
-    static function addNum($userId,$num){
-        if(empty($userId) || empty($num)){
+    static function addNum($userId,$num,$source,$snapshot = array()){
+        if(empty($userId) || empty($num) || empty($snapshot)){
             return array("status"=>false,"msg"=>"参数有误");
         }
         $count = OneYuanUserInfo::where("user_id",$userId)->count();
+        //记录表数据
+        $operation = array();
+        $operation['user_id'] = $userId;
+        $operation['num'] = $num;
+        $operation['source'] = $source;
+        $operation['snapshot'] = json_encode($snapshot);
+        $operation['type'] = 0;
+        $operation['operation_time'] = date("Y-m-d H:i:s");
         //判断是否存在
         if(!$count){
             //插入一条数据
@@ -25,12 +34,16 @@ class OneYuanBasic
             $data['created_at'] = date("Y-m-d H:i:s");
             $id = OneYuanUserInfo::insertGetId($data);
             if($id){
+                //添加到记录表中
+                OneYuanUserRecord::insertGetId($operation);
                 return array("status"=>true,"msg"=>"添加成功","data"=>$id);
             }
             return array("status"=>true,"msg"=>"添加失败");
         }
         $status = OneYuanUserInfo::where('user_id',$userId)->increment('num', $num,array('updated_at'=>date("Y-m-d H:i:s")));
         if($status){
+            //添加到记录表中
+            OneYuanUserRecord::insertGetId($operation);
             return array("status"=>true,"msg"=>"添加成功","data"=>$status);
         }
         return array("status"=>true,"msg"=>"添加失败");
@@ -41,7 +54,7 @@ class OneYuanBasic
      * @param $num
      * @return array
      */
-    static function reduceNum($userId,$num){
+    static function reduceNum($userId,$num,$source,$snapshot = array()){
         if(empty($userId) || empty($num)){
             return array("status"=>false,"msg"=>"参数有误");
         }
@@ -52,6 +65,15 @@ class OneYuanBasic
         }
         $status = OneYuanUserInfo::where('user_id',$userId)->decrement('num', $num,array('updated_at'=>date("Y-m-d H:i:s")));
         if($status){
+            //记录表数据
+            $operation = array();
+            $operation['user_id'] = $userId;
+            $operation['num'] = $num;
+            $operation['source'] = $source;
+            $operation['snapshot'] = json_encode($snapshot);
+            $operation['type'] = 1;
+            $operation['operation_time'] = date("Y-m-d H:i:s");
+            OneYuanUserRecord::insertGetId($operation);
             return array("status"=>true,"msg"=>"扣除抽奖次数成功","data"=>$status);
         }
         return array("status"=>true,"msg"=>"扣除抽奖次数失败");

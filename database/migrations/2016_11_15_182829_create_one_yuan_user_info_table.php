@@ -17,6 +17,8 @@ class CreateOneYuanUserInfoTable extends Migration
             $table->integer('user_id', false, true)->default(0);//用户id
             $table->integer('num', false, true)->default(0);//次数
             $table->timestamps();
+            //索引
+            $table->index('user_id');
         });
     }
 

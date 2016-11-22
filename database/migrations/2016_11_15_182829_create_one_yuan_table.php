@@ -19,9 +19,14 @@ class CreateOneYuanTable extends Migration
             $table->string('photo')->default('');//配图
             $table->integer('total_num',false,true)->default(0);//总次数
             $table->integer('buy_num',false,true)->default(0);//购买次数
-            $table->timestamp('exhibition')->nullable()->default(NULL);//展示日期
             $table->tinyInteger('status',false,true)->default(0);//商品状态0未上线1上线
             $table->timestamp('release_time')->nullable()->default(NULL);//上线时间
+            $table->timestamp('offline_time')->nullable()->default(NULL);//下线时间
+            $table->integer('user_id',false,true)->default(0);//中奖的用户id
+            $table->integer('buy_id',false,true)->default(0);//参与的奖品id
+            $table->string('code',64);//开奖码
+            $table->bigInteger('total_times',false,true)->default(0);//50个用户的时间戳之和
+            $table->integer('priority',false,true)->default(0);//优先级
             $table->timestamps();
         });
         Schema::table('one_yuan', function (Blueprint $table) {

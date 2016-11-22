@@ -42,7 +42,7 @@ class OneYuanJsonRpc extends JsonRpc {
         $status = 1;
         if($status) {
             //如果成功
-            $return = OneYuanBasic::addNum($userId,$num);
+            $return = OneYuanBasic::addNum($userId,$num,'buy',array('buy'=>$num));
             if(isset($return['status']) && $return['status'] === true){
                 return array(
                     'code' => 0,
@@ -78,10 +78,14 @@ class OneYuanJsonRpc extends JsonRpc {
                 //添加到抽奖记录表中
                 $return = OneYuanBasic::insertBuyInfo($userId,$mallId,$num);
                 if(isset($return['status']) && $return['status'] === true){
-                    return array(
-                        'code' => 0,
-                        'message' => 'success'
-                    );
+                    //减少抽奖次数
+                    $return = OneYuanBasic::reduceNum($userId,$num,'mall',array('mall'=>$mallId));
+                    if(isset($return['status']) && $return['status'] === true){
+                        return array(
+                            'code' => 0,
+                            'message' => 'success'
+                        );
+                    }
                 }
             }
         }

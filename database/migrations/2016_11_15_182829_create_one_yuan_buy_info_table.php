@@ -23,6 +23,8 @@ class CreateOneYuanBuyInfoTable extends Migration
             $table->timestamps();
             //索引
             $table->index(['user_id', 'mall_id']);
+            $table->index('mall_id');
+            $table->index(['start', 'end']);
         });
     }
 

@@ -176,7 +176,7 @@ class SendAward
                         foreach($investmentNum as $num =>$value){
                             if($amount >= $value['min'] && $amount <= $value['max'] && !empty($triggerData['user_id'])){
                                 //给用户加次数
-                                OneYuanBasic::addNum($triggerData['user_id'],$num);
+                                OneYuanBasic::addNum($triggerData['user_id'],$num,'investment',array('investment'=>$amount));
                             }
                         }
                     }
