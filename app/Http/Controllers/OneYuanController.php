@@ -141,7 +141,7 @@ class OneYuanController extends Controller
             return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
         }
         $pre_sort = $current_num - $pre['id'];
-        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+        $curremt_sort = ($pre['id'] + $pre['priority']) - $current['id'];
 
         $current_res = OneYuan::where('id',$id)->update(array('priority'=>$curremt_sort));
         $pre_res = OneYuan::where('id',$pre['id'])->update(array('priority'=>$pre_sort));
@@ -167,7 +167,7 @@ class OneYuanController extends Controller
             return $this->outputJson(10007,array('error_msg'=>'	Cannot Move'));
         }
         $pre_sort = $current_num - $pre['id'];
-        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+        $curremt_sort = ($pre['id'] + $pre['priority']) - $current['id'];
 
         $current_res = OneYuan::where('id',$id)->update(array('priority'=>$curremt_sort));
         $pre_res = OneYuan::where('id',$pre['id'])->update(array('priority'=>$pre_sort));
