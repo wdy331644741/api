@@ -1,8 +1,11 @@
 <?php
 namespace App\Service;
+
+use App\Models\OneYuan;
 use App\Models\OneYuanUserInfo;
 use App\Models\OneYuanJoinInfo;
 use App\Models\OneYuanUserRecord;
+use DB;
 class OneYuanBasic
 {
     /**
@@ -106,15 +109,16 @@ class OneYuanBasic
             return array("status"=>false,"msg"=>"参数有误");
         }
         //获取该商品的最大值
-        $max = OneYuanJoinInfo::where("mall_id",$mallId+1)->select('end')->orderBy("end","desc")->first();
+        $max = OneYuanJoinInfo::where("mall_id",$mallId)->select('end')->orderBy("end","desc")->first();
         $end = isset($max['end']) ? $max['end'] : 0;
         //添加的数据
+        $time = time();
         $data = array();
         $data['user_id'] = $userId;
         $data['mall_id'] = $mallId;
         $data['num'] = $num;
-        $data['buy_time'] = time();
-        $data['created_at'] = date("Y-m-d H:i:s");
+        $data['buy_time'] = date('His',$time);
+        $data['created_at'] = date("Y-m-d H:i:s",$time);
         $data['updated_at'] = date("Y-m-d H:i:s");
         $data['start'] = $end+1;
         $data['end'] = $end+$num;
@@ -128,5 +132,68 @@ class OneYuanBasic
         }
         return array("status"=>false,"msg"=>"抽奖失败");
     }
-
+    //根据商品id和开奖码抽奖
+    static function luckDraw($mall_id,$code){
+        //验证参数
+        $mall_id = intval($mall_id);
+        $code = intval($code);
+        if(empty($mall_id) || empty($code)){
+            return array("status"=>false,"msg"=>"参数有误");
+        }
+        //判断抽奖次数是否已满
+        $where = array();
+        $where['id'] = $mall_id;
+        $where['user_id'] = 0;
+        $where['buy_id'] = 0;
+        $where['code'] = 0;
+        $where['luck_code'] = 0;
+        $where['total_times'] = 0;
+        $where['join_users'] = 0;
+        $where['luck_time'] = 0;
+        $isFull = OneYuan::where($where)->first();
+        if(empty($isFull)){
+            return array("status"=>false,"msg"=>"奖品不存在");
+        }
+        if($isFull->total_num != $isFull->buy_num){
+            return array("status"=>false,"msg"=>"奖品还没参与满");
+        }
+        //开始抽奖
+        //获取最后50个用户的时间和
+        $times = OneYuanJoinInfo::where('mall_id',$mall_id)->select(DB::raw('SUM(buy_time) as times'))
+            ->orderBy('id','desc')
+            ->take(50)
+            ->first();
+        if(empty($times)){
+            return array("status"=>false,"msg"=>"数据有误");
+        }
+        //修改数组
+        $up = array();
+        $up['code'] = $code;
+        $up['total_times'] = $times['times'];
+        //获取总人次
+        $users = OneYuanJoinInfo::where('mall_id',$mall_id)->select(DB::raw('COUNT(distinct(user_id)) as count'))->first();
+        if(empty($users)){
+            return array("status"=>false,"msg"=>"数据有误");
+        }
+        $up['join_users'] = $users['count'];
+        $up['luck_code'] = ($up['total_times']+$up['code'])%$isFull['total_num'];
+        if(empty($up['luck_code'])){
+            return array("status"=>false,"msg"=>"中奖码没算出来");
+        }
+        $joinInfo = OneYuanJoinInfo::where('mall_id',$mall_id)
+            ->where('start','<=',$up['luck_code'])
+            ->where('end','>=',$up['luck_code'])
+            ->first();
+        if(empty($joinInfo)){
+            return array("status"=>false,"msg"=>"找不到抽奖记录");
+        }
+        $up['user_id'] = $joinInfo['user_id'];
+        $up['buy_id'] = $joinInfo['id'];
+        $up['luck_time'] = $joinInfo['created_at'];
+        $status = OneYuan::where('id',$mall_id)->update($up);
+        if($status){
+            return array("status"=>true,"msg"=>"抽奖成功");
+        }
+        return array("status"=>false,"msg"=>"抽奖失败");
+    }
 }

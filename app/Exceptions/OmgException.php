@@ -52,6 +52,7 @@ class OmgException extends BasicException
     const INTEGRAL_REMOVE_FAIL = 4032;
     const EXCEED_NUM_FAIL = 4033;
     const EXCEED_USER_NUM_FAIL = 4034;
+    const ONEYUAN_FULL_FAIL = 4035;
 
     //应用错误
     const NO_DATA = 4300;
@@ -97,6 +98,7 @@ class OmgException extends BasicException
         self::INTEGRAL_REMOVE_FAIL => "积分扣除失败",
         self::EXCEED_NUM_FAIL => "超过了剩余次数",
         self::EXCEED_USER_NUM_FAIL => "用户次数不够",
+        self::ONEYUAN_FULL_FAIL => "该奖品已经参与满",
 
         //应用错误
         self::NO_DATA => "暂无数据",

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OneYuanJoinInfo;
+use App\Service\OneYuanBasic;
 use Illuminate\Http\Request;
 use App\Models\OneYuan;
 use App\Service\Func;
@@ -182,8 +183,8 @@ class OneYuanController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
-    function postCodeInsert(Request $request){
-        $mall_id = intval($request->mall_id);
-        $code = intval($request->code);
+    function postLuckDraw(){
+        $a = OneYuanBasic::luckDraw(3,23);
+        print_R($a);exit;
     }
 }
