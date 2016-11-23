@@ -19,6 +19,8 @@ class CreateOneYuanTable extends Migration
             $table->string('photo')->default('');//配图
             $table->integer('total_num',false,true)->default(0);//总次数
             $table->integer('buy_num',false,true)->default(0);//购买次数
+            $table->timestamp('start_time')->nullable()->default(NULL);//开始时间
+            $table->timestamp('end_time')->nullable()->default(NULL);//结束时间
             $table->tinyInteger('status',false,true)->default(0);//商品状态0未上线1上线
             $table->timestamp('release_time')->nullable()->default(NULL);//上线时间
             $table->timestamp('offline_time')->nullable()->default(NULL);//下线时间

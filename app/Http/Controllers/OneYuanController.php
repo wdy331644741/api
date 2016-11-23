@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OneYuanBuyInfo;
+use App\Models\OneYuanJoinInfo;
 use Illuminate\Http\Request;
 use App\Models\OneYuan;
 use App\Service\Func;
@@ -20,7 +20,8 @@ class OneYuanController extends Controller
             'desc' => 'required|string|min:1',
             'photo' => 'required|string|min:1',
             'total_num' => 'required|integer|min:0',
-            'exhibition' => 'required|date',
+            'start_time' => 'date',
+            'end_time' => 'date'
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -33,6 +34,10 @@ class OneYuanController extends Controller
         $data['photo'] = $request->photo;
         //总数量
         $data['total_num'] = $request->total_num;
+        //开始时间
+        $data['start_time'] = $request->start_time;
+        //结束时间
+        $data['end_time'] = $request->end_time;
         //判断是添加还是修改
         if($mall_id != 0){
             //查询该信息是否存在

@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use Lib\JsonRpcClient;
 use App\Service\OneYuanBasic;
 use App\Models\OneYuan;
+use App\Models\OneYuanJoinInfo;
 
 class OneYuanJsonRpc extends JsonRpc {
 
@@ -16,14 +17,44 @@ class OneYuanJsonRpc extends JsonRpc {
      */
     public function oneYuanMallList() {
         $where['status'] = 1;
-        $list = OneYuan::where($where)->orderByRaw('id + priority desc')->get()->toArray();
+        //昨天的一元夺宝商品
+        $yesterdayList = OneYuan::where($where)
+            ->where('start_time', '>=', date("Y-m-d 00:00:00",strtotime("-1 days")))
+            ->where('start_time', '<=', date("Y-m-d 23:59:59",strtotime("-1 days")))
+            ->get()->toArray();
+        $list['yesterday'] = $this->_formatData($yesterdayList);
+        //今天的一元夺宝商品
+        $todayList = OneYuan::where($where)
+            ->where('start_time', '>=', date("Y-m-d 00:00:00"))
+            ->where('start_time', '<=', date("Y-m-d 23:59:59"))
+            ->get()->toArray();
+        $list['today'] = $this->_formatData($todayList);
+        //明天的一元夺宝商品
+        $tomorrowList = OneYuan::where($where)
+            ->where('start_time', '>=', date("Y-m-d 00:00:00",strtotime("+1 days")))
+            ->where('start_time', '<=', date("Y-m-d 23:59:59",strtotime("+1 days")))
+            ->get()->toArray();
+        $list['tomorrow'] = $this->_formatData($tomorrowList);
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => $list,
         );
     }
-
+    protected function _formatData($data){
+        if(empty($data)){
+            return $data;
+        }
+        foreach($data as &$item){
+            $item['time_diff'] = strtotime($item['start_time']) - time();
+            //去掉不需要的数据
+            unset($item['status']);
+            unset($item['buy_id']);
+            unset($item['total_times']);
+            unset($item['priority']);
+        }
+        return $data;
+    }
     /**
      *  购买积分
      *
@@ -72,7 +103,7 @@ class OneYuanJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //判断当前商品还能不能参加抽奖
-        $info = OneYuan::where("mall_id",$mallId)->where("status",1)->select('total_num','buy_num')->first();
+        $info = OneYuan::where("id",$mallId)->where("status",1)->select('total_num','buy_num')->first();
         if(empty($info)){
             throw new OmgException(OmgException::NO_DATA);
         }
@@ -84,13 +115,13 @@ class OneYuanJsonRpc extends JsonRpc {
         //获取用户的抽奖次数判断是否够用
         $totalNum = OneYuanBasic::getUserLuckNum($userId);
         if(isset($totalNum['status']) && !empty($totalNum['status'])){
-            if($totalNum['status'] >= $num){
+            if($totalNum['data'] >= $num){
                 //添加到抽奖记录表中
-                $return = OneYuanBasic::insertBuyInfo($userId,$mallId,$num);
+                $return = OneYuanBasic::insertJoinInfo($userId,$mallId,$num);
                 if(isset($return['status']) && $return['status'] === true){
                     //商品抽奖次数增加
-
-                    //减少抽奖次数
+                    OneYuan::where("id",$mallId)->where("status",1)->increment('buy_num',$num);
+                    //用户减少抽奖次数
                     $return = OneYuanBasic::reduceNum($userId,$num,'mall',array('mall'=>$mallId));
                     if(isset($return['status']) && $return['status'] === true){
                         return array(
@@ -99,6 +130,8 @@ class OneYuanJsonRpc extends JsonRpc {
                         );
                     }
                 }
+            }else{
+                throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
             }
         }
         return array(

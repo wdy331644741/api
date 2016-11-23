@@ -1,7 +1,7 @@
 <?php
 namespace App\Service;
 use App\Models\OneYuanUserInfo;
-use App\Models\OneYuanBuyInfo;
+use App\Models\OneYuanJoinInfo;
 use App\Models\OneYuanUserRecord;
 class OneYuanBasic
 {
@@ -101,12 +101,12 @@ class OneYuanBasic
      * @param $arr
      * @return bool
      */
-    static function insertBuyInfo($userId,$mallId,$num){
+    static function insertJoinInfo($userId,$mallId,$num){
         if(empty($userId) || empty($mallId) || empty($num)){
             return array("status"=>false,"msg"=>"参数有误");
         }
         //获取该商品的最大值
-        $max = OneYuanBuyInfo::where("mall_id",$mallId+1)->select('end')->orderBy("end","desc")->first();
+        $max = OneYuanJoinInfo::where("mall_id",$mallId+1)->select('end')->orderBy("end","desc")->first();
         $end = isset($max['end']) ? $max['end'] : 0;
         //添加的数据
         $data = array();
@@ -122,7 +122,7 @@ class OneYuanBasic
             $data['start'] = 1;
             $data['end'] = $num;
         }
-        $id = OneYuanBuyInfo::insertGetId($data);
+        $id = OneYuanJoinInfo::insertGetId($data);
         if($id){
             return array("status"=>true,"msg"=>"抽奖成功","data"=>$id);
         }

@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateOneYuanBuyInfoTable extends Migration
+class CreateOneYuanJoinInfoTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +12,7 @@ class CreateOneYuanBuyInfoTable extends Migration
      */
     public function up()
     {
-        Schema::create('one_yuan_buy_info', function (Blueprint $table) {
+        Schema::create('one_yuan_join_info', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id', false, true)->default(0);//用户id
             $table->integer('mall_id', false, true)->default(0);//商品id
@@ -35,6 +35,6 @@ class CreateOneYuanBuyInfoTable extends Migration
      */
     public function down()
     {
-        Schema::drop('one_yuan_buy_info');
+        Schema::drop('one_yuan_join_info');
     }
 }
