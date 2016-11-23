@@ -62,6 +62,10 @@ class WechatSendmsgController extends Controller
                 'value'=>$data['args']['amount'].'元',
                 'color'=>'#173177'
             ),
+            'keyword2'=>array(
+                'value'=>date('Y年m月d日 H时i分'),
+                'color'=>'#000000'
+            ),
             'remark'=>array(
                 'value'=>'请登录您的网利宝账户进行查看。',
                 'color'=>'#000000'
@@ -94,6 +98,10 @@ class WechatSendmsgController extends Controller
                 'value'=>$data['args']['amount'].'元',
                 'color'=>'#173177'
             ),
+            'keyword2'=>array(
+                'value'=>date('Y年m月d日 H时i分'),
+                'color'=>'#000000'
+            ),
             'remark'=>array(
                 'value'=>'请注意查收。',
                 'color'=>'#000000'
@@ -115,12 +123,12 @@ class WechatSendmsgController extends Controller
 
     //发送回款成功消息
     private function _sendGetAccount($openId,$data){
-        if(!$data['args']['username'] || !$data['args']['money'] || !$data['args']['project_name']){
+        if(!$data['args']['user_name'] || !$data['args']['money'] || !$data['args']['project_name']){
             return array('error_code'=>10001, 'data'=>array('error_msg'=>'参数错误'));
         }
         $postData = array(
             'first'=>array(
-                'value'=>'亲爱的'.$data['args']['username'].'，您投资的项目收到还款，已到账',
+                'value'=>'亲爱的'.$data['args']['user_name'].'，您投资的项目收到还款，已到账',
                 'color'=>'#000000'
             ),
             'keyword1'=>array(
