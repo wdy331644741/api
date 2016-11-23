@@ -7,6 +7,7 @@ use Lib\JsonRpcClient;
 use App\Service\OneYuanBasic;
 use App\Models\OneYuan;
 use App\Models\OneYuanJoinInfo;
+use App\Service\Func;
 use Illuminate\Pagination\Paginator;
 
 class OneYuanJsonRpc extends JsonRpc {
@@ -70,9 +71,7 @@ class OneYuanJsonRpc extends JsonRpc {
             $item['phone'] = '';
             if(isset($item['user_id']) && !empty($item['user_id'])){
                 //获取用户手机号
-                $url = env('INSIDE_HTTP_URL');
-                $client = new JsonRpcClient($url);
-                $userBase = $client->userBasicInfo(array('userId' =>$item['user_id']));
+                $userBase = Func::getUserBaseInfo($item['user_id']);
                 $item['phone'] = isset($userBase['result']['data']['phone']) ? substr_replace($userBase['result']['data']['phone'], '****', 3, 4) : '';
             }
             if(!empty($item['luck_code'])){
@@ -198,6 +197,10 @@ class OneYuanJsonRpc extends JsonRpc {
             ->paginate(5);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
+        }
+        foreach($list as &$item){
+            $userBase = Func::getUserBaseInfo($item['user_id']);
+            $item['phone'] = isset($userBase['result']['data']['phone']) ? substr_replace($userBase['result']['data']['phone'], '****', 3, 4) : '';
         }
         return array(
             'code' => 0,
