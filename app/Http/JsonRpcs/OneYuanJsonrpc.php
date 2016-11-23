@@ -115,6 +115,7 @@ class OneYuanJsonRpc extends JsonRpc {
                 'message' => 'fail'
             );
         }
+        OneYuanBasic::addNum($userId,$num,'buy',array('buy'=>$num),1,$status);
         //如果失败
         return array(
             'code' => -1,

@@ -5,6 +5,7 @@ use App\Models\OneYuan;
 use App\Models\OneYuanUserInfo;
 use App\Models\OneYuanJoinInfo;
 use App\Models\OneYuanUserRecord;
+use App\Service\SendAward;
 use DB;
 class OneYuanBasic
 {
@@ -14,7 +15,7 @@ class OneYuanBasic
      * @param $num
      * @return array
      */
-    static function addNum($userId,$num,$source,$snapshot = array()){
+    static function addNum($userId,$num,$source,$snapshot = array(),$status = 0,$remark = array()){
         if(empty($userId) || empty($num) || empty($snapshot)){
             return array("status"=>false,"msg"=>"参数有误");
         }
@@ -22,10 +23,17 @@ class OneYuanBasic
         //记录表数据
         $operation = array();
         $operation['user_id'] = $userId;
+        if($source == 'buy'){
+            $operation['uuid'] = SendAward::create_guid();
+        }else{
+            $operation['uuid'] = '';
+        }
         $operation['num'] = $num;
         $operation['source'] = $source;
         $operation['snapshot'] = json_encode($snapshot);
         $operation['type'] = 0;
+        $operation['status'] = $status;
+        $operation['remark'] = $remark;
         $operation['operation_time'] = date("Y-m-d H:i:s");
         //判断是否存在
         if(!$count){
