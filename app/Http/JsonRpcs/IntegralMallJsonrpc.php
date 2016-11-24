@@ -89,42 +89,43 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($data['integral'] > $integralTotal) {
             throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
         }
-        //插入交易日志
+        //交易日志数据
         $insert = array();
         $insert['user_id'] = $userId;
         $insert['mall_id'] = $mallId;
         $insert['snapshot'] = json_encode($data);
         $insert['send_status'] = 0;
-        //发送奖品
-        $return = SendAward::sendDataRole($userId,$data['award_type'],$data['award_id'],0,'积分兑换',0,0);
-        if($return['status'] === true){
-            //调用孙峰接口减去积分
-            $url = Config::get("award.reward_http_url");
-            $client = new JsonRpcClient($url);
-            //用户积分
-            $iData['user_id'] = $userId;
-            $iData['uuid'] = SendAward::create_guid();
-            //获取奖品名
-            $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
-            if(empty($awardInfo)){
-                throw new OmgException(OmgException::AWARD_NOT_EXIST);
-            }
-            $iData['source_id'] = 0;
-            $iData['source_name'] = "兑换".$awardInfo['name'];
-            $iData['integral'] = $data['integral'];
-            $iData['remark'] = $awardInfo['name']." * 1";
-            //发送接口
-            $result = $client->integralUsageRecord($iData);
-            //发送消息&存储到日志
-            if (isset($result['result']) && $result['result']) {//成功
+        //调用孙峰接口减去积分
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        //用户积分
+        $iData['user_id'] = $userId;
+        $iData['uuid'] = SendAward::create_guid();
+        //获取奖品名
+        $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
+        if(empty($awardInfo)){
+            throw new OmgException(OmgException::AWARD_NOT_EXIST);
+        }
+        $iData['source_id'] = 0;
+        $iData['source_name'] = "兑换".$awardInfo['name'];
+        $iData['integral'] = $data['integral'];
+        $iData['remark'] = $awardInfo['name']." * 1";
+        //发送接口
+        $result = $client->integralUsageRecord($iData);
+        //发送消息&存储到日志
+        if (isset($result['result']) && $result['result']) {//成功
+            //发送奖品
+            $return = SendAward::sendDataRole($userId,$data['award_type'],$data['award_id'],0,'积分兑换');
+            if($return['status'] === true){
                 //修改发送成功人数+1
                 IntegralMall::where($where)->increment('send_quantity');
                 $insert['send_status'] = 1;
-            }else{
-                //积分扣除失败
-                throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
             }
+        }else{
+            //积分扣除失败
+            throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
         }
+        //判断是否成功
         $id = IntegralMallExchange::insertGetId($insert);
         if($id && $insert['send_status'] == 1){
             return array(
