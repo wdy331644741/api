@@ -3,15 +3,39 @@
 namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
+use App\Models\OneYuanUserInfo;
+use App\Service\SendAward;
 use Lib\JsonRpcClient;
 use App\Service\OneYuanBasic;
 use App\Models\OneYuan;
 use App\Models\OneYuanJoinInfo;
+use App\Models\OneYuanUserRecord;
 use App\Service\Func;
 use Illuminate\Pagination\Paginator;
 
 class OneYuanJsonRpc extends JsonRpc {
 
+    /**
+     *  获取用户还有多少次抽奖次数
+     *
+     * @JsonRpcMethod
+     */
+    public function oneYuanUserNum($params) {
+        $userId = intval($params->userId);
+        if(empty($userId)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        //昨天的一元夺宝商品
+        $data = OneYuanUserInfo::where('user_id',$userId)->select('user_id','num')->first();
+        if(empty($data)){
+            $data = array('user_id'=>$userId,'num'=>0);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        );
+    }
     /**
      *  商品列表
      *
@@ -96,26 +120,33 @@ class OneYuanJsonRpc extends JsonRpc {
         if(empty($userId) || empty($num)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
+        //先插入一条数据
+        $uuid = SendAward::create_guid();
+        $buyData = array();
+        $buyData['uuid'] = $uuid;//唯一id
+        $buyData['status'] = 1;//失败状态
+        $return = OneYuanBasic::addNum($userId,$num,'buy',array('buy'=>$num),$buyData);
+        if($return['status'] == true){
+            $id = $return['data'];
+        }
         //调用孙峰接口余额购买次数
-        $url = env('INSIDE_HTTP_URL');
+        $url = env('TRADE_HTTP_URL');
         $client = new JsonRpcClient($url);
-        $status = $client->userBasicInfo(array('userId' =>$userId));
-        $status = 1;
-        if($status) {
-            //如果成功
-            $return = OneYuanBasic::addNum($userId,$num,'buy',array('buy'=>$num));
-            if(isset($return['status']) && $return['status'] === true){
-                return array(
-                    'code' => 0,
-                    'message' => 'success'
-                );
-            }
+        $param['userId'] = $userId;
+        $param['id'] = $id;
+        $param['uuid'] = $uuid;
+        $param['amount'] = $num;
+        $param['sign'] = hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft");
+        $result = $client->qi_bao_purchase($param);
+        //如果成功
+        if(isset($result['result']) && !empty($result['result'])) {
+            OneYuanUserRecord::where("id",$id)->update(array("status"=>0,"operation_time"=>date("Y-m-d H:i:s")));
             return array(
-                'code' => -1,
-                'message' => 'fail'
+                'code' => 0,
+                'message' => 'success'
             );
         }
-        OneYuanBasic::addNum($userId,$num,'buy',array('buy'=>$num),1,$status);
+        OneYuanUserRecord::where("id",$id)->update(array("status"=>1,"remark"=>json_encode($result),"operation_time"=>date("Y-m-d H:i:s")));
         //如果失败
         return array(
             'code' => -1,

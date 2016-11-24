@@ -15,7 +15,7 @@ class OneYuanBasic
      * @param $num
      * @return array
      */
-    static function addNum($userId,$num,$source,$snapshot = array(),$status = 0,$remark = array()){
+    static function addNum($userId,$num,$source,$snapshot = array(),$buyData = array()){
         if(empty($userId) || empty($num) || empty($snapshot)){
             return array("status"=>false,"msg"=>"参数有误");
         }
@@ -24,16 +24,16 @@ class OneYuanBasic
         $operation = array();
         $operation['user_id'] = $userId;
         if($source == 'buy'){
-            $operation['uuid'] = SendAward::create_guid();
+            $operation['uuid'] = isset($buyData['uuid']) ? $buyData['uuid'] : '';
+            $operation['status'] = isset($buyData['status']) ? $buyData['status'] : 1;
         }else{
             $operation['uuid'] = '';
+            $operation['status'] = 0;
         }
         $operation['num'] = $num;
         $operation['source'] = $source;
         $operation['snapshot'] = json_encode($snapshot);
         $operation['type'] = 0;
-        $operation['status'] = $status;
-        $operation['remark'] = $remark;
         $operation['operation_time'] = date("Y-m-d H:i:s");
         //判断是否存在
         if(!$count){
@@ -54,8 +54,8 @@ class OneYuanBasic
         $status = OneYuanUserInfo::where('user_id',$userId)->increment('num', $num,array('updated_at'=>date("Y-m-d H:i:s")));
         if($status){
             //添加到记录表中
-            OneYuanUserRecord::insertGetId($operation);
-            return array("status"=>true,"msg"=>"添加成功","data"=>$status);
+            $id = OneYuanUserRecord::insertGetId($operation);
+            return array("status"=>true,"msg"=>"添加成功","data"=>$id);
         }
         return array("status"=>true,"msg"=>"添加失败");
     }

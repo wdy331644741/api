@@ -186,17 +186,19 @@ class SendAward
             case 'investment_to_integral':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    $level = $triggerData['level'] >= 1 ? $triggerData['level'] : 1;
-                    $period = $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
+                    $level = isset($triggerData['level']) && $triggerData['level'] >= 1 ? $triggerData['level'] : 1;
+                    $period = isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
                     $integral = ($amount/100)*$level*$period;
+                    if(empty($integral) || !isset($triggerData['name']) || !isset($triggerData['short_name'])){
+                        return false;
+                    }
                     $info = array();
                     $info['user_id'] = $triggerData['user_id'];
                     $info['trigger'] = 4;
                     $info['source_name'] = "投资";
                     $info['integral'] = $integral;
                     $info['remark'] = "标的：".$triggerData['name'].$triggerData['short_name']." 投资金额 ".$triggerData['Investment_amount']."元";
-                    $data = self::integralSend($info);
-                    print_R($data);exit;
+                    self::integralSend($info);
                 }
                 break;
             //双十一大转盘送次数
