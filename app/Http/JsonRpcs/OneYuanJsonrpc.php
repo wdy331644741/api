@@ -120,15 +120,18 @@ class OneYuanJsonRpc extends JsonRpc {
         if(empty($userId) || empty($num)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        //先插入一条数据
+        //先插入一条日志数据
         $uuid = SendAward::create_guid();
-        $buyData = array();
-        $buyData['uuid'] = $uuid;//唯一id
-        $buyData['status'] = 1;//失败状态
-        $return = OneYuanBasic::addNum($userId,$num,'buy',array('buy'=>$num),$buyData);
-        if($return['status'] == true){
-            $id = $return['data'];
-        }
+        $operation = array();
+        $operation['user_id'] = $userId;
+        $operation['num'] = $num;
+        $operation['source'] = 'buy';
+        $operation['snapshot'] = json_encode(array('buy'=>$num));
+        $operation['type'] = 0;
+        $operation['uuid'] = $uuid;//唯一id
+        $operation['status'] = 1;//失败状态
+        $operation['operation_time'] = date("Y-m-d H:i:s");
+        $id = OneYuanUserRecord::insertGetId($operation);
         //调用孙峰接口余额购买次数
         $url = env('TRADE_HTTP_URL');
         $client = new JsonRpcClient($url);
@@ -140,7 +143,21 @@ class OneYuanJsonRpc extends JsonRpc {
         $result = $client->qi_bao_purchase($param);
         //如果成功
         if(isset($result['result']) && !empty($result['result'])) {
+            //记录修改为成功状态
             OneYuanUserRecord::where("id",$id)->update(array("status"=>0,"operation_time"=>date("Y-m-d H:i:s")));
+            //用户次数增加
+            $count = OneYuanUserInfo::where("user_id",$userId)->count();
+            if(!$count){
+                //插入一条数据
+                $data = array();
+                $data['user_id'] = $userId;
+                $data['num'] = $num;
+                $data['updated_at'] = date("Y-m-d H:i:s");
+                $data['created_at'] = date("Y-m-d H:i:s");
+                OneYuanUserInfo::insertGetId($data);
+            }else{
+                OneYuanUserInfo::where('user_id',$userId)->increment('num', $num,array('updated_at'=>date("Y-m-d H:i:s")));
+            }
             return array(
                 'code' => 0,
                 'message' => 'success'
