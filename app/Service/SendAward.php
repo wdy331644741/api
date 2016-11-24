@@ -201,11 +201,6 @@ class SendAward
                     self::integralSend($info);
                 }
                 break;
-            //双十一大转盘送次数
-            case Config::get('activity.double_eleven.chance1'):
-                $alias = Config::get('activity.double_eleven.key2');
-                $Attributes::increment($triggerData['user_id'], $alias);
-                break;
             //双十一抱团取暖活动
             case Config::get('activity.double_eleven.baotuan'):
                 $probability =  Config::get('activity.double_eleven.baotuan_probability');
