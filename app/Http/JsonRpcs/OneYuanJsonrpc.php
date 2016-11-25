@@ -91,6 +91,7 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         foreach($data as &$item){
             $item['time_diff'] = strtotime($item['start_time']) - time();
+            $item['code_time_diff'] = strtotime($item['end_time']) - time();
             //如果有获奖的用户
             $item['phone'] = '';
             if(isset($item['user_id']) && !empty($item['user_id'])){
