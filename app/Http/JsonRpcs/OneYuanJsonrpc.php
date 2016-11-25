@@ -169,10 +169,12 @@ class OneYuanJsonRpc extends JsonRpc {
             );
         }
         OneYuanUserRecord::where("id",$id)->update(array("status"=>1,"remark"=>json_encode($result),"operation_time"=>date("Y-m-d H:i:s")));
+        $msg = isset($result['error']) ? $result['error'] : array('code'=>-1 ,'message'=>'服务异常');
         //如果失败
         return array(
             'code' => -1,
-            'message' => 'fail'
+            'message' => 'fail',
+            "data" => $msg
         );
     }
     /**
@@ -190,7 +192,7 @@ class OneYuanJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //判断当前商品还能不能参加抽奖
-        $info = OneYuan::where("id",$mallId)->where("status",1)->select('total_num','buy_num')->first();
+        $info = OneYuan::where("id",$mallId)->where("status",1)->select('total_num','buy_num')->lockForUpdate()->first();
         if(empty($info)){
             throw new OmgException(OmgException::NO_DATA);
         }
