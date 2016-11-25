@@ -20,6 +20,7 @@ class IntegralMallController extends Controller
             'integral' => 'required|integer|min:1',
             'desc' => 'required|string|min:1',
             'photo' => 'required|string|min:1',
+            'photo_min' => 'required|string|min:1',
             'total_quantity' => 'required|integer|min:0',
             'award_type' => 'required|integer|min:1',
             'award_id' => 'required|integer|min:1',
@@ -36,6 +37,8 @@ class IntegralMallController extends Controller
         $data['desc'] = $request->desc;
         //配图
         $data['photo'] = $request->photo;
+        //配图(小)
+        $data['photo_min'] = $request->photo_min;
         //总数量
         $data['total_quantity'] = $request->total_quantity;
         //奖品类型
