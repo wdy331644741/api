@@ -49,9 +49,12 @@ class IntegralMallJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function integralExchange($params) {
-        $userId = intval($params->userId);
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $mallId = intval($params->mallId);
-        if(empty($userId) || empty($mallId)){
+        if(empty($mallId)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //获取用户的积分额

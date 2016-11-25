@@ -20,10 +20,10 @@ class OneYuanJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function oneYuanUserNum($params) {
-        $userId = intval($params->userId);
+    public function oneYuanUserNum() {
+        global $userId;
         if(empty($userId)){
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+            throw new OmgException(OmgException::NO_LOGIN);
         }
         //昨天的一元夺宝商品
         $data = OneYuanUserInfo::where('user_id',$userId)->select('user_id','num')->first();
@@ -115,9 +115,13 @@ class OneYuanJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function buyLuckNum($params) {
-        $userId = intval($params->userId);
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $num = intval($params->num);
-        if(empty($userId) || empty($num)){
+        $trade_pwd = intval($params->tradePwd);
+        if(empty($num) || empty($trade_pwd)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //先插入一条日志数据
@@ -139,6 +143,7 @@ class OneYuanJsonRpc extends JsonRpc {
         $param['id'] = $id;
         $param['uuid'] = $uuid;
         $param['amount'] = $num;
+        $param['trade_pwd'] = $trade_pwd;
         $param['sign'] = hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft");
         $result = $client->qi_bao_purchase($param);
         //如果成功
@@ -175,10 +180,13 @@ class OneYuanJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function oneYuanJoin($params) {
-        $userId = intval($params->userId);
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $mallId = intval($params->mallId);
         $num = intval($params->num);
-        if(empty($userId) || empty($mallId) || empty($num)){
+        if(empty($mallId) || empty($num)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //判断当前商品还能不能参加抽奖
