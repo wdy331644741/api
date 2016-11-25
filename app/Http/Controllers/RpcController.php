@@ -53,6 +53,8 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new IdiomJsonrpc());
         $jsonRpcServer->addService(new CouponCountJsonRpc());
         $jsonRpcServer->addService(new InvestmentJsonrpc());
+        $jsonRpcServer->addService(new IntegralMallJsonRpc());
+        $jsonRpcServer->addService(new OneYuanJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');       
     }
@@ -75,8 +77,6 @@ class RpcController extends Controller
     public function postInside() {
         $jsonRpcServer = new JsonRpcServer();
         $jsonRpcServer->addService(new InsideJsonrpc());
-        $jsonRpcServer->addService(new IntegralMallJsonRpc());
-        $jsonRpcServer->addService(new OneYuanJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
