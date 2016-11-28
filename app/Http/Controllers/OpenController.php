@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests;
-use App\Models\JsonRpc;
+use App\Models\FlowRechargeLog;
 use Illuminate\Http\Request;
-use Lib\JsonRpcServer;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Lib\Session;
 use Config;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 use App\Models\Channel;
+use App\Service\SendMessage;
 
 class OpenController extends Controller
 {
@@ -494,6 +494,52 @@ class OpenController extends Controller
             return response()->json(array('result'=>0,'remark'=>"服务器内部错误-USER",'data'=>array()));
         }
         return response()->json(array('result'=>1,'remark'=>'请求成功','data'=>$res['result']['data']));
+    }
+
+    //充值流量接口回调地址
+    public function postFlowCallback(Request $request){
+        if(!$request->customerOrderId || !$request->phoneNo || !$request->orderId || !$request->scope || !$request->spec || !$request->status){
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【参数错误】'.json_encode($request->all()).PHP_EOL,FILE_APPEND);
+        }
+        $cmd5Str= md5('customerOrderId='.$request->customerOrderId.'&orderId='.$request->orderId.'&phoneNo='.$request->phoneNo.'&scope='.$request->scope.'&spec='.$request->spec.'&status='.$request->status);
+        $private_key = file_get_contents(storage_path('secret/rsa_private_key.pem'));
+        $res = openssl_pkey_get_private($private_key);
+        if(!$res){
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【私钥不可用】'.$private_key.PHP_EOL,FILE_APPEND);
+        }
+        $sign = $request->signature;
+        $rsaStr = pack("H*",$sign);
+        openssl_private_decrypt($rsaStr,$md5Str,$private_key);
+        if($cmd5Str !== $md5Str){
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【签名认证失败】csign='.$md5Str.'<>'.$cmd5Str.'<>sign='.$sign.PHP_EOL,FILE_APPEND);
+        }
+        $updata = array(
+            'order_id'=>$request->orderId,
+        );
+        switch ($request->status){
+            case 'success':
+                $updata['status'] =1;
+                break;
+            case 'fail':
+                $updata['status'] =0;
+                break;
+            default:
+                file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【未知状态】'.$request->status.PHP_EOL,FILE_APPEND);
+                break;
+        }
+        $res = FlowRechargeLog::where('corder_id',$request->customerOrderId)->update($updata);
+        if(!$res){
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【修改订单状态失败】'.json_encode($res).PHP_EOL,FILE_APPEND);
+        }else{
+            $user_id = FlowRechargeLog::where('corder_id',$request->customerOrderId)->value('user_id');
+            if($user_id){
+                $content = '恭喜您在活动中获取到'.$request->spec.'MB全国通用流量，请拨打运营商客服查询，感谢您对网利宝的支持。';
+                $res = SendMessage::Mail($user_id,$content);
+                if(!$res)
+                file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【站内信发送失败】'.PHP_EOL,FILE_APPEND);
+            }
+            
+        }
     }
 
     //爱有钱生成签名字符串

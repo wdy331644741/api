@@ -6,7 +6,7 @@ use Lib\JsonRpcClient;
 class SendMessage
 {
 
-    public static function Mail($userID,$template,$arr){
+    public static function Mail($userID,$template,$arr=array()){
         if(empty($template)){
             return false;
         }
@@ -51,9 +51,12 @@ class SendMessage
         }
         return false;
     }
-    public static function msgTemplate($template,$arr){
+    public static function msgTemplate($template,$arr=array()){
         if(empty($template)){
             return false;
+        }
+        if(empty($arr)){
+            return $template;
         }
         $newTemplate = $template;
         foreach($arr as $key => $value) {
