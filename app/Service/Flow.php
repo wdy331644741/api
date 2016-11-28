@@ -25,7 +25,7 @@ class Flow
         $callbackUrl = env('YY_BASE_HOST').'/yunying/open/flow-callback';
         $timeStamp = self::msectime();
         $orderSn = 'WLB'.date('sdimHY').Uuid::numberBetween(1000000000).Uuid::numberBetween(10000,99999);
-        $private_key = file_get_contents(storage_path('secret/rsa_private_key.pem'));
+        $private_key = file_get_contents(config_path('key/rsa_private_key.pem'));
         $sign = self::createSign(array('appId'=>77,'customerOrderId'=>$orderSn,'phoneNo'=>$phone,'spec'=>$data['spec'],'scope'=>'nation','callbackUrl'=>$callbackUrl,'timeStamp'=>$timeStamp),$private_key,'RSA');
         $signStr = strtolower(bin2hex($sign));
         $_client = new Client([
