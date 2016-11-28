@@ -45,7 +45,7 @@ class Flow
                 $flow->scope = 'nation';
                 $flowObj = $flow->save();
                 if(!$flowObj->id){
-                    file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【订单入库失败】'.$id.PHP_EOL,FILE_APPEND);
+                    file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【订单入库失败】'.$flowObj->id.PHP_EOL,FILE_APPEND);
                 }
                 return array('send'=>true,'errmsg'=>'充值成功');
             }
