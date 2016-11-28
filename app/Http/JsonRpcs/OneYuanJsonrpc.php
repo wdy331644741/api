@@ -73,17 +73,21 @@ class OneYuanJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function oneYuanHistoryMallList() {
+    public function oneYuanHistoryMallList($params) {
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         $where['status'] = 1;
         //昨天的一元夺宝商品
         $yesterdayList = OneYuan::where($where)
             ->where('start_time', '<=', date("Y-m-d 23:59:59",strtotime("-1 days")))
-            ->orderBy('id','desc')->get()->toArray();
-        $list = $this->_formatData($yesterdayList);
+            ->orderBy('start_time','desc')->paginate(3);
+        $this->_formatData($yesterdayList);
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $list,
+            'data' => $yesterdayList,
         );
     }
     protected function _formatData($data){
@@ -285,7 +289,7 @@ class OneYuanJsonRpc extends JsonRpc {
         //获取正在夺宝的记录
         $list = OneYuanJoinInfo::where('mall_id',$todayList->id)
             ->orderBy('id','desc')
-            ->paginate(5);
+            ->paginate(10);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
         }
