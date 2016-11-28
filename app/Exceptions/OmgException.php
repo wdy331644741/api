@@ -46,6 +46,13 @@ class OmgException extends BasicException
     const DATABASE_ERROR = 4026;
     const FREQUENCY_ERROR = 4027;
     const INSERT_FAIL = 4028;
+    const INTEGRAL_FAIL = 4029;
+    const INTEGRAL_LACK_FAIL = 4030;
+    const EXCEED_FAIL = 4031;
+    const INTEGRAL_REMOVE_FAIL = 4032;
+    const EXCEED_NUM_FAIL = 4033;
+    const EXCEED_USER_NUM_FAIL = 4034;
+    const ONEYUAN_FULL_FAIL = 4035;
 
     //应用错误
     const NO_DATA = 4300;
@@ -57,7 +64,7 @@ class OmgException extends BasicException
     const ALREADY_AWARD = 4306;
     const ALREADY_SHARED = 4307;
     const IS_DINED_TO_WECHAT = 4308;
-
+    const AWARD_NOT_EXIST = 4309;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -85,6 +92,13 @@ class OmgException extends BasicException
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
         self::INSERT_FAIL => "插入失败",
+        self::INTEGRAL_FAIL => "积分值配置错误",
+        self::INTEGRAL_LACK_FAIL => "积分值不足",
+        self::EXCEED_FAIL => "超过了兑换数量",
+        self::INTEGRAL_REMOVE_FAIL => "积分扣除失败",
+        self::EXCEED_NUM_FAIL => "超过了剩余次数",
+        self::EXCEED_USER_NUM_FAIL => "用户次数不够",
+        self::ONEYUAN_FULL_FAIL => "该奖品已经参与满",
 
         //应用错误
         self::NO_DATA => "暂无数据",
@@ -97,7 +111,8 @@ class OmgException extends BasicException
         self::ALREADY_AWARD => '奖励已领取',
         self::ALREADY_SHARED => '已分享',
         self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
-        self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定"
+        self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定",
+        self::AWARD_NOT_EXIST => "奖品不存在"
     );
 
     public function __construct($code, $data = array())

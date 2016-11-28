@@ -22,6 +22,7 @@ use App\Service\SendMessage;
 use App\Service\RuleCheck;
 use App\Models\ActivityJoin;
 use App\Service\Attributes;
+use App\Service\OneYuanBasic;
 use Config;
 use Validator;
 class SendAward
@@ -67,7 +68,7 @@ class SendAward
         }
 
         //*****给本人发的奖励*****
-        $status = self::addAwardByActivity($userID, $activityID);
+        $status = self::addAwardByActivity($userID, $activityID,$triggerData);
 
         //******给邀请人发奖励*****
         $invite_status = self::InviteSendAward($userID, $activityID);
@@ -166,6 +167,40 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //一元购按投资金额送抽奖参与次数
+            case Config::get('activity.one_yuan.alias_name'):
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 1000){
+                        $investmentNum = Config::get('activity.one_yuan.investment_num');
+                        foreach($investmentNum as $num =>$value){
+                            if($amount >= $value['min'] && $amount <= $value['max'] && !empty($triggerData['user_id'])){
+                                //给用户加次数
+                                OneYuanBasic::addNum($triggerData['user_id'],$num,'investment',array('investment'=>$amount));
+                            }
+                        }
+                    }
+                }
+                break;
+            //积分商城按投资金额送积分
+            case 'investment_to_integral':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $level = isset($triggerData['level']) && $triggerData['level'] >= 1 ? $triggerData['level'] : 1;
+                    $period = isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
+                    $integral = ($amount/100)*$level*$period;
+                    if(empty($integral) || !isset($triggerData['name']) || !isset($triggerData['short_name'])){
+                        return false;
+                    }
+                    $info = array();
+                    $info['user_id'] = $triggerData['user_id'];
+                    $info['trigger'] = 4;
+                    $info['source_name'] = "投资";
+                    $info['integral'] = $integral;
+                    $info['remark'] = "标的：".$triggerData['name'].$triggerData['short_name']." 投资金额 ".$triggerData['Investment_amount']."元";
+                    self::integralSend($info);
+                }
+                break;
             //双十一抱团取暖活动
             case Config::get('activity.double_eleven.baotuan'):
                 $probability =  Config::get('activity.double_eleven.baotuan_probability');
@@ -370,13 +405,13 @@ class SendAward
      * @param $activityId
      * @return array
      */
-    static function addAwardByActivity($userId, $activityId) {
+    static function addAwardByActivity($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('awards')->first();
         $awards = $activity['awards'];
         $res = [];
         if($activity['award_rule'] == 1) {
             foreach($awards as $award) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'],$triggerData);
             }
         }
         if($activity['award_rule'] == 2) {
@@ -397,7 +432,7 @@ class SendAward
             }
 
             if($finalAward) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'] );
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'], $triggerData);
             }
         }
         return $res;
@@ -425,7 +460,7 @@ class SendAward
      * @param $userID ，$award_type,$award_id
      *
      */
-    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0,$unSendID = 0)
+    static function sendDataRole($userID,$award_type, $award_id, $activityID = 0, $sourceName = '',$batch_id = 0,$unSendID = 0,$triggerData = array())
     {
         self::$userID = $userID;
         self::$activityID = $activityID;
@@ -450,7 +485,7 @@ class SendAward
         //来源名称
         $info['source_name'] = isset($activity['name']) ? $activity['name'] : $sourceName;
         //触发类型
-        $info['trigger'] = isset($activity['trigger_type']) ? $activity['trigger_type'] : '-1';
+        $info['trigger'] = isset($activity['trigger_type']) ? $activity['trigger_type'] : -1;
         //用户id
         $info['user_id'] = $userID;
         //批次id
@@ -477,7 +512,7 @@ class SendAward
             return self::experience($info);
         } elseif ($award_type == 4) {
             //用户积分
-            return self::integral($info);
+            return self::integral($info,$triggerData);
         } elseif ($award_type == 6) {
             //优惠券
             return self::coupon($info);
@@ -824,7 +859,7 @@ class SendAward
         }
     }
     //用户积分
-    static public function integral($info){
+    static public function integral($info,$triggerData){
         //添加info里添加日志需要的参数
         $info['award_type'] = 4;
         $info['uuid'] = null;
@@ -835,7 +870,6 @@ class SendAward
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'source_name' => 'required|min:2|max:255',
-            'name' => 'required|min:2|max:255',
             'integral' => 'required|min:2|max:255',
         ]);
         if($validator->fails()){
@@ -851,15 +885,18 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['source_id'];
-        $data['name'] = $info['name'];
+        $data['source_id'] = $info['trigger'];
+        $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
-        $data['limit_desc'] = $info['limit_desc'];
-        $data['trigger'] = $info['trigger'];
-        $data['remark'] = '';
+        if(isset($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+            $remark = "标的：".$triggerData['name'].$triggerData['short_name']." 投资金额 ".$triggerData['Investment_amount']."元";
+        }else{
+            $remark = "活动赠送";
+        }
+        $data['remark'] = $remark;
         if (!empty($data) && !empty($url)) {
             //发送接口
-            $result = $client->memberScoreAdd($data);
+            $result = $client->integralIncrease($data);
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
@@ -1071,5 +1108,76 @@ class SendAward
         }
         $insertID = $SendRewardLog->insertGetId($data);
         return $insertID;
+    }
+    /**
+     * 用户积分公共接口
+     */
+    static public function integralSend($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 4;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        $info['id'] = 0;
+        $info['source_id'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'user_id' => 'required|integer|min:1',
+            'source_name' => 'required|min:2|max:255',
+            'trigger'=>'required|integer|min:0',
+            'integral' => 'required|min:2|max:255',
+            'remark' => 'required|min:1'
+        ]);
+        if($validator->fails()){
+            $err = array('award_type'=>4,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        $data = array();
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        $uuid = self::create_guid();
+        //用户积分
+        $data['user_id'] = $info['user_id'];
+        $data['uuid'] = $uuid;
+        $data['source_id'] = $info['trigger'];
+        $data['source_name'] = $info['source_name'];
+        $data['integral'] = $info['integral'];
+        $data['remark'] = $info['remark'];
+        if (!empty($data) && !empty($url)) {
+            //发送接口
+            $result = $client->integralIncrease($data);
+            //发送消息&存储到日志
+            if (isset($result['result']) && $result['result']) {//成功
+                //发送消息&存储日志
+                $arr = array('award_type'=>$info['award_type'],'status'=>true);
+                $info['name'] = $info['integral']."积分";
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
+            }else{//失败
+                //记录错误日志
+                $err = array('award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
+            }
+        }
+    }
+    /**
+     * 根据奖品类型和奖品id获取奖品信息
+     */
+    static function _getAwardInfo($award_type,$award_id){
+        $return = array();
+        if(empty(intval($award_type)) || empty(intval($award_id))){
+            return $return;
+        }
+        //获取数据
+        $table = self::_getAwardTable($award_type);
+        $info = $table::where('id', $award_id)->select()->get()->toArray();
+        $return = isset($info[0]) ? $info[0] : array();
+        return $return;
     }
 }

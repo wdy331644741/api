@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use Illuminate\Http\Request;
+use Lib\JsonRpcClient;
 use Illuminate\Support\Facades\DB;
 
 class Func
@@ -99,5 +100,11 @@ class Func
                 ->setPath($url);
         }
         return $data;
+    }
+    static function getUserBaseInfo($user_id){
+        $url = env('INSIDE_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $userBase = $client->userBasicInfo(array('userId' =>$user_id));
+        return $userBase;
     }
 }
