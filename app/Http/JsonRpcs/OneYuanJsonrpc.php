@@ -11,6 +11,7 @@ use App\Models\OneYuan;
 use App\Models\OneYuanJoinInfo;
 use App\Models\OneYuanUserRecord;
 use App\Service\Func;
+use App\Service\SendMessage;
 use Illuminate\Pagination\Paginator;
 
 class OneYuanJsonRpc extends JsonRpc {
@@ -214,12 +215,42 @@ class OneYuanJsonRpc extends JsonRpc {
                 if(isset($return['status']) && $return['status'] === true){
                     //商品抽奖次数增加
                     OneYuan::where("id",$mallId)->where("status",1)->increment('buy_num',$num);
+                    $joinId = isset($return['data']) ? $return['data'] : 0;
+                    if(empty($joinId)){
+                        return array(
+                            'code' => -1,
+                            'message' => 'fail'
+                        );
+                    }
                     //用户减少抽奖次数
                     $return = OneYuanBasic::reduceNum($userId,$num,'mall',array('mall'=>$mallId));
                     if(isset($return['status']) && $return['status'] === true){
+                        $joinList = OneYuanJoinInfo::where("id",$joinId)->first();
+                        $codeList = array();
+                        if(isset($joinList['num'])){
+                            if($joinList['num'] > 4){
+                                for($i = $joinList['start']; $i<=$joinList['start']+3;$i++){
+                                    $codeList[] = $i+10000000;
+                                }
+                                $codeList[] = "......";
+                            }else{
+                                for($i = $joinList['start']; $i<=$joinList['end'];$i++){
+                                    $codeList[] = $i+10000000;
+                                }
+                            }
+                        }
+                        //发送站内信
+                        $template = "感谢您参与夺宝奇兵，您的抽奖码为：{{start}}";
+                        $arr = array('start'=>$joinList['start']+10000000);
+                        if($joinList['num'] > 1){
+                            $template = "感谢您参与夺宝奇兵，您的抽奖码为：{{start}} ~ {{end}}";
+                            $arr = array('start'=>$joinList['start']+10000000,'end'=>$joinList['end']+10000000);
+                        }
+                        SendMessage::Mail($userId,$template,$arr);
                         return array(
                             'code' => 0,
-                            'message' => 'success'
+                            'message' => 'success',
+                            'data'=>$codeList
                         );
                     }
                 }

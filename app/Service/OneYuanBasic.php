@@ -193,6 +193,10 @@ class OneYuanBasic
         $up['luck_time'] = $joinInfo['created_at'];
         $status = OneYuan::where('id',$mall_id)->update($up);
         if($status){
+            //发送站内信
+            $template = "恭喜您在夺宝奇兵活动中获得'{{award_name}}'，我们的客服人员会及时联系您，请保持手机畅通。";
+            $arr = array('award_name'=>$isFull['name']);
+            SendMessage::Mail($up['user_id'],$template,$arr);
             return array("status"=>true,"msg"=>"抽奖成功");
         }
         return array("status"=>false,"msg"=>"抽奖失败");
