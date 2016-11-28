@@ -2,101 +2,100 @@
 namespace App\Service;
 use Config;
 use Lib\JsonRpcClient;
+use \GuzzleHttp\Client;
+use Faker\Provider\Uuid;
+use App\Models\FlowRechargeLog;
 
 class Flow
 {
     //公共购买方法
-    public  static function buy($recordJson){
-        //购买url
-        $url = Config::get('flow.bug_url');
-        //参数json拼接
-        $data = array();
-        $data['cId'] = '';
-        $data['bId'] = '';
-        $data['recordList'] = $recordJson;
-        $data['ext'] = '';
-        $data['v'] = '';
-        $data['sign'] = '';
-        return self::curlPost($url,$data);
+    public static function buyFlow($data){
+        $appId = env('XY_APPID');
+        $api_url = env('XY_API_URL');
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        $userBase = $client->userBasicInfo(array('userId'=>$data['user_id']));
+        if(isset($userBase['error'])){
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【用户接口出错】'.json_encode($userBase).PHP_EOL,FILE_APPEND);
+            return array('send'=>false,'errmsg'=>$userBase['error']['message']);
+        }
+        $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+        if(!$phone){
+            return array('send'=>false,'errmsg'=>'未获取用户手机号');
+        }
+        $callbackUrl = env('YY_BASE_HOST').'/yunying/open/flow-callback';
+        $timeStamp = self::msectime();
+        $orderSn = 'WLB'.date('sdimHY').Uuid::numberBetween(1000000000).Uuid::numberBetween(10000,99999);
+        $private_key = file_get_contents(config_path('key/rsa_private_key.pem'));
+        $sign = self::createSign(array('appId'=>77,'customerOrderId'=>$orderSn,'phoneNo'=>$phone,'spec'=>$data['spec'],'scope'=>'nation','callbackUrl'=>$callbackUrl,'timeStamp'=>$timeStamp),$private_key,'RSA');
+        $signStr = strtolower(bin2hex($sign));
+        $_client = new Client([
+            'base_uri'=>$api_url,
+            'timeout'=>9999.0
+        ]);
+        //echo ('/buyQuota?appId='.$appId.'&customerOrderId='.$orderSn.'&phoneNo='.$phone.'&spec='.$data['spec'].'&scope=nation&callbackUrl='.urlencode($callbackUrl).'&timeStamp='.$timeStamp.'&signature='.$signStr);exit;
+        $res = $_client->get('/buyQuota?appId='.$appId.'&customerOrderId='.$orderSn.'&phoneNo='.$phone.'&spec='.$data['spec'].'&scope=nation&callbackUrl='.urlencode($callbackUrl).'&timeStamp='.$timeStamp.'&signature='.$signStr);
+        if($res->getStatusCode() == 200){
+            $response = (array)json_decode($res->getBody());
+            if($response['code'] === 0){
+                $flow = new FlowRechargeLog();
+                $flow->user_id = $data['user_id'];
+                $flow->corder_id = $orderSn;
+                $flow->phone = $phone;
+                $flow->spec = $data['spec'];
+                $flow->scope = 'nation';
+                $flowObj = $flow->save();
+                if(!$flowObj->id){
+                    file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【订单入库失败】'.$id.PHP_EOL,FILE_APPEND);
+                }
+                return array('send'=>true,'errmsg'=>'充值成功');
+            }
+        }
+        file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【通信出错】'.$res->getBody().PHP_EOL,FILE_APPEND);
+        return array('send'=>false,'errmsg'=>'通讯错误');
     }
 
-    //购买2G流量
-    public static function buy2G($user_id,$type){
-        //根据user_id获取手机号
-        $phone = '18701656515';
-        $code = Config::get('flow.code');
-        $recordList = array();
-        if($type == 'yd'){
-            for($i=1;$i<=2;$i++){
-                $recordList[] = array(
-                    'cOrderId'=>date("YmdHis").mt_rand(1000000000,9999999999),
-                    'cProductId'=>$code['yd']['1024'],
-                    'receiver'=>$phone,
-                    'ext'=>'',
-                );
+    //生成签名
+    private static function createSign($data,$key,$type,$str=''){
+        if($str == ''){
+            if(!is_array($data)){
+                return '';
             }
-        }elseif($type == 'lt'){
-            for($i=1;$i<=10;$i++){
-                $recordList[] = array(
-                    'cOrderId'=>date("YmdHis").mt_rand(1000000000,9999999999),
-                    'cProductId'=>$code['lt']['200'],
-                    'receiver'=>$phone,
-                    'ext'=>'',
-                );
+            ksort($data);
+            $sign_str='';
+            foreach($data as $k=>$val){
+                if(isset($val) && !is_null($val) && @$val!=''){
+                    $sign_str.='&'.$k.'='.trim($val);
+                }
             }
-        }elseif($type == 'dx'){
-            for($i=1;$i<=4;$i++){
-                $recordList[] = array(
-                    'cOrderId'=>date("YmdHis").mt_rand(1000000000,9999999999),
-                    'cProductId'=>$code['dx']['500'],
-                    'receiver'=>$phone,
-                    'ext'=>'',
-                );
+            if ($sign_str!='') {
+                $sign_str = substr ( $sign_str, 1 );
+            }
+            switch($type){
+                case 'MD5':
+                    return md5($sign_str.$key);
+                break;
+                case 'RSA':
+                    openssl_private_encrypt(md5($sign_str),$csign,$key);
+                    return $csign;
+                break;
+            }
+        }else{
+            switch($type){
+                case 'MD5':
+                    return md5($str.$key);
+                    break;
+                case 'RSA':
+                    openssl_private_encrypt($str,$csign,$key);
+                    return $csign;
+                    break;
             }
         }
-        $recordJson = json_encode($recordList);
-        echo $recordJson;exit;
-        self::buy2G($recordJson);
     }
-    //接收回调
-    public static function callBack($userID,$template,$arr){
-        if(empty($template)){
-            return false;
-        }
-        $content = self::msgTemplate($template,$arr);
-        //根据用户ID获取手机号
-        $url = env('INSIDE_HTTP_URL');
-        $client = new JsonRpcClient($url);
-        $userBase = $client->userBasicInfo(array('userId'=>$userID));
-        $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
-        if(empty($phone)){
-            return false;
-        }
-        $params = array();
-        $params['phone'] = $phone;
-        $params['node_name'] = "custom";
-        $params['tplParam'] = array();
-        $params['customTpl'] = $content;
-        $url = Config::get('cms.message_http_url');
-        $client = new JsonRpcClient($url);
-        $res = $client->sendSms($params);
-        if(isset($res['result']['code']) && $res['result']['code'] === 0){
-            return true;
-        }
-        return false;
-    }
-    public static function curlPost($url,$data){
-        $post_data = json_encode($data);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        // post数据
-        curl_setopt($ch, CURLOPT_POST, 1);
-        // post的变量
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        //打印获得的数据
-        return $output;
+
+
+    //毫秒时间戳(格式化)
+    private static function msectime() {
+        list($tmp1, $tmp2) = explode(' ', microtime());
+        return date('YmdHis',$tmp2).ceil($tmp1*1000);
     }
 }
