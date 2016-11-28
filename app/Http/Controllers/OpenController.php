@@ -502,7 +502,7 @@ class OpenController extends Controller
             file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【参数错误】'.json_encode($request->all()).PHP_EOL,FILE_APPEND);
         }
         $cmd5Str= md5('customerOrderId='.$request->customerOrderId.'&orderId='.$request->orderId.'&phoneNo='.$request->phoneNo.'&scope='.$request->scope.'&spec='.$request->spec.'&status='.$request->status);
-        $private_key = file_get_contents(storage_path('secret/rsa_private_key.pem'));
+        $private_key = file_get_contents(config_path('key/rsa_private_key.pem'));
         $res = openssl_pkey_get_private($private_key);
         if(!$res){
             file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【私钥不可用】'.$private_key.PHP_EOL,FILE_APPEND);
