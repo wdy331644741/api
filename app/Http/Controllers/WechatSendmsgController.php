@@ -94,11 +94,11 @@ class WechatSendmsgController extends Controller
                 'value'=>'亲爱的'.$data['args']['username'].'，您的提现已成功。',
                 'color'=>'#000000'
             ),
-            'keyword1'=>array(
+            'money'=>array(
                 'value'=>$data['args']['amount'].'元',
                 'color'=>'#173177'
             ),
-            'keyword2'=>array(
+            'timet'=>array(
                 'value'=>date('Y年m月d日 H时i分'),
                 'color'=>'#000000'
             ),
