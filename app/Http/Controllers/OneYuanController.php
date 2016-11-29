@@ -187,4 +187,27 @@ class OneYuanController extends Controller
         $a = OneYuanBasic::luckDraw(3,23);
         print_R($a);exit;
     }
+
+    /**
+     * 给用户手动冲次数
+     * @param Request $request
+     */
+    function postAddOneYuanNum(Request $request){
+        $phone = $request->phone;
+        $num = intval($request->num);
+        if(empty($phone) || empty($num)){
+            return $this->outputJson(10001,array('error_msg'=>"参数错误"));
+        }
+        //根据手机号查询用户id
+        $userId = Func::getUserIdByPhone($phone);
+        if(empty($userId)){
+            return $this->outputJson(10001,array('error_msg'=>"没查询到该手机号"));
+        }
+        //添加次数
+        $return = OneYuanBasic::addNum($userId,$num,'manual',array('manual'=>$num));
+        if(isset($return['status']) && $return['status'] === true){
+            return $this->outputJson(0,array('error_msg'=>"添加次数成功"));
+        }
+        return $this->outputJson(10002,array('error_msg'=>'添加次数失败'));
+    }
 }

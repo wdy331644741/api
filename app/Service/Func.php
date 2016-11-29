@@ -101,10 +101,29 @@ class Func
         }
         return $data;
     }
+
+    /**
+     * 根据用户id获取用户基本信息
+     * @param $user_id
+     * @return mixed
+     */
     static function getUserBaseInfo($user_id){
         $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
         $userBase = $client->userBasicInfo(array('userId' =>$user_id));
         return $userBase;
+    }
+
+    /**
+     * 根据手机号取出用户id
+     * @param $phone
+     * @return int
+     */
+    static function getUserIdByPhone($phone){
+        $url = env('INSIDE_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $userId = $client->getUserIdByPhone(array('phone' =>$phone));
+        $userId = isset($userId['result']['user_id']) ? $userId['result']['user_id'] : 0;
+        return $userId;
     }
 }
