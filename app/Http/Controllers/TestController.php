@@ -12,10 +12,37 @@ use Lib\Weixin;
 use Lib\JsonRpcClient;
 use Config;
 use DB;
+use App\Models\Cqssc;
 
 
 class TestController extends Controller
 {
+    public function getCqssc(){
+        for($i = 0; $i <= 3600*24; $i+=10) {
+            $openTiemStamp = $this->getOpenTimeStamp($i);    
+            echo date('Y-m-d H:i:s', $i) . ' ' . date('Y-m-d H:i:s', $openTiemStamp) . PHP_EOL . '<br />';
+        }
+        return;
+        $res = Cqssc::where('opentime', '>=',$date )->orderBy('expect', 'asc')->first();
+    }
+    
+    // 获取开奖时间戳
+    public function getOpenTimeStamp($timestamp) {
+        $date = date('Y-m-d H:i:s', $timestamp);
+        $dayTimeStamp = ($timestamp+8*3600)%(3600*24);
+        if($dayTimeStamp <= 6940 || $dayTimeStamp > 79240) { // 时间 <= 1:55:40 || 时间 > 22:00:40
+            $remainder = ($dayTimeStamp-40)%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $openTimeStamp = $timestamp + $seconds ;
+        } else if($dayTimeStamp > 6940 && $dayTimeStamp < 36040) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $openTimeStamp = strtotime(date('Y-m-d 10:00:40', $timestamp));
+        } else if($dayTimeStamp >= 36040 && $dayTimeStamp <= 79240) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = ($dayTimeStamp-40)%600;
+            $seconds = $remainder == 0 ? 0 : 600-$remainder;
+            $openTimeStamp = $timestamp + $seconds ;
+        }
+        return $openTimeStamp;
+    }
     public function getIndex(){
         $data = array(
             'first'=>array(
