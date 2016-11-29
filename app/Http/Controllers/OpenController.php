@@ -500,19 +500,22 @@ class OpenController extends Controller
     public function postFlowCallback(Request $request){
         if(!$request->customerOrderId || !$request->phoneNo || !$request->orderId || !$request->scope || !$request->spec || !$request->status){
             file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【参数错误】'.json_encode($request->all()).PHP_EOL,FILE_APPEND);
+            exit;
         }
         file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【参数】'.json_encode($request->all()).PHP_EOL,FILE_APPEND);
         $cmd5Str= md5('customerOrderId='.$request->customerOrderId.'&orderId='.$request->orderId.'&phoneNo='.$request->phoneNo.'&scope='.$request->scope.'&spec='.$request->spec.'&status='.$request->status);
-        $private_key = file_get_contents(config_path('key/rsa_private_key.pem'));
-        $res = openssl_pkey_get_private($private_key);
+        $pub_key = file_get_contents(config_path('key/xy_public_key.pem'));
+        $res = openssl_pkey_get_public($pub_key);
         if(!$res){
-            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【私钥不可用】'.$private_key.PHP_EOL,FILE_APPEND);
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【私钥不可用】'.$pub_key.PHP_EOL,FILE_APPEND);
+            exit;
         }
         $sign = $request->signature;
         $rsaStr = pack("H*",$sign);
-        openssl_private_decrypt($rsaStr,$md5Str,$private_key);
+        openssl_public_decrypt($rsaStr,$md5Str,$pub_key);
         if($cmd5Str !== $md5Str){
-            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【签名认证失败】csign='.$md5Str.'<>'.$cmd5Str.'<>sign='.$sign.PHP_EOL,FILE_APPEND);
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【签名认证失败】csign='.$md5Str.'<=>'.$cmd5Str.'|===|sign='.$sign.PHP_EOL,FILE_APPEND);
+            exit;
         }
         $updata = array(
             'order_id'=>$request->orderId,
@@ -531,6 +534,7 @@ class OpenController extends Controller
         $res = FlowRechargeLog::where('corder_id',$request->customerOrderId)->update($updata);
         if(!$res){
             file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【修改订单状态失败】'.json_encode($res).PHP_EOL,FILE_APPEND);
+            exit;
         }else{
             $user_id = FlowRechargeLog::where('corder_id',$request->customerOrderId)->value('user_id');
             if($user_id){
@@ -538,6 +542,7 @@ class OpenController extends Controller
                 $res = SendMessage::Mail($user_id,$content);
                 if(!$res)
                 file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【站内信发送失败】'.PHP_EOL,FILE_APPEND);
+                exit;
             }
             
         }

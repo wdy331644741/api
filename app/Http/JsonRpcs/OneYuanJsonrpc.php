@@ -75,14 +75,18 @@ class OneYuanJsonRpc extends JsonRpc {
      */
     public function oneYuanHistoryMallList($params) {
         $page = isset($params->page) ? $params->page : 1;
+        $per_page = intval($params->per_page);
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
+        if(empty($page) || empty($per_page)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $where['status'] = 1;
         //昨天的一元夺宝商品
         $yesterdayList = OneYuan::where($where)
             ->where('start_time', '<=', date("Y-m-d 23:59:59",strtotime("-1 days")))
-            ->orderBy('start_time','desc')->paginate(3);
+            ->orderBy('start_time','desc')->paginate($per_page);
         $this->_formatData($yesterdayList);
         return array(
             'code' => 0,
@@ -273,9 +277,13 @@ class OneYuanJsonRpc extends JsonRpc {
      */
     public function oneYuanJoinList($params) {
         $page = isset($params->page) ? $params->page : 1;
+        $per_page = intval($params->per_page);
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
+        if(empty($page) || empty($per_page)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
         $where['status'] = 1;
         //今天的一元夺宝商品
         $todayList = OneYuan::where($where)
@@ -289,7 +297,7 @@ class OneYuanJsonRpc extends JsonRpc {
         //获取正在夺宝的记录
         $list = OneYuanJoinInfo::where('mall_id',$todayList->id)
             ->orderBy('id','desc')
-            ->paginate(10);
+            ->paginate($per_page);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
         }

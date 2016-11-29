@@ -134,11 +134,12 @@ class OneYuanBasic
         return array("status"=>false,"msg"=>"抽奖失败");
     }
     //根据商品id和开奖码抽奖
-    static function luckDraw($mall_id,$code){
+    static function luckDraw($mall_id,$code,$period){
         //验证参数
         $mall_id = intval($mall_id);
         $code = intval($code);
-        if(empty($mall_id) || empty($code)){
+        $period = intval($period);
+        if(empty($mall_id) || empty($code) || empty($period)){
             return array("status"=>false,"msg"=>"参数有误");
         }
         //判断抽奖次数是否已满
@@ -151,6 +152,7 @@ class OneYuanBasic
         $where['total_times'] = 0;
         $where['join_users'] = 0;
         $where['luck_time'] = 0;
+        $where['period'] = 0;
         $isFull = OneYuan::where($where)->first();
         if(empty($isFull)){
             return array("status"=>false,"msg"=>"奖品不存在");
@@ -170,6 +172,7 @@ class OneYuanBasic
         //修改数组
         $up = array();
         $up['code'] = $code;
+        $up['period'] = $period;
         $up['total_times'] = $times['times'];
         //获取总人次
         $users = OneYuanJoinInfo::where('mall_id',$mall_id)->select(DB::raw('COUNT(distinct(user_id)) as count'))->first();
