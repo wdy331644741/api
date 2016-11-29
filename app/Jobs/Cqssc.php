@@ -45,8 +45,8 @@ class Cqssc extends Job implements ShouldQueue
         foreach($jsonRes['data'] as $value) {
             $res = CqsscModel::where('expect', $value['expect'])->first();
             if($res) {
-                // 如果上次更新和本次更新相差小于30秒, 丢掉任务
-                if(time() - strtotime($res->updated_at) < 30) {
+                // 如果上次更新和本次更新相差小于20秒, 丢掉任务
+                if(time() - strtotime($res->updated_at) < 20) {
                     return;    
                 }
                 $res->updated_at = date('Y-m-d H:i:s');
