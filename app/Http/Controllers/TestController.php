@@ -46,6 +46,7 @@ class TestController extends Controller
     public function getIndex(){
         $pub_key = file_get_contents(config_path('key/xy_public_key.pem'));
         $res = openssl_pkey_get_public($pub_key);
+        dd($res);
         $data = array(
             'first'=>array(
                 'value'=>"test",
