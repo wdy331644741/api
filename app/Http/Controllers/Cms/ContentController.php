@@ -107,6 +107,19 @@ class ContentController extends Controller
         }
         $res = Content::where('id',$request->id)->update($putdata);
         if($res){
+            $content = Content::find($request->id);
+            if($content->updated_at){
+                $timeStamp = strtotime($content->updated_at);
+                if(!file_exists(storage_path('cms/news/detail/'.$request->id.$timeStamp.'.html'))){
+                    $fileArr = glob(storage_path('cms/news/detail/'.$request->id.'*.html'));
+                    for($i=0; $i<count($fileArr); $i++){
+                        unlink($fileArr[$i]);
+                    }
+                    unlink(storage_path('cms/news/detail/'.$request->id.'.html'));
+                    $res = view('static.detail_media', $content)->render();
+                    Storage::disk('static')->put("news/detail/".$request->id.$timeStamp.".html", $res);
+                }
+            }
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
