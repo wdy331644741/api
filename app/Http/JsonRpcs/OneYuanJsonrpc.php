@@ -296,7 +296,7 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         //获取正在夺宝的记录
         $list = OneYuanJoinInfo::where('mall_id',$todayList->id)
-            ->orderBy('id','desc')
+            ->orderBy('id','asc')
             ->paginate($per_page);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
