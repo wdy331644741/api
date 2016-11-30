@@ -133,6 +133,31 @@ class OneYuanBasic
         }
         return array("status"=>false,"msg"=>"抽奖失败");
     }
+    // 获取当前正在举行的活动的id
+    static function lastTimestamp() {
+        
+    }
+    // 自动开奖
+    static function autoLuckDraw($mall_id){
+        
+    } 
+    // 获取开奖时间戳
+    static function getOpenTimeStamp($timestamp) {
+        $date = date('Y-m-d H:i:s', $timestamp);
+        $dayTimeStamp = ($timestamp+8*3600)%(3600*24);
+        if($dayTimeStamp <= 6940 || $dayTimeStamp > 79240) { // 时间 <= 1:55:40 || 时间 > 22:00:40
+            $remainder = ($dayTimeStamp-40)%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $openTimeStamp = $timestamp + $seconds ;
+        } else if($dayTimeStamp > 6940 && $dayTimeStamp < 36040) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $openTimeStamp = strtotime(date('Y-m-d 10:00:40', $timestamp));
+        } else if($dayTimeStamp >= 36040 && $dayTimeStamp <= 79240) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = ($dayTimeStamp-40)%600;
+            $seconds = $remainder == 0 ? 0 : 600-$remainder;
+            $openTimeStamp = $timestamp + $seconds ;
+        }
+        return $openTimeStamp;
+    }
     //根据商品id和开奖码抽奖
     static function luckDraw($mall_id,$code,$period){
         //验证参数
