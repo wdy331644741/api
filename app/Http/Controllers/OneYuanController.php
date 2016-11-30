@@ -183,15 +183,18 @@ class OneYuanController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
+    //开奖
     function postLuckDraw(Request $request){
         $validator = Validator::make($request->all(), [
-            'code' => 'required|digits_between:4,5',
+            'code' => 'required|digits_between:1,5',
             'id' => 'required|integer',
+            'expect'=> 'required|digits:11',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = OneYuanBasic::luckDraw($request->id, $request->code);
+        echo $request->code;
+        $res = OneYuanBasic::luckDraw($request->id, $request->code, $request->expect);
         return $this->outputJson(0, array('status' => $res['status'], 'error_msg' => $res['msg'])); 
     }
 

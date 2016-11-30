@@ -234,17 +234,12 @@ class OneYuanJsonRpc extends JsonRpc {
                     $return = OneYuanBasic::reduceNum($userId,$num,'mall',array('mall'=>$mallId));
                     if(isset($return['status']) && $return['status'] === true){
                         $joinList = OneYuanJoinInfo::where("id",$joinId)->first();
-                        $codeList = array();
+                        $codeData = '';
                         if(isset($joinList['num'])){
-                            if($joinList['num'] > 4){
-                                for($i = $joinList['start']; $i<=$joinList['start']+3;$i++){
-                                    $codeList[] = $i+10000000;
-                                }
-                                $codeList[] = "......";
+                            if($joinList['num'] > 1){
+                                $codeData = (10000000+$joinList['start'])."~".($joinList['end']+10000000);
                             }else{
-                                for($i = $joinList['start']; $i<=$joinList['end'];$i++){
-                                    $codeList[] = $i+10000000;
-                                }
+                                $codeData = 10000000+$joinList['start'];
                             }
                         }
                         //发送站内信
@@ -258,7 +253,7 @@ class OneYuanJsonRpc extends JsonRpc {
                         return array(
                             'code' => 0,
                             'message' => 'success',
-                            'data'=>$codeList
+                            'data'=>$codeData
                         );
                     }
                 }
@@ -296,7 +291,7 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         //获取正在夺宝的记录
         $list = OneYuanJoinInfo::where('mall_id',$todayList->id)
-            ->orderBy('id','desc')
+            ->orderBy('id','asc')
             ->paginate($per_page);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
