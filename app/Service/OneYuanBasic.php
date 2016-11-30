@@ -179,7 +179,7 @@ class OneYuanBasic
         $mall_id = intval($mall_id);
         $code = intval($code);
         $period = intval($period);
-        if(empty($mall_id) || empty($code) || empty($period)){
+        if(empty($mall_id) || $code === null || empty($period)){
             return array("status"=>false,"msg"=>"参数有误");
         }
         //判断抽奖次数是否已满

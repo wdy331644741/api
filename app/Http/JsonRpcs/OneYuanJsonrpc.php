@@ -179,12 +179,10 @@ class OneYuanJsonRpc extends JsonRpc {
             );
         }
         OneYuanUserRecord::where("id",$id)->update(array("status"=>1,"remark"=>json_encode($result),"operation_time"=>date("Y-m-d H:i:s")));
-        $msg = isset($result['error']) ? $result['error'] : array('code'=>-1 ,'message'=>'服务异常');
         //如果失败
         return array(
             'code' => -1,
-            'message' => 'fail',
-            "data" => $msg
+            'message' => '服务异常'
         );
     }
     /**
@@ -243,10 +241,10 @@ class OneYuanJsonRpc extends JsonRpc {
                             }
                         }
                         //发送站内信
-                        $template = "感谢您参与夺宝奇兵，您的抽奖码为：{{start}}";
+                        $template = "感谢您参与夺宝奇兵，期号：".str_pad($info->id,2,"0",STR_PAD_LEFT)."，您的抽奖码为：{{start}}";
                         $arr = array('start'=>$joinList['start']+10000000);
                         if($joinList['num'] > 1){
-                            $template = "感谢您参与夺宝奇兵，您的抽奖码为：{{start}} ~ {{end}}";
+                            $template = "感谢您参与夺宝奇兵，期号：".str_pad($info->id,2,"0",STR_PAD_LEFT)."您的抽奖码为：{{start}} ~ {{end}}";
                             $arr = array('start'=>$joinList['start']+10000000,'end'=>$joinList['end']+10000000);
                         }
                         SendMessage::Mail($userId,$template,$arr);
