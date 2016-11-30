@@ -178,11 +178,13 @@ class OneYuanJsonRpc extends JsonRpc {
                 'message' => 'success'
             );
         }
+
         OneYuanUserRecord::where("id",$id)->update(array("status"=>1,"remark"=>json_encode($result),"operation_time"=>date("Y-m-d H:i:s")));
         //如果失败
+        $msg = isset($result['error']['code']) && $result['error']['code'] < 0 ? "服务异常" : $result['error']['message'];
         return array(
             'code' => -1,
-            'message' => '服务异常'
+            'message' => $msg
         );
     }
     /**
