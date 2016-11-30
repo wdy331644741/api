@@ -130,7 +130,7 @@ class OneYuanJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $num = intval($params->num);
-        $trade_pwd = intval($params->tradePwd);
+        $trade_pwd = $params->tradePwd;
         if(empty($num) || empty($trade_pwd)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
@@ -181,10 +181,11 @@ class OneYuanJsonRpc extends JsonRpc {
 
         OneYuanUserRecord::where("id",$id)->update(array("status"=>1,"remark"=>json_encode($result),"operation_time"=>date("Y-m-d H:i:s")));
         //如果失败
-        $msg = isset($result['error']['code']) && $result['error']['code'] < 0 ? "服务异常" : $result['error']['message'];
+        $msg = isset($result['error']['code']) && $result['error']['code'] < 0 ? array("message"=>"服务异常") : $result['error'];
         return array(
             'code' => -1,
-            'message' => $msg
+            'message' => 'fail',
+            'data' =>$msg
         );
     }
     /**
