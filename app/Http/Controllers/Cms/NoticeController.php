@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\Cms\Notice;
 use Validator;
+use Storage;
 
 class NoticeController extends Controller
 {
@@ -76,6 +77,21 @@ class NoticeController extends Controller
         
         $res = Notice::where('id',$request->id)->update($putdata);
         if($res){
+            $notice = Notice::find($request->id);
+            if($notice->updated_at){
+                $timeStamp = strtotime($notice->updated_at);
+                if(!file_exists(storage_path('cms/notice/detail/'.$request->id.'-'.$timeStamp.'.html'))){
+                    $fileArr = glob(storage_path('cms/notice/detail/'.$request->id.'-*.html'));
+                    for($i=0; $i<count($fileArr); $i++){
+                        unlink($fileArr[$i]);
+                    }
+                    if(file_exists(storage_path('cms/notice/detail/'.$request->id.'.html'))){
+                        unlink(storage_path('cms/notice/detail/'.$request->id.'.html'));
+                    }
+                    $res = view('static.detail_notice', $notice)->render();
+                    Storage::disk('static')->put("notice/detail/".$request->id.'-'.$timeStamp.".html", $res);
+                }
+            }
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
