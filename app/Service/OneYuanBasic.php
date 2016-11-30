@@ -147,7 +147,7 @@ class OneYuanBasic
         if(!$res) {
             return array("status"=>false,"msg"=>"没找到最后投满时间");
         }
-        $openTimeStamp = getOpenTimeStamp(strtotime($res['created_at']));
+        $openTimeStamp = self::getOpenTimeStamp(strtotime($res['created_at']));
         $cqssc = Cqssc::where(['opentimestamp' => $openTimeStamp]);
         if(!$cqssc) {
             return array("status"=>false,"msg"=>"未找到时时彩记录,请人工开奖");
