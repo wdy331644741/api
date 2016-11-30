@@ -12,6 +12,7 @@ use App\Models\Cms\Opinion;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Service\Func;
+use App\Http\Controllers\TemplateController;
 
 class ContentController extends Controller
 {
@@ -107,18 +108,20 @@ class ContentController extends Controller
         }
         $res = Content::where('id',$request->id)->update($putdata);
         if($res){
-            $content = Content::find($request->id);
-            if($content->updated_at){
-                $timeStamp = strtotime($content->updated_at);
-                if(!file_exists(storage_path('cms/news/detail/'.$request->id.$timeStamp.'.html'))){
-                    $fileArr = glob(storage_path('cms/news/detail/'.$request->id.'*.html'));
-                    for($i=0; $i<count($fileArr); $i++){
-                        unlink($fileArr[$i]);
-                    }
-                    unlink(storage_path('cms/news/detail/'.$request->id.'.html'));
-                    $res = view('static.detail_media', $content)->render();
-                    Storage::disk('static')->put("news/detail/".$request->id.$timeStamp.".html", $res);
-                }
+            $alias_name = ContentType::where('id',$request->type_id)->value('alias_name');
+            switch ($alias_name){
+                case 'classroom':
+                    $tempObj = new TemplateController();
+                    $tempObj->postStudyList();
+                    break;
+                case 'report':
+                    $tempObj = new TemplateController();
+                    $tempObj->postMediaList();
+                    break;
+                case 'trends':
+                    $tempObj = new TemplateController();
+                    $tempObj->postDynamicList();
+                    break;
             }
             return $this->outputJson(0);
         }else{

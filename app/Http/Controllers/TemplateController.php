@@ -23,7 +23,7 @@ class TemplateController extends Controller
         }
         error_reporting(0);
         $pageNum = 10;
-        $total = Content::where('type_id',$contentType->id)->count();
+        $total = Content::where('type_id',$contentType->id)->where('release',1)->count();
         $totalPage = ceil($total/$pageNum);
         $where = array('type_id' => $contentType->id, 'release' => 1);
 
@@ -37,13 +37,13 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('cms/news/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('cms/news/detail/'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/news/detail/'.$media->id.'-'.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/news/detail/'.$media->id.'-*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
                         $res = view('static.detail_media', $media)->render();
-                        Storage::disk('static')->put("news/detail/".$media->id.$timeStamp.".html", $res);
+                        Storage::disk('static')->put("news/detail/".$media->id.'-'.$timeStamp.".html", $res);
                     }
                 }else{
                     if(!file_exists(storage_path('cms/news/detail/'.$media->id.'.html'))){
@@ -63,7 +63,7 @@ class TemplateController extends Controller
             return $this->outputJson(10002, array('error_msg' => '类型不存在'));
         }
         $pageNum = 10;
-        $total = Content::where('type_id',$contentType->id)->count();
+        $total = Content::where('type_id',$contentType->id)->where('release',1)->count();
         $totalPage = ceil($total/$pageNum);
         $where = array('type_id' => $contentType->id, 'release' => 1);
         for($page=1; $page<=$totalPage; $page++){
@@ -76,13 +76,13 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('cms/dynamic/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('cms/dynamic/detail/'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/dynamic/detail/'.$media->id.'-'.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/dynamic/detail/'.$media->id.'-*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
                         $res = view('static.detail_dynamic', $media)->render();
-                        Storage::disk('static')->put("dynamic/detail/".$media->id.$timeStamp.".html", $res);
+                        Storage::disk('static')->put("dynamic/detail/".$media->id.'-'.$timeStamp.".html", $res);
                     }
                 }else{
                     if(!file_exists(storage_path('cms/dynamic/detail/'.$media->id.'.html'))){
@@ -98,7 +98,7 @@ class TemplateController extends Controller
     //生成网站公告html
     public function postNoticeList() {
         $pageNum = 10;
-        $total = Notice::count();
+        $total = Notice::where('release',1)->count();
         $totalPage = ceil($total/$pageNum);
         $where = array('release' => 1);
         for($page=1; $page<=$totalPage; $page++){
@@ -111,13 +111,13 @@ class TemplateController extends Controller
             foreach($data as $media){
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
-                    if(!file_exists(storage_path('cms/notice/detail/'.$media->id.$timeStamp.'.html'))){
-                        $fileArr = glob(storage_path('cms/notice/detail/'.$media->id.'*.html'));
+                    if(!file_exists(storage_path('cms/notice/detail/'.$media->id.'-'.$timeStamp.'.html'))){
+                        $fileArr = glob(storage_path('cms/notice/detail/'.$media->id.'-*.html'));
                         for($i=0; $i<count($fileArr); $i++){
                             unlink($fileArr[$i]);
                         }
                         $res = view('static.detail_notice', $media)->render();
-                        Storage::disk('static')->put("notice/detail/".$media->id.$timeStamp.".html", $res);
+                        Storage::disk('static')->put("notice/detail/".$media->id.'-'.$timeStamp.".html", $res);
                     }
                 }else{
                     if(!file_exists(storage_path('cms/notice/detail/'.$media->id.'.html'))){
@@ -156,7 +156,7 @@ class TemplateController extends Controller
             return $this->outputJson(10002, array('error_msg' => '类型不存在'));
         }
         $pageNum = 10;
-        $total = Content::where('type_id',$contentType->id)->count();
+        $total = Content::where('type_id',$contentType->id)->where('release',1)->count();
         $totalPage = ceil($total/$pageNum);
         $where = array('type_id' => $contentType->id, 'release' => 1);
         for($page=1; $page<=$totalPage; $page++){
@@ -170,7 +170,7 @@ class TemplateController extends Controller
                 if($media->updated_at){
                     $timeStamp = strtotime($media->updated_at);
                     $res = view('static.detail_study', $media)->render();
-                    Storage::disk('static')->put("study/detail/".$media->id.$timeStamp.".html", $res);
+                    Storage::disk('static')->put("study/detail/".$media->id.'-'.$timeStamp.".html", $res);
                 }else{
                     $res = view('static.detail_study', $media)->render();
                     Storage::disk('static')->put("study/detail/".$media->id.".html", $res);
