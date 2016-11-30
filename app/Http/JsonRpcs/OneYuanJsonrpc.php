@@ -80,7 +80,7 @@ class OneYuanJsonRpc extends JsonRpc {
             return $page;
         });
         if(empty($page) || empty($per_page)){
-            throw new OmgException(OmgException::NO_LOGIN);
+            throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $where['status'] = 1;
         //昨天的一元夺宝商品
@@ -225,7 +225,7 @@ class OneYuanJsonRpc extends JsonRpc {
                     if(empty($joinId)){
                         return array(
                             'code' => -1,
-                            'message' => 'fail'
+                            'message' => '数据异常'
                         );
                     }
                     //用户减少抽奖次数
@@ -261,7 +261,7 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         return array(
             'code' => -1,
-            'message' => 'fail'
+            'message' => '服务异常'
         );
     }
     /**
@@ -275,7 +275,7 @@ class OneYuanJsonRpc extends JsonRpc {
             return $page;
         });
         if(empty($page) || empty($per_page)){
-            throw new OmgException(OmgException::NO_LOGIN);
+            throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $where['status'] = 1;
         //今天的一元夺宝商品
