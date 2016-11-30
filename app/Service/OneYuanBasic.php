@@ -151,7 +151,6 @@ class OneYuanBasic
         $where['luck_code'] = 0;
         $where['total_times'] = 0;
         $where['join_users'] = 0;
-        $where['luck_time'] = 0;
         $where['period'] = 0;
         $isFull = OneYuan::where($where)->first();
         if(empty($isFull)){
