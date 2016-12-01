@@ -80,7 +80,7 @@ class OneYuanJsonRpc extends JsonRpc {
             return $page;
         });
         if(empty($page) || empty($per_page)){
-            throw new OmgException(OmgException::NO_LOGIN);
+            throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $where['status'] = 1;
         //昨天的一元夺宝商品
@@ -130,7 +130,7 @@ class OneYuanJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $num = intval($params->num);
-        $trade_pwd = intval($params->tradePwd);
+        $trade_pwd = $params->tradePwd;
         if(empty($num) || empty($trade_pwd)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
@@ -178,13 +178,14 @@ class OneYuanJsonRpc extends JsonRpc {
                 'message' => 'success'
             );
         }
+
         OneYuanUserRecord::where("id",$id)->update(array("status"=>1,"remark"=>json_encode($result),"operation_time"=>date("Y-m-d H:i:s")));
-        $msg = isset($result['error']) ? $result['error'] : array('code'=>-1 ,'message'=>'服务异常');
         //如果失败
+        $msg = isset($result['error']['code']) && $result['error']['code'] < 0 ? array("message"=>"服务异常") : $result['error'];
         return array(
             'code' => -1,
             'message' => 'fail',
-            "data" => $msg
+            'data' =>$msg
         );
     }
     /**
@@ -227,7 +228,7 @@ class OneYuanJsonRpc extends JsonRpc {
                     if(empty($joinId)){
                         return array(
                             'code' => -1,
-                            'message' => 'fail'
+                            'message' => '数据异常'
                         );
                     }
                     //用户减少抽奖次数
@@ -243,10 +244,10 @@ class OneYuanJsonRpc extends JsonRpc {
                             }
                         }
                         //发送站内信
-                        $template = "感谢您参与夺宝奇兵，您的抽奖码为：{{start}}";
+                        $template = "感谢您参与夺宝奇兵，期号：".str_pad($info->id,2,"0",STR_PAD_LEFT)."，您的抽奖码为：{{start}}";
                         $arr = array('start'=>$joinList['start']+10000000);
                         if($joinList['num'] > 1){
-                            $template = "感谢您参与夺宝奇兵，您的抽奖码为：{{start}} ~ {{end}}";
+                            $template = "感谢您参与夺宝奇兵，期号：".str_pad($info->id,2,"0",STR_PAD_LEFT)."您的抽奖码为：{{start}} ~ {{end}}";
                             $arr = array('start'=>$joinList['start']+10000000,'end'=>$joinList['end']+10000000);
                         }
                         SendMessage::Mail($userId,$template,$arr);
@@ -263,7 +264,7 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         return array(
             'code' => -1,
-            'message' => 'fail'
+            'message' => '服务异常'
         );
     }
     /**
@@ -277,7 +278,7 @@ class OneYuanJsonRpc extends JsonRpc {
             return $page;
         });
         if(empty($page) || empty($per_page)){
-            throw new OmgException(OmgException::NO_LOGIN);
+            throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $where['status'] = 1;
         //今天的一元夺宝商品

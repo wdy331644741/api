@@ -8,6 +8,8 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\Cms\Notice;
 use Validator;
+use Storage;
+use Illuminate\Pagination\Paginator;
 
 class NoticeController extends Controller
 {
@@ -76,6 +78,33 @@ class NoticeController extends Controller
         
         $res = Notice::where('id',$request->id)->update($putdata);
         if($res){
+            $pageNum = 10;
+            $total = Notice::where('release',1)->count();
+            $totalPage = ceil($total/$pageNum);
+            $where = array('release' => 1);
+            for($page=1; $page<=$totalPage; $page++) {
+                Paginator::currentPageResolver(function () use ($page) {
+                    return $page;
+                });
+                $data = Notice::select('id', 'title', 'content', 'release_at', 'updated_at')->where($where)->whereIn('platform', [0, 1])->orderByRaw('id + sort DESC')->orderBy('id', 'desc')->paginate($pageNum);
+                $res = view('static.list_notice', array('data' => $data))->render();
+                Storage::disk('static')->put("notice/list/{$page}.html", $res);
+            }
+            $notice = Notice::find($request->id);
+            if($notice->updated_at){
+                $timeStamp = strtotime($notice->updated_at);
+                if(!file_exists(storage_path('cms/notice/detail/'.$request->id.'-'.$timeStamp.'.html'))){
+                    $fileArr = glob(storage_path('cms/notice/detail/'.$request->id.'-*.html'));
+                    for($i=0; $i<count($fileArr); $i++){
+                        unlink($fileArr[$i]);
+                    }
+                    if(file_exists(storage_path('cms/notice/detail/'.$request->id.'.html'))){
+                        unlink(storage_path('cms/notice/detail/'.$request->id.'.html'));
+                    }
+                    $res = view('static.detail_notice', $notice)->render();
+                    Storage::disk('static')->put("notice/detail/".$request->id.'-'.$timeStamp.".html", $res);
+                }
+            }
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));

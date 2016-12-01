@@ -29,18 +29,18 @@
             @foreach($data as $media)
                 <dl class='clearfix'>
                     <dt>
-                        <a href="../detail/@if($media->updated_at){!! $media->id.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank">
+                        <a href="../detail/@if($media->updated_at){!! $media->id.'-'.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank">
                             <img src="{!! $media->cover !!}">
                         </a>
                     </dt>
                     <dd class='media_title'>
-                        <a href="../detail/@if($media->updated_at){!! $media->id.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank">
+                        <a href="../detail/@if($media->updated_at){!! $media->id.'-'.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank">
                             {!! $media->title !!}
                         </a>
                     </dd>
                     <dd class='media_content postion_dd'>
-                        <a href="../detail/@if($media->updated_at){!! $media->id.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank" class='description'>{!! mb_substr(strip_tags($media->content),0,99,'utf-8') !!}</a>
-                        <a href="../detail/@if($media->updated_at){!! $media->id.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank" class='link'>[详细介绍]</a>
+                        <a href="../detail/@if($media->updated_at){!! $media->id.'-'.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank" class='description'>{!! mb_substr(strip_tags($media->content),0,99,'utf-8') !!}</a>
+                        <a href="../detail/@if($media->updated_at){!! $media->id.'-'.strtotime($media->updated_at) !!}@else{!! $media->id !!}@endif.html" target="_blank" class='link'>[详细介绍]</a>
                     </dd>
                     <dd class="media_time">{!! date('Y-m-d H:i',strtotime($media->release_at)) !!}</dd>
                 </dl>
