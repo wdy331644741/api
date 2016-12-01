@@ -150,27 +150,49 @@ class OneYuanBasic
         $openTimeStamp = self::getOpenTimeStamp(strtotime($res['created_at']));
         $cqssc = Cqssc::where(['opentimestamp' => $openTimeStamp])->first();
         if(!$cqssc) {
-            return array("status"=>false,"msg"=>"未找到时时彩记录,请人工开奖");
+            $expect = self::getOpenExpect($openTimeStamp);
+            return array("status"=>false,"msg"=>"未找到期数: ". $expect . ', 开奖时间为' .date('Y-m-d H:i:s', $openTimeStamp)."的时时彩记录");
         }
         return self::luckDraw($mall_id, $cqssc['opencode'], $cqssc['expect']);
     }
 
     // 获取开奖时间戳
     static function getOpenTimeStamp($timestamp) {
-        $date = date('Y-m-d H:i:s', $timestamp);
-        $dayTimeStamp = ($timestamp+8*3600)%(3600*24);
-        if($dayTimeStamp <= 6940 || $dayTimeStamp > 79240) { // 时间 <= 1:55:40 || 时间 > 22:00:40
-            $remainder = ($dayTimeStamp-40)%300;
+        $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
+        if($dayTimeStamp <= 6900 || $dayTimeStamp > 79200) { // 时间 <= 1:55:40 || 时间 > 22:00:40
+            $remainder = $dayTimeStamp%300;
             $seconds = $remainder == 0 ? 0 : 300-$remainder;
-            $openTimeStamp = $timestamp + $seconds ;
-        } else if($dayTimeStamp > 6940 && $dayTimeStamp < 36040) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $openTimeStamp = $timestamp + $seconds;
+        } else if($dayTimeStamp > 6900 && $dayTimeStamp < 36000) { // 时间 > 1:55:40 && 时间 < 10:00:40
             $openTimeStamp = strtotime(date('Y-m-d 10:00:40', $timestamp));
-        } else if($dayTimeStamp >= 36040 && $dayTimeStamp <= 79240) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
-            $remainder = ($dayTimeStamp-40)%600;
+        } else if($dayTimeStamp >= 36000 && $dayTimeStamp <= 79200) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = $dayTimeStamp%600;
             $seconds = $remainder == 0 ? 0 : 600-$remainder;
-            $openTimeStamp = $timestamp + $seconds ;
+            $openTimeStamp = $timestamp + $seconds;
         }
         return $openTimeStamp;
+    }
+
+    //获取开奖期数
+    static function  getOpenExpect($timestamp) {
+        $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
+        if($dayTimeStamp <= 6900) { // 时间 <= 1:55:40 
+            $remainder = $dayTimeStamp%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $expect = ($dayTimeStamp + $seconds)/300;
+        } else if($dayTimeStamp > 6900 && $dayTimeStamp <= 36000) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $expect = 24;
+        } else if($dayTimeStamp > 36000 && $dayTimeStamp <= 79200) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = $dayTimeStamp%600;
+            $seconds = $remainder == 0 ? 0 : 600-$remainder;
+            $expect = 24+($dayTimeStamp + $seconds - 36000)/600;
+        } else if($dayTimeStamp > 79200) { //时间 > 22:00:40
+            $remainder = $dayTimeStamp%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $expect = 96+($dayTimeStamp + $seconds - 79200)/300;
+        }
+        $expect = $expect == 0 ? 120 : $expect;
+        return date('Ymd', $timestamp-41) . str_pad($expect, 3, '0', STR_PAD_LEFT);
     }
 
     //根据商品id和开奖码抽奖
@@ -213,9 +235,6 @@ class OneYuanBasic
         }
         $up['join_users'] = $users['count'];
         $up['luck_code'] = ($up['total_times']+$up['code'])%$isFull['total_num'];
-        if(empty($up['luck_code'])){
-            return array("status"=>false,"msg"=>"中奖码没算出来");
-        }
         $joinInfo = OneYuanJoinInfo::where('mall_id',$mall_id)
             ->where('start','<=',$up['luck_code']+1)
             ->where('end','>=',$up['luck_code']+1)
