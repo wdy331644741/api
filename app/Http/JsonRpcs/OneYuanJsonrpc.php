@@ -106,10 +106,10 @@ class OneYuanJsonRpc extends JsonRpc {
             if(isset($item['user_id']) && !empty($item['user_id'])){
                 //获取用户手机号
                 $userBase = Func::getUserBaseInfo($item['user_id']);
-                $item['phone'] = isset($userBase['result']['data']['phone']) ? substr_replace($userBase['result']['data']['phone'], '****', 3, 4) : '';
+                $item['phone'] = isset($userBase['result']['data']['phone']) ? substr_replace($userBase['result']['data']['phone'], '******', 3, 6) : '';
             }
             if(!empty($item['luck_code'])){
-                $item['luck_code'] = $item['luck_code']+10000000;
+                $item['luck_code'] = $item['luck_code']+10000001;
             }
             //去掉不需要的数据
             unset($item['status']);
