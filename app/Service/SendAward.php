@@ -23,6 +23,7 @@ use App\Service\RuleCheck;
 use App\Models\ActivityJoin;
 use App\Service\Attributes;
 use App\Service\OneYuanBasic;
+use App\Service\Flow;
 use Config;
 use Validator;
 class SendAward
@@ -167,6 +168,39 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //实名送100M流量
+            case "gdyidong_flow_100M":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
+                    $awards['user_id'] = $triggerData['user_id'];
+                    $awards['source_id'] = $activityInfo['id'];
+                    $awards['name'] = '100M流量';
+                    $awards['source_name'] = $activityInfo['name'];
+                    $awards['spec'] = 100;
+                    $return = self::sendFlow($awards);
+                }
+                break;
+            //首次投资2000送500M流量
+            case "gdyidong_flow_500M":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $awards['user_id'] = $triggerData['user_id'];
+                    $awards['source_id'] = $activityInfo['id'];
+                    $awards['name'] = '500M流量';
+                    $awards['source_name'] = $activityInfo['name'];
+                    $awards['spec'] = 500;
+                    $return = self::sendFlow($awards);
+                }
+                break;
+            //首次投资5000送1GB流量
+            case "gdyidong_flow_1024M":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $awards['user_id'] = $triggerData['user_id'];
+                    $awards['source_id'] = $activityInfo['id'];
+                    $awards['name'] = '1GB流量';
+                    $awards['source_name'] = $activityInfo['name'];
+                    $awards['spec'] = 1024;
+                    $return = self::sendFlow($awards);
+                }
+                break;
             //一元购按投资金额送抽奖参与次数
             case Config::get('activity.one_yuan.alias_name'):
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
@@ -1080,7 +1114,7 @@ class SendAward
         $data['award_type'] = $info['award_type'];
         $data['uuid'] = $info['uuid'];
         $data['remark'] = $info['remark'];
-        $data['award_id'] = $info['id'];
+        $data['award_id'] = isset($info['id']) ? $info['id'] : 0;
         $data['status'] = $info['status'];
         $data['coupon_code'] = isset($info['code']) ? $info['code'] : '';
         $data['message_status'] = isset($info['message_status']) ? $info['message_status'] : '';
@@ -1179,5 +1213,49 @@ class SendAward
         $info = $table::where('id', $award_id)->select()->get()->toArray();
         $return = isset($info[0]) ? $info[0] : array();
         return $return;
+    }
+    /**
+     * 发送流量
+     */
+    static function sendFlow($info){
+        $info['award_type'] = 7;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'user_id' => 'required|integer|min:1',
+            'name' => 'required|min:2|max:255',
+            'source_id' => 'required|min:1',
+            'source_name' => 'required|min:2|max:255',
+            'spec' => 'required|min:2|max:255'
+        ]);
+        if($validator->fails()){
+            $err = array('award_type'=>4,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        $return = array();
+        if(empty(intval($info['user_id'])) || empty(intval($info['spec']))){
+            return $return;
+        }
+        $param = array();
+        $param['user_id'] = $info['user_id'];
+        $param['spec'] = $info['spec'];
+        //获取数据
+        $status = Flow::buyFlow($param);
+        if(isset($status['send'])  && $status['send'] === true){
+            //发送消息&存储日志
+            $arr = array('award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+            $info['status'] = 1;
+            $info['remark'] = json_encode($arr);
+            self::addLog($info);
+            return $arr;
+        }
+        //存储到日志
+        $err = array('award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>$status);
+        $info['remark'] = json_encode($err);
+        self::addLog($info);
+        return $err;
     }
 }
