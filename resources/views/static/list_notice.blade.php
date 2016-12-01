@@ -29,7 +29,7 @@
                 <ul class='clearfix'>
                     @foreach($data as $notice)
                         <li class='notice_title'>
-                            <a href="../detail/@if($notice->updated_at){!! $notice->id.strtotime($notice->updated_at) !!}@else{!! $notice->id !!}@endif.html" target="_blank"><i></i>{!! mb_substr($notice->title,0,40,'utf-8') !!}</a>
+                            <a href="../detail/@if($notice->updated_at){!! $notice->id.'-'.strtotime($notice->updated_at) !!}@else{!! $notice->id !!}@endif.html" target="_blank"><i></i>{!! mb_substr($notice->title,0,40,'utf-8') !!}</a>
                             <span>{!! date('Y-m-d',strtotime($notice->release_at)) !!}</span>
                         </li>
                     @endforeach
