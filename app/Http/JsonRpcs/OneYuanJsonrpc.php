@@ -85,8 +85,8 @@ class OneYuanJsonRpc extends JsonRpc {
         $where['status'] = 1;
         //昨天的一元夺宝商品
         $yesterdayList = OneYuan::where($where)
-            ->where('start_time', '<=', date("Y-m-d 23:59:59",strtotime("-1 days")))
-            ->orderBy('start_time','desc')->paginate($per_page);
+            ->where('end_time', '<', date("Y-m-d H:i:s"))
+            ->orderBy('end_time','desc')->paginate($per_page);
         $this->_formatData($yesterdayList);
         return array(
             'code' => 0,
@@ -203,7 +203,7 @@ class OneYuanJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //判断当前商品还能不能参加抽奖
-        $info = OneYuan::where("id",$mallId)->where("status",1)->select('total_num','buy_num')->lockForUpdate()->first();
+        $info = OneYuan::where("id",$mallId)->where("status",1)->select('id','total_num','buy_num')->lockForUpdate()->first();
         if(empty($info)){
             throw new OmgException(OmgException::NO_DATA);
         }
@@ -250,7 +250,7 @@ class OneYuanJsonRpc extends JsonRpc {
                             $template = "感谢您参与夺宝奇兵，期号：".str_pad($info->id,2,"0",STR_PAD_LEFT)."您的抽奖码为：{{start}} ~ {{end}}";
                             $arr = array('start'=>$joinList['start']+10000000,'end'=>$joinList['end']+10000000);
                         }
-                        SendMessage::Mail($userId,$template,$arr);
+                        SendMessage::Mail($userId,$template,$arr,"抽奖码");
                         return array(
                             'code' => 0,
                             'message' => 'success',
