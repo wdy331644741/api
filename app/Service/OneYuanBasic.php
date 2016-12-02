@@ -6,6 +6,7 @@ use App\Models\OneYuanUserInfo;
 use App\Models\OneYuanJoinInfo;
 use App\Models\OneYuanUserRecord;
 use App\Service\SendAward;
+use App\Models\Cqssc;
 use DB;
 class OneYuanBasic
 {
@@ -133,26 +134,57 @@ class OneYuanBasic
         }
         return array("status"=>false,"msg"=>"抽奖失败");
     }
+    // 自动开奖
+    static function autoLuckDraw($mall_id){
+        $isFull = OneYuan::where(['id' => $mall_id])->first();
+        if(empty($isFull)){
+            return array("status"=>false,"msg"=>"奖品不存在");
+        }
+        if($isFull->total_num != $isFull->buy_num){
+            return array("status"=>false,"msg"=>"奖品还没参与满");
+        }
+        $res = OneYuanJoinInfo::where(['mall_id' => $mall_id])->orderBy('created_at', 'desc')->first();
+        if(!$res) {
+            return array("status"=>false,"msg"=>"没找到最后投满时间");
+        }
+        $openTimeStamp = self::getOpenTimeStamp(strtotime($res['created_at']));
+        $cqssc = Cqssc::where(['opentimestamp' => $openTimeStamp])->first();
+        if(!$cqssc) {
+            return array("status"=>false,"msg"=>"未找到时时彩记录,请人工开奖");
+        }
+        return self::luckDraw($mall_id, $cqssc['opencode'], $cqssc['expect']);
+    }
+
+    // 获取开奖时间戳
+    static function getOpenTimeStamp($timestamp) {
+        $date = date('Y-m-d H:i:s', $timestamp);
+        $dayTimeStamp = ($timestamp+8*3600)%(3600*24);
+        if($dayTimeStamp <= 6940 || $dayTimeStamp > 79240) { // 时间 <= 1:55:40 || 时间 > 22:00:40
+            $remainder = ($dayTimeStamp-40)%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $openTimeStamp = $timestamp + $seconds ;
+        } else if($dayTimeStamp > 6940 && $dayTimeStamp < 36040) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $openTimeStamp = strtotime(date('Y-m-d 10:00:40', $timestamp));
+        } else if($dayTimeStamp >= 36040 && $dayTimeStamp <= 79240) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = ($dayTimeStamp-40)%600;
+            $seconds = $remainder == 0 ? 0 : 600-$remainder;
+            $openTimeStamp = $timestamp + $seconds ;
+        }
+        return $openTimeStamp;
+    }
+
     //根据商品id和开奖码抽奖
     static function luckDraw($mall_id,$code,$period){
         //验证参数
         $mall_id = intval($mall_id);
         $code = intval($code);
         $period = intval($period);
-        if(empty($mall_id) || empty($code) || empty($period)){
+        if(empty($mall_id) || $code === null || empty($period)){
             return array("status"=>false,"msg"=>"参数有误");
         }
         //判断抽奖次数是否已满
         $where = array();
         $where['id'] = $mall_id;
-        $where['user_id'] = 0;
-        $where['buy_id'] = 0;
-        $where['code'] = 0;
-        $where['luck_code'] = 0;
-        $where['total_times'] = 0;
-        $where['join_users'] = 0;
-        $where['luck_time'] = 0;
-        $where['period'] = 0;
         $isFull = OneYuan::where($where)->first();
         if(empty($isFull)){
             return array("status"=>false,"msg"=>"奖品不存在");
@@ -185,8 +217,8 @@ class OneYuanBasic
             return array("status"=>false,"msg"=>"中奖码没算出来");
         }
         $joinInfo = OneYuanJoinInfo::where('mall_id',$mall_id)
-            ->where('start','<=',$up['luck_code'])
-            ->where('end','>=',$up['luck_code'])
+            ->where('start','<=',$up['luck_code']+1)
+            ->where('end','>=',$up['luck_code']+1)
             ->first();
         if(empty($joinInfo)){
             return array("status"=>false,"msg"=>"找不到抽奖记录");
@@ -202,6 +234,6 @@ class OneYuanBasic
             SendMessage::Mail($up['user_id'],$template,$arr);
             return array("status"=>true,"msg"=>"开奖成功");
         }
-        return array("status"=>false,"msg"=>"开奖失败");
+        return array("status"=>false,"msg"=>"开奖成功,发送站内信失败。");
     }
 }

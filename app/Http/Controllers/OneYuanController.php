@@ -7,6 +7,7 @@ use App\Service\OneYuanBasic;
 use Illuminate\Http\Request;
 use App\Models\OneYuan;
 use App\Service\Func;
+use App\Jobs\Cqssc;
 use Validator;
 
 class OneYuanController extends Controller
@@ -183,16 +184,36 @@ class OneYuanController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
+    //开奖
     function postLuckDraw(Request $request){
         $validator = Validator::make($request->all(), [
-            'code' => 'required|digits_between:4,5',
+            'code' => 'required|digits_between:1,5',
+            'id' => 'required|integer',
+            'expect'=> 'required|digits:11',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = OneYuanBasic::luckDraw($request->id, $request->code, $request->expect);
+        return $this->outputJson(0, array('status' => $res['status'], 'error_msg' => $res['msg'])); 
+    }
+    
+    // 自动开奖
+    function postAutoLuckDraw(Request $request){
+        $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = OneYuanBasic::luckDraw($request->id, $request->code);
+        $res = OneYuanBasic::autoluckDraw($request->id);
         return $this->outputJson(0, array('status' => $res['status'], 'error_msg' => $res['msg'])); 
+    }
+    
+    //生成时时彩记录
+    function getAutoOpen() {
+        $this->dispatch((new Cqssc())->onQueue('oneyuan')->delay(60));
+        return $this->outputJson(0, array('error_msg' => '成功')); 
     }
 
     /**
