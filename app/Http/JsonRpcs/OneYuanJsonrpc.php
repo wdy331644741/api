@@ -203,7 +203,7 @@ class OneYuanJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         //判断当前商品还能不能参加抽奖
-        $info = OneYuan::where("id",$mallId)->where("status",1)->select('total_num','buy_num')->lockForUpdate()->first();
+        $info = OneYuan::where("id",$mallId)->where("status",1)->select('id','total_num','buy_num')->lockForUpdate()->first();
         if(empty($info)){
             throw new OmgException(OmgException::NO_DATA);
         }
