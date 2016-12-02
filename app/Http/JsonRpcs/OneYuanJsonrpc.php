@@ -250,7 +250,7 @@ class OneYuanJsonRpc extends JsonRpc {
                             $template = "感谢您参与夺宝奇兵，期号：".str_pad($info->id,2,"0",STR_PAD_LEFT)."您的抽奖码为：{{start}} ~ {{end}}";
                             $arr = array('start'=>$joinList['start']+10000000,'end'=>$joinList['end']+10000000);
                         }
-                        SendMessage::Mail($userId,$template,$arr);
+                        SendMessage::Mail($userId,$template,$arr,"抽奖码");
                         return array(
                             'code' => 0,
                             'message' => 'success',
