@@ -85,8 +85,8 @@ class OneYuanJsonRpc extends JsonRpc {
         $where['status'] = 1;
         //昨天的一元夺宝商品
         $yesterdayList = OneYuan::where($where)
-            ->where('start_time', '<=', date("Y-m-d 23:59:59",strtotime("-1 days")))
-            ->orderBy('start_time','desc')->paginate($per_page);
+            ->where('end_time', '<', date("Y-m-d H:i:s"))
+            ->orderBy('end_time','desc')->paginate($per_page);
         $this->_formatData($yesterdayList);
         return array(
             'code' => 0,
