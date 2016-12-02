@@ -22,11 +22,16 @@ class Flow
         if(!$phone){
             return array('send'=>false,'errmsg'=>'未获取用户手机号');
         }
+        $num = FlowRechargeLog::where('phone',$phone)->where('status',1)->count();
+        if($num >= 2){
+            file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【用户充值次数过多】'.$num.PHP_EOL,FILE_APPEND);
+            return array('send'=>false,'errmsg'=>'当前用户充值次数过多，出现异常');
+        }
         $callbackUrl = env('YY_BASE_HOST').'/yunying/open/flow-callback';
         $timeStamp = self::msectime();
         $orderSn = 'WLB'.date('sdimHY').Uuid::numberBetween(1000000000).Uuid::numberBetween(10000,99999);
         $private_key = file_get_contents(config_path('key/rsa_private_key.pem'));
-        $sign = self::createSign(array('appId'=>77,'customerOrderId'=>$orderSn,'phoneNo'=>$phone,'spec'=>$data['spec'],'scope'=>'nation','callbackUrl'=>$callbackUrl,'timeStamp'=>$timeStamp),$private_key,'RSA');
+        $sign = self::createSign(array('appId'=>$appId,'customerOrderId'=>$orderSn,'phoneNo'=>$phone,'spec'=>$data['spec'],'scope'=>'nation','callbackUrl'=>$callbackUrl,'timeStamp'=>$timeStamp),$private_key,'RSA');
         $signStr = strtolower(bin2hex($sign));
         $_client = new Client([
             'base_uri'=>$api_url,
@@ -45,7 +50,7 @@ class Flow
                 $flow->scope = 'nation';
                 $flowObj = $flow->save();
                 if(!$flow->id){
-                    file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【订单入库失败】'.$flowObj->id.PHP_EOL,FILE_APPEND);
+                    file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【订单入库失败】'.PHP_EOL,FILE_APPEND);
                 }
                 return array('send'=>true,'errmsg'=>'充值成功');
             }
