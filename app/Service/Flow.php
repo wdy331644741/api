@@ -101,6 +101,10 @@ class Flow
     //毫秒时间戳(格式化)
     private static function msectime() {
         list($tmp1, $tmp2) = explode(' ', microtime());
-        return date('YmdHis',$tmp2).ceil($tmp1*1000);
+        $hm = ceil($tmp1*1000);
+        if(strlen($hm) == 2){
+            $hm = '0'.ceil($tmp1*1000);
+        }
+        return date('YmdHis',$tmp2).$hm;
     }
 }
