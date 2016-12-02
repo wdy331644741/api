@@ -10,6 +10,8 @@ use \GuzzleHttp\Client;
 use Config;
 use App\Models\Cqssc as CqsscModel;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Models\OneYuan;
+use App\Service\OneYuanBasic;
 
 class Cqssc extends Job implements ShouldQueue
 {
@@ -40,6 +42,7 @@ class Cqssc extends Job implements ShouldQueue
         $jsonRes = json_decode($res->getBody(), true);
         if(!isset($jsonRes['data']) || !is_array($jsonRes['data'])){
             var_dump($jsonRes);
+            $this->dispatch((new Cqssc())->onQueue('oneyuan')->delay(60));
             return;
         }
         foreach($jsonRes['data'] as $value) {
@@ -62,6 +65,13 @@ class Cqssc extends Job implements ShouldQueue
                 'opentime' => $value['opentime'],
                 'opentimestamp' => $value['opentimestamp']
             ]);
+        }
+        
+        // 尝试开奖
+        $res = OneYuan::where('start_time', '<=', date("Y-m-d H:i:s"))->where('end_time', '>=', date("Y-m-d H:i:s"))->where('user_id', '=', 0)->whereRaw('buy_num >= total_num')->first();
+        if($res) {
+            $res = OneYuanBasic::autoLuckDraw($res['id']);        
+            echo $res['msg'];
         }
         $this->dispatch((new Cqssc())->onQueue('oneyuan')->delay(60));
     }

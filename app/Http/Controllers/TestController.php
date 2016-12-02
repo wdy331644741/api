@@ -18,9 +18,10 @@ use App\Models\Cqssc;
 class TestController extends Controller
 {
     public function getCqssc(){
-        for($i = 0; $i <= 3600*24; $i+=10) {
+        for($i = 3600*24; $i <= 3600*48; $i+=10) {
             $openTiemStamp = $this->getOpenTimeStamp($i);    
-            echo date('Y-m-d H:i:s', $i) . ' ' . date('Y-m-d H:i:s', $openTiemStamp) . PHP_EOL . '<br />';
+            $expect = $this->getOpenExpect($i);
+            echo date('Y-m-d H:i:s', $i) . ' ' . date('Y-m-d H:i:s', $openTiemStamp) . '| ' . $expect . PHP_EOL . '<br />';
         }
         return;
         $res = Cqssc::where('opentime', '>=',$date )->orderBy('expect', 'asc')->first();
@@ -28,20 +29,41 @@ class TestController extends Controller
     
     // 获取开奖时间戳
     public function getOpenTimeStamp($timestamp) {
-        $date = date('Y-m-d H:i:s', $timestamp);
-        $dayTimeStamp = ($timestamp+8*3600)%(3600*24);
-        if($dayTimeStamp <= 6940 || $dayTimeStamp > 79240) { // 时间 <= 1:55:40 || 时间 > 22:00:40
-            $remainder = ($dayTimeStamp-40)%300;
+        $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
+        if($dayTimeStamp <= 6900 || $dayTimeStamp > 79200) { // 时间 <= 1:55:40 || 时间 > 22:00:40
+            $remainder = $dayTimeStamp%300;
             $seconds = $remainder == 0 ? 0 : 300-$remainder;
-            $openTimeStamp = $timestamp + $seconds ;
-        } else if($dayTimeStamp > 6940 && $dayTimeStamp < 36040) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $openTimeStamp = $timestamp + $seconds;
+        } else if($dayTimeStamp > 6900 && $dayTimeStamp < 36000) { // 时间 > 1:55:40 && 时间 < 10:00:40
             $openTimeStamp = strtotime(date('Y-m-d 10:00:40', $timestamp));
-        } else if($dayTimeStamp >= 36040 && $dayTimeStamp <= 79240) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
-            $remainder = ($dayTimeStamp-40)%600;
+        } else if($dayTimeStamp >= 36000 && $dayTimeStamp <= 79200) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = $dayTimeStamp%600;
             $seconds = $remainder == 0 ? 0 : 600-$remainder;
-            $openTimeStamp = $timestamp + $seconds ;
+            $openTimeStamp = $timestamp + $seconds;
         }
         return $openTimeStamp;
+    }
+
+    //获取开奖期数
+    public function  getOpenExpect($timestamp) {
+        $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
+        if($dayTimeStamp <= 6900) { // 时间 <= 1:55:40 
+            $remainder = $dayTimeStamp%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $expect = ($dayTimeStamp + $seconds)/300;
+        } else if($dayTimeStamp > 6900 && $dayTimeStamp <= 36000) { // 时间 > 1:55:40 && 时间 < 10:00:40
+            $expect = 24;
+        } else if($dayTimeStamp > 36000 && $dayTimeStamp <= 79200) { // 时间 >= 10:00:40 && 时间  <= 22:00:40
+            $remainder = $dayTimeStamp%600;
+            $seconds = $remainder == 0 ? 0 : 600-$remainder;
+            $expect = 24+($dayTimeStamp + $seconds - 36000)/600;
+        } else if($dayTimeStamp > 79200) { //时间 > 22:00:40
+            $remainder = $dayTimeStamp%300;
+            $seconds = $remainder == 0 ? 0 : 300-$remainder;
+            $expect = 96+($dayTimeStamp + $seconds - 79200)/300;
+        }
+        $expect = $expect == 0 ? 120 : $expect;
+        return date('Ymd', $timestamp-41) . str_pad($expect, 3, '0', STR_PAD_LEFT);
     }
     public function getIndex(){
         $pub_key = file_get_contents(config_path('key/xy_public_key.pem'));
