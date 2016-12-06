@@ -244,10 +244,10 @@ class Attributes
             }else{
                 if($res->number < 2){
                     $userArr = json_decode($res->text,true);
-                    if($userArr[$user_id] == 'ok'){
-                        return $res->number;
-                    }
                     if(isset($userArr[$user_id])){
+                        if($userArr[$user_id] == 'ok'){
+                            return $res->number;
+                        }
                         $yeDay = date('Y-m-d',time()-24*60*60);
                         if($yeDay == $userArr[$user_id]){
                             $userArr[$user_id] = 'ok';
@@ -263,7 +263,7 @@ class Attributes
                     $res = $userAttr
                         ->where(['key'=>$key,'user_id'=>$from_user_id])
                         ->update(['text'=>json_encode($userArr)]);
-                    return array('inviteNum'=>$res->number);
+                    return array('inviteNum'=>$userAttr->number);
                 }
                 return array('inviteNum'=>0);
             }
