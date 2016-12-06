@@ -162,14 +162,11 @@ class Attributes
         if(!$key1 || !$key2 || !$user_id || !$from_user_id){
             return array('inviteNum'=>0,'errsmg'=>'参数错误');
         }
-        $userAttr = new UserAttribute();
         //邀请3名好友投资
-        $res1 = $this->_inviteNum($userAttr,$from_user_id,$user_id,$key1);
+        $res1 = $this->_inviteNum($from_user_id,$user_id,$key1);
         //邀请2名好友连续投资两天
-        $res2 = $this->_inviteCastDay($userAttr,$from_user_id,$user_id,$key2);
-
+        $res2 = $this->_inviteCastDay($from_user_id,$user_id,$key2);
         return $res1;
-
     }
 
     //活动2
@@ -183,7 +180,8 @@ class Attributes
     }
 
     //邀请3名好友投资设置number
-    private function _inviteNum($userAttr,$from_user_id,$user_id,$key){
+    private function _inviteNum($from_user_id,$user_id,$key){
+        $userAttr = new UserAttribute();
         //邀请3名好友投资
         $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
 
@@ -196,7 +194,7 @@ class Attributes
             return array('inviteNum'=>1);
         }else{
             if($res->number < 3){
-                $text = json_decode($res->text);
+                $text = json_decode($res->text,true);
                 $number = array_push($text,$user_id);
                 $res = $userAttr
                     ->where(['key'=>$key,'user_id'=>$from_user_id])
@@ -213,6 +211,7 @@ class Attributes
 
     //连续投资两天设置number
     private function _inviteCastDay($userAttr,$from_user_id,$user_id,$key){
+        $userAttr = new UserAttribute();
         $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
         if(empty($res)){
             $userAttr->key = $key;
@@ -223,7 +222,7 @@ class Attributes
             return array('inviteNum'=>0);
         }else{
             if($res->number == 0){
-                $userArr = json_decode($res->text);
+                $userArr = json_decode($res->text,true);
                 if(isset($userArr[$user_id])){
                     $yeDay = date('Y-m-d',time()-24*60*60);
                     if($yeDay == $userArr[$user_id]){
@@ -242,7 +241,7 @@ class Attributes
                 return array('inviteNum'=>0);
             }else{
                 if($res->number < 2){
-                    $userArr = json_decode($res->text);
+                    $userArr = json_decode($res->text,true);
                     if($userArr[$user_id] == 'ok'){
                         return $res->number;
                     }
