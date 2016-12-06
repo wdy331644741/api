@@ -67,7 +67,10 @@ class SendAward
                 $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
             }
         }
-
+        //圣诞活动判断发奖
+        if(isset($additional_status['model']) && $additional_status['status'] === false){
+            return "不发奖";
+        }
         //*****给本人发的奖励*****
         $status = self::addAwardByActivity($userID, $activityID,$triggerData);
 
@@ -168,6 +171,65 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //邀请人首次投资
+            case "invite_investment_first" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $data = $Attributes->setSd1Number("invite_investment_first","invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
+                    if($data['inviteNum'] == 3){
+                        $return = array('model'=>'Christmas','status'=>true);
+                    }else{
+                        $return = array('model'=>'Christmas','status'=>false);
+                    }
+                }
+                break;
+            //邀请人连续投资
+            case "invite_investment" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $data = $Attributes->setSd2Number("invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
+                    if($data['inviteNum'] == 2){
+                        $return = array('model'=>'Christmas','status'=>true);
+                    }else{
+                        $return = array('model'=>'Christmas','status'=>false);
+                    }
+                }
+                break;
+            //算年化投资5w
+            case "year_investment_50000" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    //得到年化
+                    $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
+                    if(!$yearInvestment){
+                        $return = array('model'=>'Christmas','status'=>false);
+                    }else{
+                        //调用接口计算累计年化
+                        $amount = Attributes::increment($triggerData['user_id'],"year_investment_50000",$yearInvestment);
+                        if($amount < 50000){
+                            $return = array('model'=>'Christmas','status'=>false);
+                        }else{
+                            $return = array('model'=>'Christmas','status'=>true);
+                        }
+                    }
+                }
+                break;
+            //算年化投资10w
+            case "year_investment_100000" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    //得到年化
+                    $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
+                    if(!$yearInvestment){
+                        $return = array('model'=>'Christmas','status'=>false);
+                    }else{
+                        //调用接口计算累计年化
+                        $amount = Attributes::increment($triggerData['user_id'],"year_investment_100000",$yearInvestment);
+                        echo $amount;
+                        if($amount < 100000){
+                            $return = array('model'=>'Christmas','status'=>false);
+                        }else{
+                            $return = array('model'=>'Christmas','status'=>true);
+                        }
+                    }
+                }
+                break;
             //实名送100M流量
             case "gdyidong_flow_100M":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
@@ -1257,5 +1319,17 @@ class SendAward
         $info['remark'] = json_encode($err);
         self::addLog($info);
         return $err;
+    }
+    static function yearInvestment($amount,$type,$time){
+        if(empty($amount) || empty($type) || empty($time)){
+            return false;
+        }
+        $yearMoney = 0;
+        if($type == 1){
+            $yearMoney = ceil(($amount*$time)/360);
+        }else if ($type == 2){
+            $yearMoney = ceil(($amount*$time)/12);
+        }
+        return $yearMoney;
     }
 }
