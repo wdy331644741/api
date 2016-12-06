@@ -6,16 +6,17 @@ use Lib\JsonRpcClient;
 class SendMessage
 {
 
-    public static function Mail($userID,$template,$arr=array()){
+    public static function Mail($userID,$template,$arr=array(),$title = ''){
         if(empty($template)){
             return false;
         }
+        $title = empty($title) ? '奖品' : $title ;
         $content = self::msgTemplate($template,$arr);
         $params = array();
         $params['user_id'] = $userID;
         $params['nodeName'] = "message_custom";
         $params['tplParam'] = array();
-        $params['customTpl'] = array('title'=>'奖品','mtype'=>'activity','content'=>$content,'url'=>'','jump_type'=>0);
+        $params['customTpl'] = array('title'=>$title,'mtype'=>'activity','content'=>$content,'url'=>'','jump_type'=>0);
         $url = Config::get('cms.message_http_url');
         $client = new JsonRpcClient($url);
         $res = $client->send($params);
