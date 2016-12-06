@@ -157,17 +157,11 @@ class Attributes
     //-------------------------圣诞节活动--------------------------//
 
 
-    //活动一
-    public function setSd1Number($key1,$key2,$user_id){
-        if(!$key1 || !$key2 || !$user_id){
+    //活动1
+    public function setSd1Number($key1,$key2,$user_id,$from_user_id){
+        if(!$key1 || !$key2 || !$user_id || !$from_user_id){
             return array('inviteNum'=>0,'errsmg'=>'参数错误');
         }
-        $clinet = new JsonRpcClient(env('INSIDE_HTTP_URL'));
-        $res = $clinet->userBasicInfo(array('userId'=>$user_id));
-        if(isset($res['error'])){
-            return array('inviteNum'=>0,'errsmg'=>'获取用户信息失败');
-        }
-        $from_user_id = $res['result']['data']['from_user_id'];
         $userAttr = new UserAttribute();
         //邀请3名好友投资
         $res1 = $this->_inviteNum($userAttr,$from_user_id,$user_id,$key1);
@@ -179,16 +173,10 @@ class Attributes
     }
 
     //活动2
-    public function setSd2Number($key,$user_id){
-        if(!$key || !$user_id){
+    public function setSd2Number($key,$user_id,$from_user_id){
+        if(!$key || !$user_id || !$from_user_id){
             return array('inviteNum'=>0,'errsmg'=>'参数错误');
         }
-        $clinet = new JsonRpcClient(env('INSIDE_HTTP_URL'));
-        $res = $clinet->userBasicInfo(array('userId'=>$user_id));
-        if(isset($res['error'])){
-            return array('inviteNum'=>0,'errsmg'=>'获取用户信息失败');
-        }
-        $from_user_id = $res['result']['data']['from_user_id'];
         $userAttr = new UserAttribute();
         $res = $this->_inviteCastDay($userAttr,$from_user_id,$user_id,$key);
         return $res;
