@@ -174,8 +174,7 @@ class Attributes
         if(!$key || !$user_id || !$from_user_id){
             return array('inviteNum'=>0,'errsmg'=>'参数错误');
         }
-        $userAttr = new UserAttribute();
-        $res = $this->_inviteCastDay($userAttr,$from_user_id,$user_id,$key);
+        $res = $this->_inviteCastDay($from_user_id,$user_id,$key);
         return $res;
     }
 
@@ -195,6 +194,9 @@ class Attributes
         }else{
             if($res->number < 3){
                 $text = json_decode($res->text,true);
+                if(in_array($user_id,$text)){
+                    return array('inviteNum'=>count($text));
+                }
                 $number = array_push($text,$user_id);
                 $res = $userAttr
                     ->where(['key'=>$key,'user_id'=>$from_user_id])
@@ -210,7 +212,7 @@ class Attributes
     }
 
     //连续投资两天设置number
-    private function _inviteCastDay($userAttr,$from_user_id,$user_id,$key){
+    private function _inviteCastDay($from_user_id,$user_id,$key){
         $userAttr = new UserAttribute();
         $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
         if(empty($res)){
