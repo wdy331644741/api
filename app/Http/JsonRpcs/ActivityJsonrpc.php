@@ -86,7 +86,6 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getCgStatus(){
         global $userId;
-        $userId = 21;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
