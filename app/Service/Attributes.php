@@ -232,7 +232,7 @@ class Attributes
                         $text = json_encode($userArr);
                         $res = $userAttr
                             ->where(['key'=>$key,'user_id'=>$from_user_id])
-                            ->update(['number'=>1,'text'=>json_encode($text)]);
+                            ->update(['number'=>1,'text'=>$text]);
                         return array('inviteNum'=>1);
                     }
                 }
