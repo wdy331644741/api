@@ -162,14 +162,11 @@ class Attributes
         if(!$key1 || !$key2 || !$user_id || !$from_user_id){
             return array('inviteNum'=>0,'errsmg'=>'参数错误');
         }
-        $userAttr = new UserAttribute();
         //邀请3名好友投资
-        $res1 = $this->_inviteNum($userAttr,$from_user_id,$user_id,$key1);
+        $res1 = $this->_inviteNum($from_user_id,$user_id,$key1);
         //邀请2名好友连续投资两天
-        $res2 = $this->_inviteCastDay($userAttr,$from_user_id,$user_id,$key2);
-
+        $res2 = $this->_inviteCastDay($from_user_id,$user_id,$key2);
         return $res1;
-
     }
 
     //活动2
@@ -177,13 +174,13 @@ class Attributes
         if(!$key || !$user_id || !$from_user_id){
             return array('inviteNum'=>0,'errsmg'=>'参数错误');
         }
-        $userAttr = new UserAttribute();
-        $res = $this->_inviteCastDay($userAttr,$from_user_id,$user_id,$key);
+        $res = $this->_inviteCastDay($from_user_id,$user_id,$key);
         return $res;
     }
 
     //邀请3名好友投资设置number
-    private function _inviteNum($userAttr,$from_user_id,$user_id,$key){
+    private function _inviteNum($from_user_id,$user_id,$key){
+        $userAttr = new UserAttribute();
         //邀请3名好友投资
         $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
 
@@ -191,12 +188,15 @@ class Attributes
             $userAttr->key = $key;
             $userAttr->user_id = $from_user_id;
             $userAttr->number = 1;
-            $userAttr->text(json_encode(array($user_id)));
+            $userAttr->text = json_encode(array($user_id));
             $userAttr->save();
             return array('inviteNum'=>1);
         }else{
             if($res->number < 3){
-                $text = json_decode($res->text);
+                $text = json_decode($res->text,true);
+                if(in_array($user_id,$text)){
+                    return array('inviteNum'=>count($text));
+                }
                 $number = array_push($text,$user_id);
                 $res = $userAttr
                     ->where(['key'=>$key,'user_id'=>$from_user_id])
@@ -212,7 +212,8 @@ class Attributes
     }
 
     //连续投资两天设置number
-    private function _inviteCastDay($userAttr,$from_user_id,$user_id,$key){
+    private function _inviteCastDay($from_user_id,$user_id,$key){
+        $userAttr = new UserAttribute();
         $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
         if(empty($res)){
             $userAttr->key = $key;
@@ -223,7 +224,7 @@ class Attributes
             return array('inviteNum'=>0);
         }else{
             if($res->number == 0){
-                $userArr = json_decode($res->text);
+                $userArr = json_decode($res->text,true);
                 if(isset($userArr[$user_id])){
                     $yeDay = date('Y-m-d',time()-24*60*60);
                     if($yeDay == $userArr[$user_id]){
@@ -231,7 +232,7 @@ class Attributes
                         $text = json_encode($userArr);
                         $res = $userAttr
                             ->where(['key'=>$key,'user_id'=>$from_user_id])
-                            ->update(['number'=>1,'text'=>json_encode($text)]);
+                            ->update(['number'=>1,'text'=>$text]);
                         return array('inviteNum'=>1);
                     }
                 }
@@ -242,11 +243,11 @@ class Attributes
                 return array('inviteNum'=>0);
             }else{
                 if($res->number < 2){
-                    $userArr = json_decode($res->text);
-                    if($userArr[$user_id] == 'ok'){
-                        return $res->number;
-                    }
+                    $userArr = json_decode($res->text,true);
                     if(isset($userArr[$user_id])){
+                        if($userArr[$user_id] == 'ok'){
+                            return $res->number;
+                        }
                         $yeDay = date('Y-m-d',time()-24*60*60);
                         if($yeDay == $userArr[$user_id]){
                             $userArr[$user_id] = 'ok';
@@ -262,7 +263,7 @@ class Attributes
                     $res = $userAttr
                         ->where(['key'=>$key,'user_id'=>$from_user_id])
                         ->update(['text'=>json_encode($userArr)]);
-                    return array('inviteNum'=>$res->number);
+                    return array('inviteNum'=>$userAttr->number);
                 }
                 return array('inviteNum'=>0);
             }
