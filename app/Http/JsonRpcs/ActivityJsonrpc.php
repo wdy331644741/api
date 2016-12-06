@@ -80,6 +80,52 @@ class ActivityJsonRpc extends JsonRpc {
     }
 
     /**
+     * 圣诞节活动获取闯关状态
+     *
+     * @JsonRpcMethod
+     */
+    public function getCgStatus(){
+        global $userId;
+        $userId = 21;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = UserAttribute::where('user_id',$userId)->whereIn('key',['invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
+        $data = [
+            'invite_investment_first'=>0,
+            'invite_investment'=>0,
+            'year_investment_50000'=>0,
+            'signin'=>0,
+            'year_investment_100000'=>0
+        ];
+        foreach ($res as $val){
+            switch ($val->key) {
+                case 'invite_investment_first':
+                    $data['invite_investment_first'] = isset($val->number) ? $val->number : 0;
+                    break;
+                case 'invite_investment':
+                    $data['invite_investment'] = isset($val->number) ? $val->number : 0;
+                    break;
+                case 'year_investment_50000':
+                    $data['year_investment_50000'] = isset($res->number) ? $val->number : 0;
+                    break;
+                case 'signin':
+                    $data['signin'] = isset($res->number) ? $val->number : 0;
+                    break;
+                case 'year_investment_100000':
+                    $data['year_investment_100000'] = isset($res->number) ? $val->number : 0;
+                    break;
+            }
+
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$data
+        );
+    }
+
+    /**
      * 领取连续签到奖励
      * 
      * @JsonRpcMethod
