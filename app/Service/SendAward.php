@@ -221,7 +221,6 @@ class SendAward
                     }else{
                         //调用接口计算累计年化
                         $amount = Attributes::increment($triggerData['user_id'],"year_investment_100000",$yearInvestment);
-                        echo $amount;
                         if($amount < 100000){
                             $return = array('model'=>'Christmas','status'=>false);
                         }else{

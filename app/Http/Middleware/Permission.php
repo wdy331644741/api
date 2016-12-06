@@ -30,12 +30,12 @@ class Permission
         }
         $res = $this->checkPermission($request->segments(), $level);
         $isAdministrator = Config("administrator.{$phone}");
-//        if(!$res && !$isAdministrator) {
-//            if(!$phone) {
-//                return response()->json(array('error_code'=> '11002', 'data'=>array('error_msg' => '账号未登录')));
-//            }
-//            return response()->json(array('error_code'=> '11001', 'data'=>array('error_msg' => '账号权限不足, 请联系管理员')));
-//        }
+        if(!$res && !$isAdministrator) {
+            if(!$phone) {
+                return response()->json(array('error_code'=> '11002', 'data'=>array('error_msg' => '账号未登录')));
+            }
+            return response()->json(array('error_code'=> '11001', 'data'=>array('error_msg' => '账号权限不足, 请联系管理员')));
+        }
         return $next($request);
     }
     
