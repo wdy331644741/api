@@ -191,7 +191,7 @@ class Attributes
             $userAttr->key = $key;
             $userAttr->user_id = $from_user_id;
             $userAttr->number = 1;
-            $userAttr->text(json_encode(array($user_id)));
+            $userAttr->text = json_encode(array($user_id));
             $userAttr->save();
             return array('inviteNum'=>1);
         }else{
