@@ -185,7 +185,7 @@ class Attributes
     //邀请3名好友投资设置number
     private function _inviteNum($userAttr,$from_user_id,$user_id,$key){
         //邀请3名好友投资
-        $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first('number','text')->toArray();
+        $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first('number','text');
 
         if(empty($res)){
             $userAttr->key = $key;
@@ -195,8 +195,8 @@ class Attributes
             $userAttr->save();
             return array('inviteNum'=>1);
         }else{
-            if($res['number'] < 3){
-                $text = json_decode($res['text']);
+            if($res->number < 3){
+                $text = json_decode($res->text);
                 $number = array_push($text,$user_id);
                 $res = $userAttr
                     ->where(['key'=>$key,'user_id'=>$from_user_id])
