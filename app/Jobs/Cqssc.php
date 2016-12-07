@@ -7,6 +7,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use \GuzzleHttp\Client;
+use \GuzzleHttp\Exception\RequestException;
 use Config;
 use App\Models\Cqssc as CqsscModel;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -37,8 +38,15 @@ class Cqssc extends Job implements ShouldQueue
     {
         
         $url = Config::get('oneyuan.cqssc');
-        $client = new Client(); 
-        $res = $client->request('GET', $url);
+        
+        $client = new Client();
+        try {
+            $res = $client->request('GET', $url);
+        } catch (RequestException $e) {
+            $this->dispatch((new Cqssc())->onQueue('oneyuan')->delay(60));
+            echo 'curl error retry';
+            return;
+        }
         $jsonRes = json_decode($res->getBody(), true);
         if(!isset($jsonRes['data']) || !is_array($jsonRes['data'])){
             var_dump($jsonRes);
