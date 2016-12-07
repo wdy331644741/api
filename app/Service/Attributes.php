@@ -25,6 +25,7 @@ class Attributes
             $res->string = $string;
             $res->text = $text;
             $res->increment('number', $number);
+            $res->save();
             return $res->number;
         }
         
