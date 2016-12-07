@@ -3,6 +3,7 @@ namespace App\Service;
 
 use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
+use Cache;
 use Illuminate\Support\Facades\DB;
 
 class Func
@@ -107,11 +108,18 @@ class Func
      * @param $user_id
      * @return mixed
      */
-    static function getUserBaseInfo($user_id){
-        $url = env('INSIDE_HTTP_URL');
+    static function getUserPhone($user_id,$cache = false){
+        if(Cache::has('Phone_'.$user_id) && $cache == false){
+            return Cache::get('Phone_'.$user_id);
+        }
+        $url = env('ACCOUNT_HTTP_URL');
         $client = new JsonRpcClient($url);
-        $userBase = $client->userBasicInfo(array('userId' =>$user_id));
-        return $userBase;
+        $phone = $client->getUserImportantInfo(array($user_id));
+        $phone = isset($phone['result'][$user_id]['mobile']) ? $phone['result'][$user_id]['mobile'] : '';
+        if(!empty($phone)){
+            Cache::put('Phone_'.$user_id,$phone,30);
+        }
+        return $phone;
     }
 
     /**
@@ -119,11 +127,17 @@ class Func
      * @param $phone
      * @return int
      */
-    static function getUserIdByPhone($phone){
+    static function getUserIdByPhone($phone,$cache = false){
+        if(Cache::has('UserID_'.$phone) && $cache == false){
+            return Cache::get('UserID_'.$phone);
+        }
         $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
         $userId = $client->getUserIdByPhone(array('phone' =>$phone));
         $userId = isset($userId['result']['user_id']) ? $userId['result']['user_id'] : 0;
+        if(!empty($userId)){
+            Cache::put('UserID_'.$phone,$userId,30);
+        }
         return $userId;
     }
 }
