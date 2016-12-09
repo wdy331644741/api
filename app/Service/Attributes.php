@@ -28,6 +28,7 @@ class Attributes
             $res->string = $string;
             $res->text = $text;
             $res->increment('number', $number);
+            $res->save();
             return $res->number;
         }
         
@@ -199,7 +200,7 @@ class Attributes
         //邀请3名好友投资
         $res1 = $this->_inviteNum($from_user_id,$user_id,$key1);
         //邀请2名好友连续投资两天
-        $res2 = $this->_inviteCastDay($from_user_id,$user_id,$key2);
+        $this->_inviteCastDay($from_user_id,$user_id,$key2);
         return $res1;
     }
 
@@ -264,15 +265,13 @@ class Attributes
                     if($yeDay == $userArr[$user_id]){
                         $userArr[$user_id] = 'ok';
                         $text = json_encode($userArr);
-                        $res = $userAttr
-                            ->where(['key'=>$key,'user_id'=>$from_user_id])
+                        $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
                             ->update(['number'=>1,'text'=>$text]);
                         return array('inviteNum'=>1);
                     }
                 }
                 $userArr[$user_id] = date('Y-m-d');
-                $res = $userAttr
-                    ->where(['key'=>$key,'user_id'=>$from_user_id])
+                $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
                     ->update(['text'=>json_encode($userArr)]);
                 return array('inviteNum'=>0);
             }else{
@@ -287,15 +286,13 @@ class Attributes
                             $userArr[$user_id] = 'ok';
                             $arrNum = array_count_values($userArr);
                             $okNnum = $arrNum['ok'];
-                            $res = $userAttr
-                                ->where(['key'=>$key,'user_id'=>$from_user_id])
+                            $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
                                 ->update(['number'=>$okNnum,'text'=>json_encode($userArr)]);
                             return array('inviteNum'=>$okNnum);
                         }
                     }
                     $userArr[$user_id] = date('Y-m-d');
-                    $res = $userAttr
-                        ->where(['key'=>$key,'user_id'=>$from_user_id])
+                    $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
                         ->update(['text'=>json_encode($userArr)]);
                     return array('inviteNum'=>$userAttr->number);
                 }
