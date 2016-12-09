@@ -105,8 +105,8 @@ class OneYuanJsonRpc extends JsonRpc {
             $item['phone'] = '';
             if(isset($item['user_id']) && !empty($item['user_id'])){
                 //获取用户手机号
-                $userBase = Func::getUserBaseInfo($item['user_id']);
-                $item['phone'] = isset($userBase['result']['data']['phone']) ? substr_replace($userBase['result']['data']['phone'], '******', 3, 6) : '';
+                $userPhone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($userPhone) ? substr_replace($userPhone, '******', 3, 6) : '';
             }
             if(!empty($item['luck_code'])){
                 $item['luck_code'] = $item['luck_code']+10000001;
@@ -292,14 +292,14 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         //获取正在夺宝的记录
         $list = OneYuanJoinInfo::where('mall_id',$todayList->id)
-            ->orderBy('id','asc')
+            ->orderBy('id','desc')
             ->paginate($per_page);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
         }
         foreach($list as &$item){
-            $userBase = Func::getUserBaseInfo($item['user_id']);
-            $item['phone'] = isset($userBase['result']['data']['phone']) ? substr_replace($userBase['result']['data']['phone'], '****', 3, 4) : '';
+            $userPhone = Func::getUserPhone($item['user_id']);
+            $item['phone'] = !empty($userPhone) ? substr_replace($userPhone, '****', 3, 4) : '';
         }
         return array(
             'code' => 0,
