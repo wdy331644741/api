@@ -109,13 +109,13 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['invite_investment'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'year_investment_50000':
-                    $data['year_investment_50000'] = isset($res->number) ? $val->number : 0;
+                    $data['year_investment_50000'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'signin':
                     $data['signin'] = isset($res->number) ? $val->number : 0;
                     break;
                 case 'year_investment_100000':
-                    $data['year_investment_100000'] = isset($res->number) ? $val->number : 0;
+                    $data['year_investment_100000'] = isset($val->number) ? $val->number : 0;
                     break;
             }
 
