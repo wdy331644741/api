@@ -12,10 +12,10 @@ use DB;
 class MoneyShareBasic
 {
     //发送奖品
-    static function sendMoney($id,$userId){
+    static function sendMoney($identify,$userId){
         //判断商品是否正常
         $isExist = array();
-        $isExist['id'] = $id;
+        $isExist['identify'] = $identify;
         $isExist['status'] = 1;
         $mallInfo = MoneyShare::where($isExist)->first();
         if(empty($mallInfo)){
@@ -24,7 +24,7 @@ class MoneyShareBasic
         //判断有没有给该用户发送过
         $isJoin = array();
         $isJoin['user_id'] = $userId;
-        $isJoin['main_id'] = $id;
+        $isJoin['main_id'] = $mallInfo->id;
         $join = MoneyShareInfo::where($isJoin)->count();
         if(!empty($join)){
             return array("status"=>false,"msg"=>"已经领取该奖品","code"=>-2);

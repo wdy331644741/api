@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Service\MoneyShareBasic;
 use Illuminate\Http\Request;
 use App\Service\Func;
 use App\Models\MoneyShare;
 use App\Jobs\ReissueMoneyShare;
+use Illuminate\Support\Facades\Crypt;
 use Validator;
 
 class MoneyShareController extends Controller
@@ -84,6 +86,11 @@ class MoneyShareController extends Controller
     function getList(Request $request){
         $request->data = array('order'=>array("id" => "desc"));
         $data = Func::Search($request,new MoneyShare());
+        if(!empty($data)){
+            foreach($data as &$item){
+                $item['identify'] = urlencode(Crypt::encrypt($item['identify']));
+            }
+        }
         return $this->outputJson(0,$data);
     }
     /**

@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
+use Illuminate\Support\Facades\Crypt;
 
 
 class MoneyShareJsonRpc extends JsonRpc {
@@ -15,16 +16,17 @@ class MoneyShareJsonRpc extends JsonRpc {
      */
     public function moneyShareSendAward($params) {
         global $userId;
-        $userId = 222;
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $id = intval($params->id);
-        if(empty($id)){
+        $identify = intval($params->identify);
+        if(empty($identify)){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
+        //解密identify
+        $identify = Crypt::decrypt($identify);
         //发送体验金
-        $data = MoneyShareBasic::sendMoney($id,$userId);
+        $data = MoneyShareBasic::sendMoney($identify,$userId);
         if(isset($data['status']) && $data['status'] === false){
             if($data['code'] === -1){
                 throw new OmgException(OmgException::MALL_NOT_EXIST);
