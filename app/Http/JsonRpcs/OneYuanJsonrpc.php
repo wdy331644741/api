@@ -299,7 +299,7 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         foreach($list as &$item){
             $userPhone = Func::getUserPhone($item['user_id']);
-            $item['phone'] = !empty($userPhone) ? substr_replace($userPhone, '****', 3, 4) : '';
+            $item['phone'] = !empty($userPhone) ? substr_replace($userPhone, '******', 3, 6) : '';
         }
         return array(
             'code' => 0,
