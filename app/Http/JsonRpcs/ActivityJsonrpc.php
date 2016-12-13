@@ -118,7 +118,6 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['year_investment_100000'] = isset($val->number) ? $val->number : 0;
                     break;
             }
-
         }
         return array(
             'code' => 0,
