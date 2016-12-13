@@ -117,7 +117,8 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['year_investment_50000'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'signin':
-                    $data['signin'] = isset($res->number) ? $val->number : 0;
+                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $data['signin'] = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     break;
                 case 'year_investment_100000':
                     $data['year_investment_100000'] = isset($val->number) ? $val->number : 0;
@@ -157,7 +158,7 @@ class ActivityJsonRpc extends JsonRpc {
                     }
                     break;
                 case 'invite_investment':
-                    if(isset($val->number) && $val->number >=3){
+                    if(isset($val->number) && $val->number >=2){
                         SendAward::ActiveSendAward($userId,'invite_investment_send');
                     }
                     break;
@@ -166,7 +167,11 @@ class ActivityJsonRpc extends JsonRpc {
                         SendAward::ActiveSendAward($userId,'year_investment_50000_send');
                     }
                 case 'signin':
-                    SendAward::ActiveSendAward($userId,'continue_signin_three');
+                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $signDay = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
+                    if($signDay >= 3){
+                        SendAward::ActiveSendAward($userId,'continue_signin_three');
+                    }
                     break;
                 case 'year_investment_100000':
                     if(isset($val->number) && $val->number >=100000){

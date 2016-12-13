@@ -24,6 +24,7 @@ use App\Models\ActivityJoin;
 use App\Service\Attributes;
 use App\Service\OneYuanBasic;
 use App\Service\Flow;
+use App\Models\UserAttribute;
 use Config;
 use Validator;
 class SendAward
@@ -67,10 +68,7 @@ class SendAward
                 $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
             }
         }
-        //圣诞活动判断发奖
-        if(isset($additional_status['model']) && $additional_status['status'] === false){
-            return "不发奖";
-        }
+
         //*****给本人发的奖励*****
         $status = self::addAwardByActivity($userID, $activityID,$triggerData);
 
@@ -176,9 +174,12 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $data = $Attributes->setSd1Number("invite_investment_first","invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
                     if($data['inviteNum'] == 3){
-                        $return = array('model'=>'Christmas','status'=>true);
-                    }else{
-                        $return = array('model'=>'Christmas','status'=>false);
+                        //获取种树状态
+                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                        if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                            //发奖
+                            self::ActiveSendAward($triggerData['from_user_id'],'invite_investment_first_send');
+                        }
                     }
                 }
                 break;
@@ -187,9 +188,12 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $data = $Attributes->setSd2Number("invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
                     if($data['inviteNum'] == 2){
-                        $return = array('model'=>'Christmas','status'=>true);
-                    }else{
-                        $return = array('model'=>'Christmas','status'=>false);
+                        //获取种树状态
+                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                        if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                            //发奖
+                            self::ActiveSendAward($triggerData['from_user_id'],'invite_investment_send');
+                        }
                     }
                 }
                 break;
@@ -206,7 +210,12 @@ class SendAward
                         if($amount < 50000){
                             $return = array('model'=>'Christmas','status'=>false);
                         }else{
-                            $return = array('model'=>'Christmas','status'=>true);
+                            //获取种树状态
+                            $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                            if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                                //发奖
+                                self::ActiveSendAward($triggerData['user_id'],'year_investment_50000_send');
+                            }
                         }
                     }
                 }
@@ -224,7 +233,12 @@ class SendAward
                         if($amount < 100000){
                             $return = array('model'=>'Christmas','status'=>false);
                         }else{
-                            $return = array('model'=>'Christmas','status'=>true);
+                            //获取种树状态
+                            $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                            if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                                //发奖
+                                self::ActiveSendAward($triggerData['user_id'],'year_investment_100000_send');
+                            }
                         }
                     }
                 }
