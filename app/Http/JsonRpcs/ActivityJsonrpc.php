@@ -9,6 +9,7 @@ use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
 use App\Service\Attributes;
+use App\Service\SignIn;
 use App\Models\UserAttribute;
 use Lib\JsonRpcClient;
 use Validator, Config;
@@ -288,6 +289,22 @@ class ActivityJsonRpc extends JsonRpc {
                 }
                 $awardName = $awards[0]['award_name'];
                 $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
+
+                // START 16年12月26日圣诞节活动,活动结束后关闭
+                $signInThree = 'continue_signin_three';
+                $act = Activity::where('alias_name', $signInThree)->first();
+                if($act) {
+                    if($act['start_at']){
+                        $startAt = $act['start_at'];
+                        $startAtArr = explode(' ', $startAt);
+                        $startDate = $startAtArr[0];
+                        $num = SignIn::getSignInNum($userId, $startDate);
+                        if($num >= 3){
+                            SendAward::ActiveSendAward($userId, $signInThree);
+                        }
+                    }
+                }
+                // END 16年12月26日圣诞节活动,活动结束后关闭
             }
         }
         
@@ -320,7 +337,7 @@ class ActivityJsonRpc extends JsonRpc {
         $extra = $this->isExtraAwards($userId, $end);
         // 是否分享
         $shared = $this->isShared($userId);
-
+        
         return array(
             'code' => 0,
             'message' => 'success',
