@@ -92,8 +92,9 @@ class ActivityJsonRpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = UserAttribute::where('user_id',$userId)->whereIn('key',['invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
+        $res = UserAttribute::where('user_id',$userId)->whereIn('key',['sd_tree_status','invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
         $data = [
+            'sd_tree_status'=>0,
             'invite_investment_first'=>0,
             'invite_investment'=>0,
             'year_investment_50000'=>0,
@@ -102,6 +103,9 @@ class ActivityJsonRpc extends JsonRpc {
         ];
         foreach ($res as $val){
             switch ($val->key) {
+                case 'sd_tree_status':
+                    $data['sd_tree_status'] = isset($val->number) ? $val->number : 0;
+                    break;
                 case 'invite_investment_first':
                     $data['invite_investment_first'] = isset($val->number) ? $val->number : 0;
                     break;
@@ -127,6 +131,53 @@ class ActivityJsonRpc extends JsonRpc {
         );
     }
 
+    /**
+     * 圣诞节活动点我种树
+     *
+     * @JsonRpcMethod
+     */
+    public function setSdStatus(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $treeStatus = UserAttribute::where(['user_id'=>$userId,'key'=>'sd_tree_status'])->value('number');
+        if(!$treeStatus){
+            $res = Attributes::increment($userId,'sd_tree_status');
+            if(!$res){
+                throw new OmgException(OmgException::API_FAILED);
+            }
+        }
+        $status = UserAttribute::where('user_id',$userId)->whereIn('key',['invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
+        foreach ($status as $val){
+            switch ($val->key) {
+                case 'invite_investment_first':
+                    if(isset($val->number) && $val->number >=3){
+                        SendAward::ActiveSendAward($userId,'invite_investment_first_send');
+                    }
+                    break;
+                case 'invite_investment':
+                    if(isset($val->number) && $val->number >=3){
+                        SendAward::ActiveSendAward($userId,'invite_investment_send');
+                    }
+                    break;
+                case 'year_investment_50000':
+                    if(isset($val->number) && $val->number >=50000){
+                        SendAward::ActiveSendAward($userId,'year_investment_50000_send');
+                    }
+                case 'signin':
+                    SendAward::ActiveSendAward($userId,'continue_signin_three');
+                    break;
+                case 'year_investment_100000':
+                    if(isset($val->number) && $val->number >=100000){
+                        SendAward::ActiveSendAward($userId,'year_investment_100000_send');
+                    }
+                    break;
+            }
+
+        }
+
+    }
     /**
      * 领取连续签到奖励
      * 
