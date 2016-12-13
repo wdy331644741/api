@@ -158,7 +158,7 @@ class ActivityJsonRpc extends JsonRpc {
                     }
                     break;
                 case 'invite_investment':
-                    if(isset($val->number) && $val->number >=3){
+                    if(isset($val->number) && $val->number >=2){
                         SendAward::ActiveSendAward($userId,'invite_investment_send');
                     }
                     break;
