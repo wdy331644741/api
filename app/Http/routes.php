@@ -44,6 +44,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('integral', 'IntegralMallController');
     // 1元夺宝
     Route::controller('one', 'OneYuanController');
+    // 红包分享
+    Route::controller('money', 'MoneyShareController');
 });
 
 // 对外接口
