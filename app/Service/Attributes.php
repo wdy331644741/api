@@ -150,5 +150,35 @@ class Attributes
         $res->update();
         return true;
     }
-    
+
+    //---------------------新春嘉年华-----------------------//
+
+    //投资标个数记录
+    static public function setNyBiao($user_id,$key,$bid){
+        $userAttr = new UserAttribute();
+        //投资标个数记录
+        $res = $userAttr->where(['user_id'=>$user_id,'key'=>$key])->first();
+        if(empty($res)){
+            $userAttr->key = $key;
+            $userAttr->user_id = $user_id;
+            $userAttr->number = 1;
+            $userAttr->text = json_encode(array($bid));
+            $userAttr->save();
+            return array('inviteNum'=>1);
+        }else{
+            $text = json_decode($res->text,true);
+            if(in_array($bid,$text)){
+                return array('inviteNum'=>count($text));
+            }
+            $number = array_push($text,$bid);
+            $res = $userAttr
+                ->where(['key'=>$key,'user_id'=>$user_id])
+                ->update(['number'=>$number,'text'=>json_encode($text)]);
+            if($res){
+                return array('inviteNum'=>$number);
+            }else{
+                return array('inviteNum'=>0,'errmsg'=>'数据写入失败');
+            }
+        }
+    }
 }
