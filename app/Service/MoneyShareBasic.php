@@ -61,7 +61,9 @@ class MoneyShareBasic
                 $awards['main_id'] = $mallInfo->id;
                 $awards['source_id'] = Config::get("activity.money_share_batch")+$mallInfo->id;
                 //根据算法获得体验金额
-                $money = 1000;
+                $remain = isset($mallInfo->total_money) && isset($mallInfo->use_money) ? $mallInfo->total_money - $mallInfo->use_money : 0;
+                $remainNumber = isset($mallInfo->total_num) && isset($mallInfo->receive_num) ? $mallInfo->total_num - $mallInfo->receive_num : 0;
+                $money = self::getRandomMoney($remain,$remainNumber,$mallInfo->min,$mallInfo->max);
                 //如果是补发就用原有金额
                 if(isset($awardInfo->unSendID) && !empty($awardInfo->unSendID)){
                     $money = $awardInfo->amount;

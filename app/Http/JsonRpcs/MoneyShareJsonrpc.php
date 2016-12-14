@@ -19,12 +19,12 @@ class MoneyShareJsonRpc extends JsonRpc {
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $identify = intval($params->identify);
+        $identify = $params->identify;
         if(empty($identify)){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         //解密identify
-        $identify = Crypt::decrypt($identify);
+        $identify = Crypt::decrypt(urldecode($identify));
         //发送体验金
         $data = MoneyShareBasic::sendMoney($identify,$userId);
         if(isset($data['status']) && $data['status'] === false){
