@@ -292,14 +292,14 @@ class OneYuanJsonRpc extends JsonRpc {
         }
         //获取正在夺宝的记录
         $list = OneYuanJoinInfo::where('mall_id',$todayList->id)
-            ->orderBy('id','asc')
+            ->orderBy('id','desc')
             ->paginate($per_page);
         if(empty($list)){
             throw new OmgException(OmgException::NO_DATA);
         }
         foreach($list as &$item){
             $userPhone = Func::getUserPhone($item['user_id']);
-            $item['phone'] = !empty($userPhone) ? substr_replace($userPhone, '****', 3, 4) : '';
+            $item['phone'] = !empty($userPhone) ? substr_replace($userPhone, '******', 3, 6) : '';
         }
         return array(
             'code' => 0,
