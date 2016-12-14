@@ -89,6 +89,41 @@ class MoneyShareBasic
                 break;
         }
     }
+
+
+    /**
+     * 红包算法
+     * 
+     * @param $remain int 剩余金额
+     * @param $remainNumber int 剩余数量
+     * @param $min int 最小值
+     * @param $max int 最大值
+     * @return int
+     */
+    static function getRandomMoney($remain, $remainNumber, $min, $max) {
+        if($remainNumber == 1) {
+            return $remain;
+        }
+        $randomRemain = $remain - $remainNumber*$min;
+        if($randomRemain <= 0 ) {
+            return $min;
+        }
+
+        $average =  floor($randomRemain/$remainNumber);
+        $randomMax = $max-$min;
+        
+        // 最大值最低为平均值2倍
+        $randomMax = $average*2 > $randomMax ? $average*2 : $randomMax;
+        // 最大值不能大于剩余
+        $randomMax = $randomMax > $randomRemain ? $randomRemain : $randomMax;
+        
+        $goodLuck =  rand(0, $randomMax);
+        if($goodLuck < $average) {
+            return rand($average, $randomMax)+$min;   
+        }else{
+            return rand(0, $average)+$min; 
+        }
+    }
     //体验金发送
     static function experience($info){
         //添加info里添加日志需要的参数
