@@ -175,7 +175,7 @@ class SendAward
                     $data = $Attributes->setSd1Number("invite_investment_first","invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
                     if($data['inviteNum'] == 3){
                         //获取种树状态
-                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['from_user_id'])->first();
                         if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
                             //发奖
                             self::ActiveSendAward($triggerData['from_user_id'],'invite_investment_first_send');
@@ -189,7 +189,7 @@ class SendAward
                     $data = $Attributes->setSd2Number("invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
                     if($data['inviteNum'] == 2){
                         //获取种树状态
-                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['from_user_id'])->first();
                         if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
                             //发奖
                             self::ActiveSendAward($triggerData['from_user_id'],'invite_investment_send');
