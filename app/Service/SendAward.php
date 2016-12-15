@@ -24,6 +24,7 @@ use App\Models\ActivityJoin;
 use App\Service\Attributes;
 use App\Service\OneYuanBasic;
 use App\Service\Flow;
+use App\Models\UserAttribute;
 use Config;
 use Validator;
 class SendAward
@@ -168,6 +169,80 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //邀请人首次投资
+            case "invite_investment_first" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $data = $Attributes->setSd1Number("invite_investment_first","invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
+                    if($data['inviteNum'] == 3){
+                        //获取种树状态
+                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['from_user_id'])->first();
+                        if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                            //发奖
+                            self::ActiveSendAward($triggerData['from_user_id'],'invite_investment_first_send');
+                        }
+                    }
+                }
+                break;
+            //邀请人连续投资
+            case "invite_investment" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $data = $Attributes->setSd2Number("invite_investment",$triggerData['user_id'],$triggerData['from_user_id']);
+                    if($data['inviteNum'] == 2){
+                        //获取种树状态
+                        $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['from_user_id'])->first();
+                        if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                            //发奖
+                            self::ActiveSendAward($triggerData['from_user_id'],'invite_investment_send');
+                        }
+                    }
+                }
+                break;
+            //算年化投资5w
+            case "year_investment_50000" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    //得到年化
+                    $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
+                    if(!$yearInvestment){
+                        $return = array('model'=>'Christmas','status'=>false);
+                    }else{
+                        //调用接口计算累计年化
+                        $amount = Attributes::increment($triggerData['user_id'],"year_investment_50000",$yearInvestment);
+                        if($amount < 50000){
+                            $return = array('model'=>'Christmas','status'=>false);
+                        }else{
+                            //获取种树状态
+                            $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                            if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                                //发奖
+                                self::ActiveSendAward($triggerData['user_id'],'year_investment_50000_send');
+                            }
+                        }
+                    }
+                }
+                break;
+            //算年化投资10w
+            case "year_investment_100000" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    //得到年化
+                    $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
+                    if(!$yearInvestment){
+                        $return = array('model'=>'Christmas','status'=>false);
+                    }else{
+                        //调用接口计算累计年化
+                        $amount = Attributes::increment($triggerData['user_id'],"year_investment_100000",$yearInvestment);
+                        if($amount < 100000){
+                            $return = array('model'=>'Christmas','status'=>false);
+                        }else{
+                            //获取种树状态
+                            $christmasClick = UserAttribute::where('key','sd_tree_status')->where('user_id',$triggerData['user_id'])->first();
+                            if(isset($christmasClick['number']) && $christmasClick['number'] == 1){
+                                //发奖
+                                self::ActiveSendAward($triggerData['user_id'],'year_investment_100000_send');
+                            }
+                        }
+                    }
+                }
+                break;
             //实名送100M流量
             case "gdyidong_flow_100M":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
@@ -1257,5 +1332,17 @@ class SendAward
         $info['remark'] = json_encode($err);
         self::addLog($info);
         return $err;
+    }
+    static function yearInvestment($amount,$type,$time){
+        if(empty($amount) || empty($type) || empty($time)){
+            return false;
+        }
+        $yearMoney = 0;
+        if($type == 1){
+            $yearMoney = ceil(($amount*$time)/360);
+        }else if ($type == 2){
+            $yearMoney = ceil(($amount*$time)/12);
+        }
+        return $yearMoney;
     }
 }
