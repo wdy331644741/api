@@ -169,6 +169,44 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+
+            //*********新春嘉年华活动****START****//
+            //金牌投手奖
+            case "new_year_bidding" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['project_id'])){
+                    Attributes::setNyBiao($triggerData['user_id'],'new_year_bidding',$triggerData['project_id']);
+                }
+                break;
+            //推广贡献奖
+            case "new_year_invite_investment" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
+                    if($yearInvestment){
+                        Attributes::setNyExtension($triggerData['from_user_id'],'new_year_invite_investment',$yearInvestment,$triggerData['is_first']);
+                    }
+                }
+                break;
+            //蛋无虚发获取锤子
+            case "new_year_hammer_num" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 1000){
+                        $num = intval($amount/1000);
+                        Attributes::increment($triggerData['user_id'],'new_year_hammer_num',$num);
+                    }
+                }
+                break;
+            //统计年化
+            case "new_year_year_investment" :
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
+                    if($yearInvestment){
+                        Attributes::increment($triggerData['user_id'],'new_year_year_investment',$yearInvestment);
+                    }
+                }
+                break;
+            //*********新春嘉年华活动****END****//
+
             //邀请人首次投资
             case "invite_investment_first" :
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
