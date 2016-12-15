@@ -9,6 +9,7 @@ use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
 use App\Service\Attributes;
+use App\Service\SignIn;
 use App\Models\UserAttribute;
 use Lib\JsonRpcClient;
 use Validator, Config;
@@ -30,52 +31,55 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function signinShare() {
         global $userId;
-        
+        $signInName = 'signin';
+        $sharedName = 'signinShared';
+        $isShared = false;
+        $awardName = '';
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
 
-        $signinName = 'signin';
-        $signinActivity = Activity::where('alias_name', $signinName)->first();
-        
-        $sharedName = 'signinShared';
-        $sharedActivity = Activity::where('alias_name', $sharedName)->first();
-        $today = date('Y-m-d');
-        
-        
-        //是否签到
-        $signinRes = SendRewardLog::where(['user_id' => $userId, 'activity_id' => $signinActivity['id']])->whereRaw("date(created_at) = '{$today}'")->first();
-        if(!$signinRes) {
+        // 未签到
+        $signIn = Attributes::getItem($userId, $signInName);
+        if(!$signIn) {
+            throw new OmgException(OmgException::NOT_SIGNIN);
+        } 
+        $lastUpdate = $signIn['updated_at'] ? $signIn['updated_at'] : $signIn['created_at'];
+        $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
+        if($lastUpdateDate !== date('Y-m-d', time())) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
 
-        $shared = $this->isShared($userId);
-        //是否分享
-        if($shared) {
-            $award = SendAward::getAward($signinRes['award_type'], $signinRes['award_id']);
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => array(
-                    'isShared' => true,
-                    'award' => [$award['name']],
-                ),
-            );
+        // 已分享
+        $shared = Attributes::getItem($userId, $sharedName);
+        if($shared){
+            $sharedUpdate = $shared['updated_at'] ? $shared['updated_at'] : $shared['created_at'];
+            $sharedUpdateDate = date('Y-m-d', strtotime($sharedUpdate));
+            
+            if($sharedUpdateDate == date('Y-m-d', time())) {
+                $isShared = true;
+                $awardName = $shared['string'];
+            }   
         }
-
-        //给用户发奖
-        $res = SendAward::sendDataRole($userId, $signinRes['award_type'], $signinRes['award_id'], $sharedActivity['id']);
-        $awardName = $res['award_name'];
+        
+        // 未分享
+        if(!$isShared) {
+            $awards = json_decode($signIn['text'], true);
+            $sharedActivity = Activity::where('alias_name', $sharedName)->first();
+            // 发奖
+            $award = SendAward::sendDataRole($userId, $awards[0]['award_type'], $awards[0]['award_id'], $sharedActivity['id']);
+            $awardName = $award['award_name'];
+            Attributes::setItem($userId, $sharedName, time(), $awardName, json_encode($awards));
+        }
         
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
-                'isShared' => false,
+                'isShared' => $isShared,
                 'award' => [$awardName],
             ),
         );
-
 
     }
 
@@ -89,8 +93,9 @@ class ActivityJsonRpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = UserAttribute::where('user_id',$userId)->whereIn('key',['invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
+        $res = UserAttribute::where('user_id',$userId)->whereIn('key',['sd_tree_status','invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
         $data = [
+            'sd_tree_status'=>0,
             'invite_investment_first'=>0,
             'invite_investment'=>0,
             'year_investment_50000'=>0,
@@ -99,6 +104,9 @@ class ActivityJsonRpc extends JsonRpc {
         ];
         foreach ($res as $val){
             switch ($val->key) {
+                case 'sd_tree_status':
+                    $data['sd_tree_status'] = isset($val->number) ? $val->number : 0;
+                    break;
                 case 'invite_investment_first':
                     $data['invite_investment_first'] = isset($val->number) ? $val->number : 0;
                     break;
@@ -106,16 +114,16 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['invite_investment'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'year_investment_50000':
-                    $data['year_investment_50000'] = isset($res->number) ? $val->number : 0;
+                    $data['year_investment_50000'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'signin':
-                    $data['signin'] = isset($res->number) ? $val->number : 0;
+                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $data['signin'] = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     break;
                 case 'year_investment_100000':
-                    $data['year_investment_100000'] = isset($res->number) ? $val->number : 0;
+                    $data['year_investment_100000'] = isset($val->number) ? $val->number : 0;
                     break;
             }
-
         }
         return array(
             'code' => 0,
@@ -125,13 +133,63 @@ class ActivityJsonRpc extends JsonRpc {
     }
 
     /**
+     * 圣诞节活动点我种树
+     *
+     * @JsonRpcMethod
+     */
+    public function setSdStatus(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $treeStatus = UserAttribute::where(['user_id'=>$userId,'key'=>'sd_tree_status'])->value('number');
+        if(!$treeStatus){
+            $res = Attributes::increment($userId,'sd_tree_status');
+            if(!$res){
+                throw new OmgException(OmgException::API_FAILED);
+            }
+        }
+        $status = UserAttribute::where('user_id',$userId)->whereIn('key',['invite_investment_first','invite_investment','year_investment_50000','signin','year_investment_100000'])->get();
+        foreach ($status as $val){
+            switch ($val->key) {
+                case 'invite_investment_first':
+                    if(isset($val->number) && $val->number >=3){
+                        SendAward::ActiveSendAward($userId,'invite_investment_first_send');
+                    }
+                    break;
+                case 'invite_investment':
+                    if(isset($val->number) && $val->number >=2){
+                        SendAward::ActiveSendAward($userId,'invite_investment_send');
+                    }
+                    break;
+                case 'year_investment_50000':
+                    if(isset($val->number) && $val->number >=50000){
+                        SendAward::ActiveSendAward($userId,'year_investment_50000_send');
+                    }
+                case 'signin':
+                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $signDay = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
+                    if($signDay >= 3){
+                        SendAward::ActiveSendAward($userId,'continue_signin_three');
+                    }
+                    break;
+                case 'year_investment_100000':
+                    if(isset($val->number) && $val->number >=100000){
+                        SendAward::ActiveSendAward($userId,'year_investment_100000_send');
+                    }
+                    break;
+            }
+
+        }
+
+    }
+    /**
      * 领取连续签到奖励
      * 
      * @JsonRpcMethod
      */
     public function signinDay($params) {
         global $userId;
-        $today = date('Y-m-d', time());
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -141,66 +199,46 @@ class ActivityJsonRpc extends JsonRpc {
         if($validator->fails()){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-
         $day = $params->day;
         $aliasName = "signinDay_{$day}";
-        $activity = Activity::where('alias_name', $aliasName)->first();
-        
-        if(!$activity) {
-            throw new OmgException(OmgException::PARAMS_ERROR);
-        }
-        
-        $signin = Activity::where('alias_name', 'signin')->first();
-        
-        $where = array(
-            'user_id' => $userId,
-            'activity_id' => $signin['id'],
-        );
+        $signInName = 'signin';
+        $isAward = false;
+        $awardName = '';
 
-        $signinRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
-
-        if(!$signinRes) {
+        $signIn = Attributes::getItem($userId, $signInName);
+        if(!$signIn) {
+            throw new OmgException(OmgException::NOT_SIGNIN);
+        } 
+        $lastUpdate = $signIn['updated_at'] ? $signIn['updated_at'] : $signIn['created_at'];
+        $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
+        if($lastUpdateDate !== date('Y-m-d', time())) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
-
-        $remark = json_decode($signinRes['remark'], true);
-        //获取连续签到天数
-        if(isset($remark['continue'])) {
-            $continue = intval($remark['continue']);
-        }else {
-            $continue = 0; 
+        
+        if($signIn['number'] !== $day) {
+            throw new OmgException(OmgException::PARAMS_ERROR);
         }
-
-        if($day > $continue) {
-            throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
+        $extra = Attributes::getItem($userId, $aliasName);
+        if($extra) {
+            $extraLastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
+            $extraLastUpdateDate = date('Y-m-d', strtotime($extraLastUpdate));
+            if($extraLastUpdateDate == date('Y-m-d', time())) {
+                $isAward = true;
+                $awardName = $extra['string'];
+            }       
+        } 
+        
+        if(!$isAward) {
+            $awards = SendAward::ActiveSendAward($userId, $aliasName);
+            $awardName = $awards[0]['award_name'];
+            Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
-        $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
-
-        $awardRes = SendRewardLog::where(array(
-            'user_id'  => $userId,
-            'activity_id' => $activity['id'],
-        ))->whereRaw("created_at >= '{$before}'")->first();
-
-        if($awardRes) {
-            $award = SendAward::getAward($awardRes['award_type'], $awardRes['award_id']);
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => array(
-                    'isAward' => true,
-                    'awards' => [$award['name']],
-                ),
-            ); 
-        }
-
-        $res = SendAward::addAwardByActivity($userId, $activity['id']);
-        $awardName = $res[0]['award_name'];
         
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
-                'isAward' => false,
+                'isAward' => $isAward,
                 'awards' => [$awardName],
             ),
         );
@@ -214,106 +252,82 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function signin() {
         global $userId;
-        return $this->innerSignin($userId);
-    }
-
-    public function innerSignin($userId) {
-        $aliasName = 'signin';
-        $days = array(7, 14, 21, 28);
-        $daysLength = count($days);
-        $last = $days[$daysLength-1];
-
-        //是否登录
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $today = date('Y-m-d', time());
-        $yesterday = date('Y-m-d', time() - 3600*24);
-        $continue = 1;
+        return $this->innerSignin($userId);
+    }
+
+    // 内部签到
+    public function innerSignin($userId) {
+        $aliasName = 'signin';
+        $days = array(7, 14, 21, 28); //额外奖励
+        $last = $days[count($days)-1]; //最后的天数
+        $isSignIn = false; //是否签到过
+        $continue = 1; //连续签到天数
+        $awardName = ''; //奖励
 
         $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-
-        // 今日是否签到
-        $where = array(
-            'user_id' => $userId,
-            'activity_id' => $activity['id'],
-        );
-        $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
-        if($todayRes) {
-            $remark = json_decode($todayRes['remark'], true);
-            $award = SendAward::getAward($todayRes['award_type'], $todayRes['award_id']);
-            if(isset($remark['continue'])) {
-                $continue = intval($remark['continue']);
-            }else {
-                $continue = 0;
-            }
-
-            // 是否分享
-            $shared = $this->isShared($userId);
-
-            //获取额外奖励记录
-            $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
-
-            foreach($days as $key => $day) {
-                if($continue <= $day){
-                    if($key == 0) {
-                        $start = 1;
-                    }else{
-                        $start = $days[$key-1] + 1;
-                    }
-                    $end = $day;
-                    break;
-                }
-            }
-            $extra = $this->getExtraAwards($userId, $before, $end);
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => array(
-                    'isSignin' => true,
-                    'current' => $continue,
-                    'start' => $start,
-                    'end' => $end,
-                    'extra' => $extra,
-                    'shared' => $shared,
-                    'last' => $last,
-                    'award' => [$award['name']],
-                ),
-            );
-         }
+        $signIn = Attributes::getItem($userId, $aliasName);
         
-        // 发奖
-        $res = SendAward::addAwardByActivity($userId, $activity['id']);
-        $awardName = $res[0]['award_name'];
+        //签到过
+        if($signIn) {
+            $lastUpdate = $signIn['updated_at'] ? $signIn['updated_at'] : $signIn['created_at'];
+            $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
 
-        // 连续登陆
-        $yesterdayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$yesterday}'")->first();
-        if(!empty($yesterdayRes)){
-            $remark = json_decode($yesterdayRes['remark'], true);
-            if(isset($remark['continue'])) {
-                $continue = intval($remark['continue']);
-            }else {
-                $continue = 0;
+            // 今天已签到
+            if($lastUpdateDate == date('Y-m-d', time())) {
+                $isSignIn = true;
+                $continue = $signIn['number'] ?  $signIn['number'] : 0;
+                $awardName = $signIn['string'];
             }
-            $continue += 1;
-            if($continue > 28) {
-                $continue = 1;
+            
+            // 昨天已签到
+            if($lastUpdateDate == date('Y-m-d', time() - 3600*24)) {
+                // 发奖
+                $awards = SendAward::ActiveSendAward($userId, $aliasName);
+                if(!isset($awards[0]['award_name'])) {
+                    throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+                }
+                $awardName = $awards[0]['award_name'];
+                $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
+
+                // START 16年12月26日圣诞节活动,活动结束后关闭
+                $signInThree = 'continue_signin_three';
+                $act = Activity::where('alias_name', $signInThree)->first();
+                if($act) {
+                    if($act['start_at']){
+                        $startAt = $act['start_at'];
+                        $startAtArr = explode(' ', $startAt);
+                        $startDate = $startAtArr[0];
+                        $num = SignIn::getSignInNum($userId, $startDate);
+                        if($num >= 3){
+                            SendAward::ActiveSendAward($userId, $signInThree);
+                        }
+                    }
+                }
+                // END 16年12月26日圣诞节活动,活动结束后关闭
             }
         }
+        
+        //未签到或非连续签到
+        if(empty($awardName)) {
+            $continue = $signIn ? 1 : $this->getOldSignNumber($userId)+1; // 兼容旧逻辑写法,上线后一天过后,即可变为变量1
+            $awards = SendAward::ActiveSendAward($userId, $aliasName);
+            if(!isset($awards[0]['award_name'])) {
+                throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+            }
+            $awardName = $awards[0]['award_name'];
+            Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
+        }
 
-        // 更新连续登陆天数
-        $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
-        $remark = json_decode($todayRes['remark'], true) ;
-        $remark['continue'] = $continue;
-        $todayRes->remark = json_encode($remark);
-        $todayRes->save();
-        
-        
+        // 额外奖励进度 
+        $current = $continue%$last == 0 ? $last : $continue%$last;
         foreach($days as $key => $day) {
-            if($continue <= $day){
+            if($current <= $day){
                 if($key == 0) {
                     $start = 1;
                 }else{
@@ -321,56 +335,103 @@ class ActivityJsonRpc extends JsonRpc {
                 }
                 $end = $day;
                 break;
-            }            
+            }
         }
-
-        // 获取额外奖励领取记录
-        $before = date('Y-m-d 00:00:00', time() - 3600*24*($continue-1));
-        $extra = $this->getExtraAwards($userId, $before, $end);
-
+        
+        // 是否领取额外奖励
+        $extra = $this->isExtraAwards($userId, $end);
+        // 是否分享
+        $shared = $this->isShared($userId);
+        
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => array(
-                'isSignin' => false,
-                'current' => $continue,
+                'isSignin' => $isSignIn,
+                'current' => $current,
                 'start' => $start,
                 'end' => $end,
                 'extra' => $extra,
-                'shared' => false,
+                'shared' => $shared,
                 'award' => [$awardName],
                 'last' => $last,
             ),
-        );           
+        );
     }
-
-    // 获取额外奖励领取记录
-    private function getExtraAwards($userId, $before, $day) {
-        $activity = Activity::where('alias_name', "signinDay_{$day}")->first();
-        if($activity) {
-            $awardRes = SendRewardLog::where(array(
-                'user_id'  => $userId,
-                'activity_id' => $activity['id'],
-            ))->whereRaw("created_at >= '{$before}'")->first();
-            if($awardRes){
-                return true;
-            }else{
-                return false;
-            }
+    
+    // 获取旧接口签到次数
+    private function getOldSignNumber($userId) {
+        // 今日是否签到
+        $aliasName = 'signin';
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
+        if(!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        $where = array(
+            'user_id' => $userId,
+            'activity_id' => $activity['id'],
+        );
+        $today = date('Y-m-d', time());
+        $yesterday = date('Y-m-d', time() - 3600*24);
+        $continue = 0;
+        
+        $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
+        if($todayRes) {
+            $remark = json_decode($todayRes['remark'], true);
+            if(isset($remark['continue'])) {
+                $continue = intval($remark['continue'])-1;
+                $continue = $continue > 0 ? $continue : 0;
+            }else {
+                $continue = 0;
+            }       
+            return $continue;
+        }
+        $yesterdayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$yesterday}'")->first();
+        if($yesterdayRes){
+            $remark = json_decode($yesterdayRes['remark'], true);
+            if(isset($remark['continue'])) {
+                $continue = intval($remark['continue']);
+            }else {
+                $continue = 0;
+            }
+            return $continue;
+        }
+        return $continue;
+    }
+    
+    // 获取额外奖励领取记录
+    private function isExtraAwards($userId, $end) {
+        $aliasName = "signinDay_{$end}";
+        $extra = Attributes::getItem($userId, $aliasName);
+        
+        $lastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
+        $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
+
+        // 今天领奖了
+        if($lastUpdateDate == date('Y-m-d', time())) {
+            return true;
+        }
+        
+        return false;
     }
     
     // 今天是否分享
     private function isShared($userId) {
         $sharedName = 'signinShared';
-        $sharedActivity = Activity::where('alias_name', $sharedName)->first();
-        $today = date('Y-m-d', time());
         
-        $sharedRes = SendRewardLog::where(['user_id' => $userId, 'activity_id' => $sharedActivity['id']])->whereRaw("date(created_at) = '{$today}'")->first();
-        if($sharedRes) {
-            return true;
+        $shared = Attributes::getItem($userId, $sharedName);
+        // 未分享记录
+        if(!$shared) {
+            return false;
         }
+        
+        //已分享
+        $sharedUpdate = $shared['updated_at'] ? $shared['updated_at'] : $shared['created_at'];
+        $sharedUpdateDate = date('Y-m-d', strtotime($sharedUpdate));
+        if($sharedUpdateDate == date('Y-m-d', time())) {
+            return true;
+        }   
+        
         return false;
     }
 
@@ -396,145 +457,6 @@ class ActivityJsonRpc extends JsonRpc {
         );
     }
     
-    /**
-     * 获取双十一抽奖次数
-     * 
-     * @JsonRpcMethod
-     */
-    public function getDoubleElevenChance() {
-        global $userId;
-        if(!$userId){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $config = Config::get('activity.double_eleven');
-        
-        $res1 = Attributes::getNumber($userId, $config['key1'], 1);
-        $res2 = Attributes::getNumber($userId, $config['key2'], 0);
-        $res3 = Attributes::getNumber($userId, $config['key3'], 0);
-
-        $totalNumber = $res1 + $res2 + $res3;
-        if(!is_numeric($totalNumber)){
-            $totalNumber = 0;    
-        }
-
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $totalNumber,
-        );           
-    }
-
-    /**
-     * 使用双十一抽奖次数
-     *
-     * @JsonRpcMethod
-     */
-    public function useDoubleElevenChance() {
-        global $userId;
-        if(!$userId){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $config = Config::get('activity.double_eleven'); 
-        $awardList = Config::get('activity.double_eleven.award_list'); 
-        
-        $res1 = Attributes::getNumber($userId, $config['key1'], 1);
-        $res2 = Attributes::getNumber($userId, $config['key2'], 0);
-        $res3 = Attributes::getNumber($userId, $config['key3'], 0);
-        if($res1 > 0) {
-            Attributes::decrement($userId, $config['key1']);
-            $awards = SendAward::ActiveSendAward($userId, $config['key1']);
-        }elseif($res2 > 0) {
-            Attributes::decrement($userId, $config['key2']);
-            $awards = SendAward::ActiveSendAward($userId, $config['key2']);
-        }elseif($res3 > 0) {
-            Attributes::decrement($userId, $config['key3']);
-            $awards = SendAward::ActiveSendAward($userId, $config['key3']);
-        }else{
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => [
-                    'status'=> 1 ,   
-                    'msg' => '抽奖次数已用完', 
-                ],
-            );
-        }
-        
-        if(!isset($awards[0])) {
-            $awardName = '服务器错误,请重试';     
-            $awardId = -1;
-        }else{
-            $award = $awards[0];
-            if(!isset($awardList[$award['award_name']])) {
-                $awardId = -2;
-                $awardName = '服务器错误,请重试';
-            }elseif(!$award['status']){
-                $awardId = -3;
-                $awardName = '服务器错误,请重试';
-            }else{
-                $awardId = $awardList[$award['award_name']];
-                $awardName = $award['award_name'];
-            }
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => [
-                'status' => 0,
-                'award' => $award['award_name'],
-                'awardId' => $awardId,
-            ],
-        );
-    }
-    /**
-     * 获取双11抱团投资人数
-     *
-     * @JsonRpcMethod
-     */
-    function getDoubleElevenBaotuan() {
-        $joinNum = 0;
-        $awardNum = 0;
-        $awardList = [];
-        $aliasName = Config::get('activity.double_eleven.baotuan');
-        $baotuanLevels = Config::get('activity.double_eleven.baotuan_level');
-        $where = array();
-        $where['alias_name'] = $aliasName;
-        $where['enable'] = 1;
-        $activity = Activity::where($where)->first();
-        if($activity && $activity['join_num']) {
-            $joinNum = $activity['join_num'];
-        }
-
-        $awardUsers = UserAttribute::where(array('key' => $aliasName))->orderBy('id', 'asc')->limit(100)->get();
-
-        foreach($baotuanLevels as $item) {
-            if($joinNum >= $item['min']) {
-                $curAwardList = [];
-                for($i = $awardNum; $i < $awardNum+$item['number'] && $i< count($awardUsers); $i++) {
-                    $curAwardList[] = array('userId' => $awardUsers[$i]['user_id'], 'phone'=> protectPhone($awardUsers[$i]['text']), 'award' => $item['award']);
-                }                           
-                $awardNum += $item['number'];
-                if(count($curAwardList) !== 0) {
-                    $awardList[] = $curAwardList;
-                }
-            }
-        }
-        if(count($awardList) > 0) {
-            $curAwardList = $awardList[count($awardList)-1];
-        }else{
-            $curAwardList = [];
-        }
-        
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => [
-                'curAwardList' => $curAwardList,
-                'awardList' => $awardList,
-                'joinNum' => $joinNum, 
-            ], 
-        );
-    }
     /**
      * 根据活动别名获取奖品信息
      *
