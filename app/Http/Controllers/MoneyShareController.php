@@ -88,7 +88,7 @@ class MoneyShareController extends Controller
         $data = Func::Search($request,new MoneyShare());
         if(!empty($data)){
             foreach($data as &$item){
-                $item['identify'] = urlencode(Crypt::encrypt($item['identify']));
+                $item['key'] = urlencode(Crypt::encrypt($item['identify']));
             }
         }
         return $this->outputJson(0,$data);
