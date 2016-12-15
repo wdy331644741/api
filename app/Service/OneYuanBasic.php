@@ -216,18 +216,24 @@ class OneYuanBasic
         }
         //开始抽奖
         //获取最后50个用户的时间和
-        $times = OneYuanJoinInfo::where('mall_id',$mall_id)->select(DB::raw('SUM(buy_time) as times'))
+        $timeList = OneYuanJoinInfo::where('mall_id',$mall_id)->select('buy_time')
             ->orderBy('id','desc')
             ->take(50)
-            ->first();
-        if(empty($times)){
+            ->get();
+        if(empty($timeList)){
             return array("status"=>false,"msg"=>"数据有误");
+        }
+        $times = 0;
+        foreach ($timeList as $item){
+            if(isset($item->buy_time) && !empty($item->buy_time)) {
+                $times += $item->buy_time;
+            }
         }
         //修改数组
         $up = array();
         $up['code'] = $code;
         $up['period'] = $period;
-        $up['total_times'] = $times['times'];
+        $up['total_times'] = $times;
         //获取总人次
         $users = OneYuanJoinInfo::where('mall_id',$mall_id)->select(DB::raw('COUNT(distinct(user_id)) as count'))->first();
         if(empty($users)){
