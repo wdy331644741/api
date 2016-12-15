@@ -46,9 +46,9 @@ class Attributes
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
         
         if($res){
-            $userAttr = $res;
             $res->decrement('number', $number);
-            return $userAttr->number-$number;
+            $res->save();
+            return $res->number;
         }
         
         $attribute = new UserAttribute();
