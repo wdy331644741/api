@@ -1,6 +1,279 @@
 <?php
 
 return [
+    'xjdb_global' => [
+        'small_num' => 5,  // '单用户小奖最大次数';
+        'award_msg' => [
+            'tyj' => "恭喜您获得{awardName}\n体验金已发送到我的账户—体验金中，请注意查收。",
+            'rmb' => "恭喜您获得{awardName}\n奖金已发送到您的余额中，请注意查收。"
+        ],
+        'cooldown_msg' => [
+            "宝箱已经要爆炸了",
+            "宝箱已经不堪重负",
+            "宝箱已经活不起了",
+            "宝箱正在寻找金币",
+            "宝箱冷却中",
+        ]
+
+    ],
+    //寻金夺币
+    'xjdb' => [
+        'index' => [
+            'start_at' => '2016-12-01 00:00:00',
+            'end_at' => '2016-12-30 00:00:00',
+            'items' => [
+                [
+                    'start' => 0,
+                    'end' => 8,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 349, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 9,
+                    'end' => 11,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 6, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 1, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 12,
+                    'end' =>  14,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 15,
+                    'end' =>  17,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 2, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 18,
+                    'end' =>  20,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 21,
+                    'end' =>  23,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 349, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 1, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ]
+            ]
+        ],
+        'discover' => [
+            'start_at' => '2016-12-01 00:00:00',
+            'end_at' => '2016-12-30 00:00:00',
+            'items' => [
+                [
+                    'start' => 0,
+                    'end' => 8,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 1, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 9,
+                    'end' => 11,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 2, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 12,
+                    'end' =>  14,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 15,
+                    'end' =>  17,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 18,
+                    'end' =>  20,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 2, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 21,
+                    'end' =>  23,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ]
+            ]
+        ], 
+        'list' => [
+            'start_at' => '2016-12-01 00:00:00',
+            'end_at' => '2016-12-30 00:00:00',
+            'items' => [
+                [
+                    'start' => 0,
+                    'end' => 8,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 9,
+                    'end' => 11,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 1, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 12,
+                    'end' =>  14,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 5, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 15,
+                    'end' =>  17,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 1, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 18,
+                    'end' =>  20,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 0, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ], [
+                    'start' => 21,
+                    'end' =>  23,
+                    'awards' => [
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
+                        ['money' => 10, 'num' => 96, 'weight' => 8, 'require' => 1000, 'isSmall' => 0],
+                        ['money' => 50, 'num' => 3, 'weight' => 6, 'require' => 10000, 'isSmall' => 0],
+                        ['money' => 100, 'num' => 1, 'weight' => 4, 'require' => 50000, 'isSmall' => 0],
+                        ['money' => 200, 'num' => 0, 'weight' => 2,'require' => 100000, 'isSmall' => 0],
+                    ]
+                ]
+            ]
+        ]
+    ],
     //双十一活动
     'double_eleven' => [
         'key1' => 'double_eleven_default',

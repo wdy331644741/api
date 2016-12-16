@@ -130,7 +130,7 @@ class Attributes
         return $res;
     }
     
-    static function setItem($uid, $key, $number=null, $string=null, $text=null) {
+    static function setItem($uid, $key, $number=0, $string=null, $text=null) {
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
         
         if($res){

@@ -299,7 +299,8 @@ class ActivityJsonRpc extends JsonRpc {
                 $signInThree = 'continue_signin_three';
                 $act = Activity::where('alias_name', $signInThree)->first();
                 if($act) {
-                    if($act['start_at']){
+                    $num = Attributes::getNumber('sd_tree_status', 0);
+                    if($num && $act['start_at']){
                         $startAt = $act['start_at'];
                         $startAtArr = explode(' ', $startAt);
                         $startDate = $startAtArr[0];
