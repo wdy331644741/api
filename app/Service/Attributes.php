@@ -46,9 +46,9 @@ class Attributes
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
         
         if($res){
-            $userAttr = $res;
             $res->decrement('number', $number);
-            return $userAttr->number-$number;
+            $res->save();
+            return $res->number;
         }
         
         $attribute = new UserAttribute();
@@ -187,38 +187,6 @@ class Attributes
         $res->update();
         return true;
     }
-    
-    //---------------------新春嘉年华-----------------------//
-
-    //投资标个数记录
-    static public function setNyBiao($user_id,$key,$bid)
-    {
-        $userAttr = new UserAttribute();
-        //投资标个数记录
-        $res = $userAttr->where(['user_id' => $user_id, 'key' => $key])->first();
-        if (empty($res)) {
-            $userAttr->key = $key;
-            $userAttr->user_id = $user_id;
-            $userAttr->number = 1;
-            $userAttr->text = json_encode(array($bid));
-            $userAttr->save();
-            return array('inviteNum' => 1);
-        } else {
-            $text = json_decode($res->text, true);
-            if (in_array($bid, $text)) {
-                return array('inviteNum' => count($text));
-            }
-            $number = array_push($text, $bid);
-            $res = $userAttr
-                ->where(['key' => $key, 'user_id' => $user_id])
-                ->update(['number' => $number, 'text' => json_encode($text)]);
-            if ($res) {
-                return array('inviteNum' => $number);
-            } else {
-                return array('inviteNum' => 0, 'errmsg' => '数据写入失败');
-            }
-        }
-    }
 
 
     //-------------------------圣诞节活动--------------------------//
@@ -329,6 +297,80 @@ class Attributes
                     return array('inviteNum'=>$userAttr->number);
                 }
                 return array('inviteNum'=>0);
+            }
+        }
+    }
+
+
+    //---------------------新春嘉年华-----------------------//
+
+    //投资标个数记录
+    static public function setNyBiao($user_id,$key,$bid)
+    {
+        $userAttr = new UserAttribute();
+        //投资标个数记录
+        $res = $userAttr->where(['user_id' => $user_id, 'key' => $key])->first();
+        if (empty($res)) {
+            $userAttr->key = $key;
+            $userAttr->user_id = $user_id;
+            $userAttr->number = 1;
+            $userAttr->text = json_encode(array($bid));
+            $userAttr->save();
+            return array('inviteNum' => 1);
+        } else {
+            $text = json_decode($res->text, true);
+            if (in_array($bid, $text)) {
+                return array('inviteNum' => count($text));
+            }
+            $number = array_push($text, $bid);
+            $res = $userAttr
+                ->where(['key' => $key, 'user_id' => $user_id])
+                ->update(['number' => $number, 'text' => json_encode($text)]);
+            if ($res) {
+                return array('inviteNum' => $number);
+            } else {
+                return array('inviteNum' => 0, 'errmsg' => '数据写入失败');
+            }
+        }
+    }
+
+
+    //推广活动日志记录
+    static public function setNyExtension($from_user_id,$key,$money,$isfirst = 0){
+        $userAttr = new UserAttribute();
+        //获取用户推广记录
+        $res = $userAttr->where(['user_id' => $from_user_id, 'key' => $key])->first();
+        if(empty($res)){
+            $userAttr->user_id = $from_user_id;
+            $userAttr->key = $key;
+            $userAttr->number = 1;
+            $userAttr->string = $money;
+            $numerical = 1000*0.2 + ceil($money*0.8);
+            $userAttr->text = $numerical;
+            $userAttr->save();
+        }else{
+            switch ($isfirst){
+                case 1:
+                    $number = $res->number + 1;
+                    $string = intval($res->string) + intval($money);
+                    $numerical = ($number*1000) * 0.2 + ceil($string * 0.8);
+                    $updata = array(
+                        'number'=>$number,
+                        'string'=>$string,
+                        'text'=>$numerical
+                    );
+                    $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->update($updata);
+                    break;
+                case 0:
+                    $number = $res->number;
+                    $string = intval($res->string) + intval($money);
+                    $numerical = ($number*1000) * 0.2 + ceil($string * 0.8);
+                    $updata = array(
+                        'string'=>$string,
+                        'text'=>$numerical
+                    );
+                    $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->update($updata);
+                    break;
             }
         }
     }
