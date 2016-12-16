@@ -117,7 +117,7 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['year_investment_50000'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'signin':
-                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $start_at = Activity::where('alias_name','continue_signin_three')->value('start_at');
                     $data['signin'] = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     break;
                 case 'year_investment_100000':
