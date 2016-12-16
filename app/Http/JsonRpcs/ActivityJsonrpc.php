@@ -167,7 +167,7 @@ class ActivityJsonRpc extends JsonRpc {
                         SendAward::ActiveSendAward($userId,'year_investment_50000_send');
                     }
                 case 'signin':
-                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $start_at = Activity::where('alias_name','continue_signin_three')->value('start_at');
                     $signDay = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     if($signDay >= 3){
                         SendAward::ActiveSendAward($userId,'continue_signin_three');
