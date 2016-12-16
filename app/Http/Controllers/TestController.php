@@ -27,6 +27,18 @@ class TestController extends Controller
         $res = Cqssc::where('opentime', '>=',$date )->orderBy('expect', 'asc')->first();
     }
     
+    public function getUserInfo() {
+        $userId = 1231312312;
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        $userBase = $client->userBasicInfo(array('userId'=>$userId));
+        
+        if(!$userBase || !isset($userBase['result']['data']['trade_pwd']) || empty($userBase['result']['data']['trade_pwd']) ) {
+            $awardStatus= false;
+        }
+        var_dump($awardStatus);
+        dd($userBase);
+    }
+    
     // 获取开奖时间戳
     public function getOpenTimeStamp($timestamp) {
         $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
