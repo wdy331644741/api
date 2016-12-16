@@ -624,7 +624,7 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NO_LOGIN);
         }
         if(empty($params->key)){
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
 
         }
         switch ($params->key){
@@ -669,6 +669,77 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => $deNum
+        );
+    }
+
+
+    /**
+     * 获取推广贡献奖top排行
+     *
+     * @JsonRpcMethod
+     */
+    public function getNyExtensionTop(){
+        $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->paginate(5);
+        $response = array();
+        if(isset($res)){
+            foreach ($res as $key=>$val){
+                $item['top'] = $key + 1;
+                $item['friend_num'] = $val->number;
+                $item['year_investment'] = $val->string;
+                $item['integral'] = $val->text;
+                $phone = Func::getUserPhone($val->user_id);
+                if(empty($phone)){
+                    throw new OmgException(OmgException::API_FAILED);
+                }
+                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response[] = $item;
+            }
+        }else{
+            throw new OmgException(OmgException::API_FAILED);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $response
+        );
+    }
+
+
+    /**
+     * 获取群雄逐鹿top排行
+     *
+     * @JsonRpcMethod
+     */
+    public function getNyPackTop($params){
+        if($params->min >= 0 && empty($params->max)){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        if($params != 100000000){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        $res = UserAttribute::where('key','new_year_year_investment')
+            ->where('number','>=',$params->min)
+            ->where('number','<',$params->max)
+            ->orderBy('number','desc')->paginate(5);
+        $response = array();
+        if(isset($res)){
+            foreach ($res as $key=>$val){
+                $item['top'] = $key + 1;
+                $item['year_investment'] = $val->number;
+                $phone = Func::getUserPhone($val->user_id);
+                if(empty($phone)){
+                    throw new OmgException(OmgException::API_FAILED);
+                }
+                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response[] = $item;
+            }
+        }else{
+            throw new OmgException(OmgException::API_FAILED);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $response
         );
     }
 }
