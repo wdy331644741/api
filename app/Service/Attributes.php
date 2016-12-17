@@ -4,10 +4,11 @@ namespace App\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserAttribute;
+use Lib\JsonRpcClient;
 
 class Attributes
 {
-   private $default = [
+    private $default = [
        'gq_0930'=>0,
        'gq_1001'=>0,
        'gq_1002'=>0,
@@ -16,21 +17,27 @@ class Attributes
        'gq_1005'=>0,
        'gq_1006'=>0,
        'gq_1007'=>0
-   ];
+    ];
+    private $user_url;
 
-   static public function increment($uid,$key,$number = 1){
+   static public function increment($uid,$key,$number = 1, $string= null, $text= null){
+       
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
         
         if($res){
-            $userAttr = $res;
+            $res->string = $string;
+            $res->text = $text;
             $res->increment('number', $number);
-            return $userAttr->number+$number;
+            $res->save();
+            return $res->number;
         }
         
         $attribute = new UserAttribute();
         $attribute->user_id = $uid;
         $attribute->key = $key;
+        $attribute->string = $string;
         $attribute->number = $number;
+        $attribute->text = $text;
         $attribute->save();
         return $number;
     }
@@ -93,7 +100,7 @@ class Attributes
         return $data;
     }
     
-   static public function getNumber($uid, $key, $default = null) {
+    static public function getNumber($uid, $key, $default = null) {
         if(empty($uid) || empty($key)) {
             return false;
         }
@@ -110,6 +117,36 @@ class Attributes
         }
        
         return $res['number'];
+    }
+    
+    static function getItem($uid, $key) {
+        if(empty($uid) || empty($key)) {
+            return false;
+        }
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        if(!$res) {
+            return false;
+        }
+        return $res;
+    }
+    
+    static function setItem($uid, $key, $number=null, $string=null, $text=null) {
+        $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
+        
+        if($res){
+            $res->string = $string;
+            $res->text = $text;
+            $res->number = $number;
+            return $res->save();
+        }
+        
+        $attribute = new UserAttribute();
+        $attribute->user_id = $uid;
+        $attribute->key = $key;
+        $attribute->string = $string;
+        $attribute->number = $number;
+        $attribute->text = $text;
+        return $attribute->save();
     }
 
     // 按json格式获取text字段
@@ -150,5 +187,117 @@ class Attributes
         $res->update();
         return true;
     }
-    
+
+
+    //-------------------------圣诞节活动--------------------------//
+
+
+    //活动1
+    public function setSd1Number($key1,$key2,$user_id,$from_user_id){
+        if(!$key1 || !$key2 || !$user_id || !$from_user_id){
+            return array('inviteNum'=>0,'errsmg'=>'参数错误');
+        }
+        //邀请3名好友投资
+        $res1 = $this->_inviteNum($from_user_id,$user_id,$key1);
+        //邀请2名好友连续投资两天
+        $this->_inviteCastDay($from_user_id,$user_id,$key2);
+        return $res1;
+    }
+
+    //活动2
+    public function setSd2Number($key,$user_id,$from_user_id){
+        if(!$key || !$user_id || !$from_user_id){
+            return array('inviteNum'=>0,'errsmg'=>'参数错误');
+        }
+        $res = $this->_inviteCastDay($from_user_id,$user_id,$key);
+        return $res;
+    }
+
+    //邀请3名好友投资设置number
+    private function _inviteNum($from_user_id,$user_id,$key){
+        $userAttr = new UserAttribute();
+        //邀请3名好友投资
+        $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
+
+        if(empty($res)){
+            $userAttr->key = $key;
+            $userAttr->user_id = $from_user_id;
+            $userAttr->number = 1;
+            $userAttr->text = json_encode(array($user_id));
+            $userAttr->save();
+            return array('inviteNum'=>1);
+        }else{
+            if($res->number < 3){
+                $text = json_decode($res->text,true);
+                if(in_array($user_id,$text)){
+                    return array('inviteNum'=>count($text));
+                }
+                $number = array_push($text,$user_id);
+                $res = $userAttr
+                    ->where(['key'=>$key,'user_id'=>$from_user_id])
+                    ->update(['number'=>$number,'text'=>json_encode($text)]);
+                if($res){
+                    return array('inviteNum'=>$number);
+                }else{
+                    return array('inviteNum'=>0,'errmsg'=>'数据写入失败');
+                }
+            }
+            return array('inviteNum'=>0);
+        }
+    }
+
+    //连续投资两天设置number
+    private function _inviteCastDay($from_user_id,$user_id,$key){
+        $userAttr = new UserAttribute();
+        $res = $userAttr->where(['user_id'=>$from_user_id,'key'=>$key])->first();
+        if(empty($res)){
+            $userAttr->key = $key;
+            $userAttr->user_id = $from_user_id;
+            $userAttr->number = 0;
+            $userAttr->text = json_encode(array($user_id=>date('Y-m-d')));
+            $userAttr->save();
+            return array('inviteNum'=>0);
+        }else{
+            if($res->number == 0){
+                $userArr = json_decode($res->text,true);
+                if(isset($userArr[$user_id])){
+                    $yeDay = date('Y-m-d',time()-24*60*60);
+                    if($yeDay == $userArr[$user_id]){
+                        $userArr[$user_id] = 'ok';
+                        $text = json_encode($userArr);
+                        $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
+                            ->update(['number'=>1,'text'=>$text]);
+                        return array('inviteNum'=>1);
+                    }
+                }
+                $userArr[$user_id] = date('Y-m-d');
+                $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
+                    ->update(['text'=>json_encode($userArr)]);
+                return array('inviteNum'=>0);
+            }else{
+                if($res->number < 2){
+                    $userArr = json_decode($res->text,true);
+                    if(isset($userArr[$user_id])){
+                        if($userArr[$user_id] == 'ok'){
+                            return $res->number;
+                        }
+                        $yeDay = date('Y-m-d',time()-24*60*60);
+                        if($yeDay == $userArr[$user_id]){
+                            $userArr[$user_id] = 'ok';
+                            $arrNum = array_count_values($userArr);
+                            $okNnum = $arrNum['ok'];
+                            $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
+                                ->update(['number'=>$okNnum,'text'=>json_encode($userArr)]);
+                            return array('inviteNum'=>$okNnum);
+                        }
+                    }
+                    $userArr[$user_id] = date('Y-m-d');
+                    $userAttr->where(['key'=>$key,'user_id'=>$from_user_id])
+                        ->update(['text'=>json_encode($userArr)]);
+                    return array('inviteNum'=>$userAttr->number);
+                }
+                return array('inviteNum'=>0);
+            }
+        }
+    }
 }
