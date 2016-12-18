@@ -9,6 +9,7 @@ use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
 use App\Service\Attributes;
+use App\Service\Func;
 use App\Service\SignIn;
 use App\Models\UserAttribute;
 use Lib\JsonRpcClient;
@@ -299,7 +300,7 @@ class ActivityJsonRpc extends JsonRpc {
                 $signInThree = 'continue_signin_three';
                 $act = Activity::where('alias_name', $signInThree)->first();
                 if($act) {
-                    $num = Attributes::getNumber('sd_tree_status', 0);
+                    $num = Attributes::getNumber($userId, 'sd_tree_status', 0);
                     if($num && $act['start_at']){
                         $startAt = $act['start_at'];
                         $startAtArr = explode(' ', $startAt);
@@ -316,7 +317,7 @@ class ActivityJsonRpc extends JsonRpc {
         
         //未签到或非连续签到
         if(empty($awardName)) {
-            $continue = $signIn ? 1 : $this->getOldSignNumber($userId)+1; // 兼容旧逻辑写法,上线后一天过后,即可变为变量1
+            $continue = 1; 
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             if(!isset($awards[0]['award_name'])) {
                 throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
@@ -579,5 +580,167 @@ class ActivityJsonRpc extends JsonRpc {
             return false;
         }
     }
-    
+
+
+    //---------------------------新春嘉年华-------------------------//
+
+    /**
+     * 获取活动金牌投手top排行
+     *
+     * @JsonRpcMethod
+     */
+    public function getNyToushouTop(){
+        $res = UserAttribute::where('key','new_year_bidding')->orderBy('number','desc')->paginate(5);
+        $response = array();
+        if(isset($res)){
+            foreach ($res as $key=>$val){
+                $item['top'] = $key + 1;
+                $item['number'] = $val->number;
+                $phone = Func::getUserPhone($val->user_id);
+                if(empty($phone)){
+                    throw new OmgException(OmgException::API_FAILED);
+                }
+                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response[] = $item;
+            }
+        }else{
+            throw new OmgException(OmgException::API_FAILED);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $response
+        );
+    }
+
+
+    /**
+     * 获取活动当前用number排行
+     *
+     * @JsonRpcMethod
+     */
+    public function getNyUserNumber($params){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        if(empty($params->key)){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+
+        }
+        switch ($params->key){
+            case 'new_year_bidding':
+                $number = UserAttribute::where(['key'=>$params->key,'user_id'=>$userId])->value('number');
+                break;
+            case 'new_year_invite_investment':
+                $number = UserAttribute::where(['key'=>$params->key,'user_id'=>$userId])->value('text');
+                break;
+            case 'new_year_hammer_num':
+                $number = UserAttribute::where(['key'=>$params->key,'user_id'=>$userId])->value('number');
+                break;
+            case 'new_year_year_investment':
+                $number = UserAttribute::where(['key'=>$params->key,'user_id'=>$userId])->value('number');
+                break;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $number
+        );
+    }
+
+
+    /**
+     * 新春活动砸金蛋
+     *
+     * @JsonRpcMethod
+     */
+    public function nyZaJinDan(){
+        global $userId;
+        $userId = 21;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $number = UserAttribute::where(['user_id'=>$userId,'key'=>'	new_year_hammer_eggs'])->value('number');
+        if(isset($number) && $number > 0){
+            SendAward::ActiveSendAward($userId,'new_year_hammer_eggs');
+        }
+        $deNum = Attributes::decrement($userId,'new_year_hammer_eggs');
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $deNum
+        );
+    }
+
+
+    /**
+     * 获取推广贡献奖top排行
+     *
+     * @JsonRpcMethod
+     */
+    public function getNyExtensionTop(){
+        $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->paginate(5);
+        $response = array();
+        if(isset($res)){
+            foreach ($res as $key=>$val){
+                $item['top'] = $key + 1;
+                $item['friend_num'] = $val->number;
+                $item['year_investment'] = $val->string;
+                $item['integral'] = $val->text;
+                $phone = Func::getUserPhone($val->user_id);
+                if(empty($phone)){
+                    throw new OmgException(OmgException::API_FAILED);
+                }
+                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response[] = $item;
+            }
+        }else{
+            throw new OmgException(OmgException::API_FAILED);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $response
+        );
+    }
+
+
+    /**
+     * 获取群雄逐鹿top排行
+     *
+     * @JsonRpcMethod
+     */
+    public function getNyPackTop($params){
+        if($params->min >= 0 && empty($params->max)){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        if($params != 100000000){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        $res = UserAttribute::where('key','new_year_year_investment')
+            ->where('number','>=',$params->min)
+            ->where('number','<',$params->max)
+            ->orderBy('number','desc')->paginate(5);
+        $response = array();
+        if(isset($res)){
+            foreach ($res as $key=>$val){
+                $item['top'] = $key + 1;
+                $item['year_investment'] = $val->number;
+                $phone = Func::getUserPhone($val->user_id);
+                if(empty($phone)){
+                    throw new OmgException(OmgException::API_FAILED);
+                }
+                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response[] = $item;
+            }
+        }else{
+            throw new OmgException(OmgException::API_FAILED);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $response
+        );
+    }
 }

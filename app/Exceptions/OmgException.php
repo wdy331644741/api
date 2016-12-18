@@ -76,6 +76,7 @@ class OmgException extends BasicException
         self::API_ILLEGAL => "非法请求",
         self::API_BUSY => "接口调用过于频繁",
         self::API_FAILED => "接口调用失败",
+        
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",
         self::VALID_CODE_FAIL => "兑换码不能为空",
