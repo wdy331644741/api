@@ -47,7 +47,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(50)->get();
-        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->take(50)->get();
+        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('created_at', 'asc')->take(50)->get();
         $result['recentList'] = self::_formatData($recentList);
         $result['topList'] = self::_formatData($topList);
         
