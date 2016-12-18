@@ -117,7 +117,7 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['year_investment_50000'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'signin':
-                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $start_at = Activity::where('alias_name','continue_signin_three')->value('start_at');
                     $data['signin'] = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     break;
                 case 'year_investment_100000':
@@ -167,7 +167,7 @@ class ActivityJsonRpc extends JsonRpc {
                         SendAward::ActiveSendAward($userId,'year_investment_50000_send');
                     }
                 case 'signin':
-                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $start_at = Activity::where('alias_name','continue_signin_three')->value('start_at');
                     $signDay = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     if($signDay >= 3){
                         SendAward::ActiveSendAward($userId,'continue_signin_three');
@@ -299,7 +299,8 @@ class ActivityJsonRpc extends JsonRpc {
                 $signInThree = 'continue_signin_three';
                 $act = Activity::where('alias_name', $signInThree)->first();
                 if($act) {
-                    if($act['start_at']){
+                    $num = Attributes::getNumber('sd_tree_status', 0);
+                    if($num && $act['start_at']){
                         $startAt = $act['start_at'];
                         $startAtArr = explode(' ', $startAt);
                         $startDate = $startAtArr[0];
