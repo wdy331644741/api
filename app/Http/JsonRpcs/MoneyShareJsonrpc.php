@@ -95,6 +95,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             if(!$expRes['status']) {
                 throw new OmgException(OmgException::API_FAILED);
             }
+            $result['award'] = $money;
         }
 
         
