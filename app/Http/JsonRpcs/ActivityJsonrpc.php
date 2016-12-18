@@ -300,7 +300,7 @@ class ActivityJsonRpc extends JsonRpc {
                 $signInThree = 'continue_signin_three';
                 $act = Activity::where('alias_name', $signInThree)->first();
                 if($act) {
-                    $num = Attributes::getNumber('sd_tree_status', 0);
+                    $num = Attributes::getNumber($userId, 'sd_tree_status', 0);
                     if($num && $act['start_at']){
                         $startAt = $act['start_at'];
                         $startAtArr = explode(' ', $startAt);
@@ -317,7 +317,7 @@ class ActivityJsonRpc extends JsonRpc {
         
         //未签到或非连续签到
         if(empty($awardName)) {
-            $continue = $signIn ? 1 : $this->getOldSignNumber($userId)+1; // 兼容旧逻辑写法,上线后一天过后,即可变为变量1
+            $continue = 1; 
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             if(!isset($awards[0]['award_name'])) {
                 throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
