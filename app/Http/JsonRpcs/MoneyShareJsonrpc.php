@@ -7,6 +7,7 @@ use App\Service\MoneyShareBasic;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
+use App\Service\Func;
 
 class MoneyShareJsonRpc extends JsonRpc {
 
@@ -35,11 +36,12 @@ class MoneyShareJsonRpc extends JsonRpc {
         if(!$mallInfo){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $result['recentList'] = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(50)->get();
-        $result['topList'] = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->take(50)->get();
+        $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(50)->get();
+        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->take(50)->get();
+        $result['recentList'] = self::_formatData($recentList);
+        $result['topList'] = self::_formatData($topList);
         
         $result['mall'] = $mallInfo;
-        
         // 计算剩余金额和剩余数量
         $remain = $mallInfo->total_money - $mallInfo->use_money;
         $remain = $remain > 0 ? $remain : 0;
@@ -86,5 +88,18 @@ class MoneyShareJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $result
         );
+    }
+    //将列表的数据整理出手机号
+    public static function _formatData($data){
+        if(empty($data)){
+            return $data;
+        }
+        foreach ($data as &$item){
+            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+                $phone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+            }
+        }
+        return $data;
     }
 }
