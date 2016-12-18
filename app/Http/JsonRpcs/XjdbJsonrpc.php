@@ -91,6 +91,8 @@ class XjdbJsonRpc extends JsonRpc
         $result = [
             'isAward' => true,
             'awardName' => '',
+            'amount' => 0,
+            'awardType' => 0,
             'nextSeconds' => (strtotime(date('Y-m-d H:00:00')) + 3600) - time(),
             'msg' => '',
         ];
@@ -108,11 +110,13 @@ class XjdbJsonRpc extends JsonRpc
         
         // 已领取
         $item = Attributes::getItem($userId, $key);
-        if($item && date('Y-m-d H', $item['number']) === date('Y-m-d H')) {
+        if($item && date('YmdH', strtotime($item['updated_at'])) === date('YmdH')) {
             $result['isAward'] = false;
             $cooldownArr = Config::get('activity.xjdb_global.cooldown_msg');
             $result['msg'] = $cooldownArr[array_rand($cooldownArr, 1)];
-            $result['awardName'] = $item['string'];
+            $result['awardName'] = $item['string'] . '元' . Config::get("award.award_type.{$item['number']}");
+            $result['awardType'] = $item['number'];
+            $result['amount'] = $item['string'];
             return [
                 'code' => 0,
                 'message' => 'success',
@@ -176,6 +180,8 @@ class XjdbJsonRpc extends JsonRpc
 
             // 创建记录
             $result['awardName'] = $award['money'] . '元现金';
+            $result['amount'] = strval($award['money']);
+            $result['awardType'] = 7;
             $result['msg'] = str_replace('{awardName}', $result['awardName'],  Config::get('activity.xjdb_global.award_msg.rmb'));
             $res = Xjdb::create([
                 'user_id' => $userId,
@@ -223,6 +229,8 @@ class XjdbJsonRpc extends JsonRpc
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             if(isset($awards[0]['award_name'])) {
                 $result['awardName'] = $awards[0]['award_name'];
+                $result['amount'] = strval(intval($awards[0]['award_name']));
+                $result['awardType'] = 3;
                 $result['msg'] = str_replace('{awardName}', $result['awardName'],  Config::get('activity.xjdb_global.award_msg.tyj'));
                 Xjdb::create([
                     'user_id' => $userId,        
@@ -238,7 +246,7 @@ class XjdbJsonRpc extends JsonRpc
             }
         }
 
-        Attributes::setItem($userId, $key, time(), $result['awardName']);
+        Attributes::setItem($userId, $key, $result['awardType'], $result['amount'], time());
         return [
             'code' => 0,
             'message' => 'success',
