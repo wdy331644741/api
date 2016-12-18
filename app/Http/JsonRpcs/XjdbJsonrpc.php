@@ -46,7 +46,7 @@ class XjdbJsonRpc extends JsonRpc
         if(!empty($userId)) {
             $user['login'] = 1;
             $item = Attributes::getItem($userId, $key);
-            if($item && date('Y-m-d H', $item['number']) === date('Y-m-d H')) {
+            if($item && date('YmdH', strtotime($item['updated_at'])) === date('YmdH')) {
                 $user['available'] = false;
                 $user['startSeconds'] = (strtotime(date('Y-m-d H:00:00')) + 3600) - time();
             }
