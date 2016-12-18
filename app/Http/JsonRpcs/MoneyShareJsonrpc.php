@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Crypt;
 use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
 use App\Service\Func;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class MoneyShareJsonRpc extends JsonRpc {
 
@@ -26,13 +27,22 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         //解密identify
-        $identify = Crypt::decrypt(urldecode($identify));
+        try {
+            $identify = Crypt::decrypt(urldecode($identify));
+        } catch (DecryptException $e) {
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+
         
         $result = ['award' => 0, 'isGot' => false, 'mall' =>[] , 'recentList' => [], 'topList' => []];
         
         
         // 商品是否存在
-        $mallInfo = MoneyShare::where(['identify' => $identify, 'status' => 1])->lockForUpdate()->first();
+        $date = date("Y-m-d H:i:s");
+        $mallInfo = MoneyShare::where(['identify' => $identify, 'status' => 1])
+            ->where("start_time","<=",$date)
+            ->where("end_time",">=",$date)
+            ->lockForUpdate()->first();
         if(!$mallInfo){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -51,10 +61,15 @@ class MoneyShareJsonRpc extends JsonRpc {
         //用户领取过
         $join = MoneyShareInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
         if($join){
-            $result['isGot'] = true;       
+            $result['isGot'] = 1;
             $result['award'] = $join['money'];
             return $result;
         }
+        //奖品已抢光
+        if($remain == 0){
+            $result['isGot'] = 2;
+        }
+
         
         // 发体验金
         if(!$result['isGot']) {
