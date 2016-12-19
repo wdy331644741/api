@@ -19,8 +19,9 @@ class MoneyShareJsonRpc extends JsonRpc {
      */
     public function moneyShareSendAward($params) {
         global $userId;
+        $result = ['isLogin'=>1, 'award' => 0, 'isGot' => false, 'mall' =>[] , 'recentList' => [], 'topList' => []];
         if(empty($userId)){
-            throw new OmgException(OmgException::NO_LOGIN);
+            $result['isLogin'] = 0;
         }
         $identify = $params->identify;
         if(empty($identify)){
@@ -33,10 +34,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
 
-        
-        $result = ['award' => 0, 'isGot' => false, 'mall' =>[] , 'recentList' => [], 'topList' => []];
-        
-        
+
         // 商品是否存在
         $date = date("Y-m-d H:i:s");
         $mallInfo = MoneyShare::where(['identify' => $identify, 'status' => 1])
@@ -59,20 +57,22 @@ class MoneyShareJsonRpc extends JsonRpc {
         $remainNum = $remainNum > 0 ? $remainNum : 0;
         
         //用户领取过
-        $join = MoneyShareInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
-        if($join){
-            $result['isGot'] = 1;
-            $result['award'] = $join['money'];
-            return $result;
-        }
-        //奖品已抢光
-        if($remain == 0){
-            $result['isGot'] = 2;
+        if($result['isLogin']){
+            $join = MoneyShareInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
+            if($join){
+                $result['isGot'] = 1;
+                $result['award'] = $join['money'];
+                return $result;
+            }
+            //奖品已抢光
+            if($remain == 0){
+                $result['isGot'] = 2;
+            }
         }
 
         
         // 发体验金
-        if(!$result['isGot']) {
+        if($result['isLogin'] && !$result['isGot']) {
             $money = MoneyShareBasic::getRandomMoney($remain,$remainNum,$mallInfo->min,$mallInfo->max);
             $mallInfo->increment('use_money', $money);
             $mallInfo->increment('receive_num', 1);
