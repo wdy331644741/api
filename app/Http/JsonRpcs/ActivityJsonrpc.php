@@ -706,7 +706,7 @@ class ActivityJsonRpc extends JsonRpc {
                 'data' => $data
             );
         }
-        $data = SendRewardLog::where("activity_id",$activityInfo['id'])->where("status",">=",1)->select("user_id","remark")->take($per_page)->get();
+        $data = SendRewardLog::where("activity_id",$activityInfo['id'])->where("status",">=",1)->select("user_id","remark","created_at")->take($per_page)->orderBy("id","desc")->get();
         if(!empty($data)){
             foreach($data as &$item){
                 $phone = Func::getUserPhone($item['user_id']);
