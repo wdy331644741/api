@@ -118,7 +118,7 @@ class ActivityJsonRpc extends JsonRpc {
                     $data['year_investment_50000'] = isset($val->number) ? $val->number : 0;
                     break;
                 case 'signin':
-                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $start_at = Activity::where('alias_name','continue_signin_three')->value('start_at');
                     $data['signin'] = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     break;
                 case 'year_investment_100000':
@@ -168,7 +168,7 @@ class ActivityJsonRpc extends JsonRpc {
                         SendAward::ActiveSendAward($userId,'year_investment_50000_send');
                     }
                 case 'signin':
-                    $start_at = Activity::where('alias_name','signin')->value('start_at');
+                    $start_at = Activity::where('alias_name','continue_signin_three')->value('start_at');
                     $signDay = SignIn::getSignInNum($userId,date('Y-m-d',strtotime($start_at)));
                     if($signDay >= 3){
                         SendAward::ActiveSendAward($userId,'continue_signin_three');
@@ -300,7 +300,8 @@ class ActivityJsonRpc extends JsonRpc {
                 $signInThree = 'continue_signin_three';
                 $act = Activity::where('alias_name', $signInThree)->first();
                 if($act) {
-                    if($act['start_at']){
+                    $num = Attributes::getNumber($userId, 'sd_tree_status', 0);
+                    if($num && $act['start_at']){
                         $startAt = $act['start_at'];
                         $startAtArr = explode(' ', $startAt);
                         $startDate = $startAtArr[0];
@@ -316,7 +317,7 @@ class ActivityJsonRpc extends JsonRpc {
         
         //未签到或非连续签到
         if(empty($awardName)) {
-            $continue = $signIn ? 1 : $this->getOldSignNumber($userId)+1; // 兼容旧逻辑写法,上线后一天过后,即可变为变量1
+            $continue = 1;
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             if(!isset($awards[0]['award_name'])) {
                 throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
