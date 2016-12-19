@@ -601,7 +601,7 @@ class ActivityJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $item['display_name'] = substr_replace($phone, '******', 3, 6);
-                $response['user_id'] = $val->user_id;
+                $item['user_id'] = $val->user_id;
                 $response[] = $item;
             }
         }else{
@@ -697,7 +697,7 @@ class ActivityJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $item['display_name'] = substr_replace($phone, '******', 3, 6);
-                $response['user_id'] = $val->user_id;
+                $item['user_id'] = $val->user_id;
                 $response[] = $item;
             }
         }else{
@@ -737,7 +737,7 @@ class ActivityJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $item['display_name'] = substr_replace($phone, '******', 3, 6);
-                $response['user_id'] = $val->user_id;
+                $item['user_id'] = $val->user_id;
                 $response[] = $item;
             }
         }else{
