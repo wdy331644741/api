@@ -17,7 +17,6 @@ class MoneyShareController extends Controller
     function postOperation(Request $request){
         $mall_id = intval($request->id);
         $validator = Validator::make($request->all(), [
-            'identify' => 'required|string|min:1',
             'award_type' => 'required|integer|min:1',
             'award_id' => 'required|integer|min:1',
             'total_money' => 'required|integer|min:1',
@@ -34,8 +33,6 @@ class MoneyShareController extends Controller
         $data['blessing'] = $request->blessing;
         //说明
         $data['user_name'] = $request->user_name;
-        //配图
-        $data['identify'] = Func::randomStr(15);
         //总数量
         $data['award_type'] = $request->award_type;
         //总数量
@@ -71,6 +68,8 @@ class MoneyShareController extends Controller
                 return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该商品不存在'));
             }
         }else{
+            //红包标示
+            $data['identify'] = Func::randomStr(15);
             //添加时间
             $data['created_at'] = date("Y-m-d H:i:s");
             //修改时间
