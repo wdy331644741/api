@@ -16,6 +16,9 @@ use App\Jobs\BatchAward;
 use App\Jobs\ReissueAward;
 use App\Models\JsonRpc;
 
+use App\Models\UserAttribute;
+use Excel;
+
 class AwardController extends AwardCommonController
 {
     private $awards = [];
@@ -351,5 +354,35 @@ class AwardController extends AwardCommonController
             return $this->outputJson(DATABASE_ERROR, array('error_msg'=>'修改失败'));
         }
         return $this->outputJson(0, array('error_msg'=>'成功'));
+    }
+
+
+    /**
+     * 新春嘉年华幸运奖导出excel
+     *
+     * @param Request $request
+     * @return json
+     */
+    function getExportLuck() {
+        //获取优惠码
+        $where['key'] = "new_year_year_investment";
+        $list = UserAttribute::where($where)->orderBy("number","desc")->take(200)->get();
+        if(empty($list)){
+            return false;
+        }
+        $cellData = array();
+        foreach($list as $key => $item){
+            if($key == 0){
+                $cellData[$key] = array('id','user_id','key','number','created_at','updated_at');
+            }
+            $cellData[$key+1] = array($item['id'],$item['user_id'],$item['key'],$item['number'],$item['created_at'],$item['updated_at']);
+        }
+        $fileName = date("YmdHis").mt_rand(1000,9999);
+        $typeName = "xls";
+        Excel::create($fileName,function($excel) use ($cellData){
+            $excel->sheet('score', function($sheet) use ($cellData){
+                $sheet->rows($cellData);
+            });
+        })->export($typeName);
     }
 }
