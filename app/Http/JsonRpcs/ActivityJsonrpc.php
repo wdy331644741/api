@@ -22,7 +22,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
-
+use Cache;
 class ActivityJsonRpc extends JsonRpc {
     
     /**
@@ -677,6 +677,63 @@ class ActivityJsonRpc extends JsonRpc {
         throw new OmgException(OmgException::API_FAILED);
     }
 
+
+    /**
+     * 新春活动砸金蛋最新获取列表
+     *
+     * @JsonRpcMethod
+     */
+    public function nyZaJinDanList($params){
+        $per_page = intval($params->per_page);
+        if(empty($per_page)){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        //判断缓存中是否有数据
+        if(Cache::has('NewYearHammerList')){
+            $json = Cache::get("NewYearHammerList");
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => json_decode($json,1)
+            );
+        }
+        $data = array();
+        //根据别名获取活动id
+        $activityInfo = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where('alias_name','new_year_hammer_eggs')->select("id","join_num")->first();
+        if(empty($activityInfo)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data
+            );
+        }
+        $data = SendRewardLog::where("activity_id",$activityInfo['id'])->where("status",">=",1)->select("user_id","remark","created_at")->take($per_page)->orderBy("id","desc")->get();
+        if(!empty($data)){
+            foreach($data as &$item){
+                $phone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                $awardList = json_decode($item['remark'],1);
+                $item['award_name'] = isset($awardList['award_name']) ? $awardList['award_name'] : '';
+            }
+        }
+        $return = array();
+        $return['total_num'] = isset($activityInfo['join_num']) && !empty($activityInfo['join_num']) ? $activityInfo['join_num'] : 0;
+        $return['data'] = $data;
+        Cache::put("NewYearHammerList",json_encode($return),5);
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return
+        );
+    }
 
     /**
      * 获取推广贡献奖top排行
