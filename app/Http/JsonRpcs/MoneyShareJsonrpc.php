@@ -44,8 +44,8 @@ class MoneyShareJsonRpc extends JsonRpc {
         if(!$mallInfo){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(50)->get();
-        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('created_at', 'asc')->take(50)->get();
+        $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(5)->get();
+        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('created_at', 'asc')->take(5)->get();
         $result['recentList'] = self::_formatData($recentList);
         $result['topList'] = self::_formatData($topList);
         
@@ -62,7 +62,11 @@ class MoneyShareJsonRpc extends JsonRpc {
             if($join){
                 $result['isGot'] = 1;
                 $result['award'] = $join['money'];
-                return $result;
+                return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => $result
+                );
             }
             //奖品已抢光
             if($remain == 0){
