@@ -679,6 +679,50 @@ class ActivityJsonRpc extends JsonRpc {
 
 
     /**
+     * 新春活动砸金蛋最新获取列表
+     *
+     * @JsonRpcMethod
+     */
+    public function nyZaJinDanList($params){
+        $per_page = intval($params->per_page);
+        if(empty($per_page)){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        $data = array();
+        //根据别名获取活动id
+        $activityInfo = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where('alias_name','new_year_hammer_eggs')->select("id")->first();
+        if(empty($activityInfo)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data
+            );
+        }
+        $data = SendRewardLog::where("activity_id",$activityInfo['id'])->where("status",">=",1)->select("user_id","remark")->take($per_page)->get();
+        if(!empty($data)){
+            foreach($data as &$item){
+                $phone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                $awardList = json_decode($item['remark'],1);
+                $item['award_name'] = isset($awardList['award_name']) ? $awardList['award_name'] : '';
+            }
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
+    /**
      * 获取推广贡献奖top排行
      *
      * @JsonRpcMethod
