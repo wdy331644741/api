@@ -600,6 +600,7 @@ class ActivityJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response['user_id'] = $val->user_id;
                 $response[] = $item;
             }
         }else{
@@ -656,20 +657,23 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function nyZaJinDan(){
         global $userId;
-        $userId = 21;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $number = UserAttribute::where(['user_id'=>$userId,'key'=>'	new_year_hammer_eggs'])->value('number');
+        $number = UserAttribute::where(['user_id'=>$userId,'key'=>'	new_year_hammer_num'])->value('number');
         if(isset($number) && $number > 0){
-            SendAward::ActiveSendAward($userId,'new_year_hammer_eggs');
+            $res = SendAward::ActiveSendAward($userId,'new_year_hammer_eggs');
+            if(isset($res[0]['status']) && $res[0]['status'] === true){
+                $awardName = $res[0]['award_name'];
+                $deNum = Attributes::decrement($userId,'new_year_hammer_num');
+                return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => array('num'=>$deNum,'award_name'=>$awardName)
+                );
+            }
         }
-        $deNum = Attributes::decrement($userId,'new_year_hammer_eggs');
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $deNum
-        );
+        throw new OmgException(OmgException::API_FAILED);
     }
 
 
@@ -692,6 +696,7 @@ class ActivityJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response['user_id'] = $val->user_id;
                 $response[] = $item;
             }
         }else{
@@ -731,6 +736,7 @@ class ActivityJsonRpc extends JsonRpc {
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $response['user_id'] = $val->user_id;
                 $response[] = $item;
             }
         }else{
