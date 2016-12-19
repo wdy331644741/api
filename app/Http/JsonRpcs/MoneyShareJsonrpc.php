@@ -4,7 +4,6 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
-use Illuminate\Support\Facades\Crypt;
 use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
 use App\Service\Func;
@@ -27,13 +26,6 @@ class MoneyShareJsonRpc extends JsonRpc {
         if(empty($identify)){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
-        //解密identify
-        try {
-            $identify = Crypt::decrypt(urldecode($identify));
-        } catch (DecryptException $e) {
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-
 
         // 商品是否存在
         $date = date("Y-m-d H:i:s");

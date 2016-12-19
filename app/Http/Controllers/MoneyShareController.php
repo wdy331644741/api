@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\Service\Func;
 use App\Models\MoneyShare;
 use App\Jobs\ReissueMoneyShare;
-use Illuminate\Support\Facades\Crypt;
 use Validator;
 
 class MoneyShareController extends Controller
@@ -36,7 +35,7 @@ class MoneyShareController extends Controller
         //说明
         $data['user_name'] = $request->user_name;
         //配图
-        $data['identify'] = $request->identify;
+        $data['identify'] = Func::randomStr(15);
         //总数量
         $data['award_type'] = $request->award_type;
         //总数量
@@ -86,11 +85,6 @@ class MoneyShareController extends Controller
     function getList(Request $request){
         $request->data = array('order'=>array("id" => "desc"));
         $data = Func::Search($request,new MoneyShare());
-        if(!empty($data)){
-            foreach($data as &$item){
-                $item['key'] = urlencode(Crypt::encrypt($item['identify']));
-            }
-        }
         return $this->outputJson(0,$data);
     }
     /**
