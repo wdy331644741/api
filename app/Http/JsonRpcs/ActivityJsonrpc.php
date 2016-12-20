@@ -666,6 +666,7 @@ class ActivityJsonRpc extends JsonRpc {
         }
         $number = UserAttribute::where(['user_id'=>$userId,'key'=>'new_year_hammer_num'])->value('number');
         if($params->isget == 1){
+            $number = isset($number) ? $number :0;
             return array(
                 'code' => 0,
                 'message' => 'success',
