@@ -656,12 +656,22 @@ class ActivityJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function nyZaJinDan(){
+    public function nyZaJinDan($params){
         global $userId;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $number = UserAttribute::where(['user_id'=>$userId,'key'=>'	new_year_hammer_num'])->value('number');
+        if(empty($params->isget)){
+            throw new OmgException(OmgException::PARAMS_NOT_NULL);
+        }
+        $number = UserAttribute::where(['user_id'=>$userId,'key'=>'new_year_hammer_num'])->value('number');
+        if($params->isget){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $number
+            );
+        }
         if(isset($number) && $number > 0){
             $res = SendAward::ActiveSendAward($userId,'new_year_hammer_eggs');
             if(isset($res[0]['status']) && $res[0]['status'] === true){
