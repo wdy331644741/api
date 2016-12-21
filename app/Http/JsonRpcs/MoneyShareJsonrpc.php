@@ -8,6 +8,7 @@ use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
 use App\Service\Func;
 use Illuminate\Contracts\Encryption\DecryptException;
+use DB;
 
 class MoneyShareJsonRpc extends JsonRpc {
 
@@ -29,6 +30,7 @@ class MoneyShareJsonRpc extends JsonRpc {
 
         // 商品是否存在
         $date = date("Y-m-d H:i:s");
+        DB::beginTransaction();
         $mallInfo = MoneyShare::where(['identify' => $identify, 'status' => 1])
             ->where("start_time","<=",$date)
             ->where("end_time",">=",$date)
@@ -61,7 +63,7 @@ class MoneyShareJsonRpc extends JsonRpc {
                 );
             }
             //奖品已抢光
-            if($remain == 0){
+            if($remainNum == 0){
                 $result['isGot'] = 2;
             }
         }
@@ -93,6 +95,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             }
             $result['award'] = $money;
         }
+        DB::commit();
 
         
         return array(
