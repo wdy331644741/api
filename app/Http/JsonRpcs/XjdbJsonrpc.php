@@ -187,6 +187,7 @@ class XjdbJsonRpc extends JsonRpc
                 'user_id' => $userId,
                 'award_name' => $result['awardName'],
                 'uuid' => $uuid,
+                'position' => $position,
                 'ip' => Request::getClientIp(),
                 'status' => 0,
                 'type' => 7,
@@ -236,6 +237,7 @@ class XjdbJsonRpc extends JsonRpc
                     'user_id' => $userId,        
                     'award_name' => $result['awardName'],
                     'uuid' => '',
+                    'position' => $position,
                     'ip' => Request::getClientIp(),
                     'status' => 1,
                     'type' => 3,
@@ -329,7 +331,7 @@ class XjdbJsonRpc extends JsonRpc
         
         // 不为今天
         if(date('Ymd', strtotime($item['update_at'])) !== date('Ymd')) {
-            Attributes::setItem($userId, $key, $num);
+            Attributes::setItem($userId, $key, $num, time());
             return $num;
         }
          
