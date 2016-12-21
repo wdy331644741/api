@@ -54,7 +54,7 @@ class IdiomController extends Controller
             'title'=>$request->title,
             'contents'=>$request->contents,
             'start_at'=>$request->start_at,
-            'start_at'=>$request->end_at,
+            'end_at'=>$request->end_at,
             'priority'=> $request->priority
         );
         $res = Idiom::where('id',$request->id)->update($putdata);
