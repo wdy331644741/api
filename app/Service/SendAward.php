@@ -169,9 +169,8 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
-
             //*********新春嘉年华活动****START****//
-            
+            // 记录最大投资额 
             case "xjdb_max_invest":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
