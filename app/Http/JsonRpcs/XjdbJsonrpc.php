@@ -166,7 +166,7 @@ class XjdbJsonRpc extends JsonRpc
          
 
         // 判断今天是否到达领取上限
-        if($awardStatus) {
+        if($awardStatus && $award['isSmall']) {
             $num = $this->getSmallAwardNum($userId);
             if($num >= Config::get('activity.xjdb_global.small_num')) {
                 $awardStatus = false;
