@@ -169,8 +169,16 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
-
             //*********新春嘉年华活动****START****//
+            // 记录最大投资额 
+            case "xjdb_max_invest":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 0){
+                        Attributes::setNumberByMax($triggerData['user_id'], 'xjdb_max_invest', $amount);
+                    }
+                }
+                break;    
             //金牌投手奖
             case "new_year_bidding" :
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['project_id'])){

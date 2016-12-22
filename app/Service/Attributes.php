@@ -99,6 +99,27 @@ class Attributes
         $data = UserAttribute::where($where)->get()->toArray();
         return $data;
     }
+
+    /**
+     * 设置number,只更新最大值
+     *
+     * @param $uid
+     * @param $key
+     * @param $num
+     * @return mixed
+     */
+    static public function setNumberByMax($uid, $key, $num) {
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        if(!$res) {
+            $res = UserAttribute::create(['user_id' => $uid, 'key' => $key, 'number' => $num]);
+            return $res['number'];
+        }
+        if($res['number'] < $num) {
+            $res->update(['number' => $num]);
+            return $res['number'];
+        }
+        return $res['number'];
+    }
     
     static public function getNumber($uid, $key, $default = null) {
         if(empty($uid) || empty($key)) {

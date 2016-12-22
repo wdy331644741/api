@@ -140,4 +140,13 @@ class Func
         }
         return $userId;
     }
+
+    static function randomStr($length) {
+        $strArr = 'abcdefghigklmnopqrstuvwxyz0123456';
+        $str = ''; 
+        for ($i = 0; $i < $length; $i++) {
+            $str .= $strArr[rand(0, strlen($strArr)-1)];
+        }
+        return $str;
+    }
 }
