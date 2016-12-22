@@ -605,7 +605,11 @@ class ActivityJsonRpc extends JsonRpc {
                 $response[] = $item;
             }
         }else{
-            throw new OmgException(OmgException::API_FAILED);
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array()
+            );
         }
         return array(
             'code' => 0,
@@ -769,7 +773,11 @@ class ActivityJsonRpc extends JsonRpc {
                 $response[] = $item;
             }
         }else{
-            throw new OmgException(OmgException::API_FAILED);
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array()
+            );
         }
         return array(
             'code' => 0,
@@ -809,7 +817,11 @@ class ActivityJsonRpc extends JsonRpc {
                 $response[] = $item;
             }
         }else{
-            throw new OmgException(OmgException::API_FAILED);
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => array()
+            );
         }
         return array(
             'code' => 0,
