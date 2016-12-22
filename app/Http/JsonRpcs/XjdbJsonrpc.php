@@ -312,7 +312,7 @@ class XjdbJsonRpc extends JsonRpc
         }
         
         //不为今天
-        if(date('Ymd', strtotime($item['update_at'])) !== date('Ymd')) {
+        if(date('Ymd', strtotime($item['updated_at'])) !== date('Ymd')) {
             return 0;            
         }
         
