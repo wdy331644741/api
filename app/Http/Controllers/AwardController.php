@@ -18,6 +18,7 @@ use App\Models\JsonRpc;
 
 use App\Models\UserAttribute;
 use Excel;
+use App\Service\Func;
 
 class AwardController extends AwardCommonController
 {
@@ -363,19 +364,24 @@ class AwardController extends AwardCommonController
      * @param Request $request
      * @return json
      */
-    function getExportLuck() {
+    function getExportLuck(Request $request) {
+        $per_page = intval($request->per_page);
+        if(empty($per_page)){
+            return '参数不对';
+        }
         //获取优惠码
         $where['key'] = "new_year_year_investment";
-        $list = UserAttribute::where($where)->orderBy("number","desc")->take(200)->get();
+        $list = UserAttribute::where($where)->orderBy("number","desc")->take($per_page)->get();
         if(empty($list)){
             return false;
         }
         $cellData = array();
         foreach($list as $key => $item){
             if($key == 0){
-                $cellData[$key] = array('id','user_id','key','number','created_at','updated_at');
+                $cellData[$key] = array('id','user_id','phone','key','number','created_at','updated_at');
             }
-            $cellData[$key+1] = array($item['id'],$item['user_id'],$item['key'],$item['number'],$item['created_at'],$item['updated_at']);
+            $phone = Func::getUserPhone($item['user_id']);
+            $cellData[$key+1] = array($item['id'],$item['user_id'],$phone,$item['key'],$item['number'],$item['created_at'],$item['updated_at']);
         }
         $fileName = date("YmdHis").mt_rand(1000,9999);
         $typeName = "xls";
