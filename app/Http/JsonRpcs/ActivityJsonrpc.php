@@ -758,17 +758,17 @@ class ActivityJsonRpc extends JsonRpc {
     public function getNyExtensionTop(){
         $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->paginate(5);
         $response = array();
-        if(isset($res)){
+        if(isset($res) && !empty($res)){
             foreach ($res as $key=>$val){
+                if(empty($val->user_id)){
+                    continue;
+                }
                 $item['top'] = $key + 1;
                 $item['friend_num'] = $val->number;
                 $item['year_investment'] = $val->string;
                 $item['integral'] = $val->text;
                 $phone = Func::getUserPhone($val->user_id);
-                if(empty($phone)){
-                    throw new OmgException(OmgException::API_FAILED);
-                }
-                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $item['display_name'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $item['user_id'] = $val->user_id;
                 $response[] = $item;
             }
@@ -796,23 +796,20 @@ class ActivityJsonRpc extends JsonRpc {
         if($params->min >= 0 && empty($params->max)){
             throw new OmgException(OmgException::PARAMS_NOT_NULL);
         }
-        if($params != 100000000){
-            throw new OmgException(OmgException::PARAMS_NOT_NULL);
-        }
         $res = UserAttribute::where('key','new_year_year_investment')
             ->where('number','>=',$params->min)
-            ->where('number','<',$params->max)
+            ->where('number','<=',$params->max)
             ->orderBy('number','desc')->paginate(5);
         $response = array();
         if(isset($res)){
             foreach ($res as $key=>$val){
+                if(empty($val->user_id)){
+                    continue;
+                }
                 $item['top'] = $key + 1;
                 $item['year_investment'] = $val->number;
                 $phone = Func::getUserPhone($val->user_id);
-                if(empty($phone)){
-                    throw new OmgException(OmgException::API_FAILED);
-                }
-                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $item['display_name'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $item['user_id'] = $val->user_id;
                 $response[] = $item;
             }
