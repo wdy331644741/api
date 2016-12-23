@@ -597,13 +597,13 @@ class ActivityJsonRpc extends JsonRpc {
         $response = array();
         if(isset($res)){
             foreach ($res as $key=>$val){
+                if(empty($val->user_id)){
+                    continue;
+                }
                 $item['top'] = $key + 1;
                 $item['number'] = $val->number;
                 $phone = Func::getUserPhone($val->user_id);
-                if(empty($phone)){
-                    throw new OmgException(OmgException::API_FAILED);
-                }
-                $item['display_name'] = substr_replace($phone, '******', 3, 6);
+                $item['display_name'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $item['user_id'] = $val->user_id;
                 $response[] = $item;
             }
