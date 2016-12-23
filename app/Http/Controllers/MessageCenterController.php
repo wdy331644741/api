@@ -30,6 +30,8 @@ class MessageCenterController extends Controller{
         //触发的用户ID
         $userID = isset($requests['user_id']) ? intval($requests['user_id']) : 0;
         if($trigger_type === null || empty($userID)){
+            $logName = base_path()."/storage/logs/callBack_".date("Y-m-d").".log";
+            file_put_contents($logName,date("Y-m-d H:i:s").json_encode($requests)."\n",FILE_APPEND);
             return '参数错误';
         }
         //查询出该用户触发匹配的活动信息
