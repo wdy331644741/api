@@ -187,7 +187,7 @@ class SendAward
                 break;
             //推广贡献奖
             case "new_year_invite_investment" :
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
                     $yearInvestment = self::yearInvestment($triggerData['Investment_amount'],$triggerData['scatter_type'],$triggerData['period']);
                     if($yearInvestment){
                         Attributes::setNyExtension($triggerData['from_user_id'],'new_year_invite_investment',$yearInvestment,$triggerData['is_first']);
