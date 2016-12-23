@@ -215,7 +215,10 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
         
-        if($signIn['number'] !== $day) {
+        $signInNum = $signIn['number'];
+        $signInNum = $signInNum%28 == 0  ? 28 : $signInNum%28;
+        
+        if($signInNum !== $day) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $extra = Attributes::getItem($userId, $aliasName);
