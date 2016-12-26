@@ -694,7 +694,7 @@ class ActivityJsonRpc extends JsonRpc {
                 );
             }
         }
-        throw new OmgException(OmgException::API_FAILED);
+        throw new OmgException(OmgException::NUMBER_IS_NULL);
     }
 
 
