@@ -650,6 +650,9 @@ class ActivityJsonRpc extends JsonRpc {
                 $number = UserAttribute::where(['key'=>$params->key,'user_id'=>$userId])->value('number');
                 break;
         }
+        if(!$number){
+            $number = 0;
+        }
         return array(
             'code' => 0,
             'message' => 'success',
