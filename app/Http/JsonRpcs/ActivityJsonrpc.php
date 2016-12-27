@@ -593,7 +593,7 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getNyToushouTop(){
-        $res = UserAttribute::where('key','new_year_bidding')->orderBy('number','desc')->orderBy('created_at','desc')->paginate(5);
+        $res = UserAttribute::where('key','new_year_bidding')->orderBy('number','desc')->orderBy('created_at','ASC')->paginate(5);
         $response = array();
         if(isset($res)){
             foreach ($res as $key=>$val){
@@ -761,7 +761,7 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getNyExtensionTop(){
-        $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->orderBy('created_at','desc')->paginate(5);
+        $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->orderBy('created_at','ASC')->paginate(5);
         $response = array();
         if(isset($res) && !empty($res)){
             foreach ($res as $key=>$val){
@@ -805,7 +805,7 @@ class ActivityJsonRpc extends JsonRpc {
             ->where('number','>=',$params->min)
             ->where('number','<=',$params->max)
             ->orderBy('number','desc')
-            ->orderBy('created_at','desc')
+            ->orderBy('created_at','ASC')
             ->paginate(5);
         $response = array();
         if(isset($res)){
