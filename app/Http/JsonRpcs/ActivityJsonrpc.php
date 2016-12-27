@@ -596,16 +596,18 @@ class ActivityJsonRpc extends JsonRpc {
         $res = UserAttribute::where('key','new_year_bidding')->orderBy('number','desc')->orderBy('created_at','ASC')->paginate(5);
         $response = array();
         if(isset($res)){
+            $i = 1;
             foreach ($res as $key=>$val){
                 if(empty($val->user_id)){
                     continue;
                 }
-                $item['top'] = $key + 1;
+                $item['top'] = $i;
                 $item['number'] = $val->number;
                 $phone = Func::getUserPhone($val->user_id);
                 $item['display_name'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $item['user_id'] = $val->user_id;
                 $response[] = $item;
+                $i++;
             }
         }else{
             return array(
@@ -765,11 +767,12 @@ class ActivityJsonRpc extends JsonRpc {
         $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->orderBy('created_at','ASC')->paginate(5);
         $response = array();
         if(isset($res) && !empty($res)){
+            $i = 1;
             foreach ($res as $key=>$val){
                 if(empty($val->user_id)){
                     continue;
                 }
-                $item['top'] = $key + 1;
+                $item['top'] = $i;
                 $item['friend_num'] = $val->number;
                 $item['year_investment'] = $val->string;
                 $item['integral'] = $val->text;
@@ -777,6 +780,7 @@ class ActivityJsonRpc extends JsonRpc {
                 $item['display_name'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $item['user_id'] = $val->user_id;
                 $response[] = $item;
+                $i++;
             }
         }else{
             return array(
@@ -810,16 +814,18 @@ class ActivityJsonRpc extends JsonRpc {
             ->paginate(5);
         $response = array();
         if(isset($res)){
+            $i = 1;
             foreach ($res as $key=>$val){
                 if(empty($val->user_id)){
                     continue;
                 }
-                $item['top'] = $key + 1;
+                $item['top'] = $i;
                 $item['year_investment'] = $val->number;
                 $phone = Func::getUserPhone($val->user_id);
                 $item['display_name'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $item['user_id'] = $val->user_id;
                 $response[] = $item;
+                $i++;
             }
         }else{
             return array(
