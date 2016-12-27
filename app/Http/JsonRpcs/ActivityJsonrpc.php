@@ -764,7 +764,7 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getNyExtensionTop(){
-        $res = UserAttribute::where('key','new_year_invite_investment')->orderBy('text','desc')->orderBy('created_at','ASC')->paginate(5);
+        $res = UserAttribute::where('key','new_year_invite_investment')->orderByRaw('text * 1 desc')->orderBy('created_at','ASC')->paginate(5);
         $response = array();
         if(isset($res) && !empty($res)){
             $i = 1;
