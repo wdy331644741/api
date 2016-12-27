@@ -378,10 +378,12 @@ class AwardController extends AwardCommonController
         $cellData = array();
         foreach($list as $key => $item){
             if($key == 0){
-                $cellData[$key] = array('id','user_id','phone','key','number','created_at','updated_at');
+                $cellData[$key] = array('id','user_id','phone','name','key','number','created_at','updated_at');
             }
+            $userInfo = Func::getUserBasicInfo($item['user_id']);
+            $name = !empty($userInfo) && isset($userInfo['realname']) ? $userInfo['realname'] : '';
             $phone = Func::getUserPhone($item['user_id']);
-            $cellData[$key+1] = array($item['id'],$item['user_id'],$phone,$item['key'],$item['number'],$item['created_at'],$item['updated_at']);
+            $cellData[$key+1] = array($item['id'],$item['user_id'],$phone,$name,$item['key'],$item['number'],$item['created_at'],$item['updated_at']);
         }
         $fileName = date("YmdHis").mt_rand(1000,9999);
         $typeName = "xls";
