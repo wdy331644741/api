@@ -204,7 +204,7 @@ class SendAward
                         //发送站内信
                         if($num >= 1){
                             $template = "恭喜您在新春嘉年华活动中获取".$num."把锤子，请于活动期间在活动页面使用。";
-                            $status = SendMessage::Mail($triggerData['user_id'],$template);
+                            SendMessage::Mail($triggerData['user_id'],$template);
                         }
                     }
                 }
