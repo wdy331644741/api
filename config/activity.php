@@ -19,14 +19,14 @@ return [
     //寻金夺币
     'xjdb' => [
         'index' => [
-            'start_at' => '2016-12-01 00:00:00',
-            'end_at' => '2016-12-30 00:00:00',
+            'start_at' => '2016-12-29 00:00:00',
+            'end_at' => '2017-01-20 00:00:00',
             'items' => [
                 [
                     'start' => 0,
                     'end' => 8,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 349, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -39,7 +39,7 @@ return [
                     'start' => 9,
                     'end' => 11,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -52,7 +52,7 @@ return [
                     'start' => 12,
                     'end' =>  14,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -65,7 +65,7 @@ return [
                     'start' => 15,
                     'end' =>  17,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -78,7 +78,7 @@ return [
                     'start' => 18,
                     'end' =>  20,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -91,7 +91,7 @@ return [
                     'start' => 21,
                     'end' =>  23,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 349, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -104,14 +104,14 @@ return [
             ]
         ],
         'discover' => [
-            'start_at' => '2016-12-01 00:00:00',
-            'end_at' => '2016-12-30 00:00:00',
+            'start_at' => '2016-12-29 00:00:00',
+            'end_at' => '2017-01-20 00:00:00',
             'items' => [
                 [
                     'start' => 0,
                     'end' => 8,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -124,7 +124,7 @@ return [
                     'start' => 9,
                     'end' => 11,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -137,7 +137,7 @@ return [
                     'start' => 12,
                     'end' =>  14,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -150,7 +150,7 @@ return [
                     'start' => 15,
                     'end' =>  17,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -163,7 +163,7 @@ return [
                     'start' => 18,
                     'end' =>  20,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -176,7 +176,7 @@ return [
                     'start' => 21,
                     'end' =>  23,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -187,16 +187,16 @@ return [
                     ]
                 ]
             ]
-        ], 
+        ],
         'list' => [
-            'start_at' => '2016-12-01 00:00:00',
-            'end_at' => '2016-12-30 00:00:00',
+            'start_at' => '2016-12-29 00:00:00',
+            'end_at' => '2017-01-20 00:00:00',
             'items' => [
                 [
                     'start' => 0,
                     'end' => 8,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -209,7 +209,7 @@ return [
                     'start' => 9,
                     'end' => 11,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -222,7 +222,7 @@ return [
                     'start' => 12,
                     'end' =>  14,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -235,7 +235,7 @@ return [
                     'start' => 15,
                     'end' =>  17,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -248,7 +248,7 @@ return [
                     'start' => 18,
                     'end' =>  20,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 350, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
@@ -261,7 +261,7 @@ return [
                     'start' => 21,
                     'end' =>  23,
                     'awards' => [
-                        ['money' => 0, 'num' => 0, 'weight' => 10, 'require' => 0, 'isSmall' => 0],
+                        ['money' => 0, 'num' => 0, 'weight' => 59, 'require' => 0, 'isSmall' => 0],
                         ['money' => 0.1, 'num' => 348, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.2, 'num' => 138, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
                         ['money' => 0.5, 'num' => 69, 'weight' => 7, 'require' => 0, 'isSmall' => 1],
