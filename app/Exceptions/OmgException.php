@@ -69,6 +69,7 @@ class OmgException extends BasicException
     const MALL_IS_HAS = 4311;
     const DATA_ERROR = 4312;
     const SEND_ERROR = 4313;
+    const NUMBER_IS_NULL = 4314;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -121,7 +122,8 @@ class OmgException extends BasicException
         self::MALL_NOT_EXIST => "商品不存在",
         self::MALL_IS_HAS => "已经领取过该奖品",
         self::DATA_ERROR => "数据有误",
-        self::SEND_ERROR => "发送失败"
+        self::SEND_ERROR => "发送失败",
+        self::NUMBER_IS_NULL =>"个数不足"
     );
 
     public function __construct($code, $data = array())
