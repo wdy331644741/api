@@ -677,6 +677,9 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NOT_NULL);
         }
         $number = UserAttribute::where(['user_id'=>$userId,'key'=>'new_year_hammer_num'])->value('number');
+        if(!$number){
+            $number = 0;
+        }
         if($params->isget == 1){
             return array(
                 'code' => 0,
