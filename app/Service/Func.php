@@ -149,4 +149,23 @@ class Func
         }
         return $str;
     }
+
+    /**
+     * 根据用户id获取用户基本信息
+     * @param $user_id
+     * @return mixed
+     */
+    static function getUserBasicInfo($user_id,$cache = false){
+        if(Cache::has('UserInfo_'.$user_id) && $cache == false){
+            return Cache::get('UserInfo_'.$user_id);
+        }
+        $url = env('INSIDE_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $info = $client->userBasicInfo(array("userId"=>$user_id));
+        $info = isset($info['result']['data']) && !empty($info['result']['data']) ? $info['result']['data'] : array();
+        if(!empty($info)){
+            Cache::put('UserInfo_'.$user_id,$info,30);
+        }
+        return $info;
+    }
 }
