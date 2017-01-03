@@ -1284,7 +1284,7 @@ class SendAward
             'user_id' => 'required|integer|min:1',
             'source_name' => 'required|min:2|max:255',
             'trigger'=>'required|integer|min:0',
-            'integral' => 'required|min:2|max:255',
+            'integral' => 'required|integer|min:1',
             'remark' => 'required|min:1'
         ]);
         if($validator->fails()){
