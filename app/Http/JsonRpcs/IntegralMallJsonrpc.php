@@ -73,7 +73,14 @@ class IntegralMallJsonRpc extends JsonRpc {
         $where = array();
         $where['id'] = $mallId;
         $where['status'] = 1;
-        $data = IntegralMall::where($where)->get()->toArray();
+        $data = IntegralMall::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
+            })
+            ->get()->toArray();
         //判断数据是否存在
         if(empty($data)){
             throw new OmgException(OmgException::AWARD_NOT_EXIST);
