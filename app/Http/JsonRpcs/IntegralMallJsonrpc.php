@@ -24,7 +24,14 @@ class IntegralMallJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $where['status'] = 1;
-        $list = IntegralMall::where($where)->orderByRaw('id + priority desc')->get()->toArray();
+        $list = IntegralMall::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
+            })
+            ->orderByRaw('id + priority desc')->get()->toArray();
         $awardCommon = new AwardCommonController;
         foreach($list as &$item){
             $params = array();
