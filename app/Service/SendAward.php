@@ -1030,7 +1030,7 @@ class SendAward
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'source_name' => 'required|min:2|max:255',
-            'integral' => 'required|min:2|max:255',
+            'integral' => 'required|integer|min:1',
         ]);
         if($validator->fails()){
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
