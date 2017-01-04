@@ -94,7 +94,7 @@ class IntegralMallJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::INTEGRAL_FAIL);
         }
         //判断是否兑换完
-        if($data['send_quantity'] >= $data['total_quantity']){
+        if($data['total_quantity'] > 0 && $data['send_quantity'] >= $data['total_quantity']){
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
         //判断该用户是否超过了购买
@@ -103,7 +103,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         $whereEX['mall_id'] = $mallId;
         $whereEX['send_status'] = 1;
         $count = IntegralMallExchange::where($whereEX)->count();
-        if($data['user_quantity'] != 0 &&$count >= $data['user_quantity']){
+        if($data['user_quantity'] > 0 && $count >= $data['user_quantity']){
             throw new OmgException(OmgException::EXCEED_FAIL);
         }
         //如果花费大于于拥有的总积分
