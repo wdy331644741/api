@@ -100,7 +100,7 @@ class OmgException extends BasicException
         self::INSERT_FAIL => "插入失败",
         self::INTEGRAL_FAIL => "积分值配置错误",
         self::INTEGRAL_LACK_FAIL => "积分值不足",
-        self::EXCEED_FAIL => "超过了兑换数量",
+        self::EXCEED_FAIL => "超过了用户兑换数量",
         self::INTEGRAL_REMOVE_FAIL => "积分扣除失败",
         self::EXCEED_NUM_FAIL => "超过了剩余次数",
         self::EXCEED_USER_NUM_FAIL => "用户次数不够",

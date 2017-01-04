@@ -93,6 +93,10 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($data['integral'] < 1){
             throw new OmgException(OmgException::INTEGRAL_FAIL);
         }
+        //判断是否兑换完
+        if($data['send_quantity'] >= $data['total_quantity']){
+            throw new OmgException(OmgException::EXCEED_NUM_FAIL);
+        }
         //判断该用户是否超过了购买
         $whereEX = array();
         $whereEX['user_id'] = $userId;
