@@ -31,6 +31,7 @@ class OneYuanJsonRpc extends JsonRpc {
         if(empty($data)){
             $data = array('user_id'=>$userId,'num'=>0);
         }
+        $data = array('user_id'=>$userId,'num'=>0);
         return array(
             'code' => 0,
             'message' => 'success',
@@ -47,19 +48,19 @@ class OneYuanJsonRpc extends JsonRpc {
         //昨天的一元夺宝商品
         $yesterdayList = OneYuan::where($where)
             ->where('end_time', '<=', date("Y-m-d H:i:s"))
-            ->orderBy('end_time','desc')->take(1)
+            ->orderBy('end_time','desc')->take(0)
             ->get()->toArray();
         $list['pass'] = $this->_formatData($yesterdayList);
         //今天的一元夺宝商品
         $todayList = OneYuan::where($where)
             ->where('start_time', '<=', date("Y-m-d H:i:s"))
             ->where('end_time', '>=', date("Y-m-d H:i:s"))
-            ->take(1)->get()->toArray();
+            ->take(0)->get()->toArray();
         $list['now'] = $this->_formatData($todayList);
         //明天的一元夺宝商品
         $tomorrowList = OneYuan::where($where)
             ->where('start_time', '>=', date("Y-m-d H:i:s"))
-            ->orderBy('start_time','asc')->take(1)
+            ->orderBy('start_time','asc')->take(0)
             ->get()->toArray();
         $list['next'] = $this->_formatData($tomorrowList);
         return array(
@@ -125,6 +126,7 @@ class OneYuanJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function buyLuckNum($params) {
+        throw new OmgException(OmgException::API_FAILED);
         global $userId;
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
