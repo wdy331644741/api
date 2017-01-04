@@ -68,7 +68,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
         $userBase = $client->userBasicInfo(array('userId' =>$userId));
-        $integralTotal = isset($userBase['result']['data']['integral']) ? $userBase['result']['data']['integral'] : 1000;
+        $integralTotal = isset($userBase['result']['data']['score']) ? $userBase['result']['data']['score'] : 0;
         //判断积分值够不够买该奖品
         $where = array();
         $where['id'] = $mallId;
