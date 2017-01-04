@@ -300,9 +300,6 @@ class ActivityJsonRpc extends JsonRpc {
                 }
                 $awardName = $awards[0]['award_name'];
                 $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
-                if($continue >= 3) {
-                    SendAward::ActiveSendAward($userId, 'signin_point'); // 连续签到三天发积分
-                }
             }
         }
 
@@ -315,6 +312,15 @@ class ActivityJsonRpc extends JsonRpc {
             }
             $awardName = $awards[0]['award_name'];
             Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
+        }
+
+        // 送积分
+        if(!$isSignIn) {
+            if($continue >=7 )  {
+                SendAward::ActiveSendAward($userId, 'signin_point7'); // 连续签到7天送2积分
+            } else {
+                SendAward::ActiveSendAward($userId, 'signin_point'); // 签到送1积分
+            }
         }
 
         // 额外奖励进度
