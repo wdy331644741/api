@@ -571,7 +571,7 @@ class SendAward
         $res = [];
         if($activity['award_rule'] == 1) {
             foreach($awards as $award) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'],$triggerData);
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'],'',0,0,$triggerData);
             }
         }
         if($activity['award_rule'] == 2) {
@@ -592,7 +592,7 @@ class SendAward
             }
 
             if($finalAward) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'], $triggerData);
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'],'',0,0, $triggerData);
             }
         }
         return $res;
