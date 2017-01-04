@@ -83,11 +83,11 @@ class IntegralMallJsonRpc extends JsonRpc {
             ->get()->toArray();
         //判断数据是否存在
         if(empty($data)){
-            throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         $data = isset($data[0]) ? $data[0] : array();
         if(empty($data)){
-            throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         //判断值是否有效
         if($data['integral'] < 1){
@@ -125,7 +125,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         //获取奖品名
         $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
         if(empty($awardInfo)){
-            throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         $iData['source_id'] = 0;
         $iData['source_name'] = "兑换".$awardInfo['name'];
