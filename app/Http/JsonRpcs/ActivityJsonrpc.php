@@ -294,14 +294,15 @@ class ActivityJsonRpc extends JsonRpc {
                 // 发奖
                 $awards = SendAward::ActiveSendAward($userId, $aliasName);
 
-                SendAward::ActiveSendAward($userId, 'signin_point'); //发积分 1/2
 
                 if(!isset($awards[0]['award_name'])) {
                     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
                 }
                 $awardName = $awards[0]['award_name'];
                 $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
-
+                if($continue >= 3) {
+                    SendAward::ActiveSendAward($userId, 'signin_point'); // 连续签到三天发积分
+                }
             }
         }
 
@@ -309,7 +310,6 @@ class ActivityJsonRpc extends JsonRpc {
         if(empty($awardName)) {
             $continue = 1;
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
-            SendAward::ActiveSendAward($userId, 'signin_point'); //发积分 2/2
             if(!isset($awards[0]['award_name'])) {
                 throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
             }
