@@ -9,6 +9,7 @@ use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use App\Http\Controllers\AwardCommonController;
 use Config;
+use DB;
 
 class IntegralMallJsonRpc extends JsonRpc {
 
@@ -70,6 +71,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         $userBase = $client->userBasicInfo(array('userId' =>$userId));
         $integralTotal = isset($userBase['result']['data']['score']) ? $userBase['result']['data']['score'] : 0;
         //判断积分值够不够买该奖品
+        DB::beginTransaction();
         $where = array();
         $where['id'] = $mallId;
         $where['status'] = 1;
@@ -80,12 +82,8 @@ class IntegralMallJsonRpc extends JsonRpc {
             ->where(function($query) {
                 $query->whereNull('end_time')->orWhereRaw('end_time > now()');
             })
-            ->get()->toArray();
+            ->lockForUpdate()->first();
         //判断数据是否存在
-        if(empty($data)){
-            throw new OmgException(OmgException::MALL_NOT_EXIST);
-        }
-        $data = isset($data[0]) ? $data[0] : array();
         if(empty($data)){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
@@ -148,6 +146,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         }
         //判断是否成功
         $id = IntegralMallExchange::insertGetId($insert);
+        DB::commit();
         if($id && $insert['send_status'] == 1){
             return array(
                 'code' => 0,
