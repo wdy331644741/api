@@ -20,7 +20,7 @@ class XjdbJsonRpc extends JsonRpc
      */
     public function xjdbInfo($params) {
         global $userId;
-        
+
         $validator = Validator::make((array)$params, [
             'position' => 'required|string',
         ]);
@@ -33,10 +33,10 @@ class XjdbJsonRpc extends JsonRpc
         $user = ['available' => true, 'startSeconds' => 0, 'login' => 0];
         $xjdbConfig = Config::get('activity.xjdb');
         $key = "xjdb_${position}";
-        
+
         if(isset($xjdbConfig[$position])) {
             $config = $xjdbConfig[$position];
-            
+
             if (strtotime($config['start_at']) < time() && strtotime($config['end_at']) > time()) {
                 $game['available'] = true;
                 $game['endSeconds'] = strtotime($config['end_at']) - time();
@@ -51,7 +51,7 @@ class XjdbJsonRpc extends JsonRpc
                 $user['startSeconds'] = (strtotime(date('Y-m-d H:00:00')) + 3600) - time();
             }
         }
-        
+
         return [
             'code' => 0,
             'message' => 'success',
@@ -70,18 +70,18 @@ class XjdbJsonRpc extends JsonRpc
      */
     public function xjdbDraw($params) {
         global $userId;
-        
+
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        
+
         $validator = Validator::make((array)$params, [
             'position' => 'required|string',
         ]);
         if($validator->fails()){
             throw new OmgException(OmgException::PARAMS_ERROR);
-        }       
-        
+        }
+
         $position = $params->position;
         $xjdbConfig = Config::get('activity.xjdb');
         $key = "xjdb_${position}";
@@ -96,18 +96,18 @@ class XjdbJsonRpc extends JsonRpc
             'nextSeconds' => (strtotime(date('Y-m-d H:00:00')) + 3600) - time(),
             'msg' => '',
         ];
-        
+
         // 活动不存在
         if(!isset($xjdbConfig[$position])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         // 活动已结束
         $config = $xjdbConfig[$position];
-        
+
         if (strtotime($config['start_at']) > time() || strtotime($config['end_at']) < time()) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        
+
         // 已领取
         $item = Attributes::getItem($userId, $key);
         if($item && date('YmdH', strtotime($item['updated_at'])) === date('YmdH')) {
@@ -133,7 +133,7 @@ class XjdbJsonRpc extends JsonRpc
             $awardStatus = false;
             $remark['failReason'] = '奖品不存在';
         }
-        
+
 
         // 判断奖品数量是否足够
         if($awardStatus) {
@@ -144,7 +144,17 @@ class XjdbJsonRpc extends JsonRpc
                 $remark['failReason'] = '奖品剩余数量不足';
             }
         }
-        
+
+        // 判断该ip是否达到现金领取上限
+        if($awardStatus) {
+            $ipKey = 'xjdb_' . Request::getClientIp();
+            $num = GlobalAttributes::getNumberByDay($ipKey);
+            if($num >= Config::get('activity.xjdb_global.ip_max_num')) {
+                $awardStatus = false;
+                $remark['failReason'] = "该ip:{$ipKey}达到现金领取次数上限: {$num}";
+            }
+        }
+
         // 判断投资是否满足资格
         if($awardStatus) {
             $maxInvest = $this->getMaxInvest($userId);
@@ -163,7 +173,7 @@ class XjdbJsonRpc extends JsonRpc
                 $remark['failReason'] = '用户未设置交易密码';
             }
         }
-         
+
 
         // 判断今天是否到达领取上限
         if($awardStatus && $award['isSmall']) {
@@ -202,17 +212,19 @@ class XjdbJsonRpc extends JsonRpc
                 'amount' => $award['money'],
                 'sign' => hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft")
             ]);
-            
+
             $remark['addMoneyRes'] = $result;
             // 成功
             if(isset($purchaseRes['result'])) {
-                $res->update(['status' => 1, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]); 
-                
+                $res->update(['status' => 1, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
+
                 if($award['isSmall']){
                     $this->addSmallAwardNum($userId, 1);
                 }
                 $uniqueKey = "xjdb_{$position}_{$award['start']}_{$award['end']}_{$award['money']}";
+                $ipKey = 'xjdb_' . Request::getClientIp();
                 GlobalAttributes::incrementByDay($uniqueKey, 1);
+                GlobalAttributes::incrementByDay($ipKey, 1);
             }
 
             // 失败
@@ -220,7 +232,7 @@ class XjdbJsonRpc extends JsonRpc
                 $awardStatus = false;
                 $remark['failReason'] = "现金发送失败:";
                 $remark['purchaseRes'] = $purchaseRes;
-                $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]); 
+                $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
             }
         }
 
@@ -234,7 +246,7 @@ class XjdbJsonRpc extends JsonRpc
                 $result['awardType'] = 3;
                 $result['msg'] = str_replace('{awardName}', $result['awardName'],  Config::get('activity.xjdb_global.award_msg.tyj'));
                 Xjdb::create([
-                    'user_id' => $userId,        
+                    'user_id' => $userId,
                     'award_name' => $result['awardName'],
                     'uuid' => '',
                     'position' => $position,
@@ -257,19 +269,19 @@ class XjdbJsonRpc extends JsonRpc
     }
 
     private function getAward($config) {
-        $items = $config['items']; 
+        $items = $config['items'];
         $h = date('H');
         $awards = [];
         $weight = 0;
         foreach($items as $item) {
             if($item['start'] <= $h && $item['end'] >= $h) {
-                $awards = $item['awards'];    
+                $awards = $item['awards'];
                 break;
-            }    
+            }
         }
-        
+
         if(!$awards) {
-            return false;    
+            return false;
         }
 
         foreach($awards as $award) {
@@ -296,29 +308,29 @@ class XjdbJsonRpc extends JsonRpc
         $key = 'xjdb_max_invest';
         $item = Attributes::getItem($userId, $key);
         if(!$item) {
-            return 0;    
+            return 0;
         }
         return $item['number'];
     }
-    
+
     /**
-     * 获取今天小奖中奖次数 
+     * 获取今天小奖中奖次数
      */
     private function getSmallAwardNum($userId) {
         $key = 'xjdb_small_award_num';
         $item = Attributes::getItem($userId, $key);
         if(!$item) {
-            return 0;    
+            return 0;
         }
-        
+
         //不为今天
         if(date('Ymd', strtotime($item['updated_at'])) !== date('Ymd')) {
-            return 0;            
+            return 0;
         }
-        
+
         return $item['number'];
     }
-    
+
     /**
      * 小奖次数+1
      */
@@ -328,15 +340,15 @@ class XjdbJsonRpc extends JsonRpc
         if(!$item) {
             return Attributes::increment($userId, $key, $num);
         }
-        
+
         // 不为今天
         if(date('Ymd', strtotime($item['updated_at'])) !== date('Ymd')) {
             Attributes::setItem($userId, $key, $num, time());
             return $num;
         }
-         
+
         return Attributes::increment($userId, $key, $num);
-        
+
     }
 }
 
