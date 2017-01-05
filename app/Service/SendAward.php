@@ -344,9 +344,9 @@ class SendAward
                 break;
             //积分商城按投资金额送积分
             case 'investment_to_integral':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['level']) && $triggerData['level'] >= 0){
                     $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    $level = isset($triggerData['level']) && $triggerData['level'] >= 1 ? $triggerData['level'] : 0;
+                    $level = $triggerData['level'] == 0 ? 1 : $triggerData['level'];
                     $period = isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
                     $integral = ($amount/100)*$level*$period;
                     if(empty($integral) || !isset($triggerData['name']) || !isset($triggerData['short_name'])){
