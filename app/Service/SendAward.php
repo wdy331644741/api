@@ -344,9 +344,9 @@ class SendAward
                 break;
             //积分商城按投资金额送积分
             case 'investment_to_integral':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['level']) && $triggerData['level'] >= 0){
                     $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    $level = isset($triggerData['level']) && $triggerData['level'] >= 1 ? $triggerData['level'] : 1;
+                    $level = $triggerData['level'] == 0 ? 1 : $triggerData['level'];
                     $period = isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
                     $integral = ($amount/100)*$level*$period;
                     if(empty($integral) || !isset($triggerData['name']) || !isset($triggerData['short_name'])){
@@ -571,7 +571,7 @@ class SendAward
         $res = [];
         if($activity['award_rule'] == 1) {
             foreach($awards as $award) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'],$triggerData);
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'],'',0,0,$triggerData);
             }
         }
         if($activity['award_rule'] == 2) {
@@ -592,7 +592,7 @@ class SendAward
             }
 
             if($finalAward) {
-                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'], $triggerData);
+                $res[] = Self::sendDataRole($userId, $award['award_type'], $finalAward['award_id'], $activity['id'],'',0,0, $triggerData);
             }
         }
         return $res;
@@ -1030,7 +1030,7 @@ class SendAward
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'source_name' => 'required|min:2|max:255',
-            'integral' => 'required|min:2|max:255',
+            'integral' => 'required|integer|min:1',
         ]);
         if($validator->fails()){
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>3,'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
@@ -1284,7 +1284,7 @@ class SendAward
             'user_id' => 'required|integer|min:1',
             'source_name' => 'required|min:2|max:255',
             'trigger'=>'required|integer|min:0',
-            'integral' => 'required|min:2|max:255',
+            'integral' => 'required|integer|min:1',
             'remark' => 'required|min:1'
         ]);
         if($validator->fails()){

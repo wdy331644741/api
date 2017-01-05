@@ -24,10 +24,10 @@ use App\Models\Award5;
 use App\Models\Coupon;
 use Cache;
 class ActivityJsonRpc extends JsonRpc {
-    
+
     /**
      * 领取分享奖励
-     *      
+     *
      * @JsonRpcMethod
      */
     public function signinShare() {
@@ -44,7 +44,7 @@ class ActivityJsonRpc extends JsonRpc {
         $signIn = Attributes::getItem($userId, $signInName);
         if(!$signIn) {
             throw new OmgException(OmgException::NOT_SIGNIN);
-        } 
+        }
         $lastUpdate = $signIn['updated_at'] ? $signIn['updated_at'] : $signIn['created_at'];
         $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
         if($lastUpdateDate !== date('Y-m-d', time())) {
@@ -56,13 +56,13 @@ class ActivityJsonRpc extends JsonRpc {
         if($shared){
             $sharedUpdate = $shared['updated_at'] ? $shared['updated_at'] : $shared['created_at'];
             $sharedUpdateDate = date('Y-m-d', strtotime($sharedUpdate));
-            
+
             if($sharedUpdateDate == date('Y-m-d', time())) {
                 $isShared = true;
                 $awardName = $shared['string'];
-            }   
+            }
         }
-        
+
         // 未分享
         if(!$isShared) {
             $awards = json_decode($signIn['text'], true);
@@ -72,7 +72,7 @@ class ActivityJsonRpc extends JsonRpc {
             $awardName = $award['award_name'];
             Attributes::setItem($userId, $sharedName, time(), $awardName, json_encode($awards));
         }
-        
+
         return array(
             'code' => 0,
             'message' => 'success',
@@ -186,7 +186,7 @@ class ActivityJsonRpc extends JsonRpc {
     }
     /**
      * 领取连续签到奖励
-     * 
+     *
      * @JsonRpcMethod
      */
     public function signinDay($params) {
@@ -209,16 +209,16 @@ class ActivityJsonRpc extends JsonRpc {
         $signIn = Attributes::getItem($userId, $signInName);
         if(!$signIn) {
             throw new OmgException(OmgException::NOT_SIGNIN);
-        } 
+        }
         $lastUpdate = $signIn['updated_at'] ? $signIn['updated_at'] : $signIn['created_at'];
         $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
         if($lastUpdateDate !== date('Y-m-d', time())) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
-        
+
         $signInNum = $signIn['number'];
         $signInNum = $signInNum%28 == 0  ? 28 : $signInNum%28;
-        
+
         if($signInNum !== $day) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
@@ -229,15 +229,15 @@ class ActivityJsonRpc extends JsonRpc {
             if($extraLastUpdateDate == date('Y-m-d', time())) {
                 $isAward = true;
                 $awardName = $extra['string'];
-            }       
-        } 
-        
+            }
+        }
+
         if(!$isAward) {
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $awardName = $awards[0]['award_name'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
-        
+
         return array(
             'code' => 0,
             'message' => 'success',
@@ -276,7 +276,7 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $signIn = Attributes::getItem($userId, $aliasName);
-        
+
         //签到过
         if($signIn) {
             $lastUpdate = $signIn['updated_at'] ? $signIn['updated_at'] : $signIn['created_at'];
@@ -288,36 +288,21 @@ class ActivityJsonRpc extends JsonRpc {
                 $continue = $signIn['number'] ?  $signIn['number'] : 0;
                 $awardName = $signIn['string'];
             }
-            
+
             // 昨天已签到
             if($lastUpdateDate == date('Y-m-d', time() - 3600*24)) {
                 // 发奖
                 $awards = SendAward::ActiveSendAward($userId, $aliasName);
+
+
                 if(!isset($awards[0]['award_name'])) {
                     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
                 }
                 $awardName = $awards[0]['award_name'];
                 $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
-
-                // START 16年12月26日圣诞节活动,活动结束后关闭
-                $signInThree = 'continue_signin_three';
-                $act = Activity::where('alias_name', $signInThree)->first();
-                if($act) {
-                    $num = Attributes::getNumber($userId, 'sd_tree_status', 0);
-                    if($num && $act['start_at']){
-                        $startAt = $act['start_at'];
-                        $startAtArr = explode(' ', $startAt);
-                        $startDate = $startAtArr[0];
-                        $num = SignIn::getSignInNum($userId, $startDate);
-                        if($num >= 3){
-                            SendAward::ActiveSendAward($userId, $signInThree);
-                        }
-                    }
-                }
-                // END 16年12月26日圣诞节活动,活动结束后关闭
             }
         }
-        
+
         //未签到或非连续签到
         if(empty($awardName)) {
             $continue = 1;
@@ -329,7 +314,16 @@ class ActivityJsonRpc extends JsonRpc {
             Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
         }
 
-        // 额外奖励进度 
+        // 送积分
+        if(!$isSignIn) {
+            if($continue >=7 )  {
+                SendAward::ActiveSendAward($userId, 'signin_point7'); // 连续签到7天送2积分
+            } else {
+                SendAward::ActiveSendAward($userId, 'signin_point'); // 签到送1积分
+            }
+        }
+
+        // 额外奖励进度
         $current = $continue%$last == 0 ? $last : $continue%$last;
         foreach($days as $key => $day) {
             if($current <= $day){
@@ -342,12 +336,12 @@ class ActivityJsonRpc extends JsonRpc {
                 break;
             }
         }
-        
+
         // 是否领取额外奖励
         $extra = $this->isExtraAwards($userId, $end);
         // 是否分享
         $shared = $this->isShared($userId);
-        
+
         return array(
             'code' => 0,
             'message' => 'success',
@@ -363,52 +357,12 @@ class ActivityJsonRpc extends JsonRpc {
             ),
         );
     }
-    
-    // 获取旧接口签到次数
-    private function getOldSignNumber($userId) {
-        // 今日是否签到
-        $aliasName = 'signin';
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
-        if(!$activity) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-        $where = array(
-            'user_id' => $userId,
-            'activity_id' => $activity['id'],
-        );
-        $today = date('Y-m-d', time());
-        $yesterday = date('Y-m-d', time() - 3600*24);
-        $continue = 0;
-        
-        $todayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$today}'")->first();
-        if($todayRes) {
-            $remark = json_decode($todayRes['remark'], true);
-            if(isset($remark['continue'])) {
-                $continue = intval($remark['continue'])-1;
-                $continue = $continue > 0 ? $continue : 0;
-            }else {
-                $continue = 0;
-            }       
-            return $continue;
-        }
-        $yesterdayRes = SendRewardLog::where($where)->whereRaw("date(created_at) = '{$yesterday}'")->first();
-        if($yesterdayRes){
-            $remark = json_decode($yesterdayRes['remark'], true);
-            if(isset($remark['continue'])) {
-                $continue = intval($remark['continue']);
-            }else {
-                $continue = 0;
-            }
-            return $continue;
-        }
-        return $continue;
-    }
-    
+
     // 获取额外奖励领取记录
     private function isExtraAwards($userId, $end) {
         $aliasName = "signinDay_{$end}";
         $extra = Attributes::getItem($userId, $aliasName);
-        
+
         $lastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
         $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
 
@@ -416,27 +370,27 @@ class ActivityJsonRpc extends JsonRpc {
         if($lastUpdateDate == date('Y-m-d', time())) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     // 今天是否分享
     private function isShared($userId) {
         $sharedName = 'signinShared';
-        
+
         $shared = Attributes::getItem($userId, $sharedName);
         // 未分享记录
         if(!$shared) {
             return false;
         }
-        
+
         //已分享
         $sharedUpdate = $shared['updated_at'] ? $shared['updated_at'] : $shared['created_at'];
         $sharedUpdateDate = date('Y-m-d', strtotime($sharedUpdate));
         if($sharedUpdateDate == date('Y-m-d', time())) {
             return true;
-        }   
-        
+        }
+
         return false;
     }
 
@@ -461,7 +415,7 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => json_decode($json)
         );
     }
-    
+
     /**
      * 根据活动别名获取奖品信息
      *
