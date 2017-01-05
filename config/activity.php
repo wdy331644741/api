@@ -2,7 +2,8 @@
 
 return [
     'xjdb_global' => [
-        'small_num' => 5,  // '单用户小奖最大次数';
+        'small_num' => 3,  // '单用户小奖最大次数';
+        'ip_max_num' => 5,
         'award_msg' => [
             'tyj' => "恭喜您获得{awardName}\n体验金已发送到我的账户—体验金中，请注意查收。",
             'rmb' => "恭喜您获得{awardName}\n奖金已发送到您的余额中，请注意查收。"

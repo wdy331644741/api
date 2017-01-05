@@ -112,7 +112,7 @@ class GlobalAttributes
     }
 
     /**
-     * 根据日期获取number,每天number从零开始
+     * 根据$key获取number,每日number清空
      *
      * @param $key
      * @return int
@@ -123,14 +123,14 @@ class GlobalAttributes
             return 0;
         }
         // 不是今天
-        if(date('Ymd', strtotime($res['update_at'])) !== date('Ymd')) {
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
             return 0;
         }
         return intval($res->number);
     }
 
     /**
-     * 根据日期递增number,每天number从零开始
+     * 根据$key递增number,每日number清空
      *
      * @param $key
      * @param $num
@@ -146,6 +146,7 @@ class GlobalAttributes
 
         if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
             $res->number = $num;
+            $res->updated_at = date('Y-m-d H:i:s');
             $res->save();
             return $res->number;
         }
