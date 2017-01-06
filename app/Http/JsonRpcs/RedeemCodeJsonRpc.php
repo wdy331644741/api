@@ -65,6 +65,8 @@ class RedeemCodeJsonRpc extends JsonRpc {
                 $info['user_id'] = $userId;
                 //兑换码
                 $info['code'] = $code;
+                //触发类型---兑换码触发类型
+                $info['trigger'] = 8;
                 $status = false;
                 if($list['award_type'] == 1){
                     $status = SendAward::increases($info);
