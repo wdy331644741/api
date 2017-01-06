@@ -6,6 +6,7 @@ use App\Models\Rule;
 use Lib\JsonRpcClient;
 use Config;
 use Predis\Client;
+use App\Service\Func;
 
 class RuleCheck
 {
@@ -25,8 +26,7 @@ class RuleCheck
         if(count($activity) < 1){
             return array('send'=>true);
         }
-        $client = new JsonRpcClient(self::$inside_api_url);
-        $userBase = $client->userBasicInfo(array('userId'=>$userId));
+        $userBase = Func::globalUserBasicInfo($userId);
         $res = array('send'=>true);
         foreach ($activity as $value){
             switch (true){
