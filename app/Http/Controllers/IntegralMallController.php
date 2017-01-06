@@ -50,9 +50,9 @@ class IntegralMallController extends Controller
         //分组
         $data['groups'] = $request->groups;
         //开始时间
-        $data['start_time'] = $request->start_time;
+        $data['start_time'] = !empty($request->start_time) ? $request->start_time : null;
         //结束时间
-        $data['end_time'] = $request->end_time;
+        $data['end_time'] = !empty($request->end_time) ? $request->end_time : null;
         //判断是添加还是修改
         if($mall_id != 0){
             //查询该信息是否存在

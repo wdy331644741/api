@@ -9,6 +9,7 @@ use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use App\Http\Controllers\AwardCommonController;
 use Config;
+use DB;
 
 class IntegralMallJsonRpc extends JsonRpc {
 
@@ -24,7 +25,14 @@ class IntegralMallJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $where['status'] = 1;
-        $list = IntegralMall::where($where)->orderByRaw('id + priority desc')->get()->toArray();
+        $list = IntegralMall::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
+            })
+            ->orderByRaw('id + priority desc')->get()->toArray();
         $awardCommon = new AwardCommonController;
         foreach($list as &$item){
             $params = array();
@@ -61,23 +69,31 @@ class IntegralMallJsonRpc extends JsonRpc {
         $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
         $userBase = $client->userBasicInfo(array('userId' =>$userId));
-        $integralTotal = isset($userBase['result']['data']['integral']) ? $userBase['result']['data']['integral'] : 1000;
+        $integralTotal = isset($userBase['result']['data']['score']) ? $userBase['result']['data']['score'] : 0;
         //判断积分值够不够买该奖品
+        DB::beginTransaction();
         $where = array();
         $where['id'] = $mallId;
         $where['status'] = 1;
-        $data = IntegralMall::where($where)->get()->toArray();
+        $data = IntegralMall::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
+            })
+            ->lockForUpdate()->first();
         //判断数据是否存在
         if(empty($data)){
-            throw new OmgException(OmgException::AWARD_NOT_EXIST);
-        }
-        $data = isset($data[0]) ? $data[0] : array();
-        if(empty($data)){
-            throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         //判断值是否有效
         if($data['integral'] < 1){
             throw new OmgException(OmgException::INTEGRAL_FAIL);
+        }
+        //判断是否兑换完
+        if($data['total_quantity'] > 0 && $data['send_quantity'] >= $data['total_quantity']){
+            throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
         //判断该用户是否超过了购买
         $whereEX = array();
@@ -85,7 +101,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         $whereEX['mall_id'] = $mallId;
         $whereEX['send_status'] = 1;
         $count = IntegralMallExchange::where($whereEX)->count();
-        if($data['user_quantity'] != 0 &&$count >= $data['user_quantity']){
+        if($data['user_quantity'] > 0 && $count >= $data['user_quantity']){
             throw new OmgException(OmgException::EXCEED_FAIL);
         }
         //如果花费大于于拥有的总积分
@@ -107,7 +123,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         //获取奖品名
         $awardInfo = SendAward::_getAwardInfo($data['award_type'],$data['award_id']);
         if(empty($awardInfo)){
-            throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         $iData['source_id'] = 0;
         $iData['source_name'] = "兑换".$awardInfo['name'];
@@ -130,6 +146,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         }
         //判断是否成功
         $id = IntegralMallExchange::insertGetId($insert);
+        DB::commit();
         if($id && $insert['send_status'] == 1){
             return array(
                 'code' => 0,

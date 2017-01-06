@@ -168,4 +168,14 @@ class Func
         }
         return $info;
     }
+
+    static function globalUserBasicInfo($userId){
+        global $userBasicInfo;
+        if($userBasicInfo) {
+            return $userBasicInfo;
+        }
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        $userBasicInfo = $client->userBasicInfo(array('userId'=>$userId));
+        return $userBasicInfo;
+    }
 }
