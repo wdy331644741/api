@@ -17,28 +17,40 @@ use App\Models\Cqssc;
 
 class TestController extends Controller
 {
+    public function getXjdbTotal() {
+        $total = 0;
+        $config = Config::get('activity.xjdb');
+        foreach($config as $position) {
+            foreach($position['items'] as $item) {
+                foreach($item['awards'] as $award) {
+                    $total  = bcadd($total, bcmul($award['money'], $award['num']));
+                }
+            }
+        }
+        return $total;
+    }
     public function getCqssc(){
         for($i = 3600*24; $i <= 3600*48; $i+=10) {
-            $openTiemStamp = $this->getOpenTimeStamp($i);    
+            $openTiemStamp = $this->getOpenTimeStamp($i);
             $expect = $this->getOpenExpect($i);
             echo date('Y-m-d H:i:s', $i) . ' ' . date('Y-m-d H:i:s', $openTiemStamp) . '| ' . $expect . PHP_EOL . '<br />';
         }
         return;
         $res = Cqssc::where('opentime', '>=',$date )->orderBy('expect', 'asc')->first();
     }
-    
+
     public function getUserInfo() {
         $userId = 1231312312;
         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
         $userBase = $client->userBasicInfo(array('userId'=>$userId));
-        
+
         if(!$userBase || !isset($userBase['result']['data']['trade_pwd']) || empty($userBase['result']['data']['trade_pwd']) ) {
             $awardStatus= false;
         }
         var_dump($awardStatus);
         dd($userBase);
     }
-    
+
     // 获取开奖时间戳
     public function getOpenTimeStamp($timestamp) {
         $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
@@ -59,7 +71,7 @@ class TestController extends Controller
     //获取开奖期数
     public function  getOpenExpect($timestamp) {
         $dayTimeStamp = ($timestamp+8*3600 - 40)%(3600*24);
-        if($dayTimeStamp <= 6900) { // 时间 <= 1:55:40 
+        if($dayTimeStamp <= 6900) { // 时间 <= 1:55:40
             $remainder = $dayTimeStamp%300;
             $seconds = $remainder == 0 ? 0 : 300-$remainder;
             $expect = ($dayTimeStamp + $seconds)/300;
