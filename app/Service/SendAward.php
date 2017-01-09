@@ -170,6 +170,14 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //摇一摇活动
+            case "shake_to_shake_invite_first":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'shake_to_shake_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
             //*********新春嘉年华活动****START****//
             // 记录最大投资额 
             case "xjdb_max_invest":
