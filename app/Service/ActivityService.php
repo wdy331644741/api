@@ -1,9 +1,9 @@
 <?php
 namespace App\Service;
 
-use App\Models\Activity as ActivityModal;
+use App\Models\Activity;
 
-class Activity
+class ActivityService
 {
     /**
      * 活动是否存在
@@ -12,7 +12,7 @@ class Activity
      * @return boolean
      */
     static function isExistByAlias($aliasName) {
-        $res = ActivityModal::where(
+        $res = Activity::where(
             function($query) {
                 $query->whereNull('start_at')->orWhereRaw('start_at < now()');
             }
