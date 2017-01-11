@@ -70,6 +70,7 @@ class OmgException extends BasicException
     const DATA_ERROR = 4312;
     const SEND_ERROR = 4313;
     const NUMBER_IS_NULL = 4314;
+    const CONDITION_NOT_ENOUGH = 4315;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -77,7 +78,7 @@ class OmgException extends BasicException
         self::API_ILLEGAL => "非法请求",
         self::API_BUSY => "接口调用过于频繁",
         self::API_FAILED => "接口调用失败",
-        
+
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",
         self::VALID_CODE_FAIL => "兑换码不能为空",
@@ -123,7 +124,8 @@ class OmgException extends BasicException
         self::MALL_IS_HAS => "已经领取过该奖品",
         self::DATA_ERROR => "数据有误",
         self::SEND_ERROR => "发送失败",
-        self::NUMBER_IS_NULL =>"个数不足"
+        self::NUMBER_IS_NULL =>"奖品数量不足",
+        self::CONDITION_NOT_ENOUGH => "条件不足",
     );
 
     public function __construct($code, $data = array())

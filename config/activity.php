@@ -431,5 +431,7 @@ return [
             ]
         ]
     ],
-    'money_share_batch'=>10000000//红包分享批次id
+    'money_share_batch'=>10000000, // 红包分享批次id
+    'award_batch'=>20000000, // 奖品补发
+    'award_batch_other'=>30000000 // 运营成本核算,其它费用
 ];

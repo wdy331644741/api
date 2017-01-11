@@ -24,13 +24,14 @@ class BatchAward extends Job implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($uids,$award_type,$award_id,$source_name,$batch_id)
+    public function __construct($uids,$award_type,$award_id,$source_name,$batch_id, $source_id = 0)
     {
         $this->uids = $uids;
         $this->award_type = $award_type;
         $this->award_id = $award_id;
         $this->source_name = $source_name;
         $this->batch_id = $batch_id;
+        $this->source_id = $source_id;
     }
 
     /**
@@ -59,7 +60,7 @@ class BatchAward extends Job implements ShouldQueue
                     continue;
                 }
             }
-            SendAward::sendDataRole($item, $this->award_type, $this->award_id, 0, $this->source_name,$this->batch_id);
+            SendAward::sendDataRole($item, $this->award_type, $this->award_id, $this->source_id, $this->source_name,$this->batch_id);
             $i++;
         }
         //状态改为发奖完成

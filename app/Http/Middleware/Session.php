@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Lib\Session as SessionHandler; 
+use Lib\Session as SessionHandler;
 use Config;
 
 class Session
@@ -21,7 +21,7 @@ class Session
         ini_set("session.save_path", Config::get('rpcsession.path'));
         ini_set("session.name", Config::get('rpcsession.name'));
         ini_set("session.cookie_domain", Config::get('rpcsession.domain'));
-         
+
         $sessionHandler = new SessionHandler();
         $sessionHandler->setGroup(env('ACCOUNT_BASE_HOST'));
         global $userId,$phone;

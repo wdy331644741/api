@@ -18,6 +18,7 @@ use App\Models\JsonRpc;
 
 use App\Models\UserAttribute;
 use Excel;
+use Config;
 use App\Service\Func;
 
 class AwardController extends AwardCommonController
@@ -302,6 +303,7 @@ class AwardController extends AwardCommonController
         }
         return Response::download(base_path()."/storage/exports/{$request->file}");
     }
+
     /**
      * 批次发奖品
      */
@@ -312,7 +314,7 @@ class AwardController extends AwardCommonController
         $validator = Validator::make($request->all(), [
             'award_type' => 'required|integer|min:1',
             'award_id' => 'required|integer|min:1',
-            'source_name' => 'required|string|min:1'
+            'source_name' => 'required|string|min:1',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -325,8 +327,10 @@ class AwardController extends AwardCommonController
         $data['created_at'] = date("Y-m-d H:i:s");
         $data['updated_at'] = date("Y-m-d H:i:s");
         $insertID = AwardBatch::insertGetId($data);
+
+        $sourceId = $request->is_other ? Config::get('activity.award_batch_other') + $insertID : Config::get('activity.award_batch') + $insertID;
         //放入队列
-        $this->dispatch(new BatchAward($request->uids,$request->award_type,$request->award_id,$request->source_name,$insertID));
+        $this->dispatch(new BatchAward($request->uids,$request->award_type,$request->award_id,$request->source_name,$sourceId));
         return $this->outputJson(0,array('error_msg'=>'成功'));
     }
     /**

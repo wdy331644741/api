@@ -112,13 +112,52 @@ class GlobalAttributes
     }
 
     /**
+     * 根据$key获取json,每日json清空
+     *
+     * @param $key
+     * @param $default
+     * @return array
+     */
+    static public function getJsonByDay($key, $default=[]) {
+        $res = GlobalAttribute::where(array('key' => $key))->first();
+        if(!$res) {
+            $res = GlobalAttribute::create(['key' => $key,  'text' => json_encode($default)]);
+            return json_decode($res->text, true);
+        }
+        // 不是今天
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
+            $res->text = json_encode($default);
+            $res->updated_at = date('Y-m-d H:i:s');
+            $res->save();
+            return json_decode($res->text, true);
+        }
+        return json_decode($res->text, true);
+    }
+
+    /**
+     * 根据$key设置json, 每日json清空
+     */
+    static public function setJsonByDay($key, $default=[]) {
+        $res = GlobalAttribute::where(array('key' => $key))->first();
+        if(!$res) {
+            $res = GlobalAttribute::create(['key' => $key,  'text' => json_encode($default)]);
+            return json_decode($res->text, true);
+        }
+
+        $res->text = json_encode($default);
+        $res->updated_at = date('Y-m-d H:i:s');
+        $res->save();
+        return json_decode($res->text, true);
+    }
+
+    /**
      * 根据$key获取number,每日number清空
      *
      * @param $key
      * @return int
      */
     static public function getNumberByDay($key) {
-        $res = GlobalAttribute::where(array('key' => $key))->first();
+        $res = GlobalAttribute::where(array('key' => $key))->lockforupdate()->first();
         if(!$res) {
             return 0;
         }
@@ -136,7 +175,7 @@ class GlobalAttributes
      * @param $num
      * @return int
      */
-    static public function incrementByDay($key, $num) {
+    static public function incrementByDay($key, $num=1) {
         $res = GlobalAttribute::where(['key' => $key])->first();
 
         if(!$res) {
