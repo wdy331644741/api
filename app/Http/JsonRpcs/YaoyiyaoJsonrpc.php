@@ -6,7 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\Yaoyiyao;
 use App\Service\Attributes;
 use App\Service\GlobalAttributes;
-use App\Service\Activity;
+use App\Service\ActivityService;
 use Lib\JsonRpcClient;
 use App\Service\Func;
 use App\Service\SendAward;
@@ -39,7 +39,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         }
 
         // 活动是否存在
-        if(Activity::isExistByAlias($config['alias_name'])) {
+        if(ActivityService::isExistByAlias($config['alias_name'])) {
             $game['available'] = true;
         }
 
@@ -95,7 +95,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         $remark = [];
 
         // 活动是否存在
-        if(!Activity::isExistByAlias($config['alias_name'])) {
+        if(!ActivityService::isExistByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
 
