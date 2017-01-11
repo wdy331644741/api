@@ -25,6 +25,7 @@ use App\Http\JsonRpcs\IntegralMallJsonRpc;
 use App\Http\JsonRpcs\OneYuanJsonRpc;
 use App\Http\JsonRpcs\XjdbJsonRpc;
 use App\Http\JsonRpcs\MoneyShareJsonRpc;
+use App\Http\JsonRpcs\YaoyiyaoJsonRpc;
 class RpcController extends Controller
 {
 
@@ -59,6 +60,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new OneYuanJsonRpc());
         $jsonRpcServer->addService(new XjdbJsonRpc());
         $jsonRpcServer->addService(new MoneyShareJsonRpc());
+        $jsonRpcServer->addService(new YaoyiyaoJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
