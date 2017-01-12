@@ -827,4 +827,33 @@ class ActivityJsonRpc extends JsonRpc {
             'data'=>array("award_name"=>$awardName)
         );
     }
+    /**
+     * 给用户发1000元体验金
+     *
+     * @JsonRpcMethod
+     */
+    public function shakeShare(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $status = SendAward::ActiveSendAward($userId,'shake_to_shake_share');
+        if(isset($status['msg'])){
+            if($status['msg'] == "频次验证不通过"){
+                throw new OmgException(OmgException::MALL_IS_HAS);
+            }
+            if($status['msg'] == "活动不存在！"){
+                throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            }
+            if($status['msg'] == "发奖失败！"){
+                throw new OmgException(OmgException::SEND_ERROR);
+            }
+        }
+        $awardName = isset($status[0]['award_name']) ? $status[0]['award_name'] : '';
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=>array("award_name"=>$awardName)
+        );
+    }
 }
