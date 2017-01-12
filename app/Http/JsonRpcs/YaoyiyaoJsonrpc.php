@@ -24,7 +24,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         global $userId;
 
         $config = Config::get('yaoyiyao');
-        $user = ['invested' => false, 'login' => false];
+        $user = ['invested' => false, 'login' => false, 'multiple' => 1];
         $game = ['available' => false, 'awardNum' => 0, 'nextSeconds' => 0];
         $awardList = $this->getAwardList();
 
@@ -37,6 +37,12 @@ class YaoyiyaoJsonRpc extends JsonRpc
         if($user['login']) {
             $user['invested'] = $this->isInvested($userId);
         }
+
+        // 获取用户倍数
+        if($user['login']) {
+            $user['multiple'] = $this->getMultiple($userId, $config);
+        }
+
 
         // 活动是否存在
         if(ActivityService::isExistByAlias($config['alias_name'])) {
@@ -110,11 +116,12 @@ class YaoyiyaoJsonRpc extends JsonRpc
         $award = $this->getAward($item);
         DB::commit();
 
+        //获取倍数
+        $result['multiple'] = $this->getMultiple($userId, $config);
+
         // 发送现金
         if($award['is_rmb']) {
             $uuid = SendAward::create_guid();
-            // 获取倍数
-            $result['multiple'] = $this->getMultiple($userId, $config);
 
             // 创建记录
             $result['awardName'] = $award['size'] . '元';
@@ -248,13 +255,15 @@ class YaoyiyaoJsonRpc extends JsonRpc
      * @return int
      */
     private function getMultiple($userId, $config) {
-        $inviteNum = Attributes::getNumber($userId, $config['invite_alias_name'], 0);
-        foreach($config['multipleLists'] as $item) {
-            if($inviteNum > $item['min'] && $inviteNum < $item['max']) {
-                return $item['multiple'];
+        return Cache::remember("yaoyiyao_multiple_{$userId}", 30, function() use ($userId, $config) {
+            $inviteNum = Attributes::getNumber($userId, $config['invite_alias_name'], 0);
+            foreach ($config['multipleLists'] as $item) {
+                if ($inviteNum > $item['min'] && $inviteNum < $item['max']) {
+                    return $item['multiple'];
+                }
             }
-        }
-        return 1;
+            return 1;
+        });
     }
 
 
