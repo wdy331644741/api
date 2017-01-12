@@ -133,7 +133,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
             ]);
 
             $client = new JsonRpcClient(env('TRADE_HTTP_URL'));
-            $purchaseRes = $client->purchaseGoldCoin([
+            $purchaseRes = $client->purchaseShake([
                 'userId' => $userId,
                 'id' => $res->id,
                 'uuid' => $uuid,
@@ -190,7 +190,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         if(time() - $item['startTimestamps'] > $item['times']) {
             return 0;
         }
-        $globalKey = Config::get('yaoyiyao.global') . '_' . $item['start'];
+        $globalKey = Config::get('yaoyiyao.alias_name') . '_' . $item['start'];
         $usedGlobalNumber = GlobalAttributes::getNumberByDay($globalKey);
         $globalNumber = $this->getTotalNum($item);
         $lastGlobalNumber = $globalNumber - $usedGlobalNumber < 0  ? 0 :$globalNumber - $usedGlobalNumber;
@@ -327,7 +327,17 @@ class YaoyiyaoJsonRpc extends JsonRpc
      *
      */
     private function isInvested($userId) {
-        return true;
+        $key = "yaoyiyao_isfirsttrade_{$userId}";
+        if(Cache::has($key)) {
+            return true;
+        }
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        $res = $client->userIsFirstTrade(['userId' => $userId]);
+        if(isset($res['result']) && $res['result']['data']) {
+            Cache::put($key, 1, 30);
+            return true;
+        }
+        return false;
     }
 }
 
