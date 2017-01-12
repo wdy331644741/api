@@ -26,6 +26,7 @@ class Session
         $sessionHandler->setGroup(env('ACCOUNT_BASE_HOST'));
         global $userId,$phone;
         $userId = $sessionHandler->get('userData.user_id');
+        $userId = 1;
         $phone = $sessionHandler->get('userData.user_name');
         return $next($request);
     }
