@@ -31,7 +31,7 @@ return [
         [
             'start' => 10,
             'end' => 17,
-            'times' => 3600*6, // 活动最长持续时间(秒),到时间后强制结束
+            'times' => 3600*7, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
                 ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1000, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1000, 'is_rmb' => 1],
