@@ -168,7 +168,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
             if(isset($awards[0]['award_name']) && $awards[0]['status']) {
                 $result['awardName'] = $awards[0]['award_name'];
                 $result['awardType'] = $awards[0]['award_type'];
-                $result['amount'] = '1';
+                $result['amount'] = strval(intval($result['awardName']));
                 $remark['awards'] = $awards;
                 Yaoyiyao::create([
                     'user_id' => $userId,
