@@ -370,6 +370,7 @@ class SendAward
                     $info = array();
                     $info['user_id'] = $triggerData['user_id'];
                     $info['trigger'] = 4;
+                    $info['activity_id'] = isset($activityInfo['id']) ? $activityInfo['id'] : 0;
                     $info['source_name'] = "投资";
                     $info['integral'] = $integral;
                     $info['remark'] = "标的：".$triggerData['name'].$triggerData['short_name']." 投资金额 ".$triggerData['Investment_amount']."元";
@@ -1060,7 +1061,7 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['trigger'];
+        $data['source_id'] = isset($info['source_id']) ? $info['source_id'] : 0;
         $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
         if(isset($triggerData['tag']) && $triggerData['tag'] == 'investment'){
@@ -1315,7 +1316,7 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['trigger'];
+        $data['source_id'] = isset($info['activity_id']) ? $info['activity_id'] : 0;
         $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
         $data['remark'] = $info['remark'];
