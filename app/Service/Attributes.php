@@ -339,7 +339,8 @@ class Attributes
             $userAttr->save();
             return array('inviteNum' => 1);
         } else {
-            $text = json_decode($res->text, true);
+            $text = empty($res->text) ? "{}" : $res->text;
+            $text = json_decode($text, true);
             if (in_array($bid, $text)) {
                 return array('inviteNum' => count($text));
             }
