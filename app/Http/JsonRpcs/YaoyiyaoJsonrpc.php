@@ -282,7 +282,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         return Cache::remember("yaoyiyao_multiple_{$userId}", 30, function() use ($userId, $config) {
             $inviteNum = Attributes::getNumber($userId, $config['invite_alias_name'], 0);
             foreach ($config['multipleLists'] as $item) {
-                if ($inviteNum > $item['min'] && $inviteNum < $item['max']) {
+                if ($inviteNum >= $item['min'] && $inviteNum <= $item['max']) {
                     return $item['multiple'];
                 }
             }
