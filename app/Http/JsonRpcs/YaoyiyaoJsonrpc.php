@@ -15,6 +15,30 @@ use Validator, Config, Request, Cache, DB;
 class YaoyiyaoJsonRpc extends JsonRpc
 {
 
+
+    /**
+     * 获取摇一摇奖品数量
+     *
+     * @JsonRpcMethod
+     */
+    public function yaoyiyaoAwardNum() {
+        $number = Cache::remember('test', 0.05, function(){
+            $config = Config::get('yaoyiyao');
+            if(!ActivityService::isExistByAlias($config['alias_name'])) {
+                return 0;
+            }
+            $item = $this->selectList($config['lists']);
+            return $this->getLastGlobalNum($item);
+        });
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'number' => $number,
+            ],
+        ];
+    }
+
     /**
      * 查询当前状态
      *
