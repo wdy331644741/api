@@ -1061,7 +1061,7 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['source_id'];
+        $data['source_id'] = isset($info['source_id']) ? $info['source_id'] : 0;
         $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
         if(isset($triggerData['tag']) && $triggerData['tag'] == 'investment'){
@@ -1316,7 +1316,7 @@ class SendAward
         //用户积分
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
-        $data['source_id'] = $info['activity_id'];
+        $data['source_id'] = isset($info['activity_id']) ? $info['activity_id'] : 0;
         $data['source_name'] = $info['source_name'];
         $data['integral'] = $info['integral'];
         $data['remark'] = $info['remark'];
