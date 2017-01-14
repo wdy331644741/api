@@ -366,7 +366,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         }
         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
         $res = $client->userIsFirstTrade(['userId' => $userId]);
-        if(isset($res['result']) && $res['result']['data']) {
+        if(isset($res['result']) && isset($res['result']['data']) && intval($res['result']['data']) === 1) {
             Cache::put($key, 1, 30);
             return true;
         }
