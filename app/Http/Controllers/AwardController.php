@@ -330,7 +330,7 @@ class AwardController extends AwardCommonController
 
         $sourceId = $request->is_other ? Config::get('activity.award_batch_other') + $insertID : Config::get('activity.award_batch') + $insertID;
         //放入队列
-        $this->dispatch(new BatchAward($request->uids,$request->award_type,$request->award_id,$request->source_name,$sourceId));
+        $this->dispatch(new BatchAward($request->uids,$request->award_type,$request->award_id,$request->source_name,$insertID,$sourceId));
         return $this->outputJson(0,array('error_msg'=>'成功'));
     }
     /**

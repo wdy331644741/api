@@ -44,7 +44,7 @@ return [
             ]
         ], [
             'start' => 18,
-            'end' => 19,
+            'end' => 21,
             'times' => 900, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
                 ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 2410, 'is_rmb' => 1],
@@ -57,7 +57,7 @@ return [
                 ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 256, 'is_rmb' => 0],
             ]
         ], [
-            'start' => 19,
+            'start' => 21,
             'end' =>  11,
             'times' => 900, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
