@@ -19,6 +19,7 @@ class BatchAward extends Job implements ShouldQueue
     private $award_id;
     private $source_name;
     private $batch_id;
+    private $source_id;
     /**
      * Create a new job instance.
      *
