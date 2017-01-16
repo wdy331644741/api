@@ -29,9 +29,9 @@ return [
     ],
     'lists' => [
         [
-            'start' => 10,
-            'end' => 17,
-            'times' => 3600*7, // 活动最长持续时间(秒),到时间后强制结束
+            'start' => 11,
+            'end' => 18,
+            'times' => 3600*6, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
                 ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1000, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1000, 'is_rmb' => 1],
@@ -43,32 +43,32 @@ return [
                 ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 1000, 'is_rmb' => 0],
             ]
         ], [
-            'start' => 17,
+            'start' => 18,
             'end' => 21,
-            'times' => 3600*4, // 活动最长持续时间(秒),到时间后强制结束
+            'times' => 3600*3, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
-                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.5', 'size' => 0.5, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.8', 'size' => 0.8, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_1',  'size' => 1, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_2', 'size' => 0, 'num' => 1000, 'is_rmb' => 0],
-                ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 1000, 'is_rmb' => 0],
+                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 2410, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1030, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 960, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.5', 'size' => 0.5, 'num' => 1620, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.8', 'size' => 0.8, 'num' => 1240, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_1',  'size' => 1, 'num' => 500, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_2', 'size' => 0, 'num' => 879, 'is_rmb' => 0],
+                ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 256, 'is_rmb' => 0],
             ]
         ], [
             'start' => 21,
-            'end' =>  10,
+            'end' =>  11,
             'times' => 3600*3, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
-                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 1000, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1020, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 660, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 2330, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.5', 'size' => 0.5, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.8', 'size' => 0.8, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_1',  'size' => 1, 'num' => 1000, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_2', 'size' => 0, 'num' => 1000, 'is_rmb' => 0],
-                ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 1000, 'is_rmb' => 0],
+                ['alias_name' => 'yaoyiyao_0.8', 'size' => 0.8, 'num' => 600, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_1',  'size' => 1, 'num' => 900, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_2', 'size' => 0, 'num' => 635, 'is_rmb' => 0],
+                ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 968, 'is_rmb' => 0],
             ]
         ]
     ]
