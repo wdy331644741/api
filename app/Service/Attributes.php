@@ -21,9 +21,9 @@ class Attributes
     private $user_url;
 
    static public function increment($uid,$key,$number = 1, $string= null, $text= null){
-       
+
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
-        
+
         if($res){
             $res->string = $string;
             $res->text = $text;
@@ -31,7 +31,7 @@ class Attributes
             $res->save();
             return $res->number;
         }
-        
+
         $attribute = new UserAttribute();
         $attribute->user_id = $uid;
         $attribute->key = $key;
@@ -41,16 +41,16 @@ class Attributes
         $attribute->save();
         return $number;
     }
-    
+
     static public function decrement($uid,$key,$number = 1){
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
-        
+
         if($res){
             $res->decrement('number', $number);
             $res->save();
             return $res->number;
         }
-        
+
         $attribute = new UserAttribute();
         $attribute->user_id = $uid;
         $attribute->key = $key;
@@ -120,7 +120,7 @@ class Attributes
         }
         return $res['number'];
     }
-    
+
     static public function getNumber($uid, $key, $default = null) {
         if(empty($uid) || empty($key)) {
             return false;
@@ -136,10 +136,10 @@ class Attributes
             }
             return $default;
         }
-       
+
         return $res['number'];
     }
-    
+
     static function getItem($uid, $key) {
         if(empty($uid) || empty($key)) {
             return false;
@@ -150,17 +150,18 @@ class Attributes
         }
         return $res;
     }
-    
+
     static function setItem($uid, $key, $number=0, $string=null, $text=null) {
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
-        
+
         if($res){
             $res->string = $string;
             $res->text = $text;
             $res->number = $number;
+            $res->updated_at = date('Y-m-d H:i:s');
             return $res->save();
         }
-        
+
         $attribute = new UserAttribute();
         $attribute->user_id = $uid;
         $attribute->key = $key;
@@ -186,10 +187,10 @@ class Attributes
             }
             return $default;
         }
-       
+
         return json_decode($res['text'], true);
     }
-    
+
     // 设置text字段
     static public function setText($uid, $key, $value = '') {
         if(empty($uid) || empty($key)) {
@@ -197,7 +198,7 @@ class Attributes
         }
         $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
         if(!$res) {
-            $attribute = new UserAttribute();       
+            $attribute = new UserAttribute();
             $attribute->user_id = $uid;
             $attribute->key = $key;
             $attribute->text = $value;
