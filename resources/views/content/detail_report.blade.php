@@ -10,11 +10,11 @@
     <meta name="keywords" content="@if($keywords != null) {!! $keywords !!} @endif">
     <meta name="description" content="@if($description != null) {!! $description !!} @endif">
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <link type="text/css" rel="styleSheet" href='{!! $base_url !!}/css/cms/public.css'>
-    <link type="text/css" rel="styleSheet" href='{!! $base_url !!}/css/cms/news_list.css'>
-    <link href="{!! $base_url !!}/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
-    <link href="{!! $base_url !!}/css/pc.css" rel="stylesheet" type="text/css"/>
-    <link href="{!! $base_url !!}/css/header-footer.css" rel="stylesheet" type="text/css"/>
+    <link type="text/css" rel="styleSheet" href="{!! env('YY_BASE_HOST') !!}/css/cms/public.css">
+    <link type="text/css" rel="styleSheet" href="{!! env('YY_BASE_HOST') !!}/css/cms/news_list.css">
+    <link href="{!! env('YY_BASE_HOST') !!}/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! env('YY_BASE_HOST') !!}/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! env('YY_BASE_HOST') !!}/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
@@ -37,8 +37,8 @@
     </div>
 </div>
 <div id="sfooter"></div>
-<script type="text/javascript" src="{!! $base_url !!}/js/sea.js"></script>
-<script type="text/javascript" src="{!! $base_url !!}/js/sea-config.js"></script>
+<script type="text/javascript" src="{!! env('YY_BASE_HOST') !!}/js/sea.js"></script>
+<script type="text/javascript" src="{!! env('YY_BASE_HOST') !!}/js/sea-config.js"></script>
 <script type="text/javascript">
     seajs.use(['jquery'],function($){
         seajs.use(['public','template'],function(){
