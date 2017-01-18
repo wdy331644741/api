@@ -20,7 +20,7 @@
 <div id="sheader"></div>
 <div class="container">
     <div class="about_sidebar clearfix">
-        <div class="about_sidebar_div"><a href="/theme/about/" class="about_sidebar_a">关于我们</a><a href="/cms/news/list/1.html" class="about_sidebar_a active">媒体报道</a><a href="/cms/dynamic/list/1.html" class="about_sidebar_a">网利动态</a><a href="/cms/notice/list/1.html" class="about_sidebar_a">网站公告</a><a href="/cms/study/list/1.html" class="">理财课堂</a>
+        <div class="about_sidebar_div"><a href="/theme/about/" class="about_sidebar_a">关于我们</a><a href="{!! action('ContentController@getList',['type'=>'report']) !!}" class="about_sidebar_a active">媒体报道</a><a href="{!! action('ContentController@getList',['type'=>'trends']) !!}" class="about_sidebar_a">网利动态</a><a href="{!! action('ContentController@getList',['type'=>'notice']) !!}" class="about_sidebar_a">网站公告</a><a href="{!! action('ContentController@getList',['type'=>'classroom']) !!}" class="">理财课堂</a>
         </div>
     </div>
     <div class='section'>
@@ -29,18 +29,18 @@
             @foreach($data as $media)
                 <dl class='clearfix'>
                     <dt>
-                        <a href="{!! action('ContentController@getDetail',['id'=>$media->id]) !!}" target="_blank">
+                        <a href="{!! action('ContentController@getDetail',['type'=>$type,'id'=>$media->id]) !!}" target="_blank">
                             <img src="{!! $media->cover !!}">
                         </a>
                     </dt>
                     <dd class='media_title'>
-                        <a href="{!! action('ContentController@getDetail',['id'=>$media->id]) !!}" target="_blank">
+                        <a href="{!! action('ContentController@getDetail',['type'=>$type,'id'=>$media->id]) !!}" target="_blank">
                             {!! $media->title !!}
                         </a>
                     </dd>
                     <dd class='media_content postion_dd'>
-                        <a href="{!! action('ContentController@getDetail',['id'=>$media->id]) !!}" target="_blank" class='description'>{!! mb_substr(strip_tags($media->content),0,99,'utf-8') !!}</a>
-                        <a href="{!! action('ContentController@getDetail',['id'=>$media->id]) !!}" target="_blank" class='link'>[详细介绍]</a>
+                        <a href="{!! action('ContentController@getDetail',['type'=>$type,'id'=>$media->id]) !!}" target="_blank" class='description'>{!! mb_substr(strip_tags($media->content),0,99,'utf-8') !!}</a>
+                        <a href="{!! action('ContentController@getDetail',['type'=>$type,'id'=>$media->id]) !!}" target="_blank" class='link'>[详细介绍]</a>
                     </dd>
                     <dd class="media_time">{!! date('Y-m-d H:i',strtotime($media->release_at)) !!}</dd>
                 </dl>

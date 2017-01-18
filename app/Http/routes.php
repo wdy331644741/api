@@ -25,7 +25,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
     //动态调用文章
-    Route::get('content/detail/{id?}','ContentController@getDetail');
+    Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
     Route::get('content/{type?}/{page?}','ContentController@getList');
     // 测试控制器
     Route::controller('test','TestController');
