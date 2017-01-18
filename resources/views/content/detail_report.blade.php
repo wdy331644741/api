@@ -10,11 +10,11 @@
     <meta name="keywords" content="@if($keywords != null) {!! $keywords !!} @endif">
     <meta name="description" content="@if($description != null) {!! $description !!} @endif">
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <link type="text/css" rel="styleSheet" href='https://www.wanglibao.com/css/cms/public.css'>
-    <link type="text/css" rel="styleSheet" href='https://www.wanglibao.com/css/cms/news_list.css'>
-    <link href="https://www.wanglibao.com/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
-    <link href="https://www.wanglibao.com/css/pc.css" rel="stylesheet" type="text/css"/>
-    <link href="https://www.wanglibao.com/css/header-footer.css" rel="stylesheet" type="text/css"/>
+    <link type="text/css" rel="styleSheet" href='{!! $base_url !!}/css/cms/public.css'>
+    <link type="text/css" rel="styleSheet" href='{!! $base_url !!}/css/cms/news_list.css'>
+    <link href="{!! $base_url !!}/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! $base_url !!}/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! $base_url !!}/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
@@ -37,8 +37,8 @@
     </div>
 </div>
 <div id="sfooter"></div>
-<script type="text/javascript" src="https://www.wanglibao.com/js/sea.js"></script>
-<script type="text/javascript" src="https://www.wanglibao.com/js/sea-config.js"></script>
+<script type="text/javascript" src="{!! $base_url !!}/js/sea.js"></script>
+<script type="text/javascript" src="{!! $base_url !!}/js/sea-config.js"></script>
 <script type="text/javascript">
     seajs.use(['jquery'],function($){
         seajs.use(['public','template'],function(){

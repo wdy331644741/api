@@ -10,11 +10,11 @@
     <meta name="keywords" content="网利宝,网利宝官网,p2p金融,p2p理财,p2p网贷,P2p贷款,p2p平台,P2P网贷平台,互联网金融">
     <meta name="description" content="网利宝（www.wanglibao.com）是中国领先的互联网金融p2p理财、p2p网贷平台，网利宝官网提供安全、精准的网贷平台投资及互联网金融服务，大型机构100%本息担保，保障投资人资金安全，P2P投资理财网贷客户首选的互联网金融平台。">
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
-    <link type="text/css" rel="styleSheet" href='/css/cms/news_list.css'>
-    <link href="/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
-    <link href="/css/pc.css" rel="stylesheet" type="text/css"/>
-    <link href="/css/header-footer.css" rel="stylesheet" type="text/css"/>
+    <link type="text/css" rel="styleSheet" href='{!! env("YY_BASE_HOST") !!}/css/cms/public.css'>
+    <link type="text/css" rel="styleSheet" href='{!! env("YY_BASE_HOST") !!}/css/cms/news_list.css'>
+    <link href="{!! env('YY_BASE_HOST') !!}/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! env('YY_BASE_HOST') !!}/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! env('YY_BASE_HOST') !!}/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
@@ -39,10 +39,10 @@
 </div>
 </div>
 <div id="sfooter"></div>
-<script type="text/javascript" src="/js/sea.js"></script>
-<script type="text/javascript" src="/js/sea-config.js"></script>
-<script src='/js/cms/jquery.min.js'></script>
-<script src='/js/cms/news_list.js'></script>
+<script type="text/javascript" src="{!! env('YY_BASE_HOST') !!}/js/sea.js"></script>
+<script type="text/javascript" src="{!! env('YY_BASE_HOST') !!}/js/sea-config.js"></script>
+<script src='{!! env("YY_BASE_HOST") !!}/js/cms/jquery.min.js'></script>
+<script src='{!! env("YY_BASE_HOST") !!}/js/cms/news_list.js'></script>
 <script type="text/javascript">
     seajs.use(['jquery'],function($){
         seajs.use(['public','template'],function(){

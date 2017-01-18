@@ -10,11 +10,11 @@
     <meta name="keywords" content="@if($keywords != null) {!! $keywords !!} @endif">
     <meta name="description" content="@if($description != null) {!! $description !!} @endif">
     <link rel="shortcut icon" href="/favicon.ico"/>
-    <link type="text/css" rel="styleSheet" href='/css/cms/public.css'>
-    <link type="text/css" rel="styleSheet" href='/css/cms/news_list.css'>
-    <link href="/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
-    <link href="/css/pc.css" rel="stylesheet" type="text/css"/>
-    <link href="/css/header-footer.css" rel="stylesheet" type="text/css"/>
+    <link type="text/css" rel="styleSheet" href='{!! $base_url !!}/css/cms/public.css'>
+    <link type="text/css" rel="styleSheet" href='{!! $base_url !!}/css/cms/news_list.css'>
+    <link href="{!! $base_url !!}/css/icon/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! $base_url !!}/css/pc.css" rel="stylesheet" type="text/css"/>
+    <link href="{!! $base_url !!}/css/header-footer.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="sheader"></div>
