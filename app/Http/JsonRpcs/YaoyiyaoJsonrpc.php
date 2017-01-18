@@ -22,7 +22,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function yaoyiyaoAwardNum() {
-        $number = Cache::remember('test', 0.05, function(){
+        $number = Cache::remember('yaoyiyao_temp_used_num', 0.05, function(){
             $config = Config::get('yaoyiyao');
             if(!ActivityService::isExistByAlias($config['alias_name'])) {
                 return 0;
@@ -132,13 +132,11 @@ class YaoyiyaoJsonRpc extends JsonRpc
         $item = $this->selectList($config['lists']);
 
         // 奖品是否还有
-        DB::beginTransaction();
         if(!$this->getLastGlobalNum($item)) {
             throw new OmgException(OmgException::NUMBER_IS_NULL);
         }
         // 获取奖品
         $award = $this->getAward($item);
-        DB::commit();
 
         //获取倍数
         $result['multiple'] = $this->getMultiple($userId, $config);
@@ -221,8 +219,10 @@ class YaoyiyaoJsonRpc extends JsonRpc
         if(time() - $item['startTimestamps'] > $item['times']) {
             return 0;
         }
-        $globalKey = Config::get('yaoyiyao.alias_name') . '_' . $item['start'];
-        $usedGlobalNumber = GlobalAttributes::getNumberByDay($globalKey);
+        //$globalKey = Config::get('yaoyiyao.alias_name') . '_' . $item['start'];
+        $globalKey = Config::get('yaoyiyao.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
+        // $usedGlobalNumber = GlobalAttributes::getNumberByDay($globalKey);
+        $usedGlobalNumber = Cache::get($globalKey, 0);
         $globalNumber = $this->getTotalNum($item);
         $lastGlobalNumber = $globalNumber - $usedGlobalNumber < 0  ? 0 :$globalNumber - $usedGlobalNumber;
         return $lastGlobalNumber;
@@ -257,12 +257,14 @@ class YaoyiyaoJsonRpc extends JsonRpc
             $target = $target - $award['num'];
             if($target <= 0) {
                 $key = $award['alias_name'] . '_' . $item['start'];
-                $globalKey = Config::get('yaoyiyao.alias_name') . '_' . $item['start'];
+                $globalKey = Config::get('yaoyiyao.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
                 $usedNumber = GlobalAttributes::incrementByDay($key);
                 if($usedNumber >= $award['num']) {
-                    GlobalAttributes::incrementByDay($globalKey, 100000);
+                    Cache::increment($globalKey, 100000);
+                    // GlobalAttributes::incrementByDay($globalKey, 100000);
                 }else{
-                    GlobalAttributes::incrementByDay($globalKey, 1);
+                    Cache::increment($globalKey, 1);
+                    // GlobalAttributes::incrementByDay($globalKey, 1);
                 }
                 return $award;
             }
