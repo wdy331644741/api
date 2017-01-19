@@ -21,7 +21,7 @@ class ChannelController extends Controller
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_dash',
+            'alias_name'=>'required|alpha_num',
             'pre'=>'alpha_num|unique:channels,pre',
             'coop_status'=>'required|in:0,1,2,3',
             'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS'
