@@ -21,7 +21,7 @@ class ChannelController extends Controller
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_num',
+            'alias_name'=>'required|alpha_dash',
             'pre'=>'alpha_num|unique:channels,pre',
             'coop_status'=>'required|in:0,1,2,3',
             'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS'
@@ -29,7 +29,7 @@ class ChannelController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $request->pre = $request->pre ? $request->pre : 'def';
+        $request->pre = $request->pre ? $request->pre : NULL;
         $is_exists = Channel::where(['pre'=>$request->pre,'alias_name'=>$request->alias_name])->count();
         if($is_exists){
             return $this->outputJson(10001,array('error_msg'=>'渠道别名不能重复'));
