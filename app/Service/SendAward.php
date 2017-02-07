@@ -170,6 +170,23 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //投资是否满足投资6个月的标，且投资金额大于等于1000元
+            case "shake_to_shake_6_1000":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 1000 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        Attributes::increment($triggerData['user_id'],"shake_to_shake_is_satisfy",1);
+                    }
+                }
+                break;
+            //摇一摇活动2
+            case "shake_to_shake2_invite_first":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'shake_to_shake2_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
             //摇一摇活动
             case "shake_to_shake_invite_first":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
