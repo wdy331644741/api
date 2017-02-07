@@ -828,7 +828,7 @@ class ActivityJsonRpc extends JsonRpc {
         );
     }
     /**
-     * 给用户发1000元体验金
+     * 给用户发100元红包
      *
      * @JsonRpcMethod
      */
@@ -837,7 +837,7 @@ class ActivityJsonRpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $status = SendAward::ActiveSendAward($userId,'shake_to_shake_share');
+        $status = SendAward::ActiveSendAward($userId,'shake_to_shake2_share');
         if(isset($status['msg'])){
             if($status['msg'] == "频次验证不通过"){
                 throw new OmgException(OmgException::MALL_IS_HAS);
