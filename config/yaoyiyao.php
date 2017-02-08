@@ -1,8 +1,10 @@
 <?php
 return [
     'alias_name' => 'yaoyiyao',
-    'invite_alias_name' => 'shake_to_shake_invite_first',
+    'invite_alias_name' => 'shake_to_shake2_invite_first',
+    'trade_alias_name' => 'shake_to_shake_6_1000',
     'interval' => 3, // 两次抽奖间隔秒数
+    'award_number_multiple' => 0.2,  //奖品数量倍率
     'multipleLists' => [
         [
             'min' => 0,
@@ -31,9 +33,9 @@ return [
         [
             'start' => 11,
             'end' => 18,
-            'times' => 180, // 活动最长持续时间(秒),到时间后强制结束
+            'times' => 3600*7, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
-                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1000, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 3000, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1000, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 1000, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.5', 'size' => 0.5, 'num' => 1000, 'is_rmb' => 1],
@@ -45,10 +47,10 @@ return [
         ], [
             'start' => 18,
             'end' => 21,
-            'times' => 180, // 活动最长持续时间(秒),到时间后强制结束
+            'times' => 3600*3, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
-                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 2410, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1030, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 5410, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 2030, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 960, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.5', 'size' => 0.5, 'num' => 1620, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.8', 'size' => 0.8, 'num' => 1240, 'is_rmb' => 1],
@@ -59,10 +61,10 @@ return [
         ], [
             'start' => 21,
             'end' =>  11,
-            'times' => 180, // 活动最长持续时间(秒),到时间后强制结束
+            'times' => 3600*3, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
-                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 1020, 'is_rmb' => 1],
-                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 660, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 4020, 'is_rmb' => 1],
+                ['alias_name' => 'yaoyiyao_0.2', 'size' => 0.2, 'num' => 1660, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.3', 'size' => 0.3, 'num' => 2330, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.5', 'size' => 0.5, 'num' => 1000, 'is_rmb' => 1],
                 ['alias_name' => 'yaoyiyao_0.8', 'size' => 0.8, 'num' => 600, 'is_rmb' => 1],

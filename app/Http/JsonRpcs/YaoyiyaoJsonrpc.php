@@ -10,12 +10,10 @@ use App\Service\ActivityService;
 use Lib\JsonRpcClient;
 use App\Service\Func;
 use App\Service\SendAward;
-use Validator, Config, Request, Cache, DB;
+use Validator, Config, Request, Cache, DB, Session;
 
 class YaoyiyaoJsonRpc extends JsonRpc
 {
-
-
     /**
      * 获取摇一摇奖品数量
      *
@@ -59,7 +57,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
 
         // 用户是否投资过
         if($user['login']) {
-            $user['invested'] = $this->isInvested($userId);
+            $user['invested'] = $this->isInvested($userId, $config);
         }
 
         // 获取用户倍数
@@ -107,7 +105,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
 
         $config = Config::get('yaoyiyao');
 
-        if(!$this->isInvested($userId)) {
+        if(!$this->isInvested($userId, $config)) {
             throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
         }
 
@@ -221,9 +219,10 @@ class YaoyiyaoJsonRpc extends JsonRpc
         }
         //$globalKey = Config::get('yaoyiyao.alias_name') . '_' . $item['start'];
         $globalKey = Config::get('yaoyiyao.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
+        $awardNumberMultiple = Config::get('yaoyiyao.award_number_multiple');
         // $usedGlobalNumber = GlobalAttributes::getNumberByDay($globalKey);
         $usedGlobalNumber = Cache::get($globalKey, 0);
-        $globalNumber = $this->getTotalNum($item);
+        $globalNumber = floor($this->getTotalNum($item) * $awardNumberMultiple);
         $lastGlobalNumber = $globalNumber - $usedGlobalNumber < 0  ? 0 :$globalNumber - $usedGlobalNumber;
         return $lastGlobalNumber;
     }
@@ -256,9 +255,11 @@ class YaoyiyaoJsonRpc extends JsonRpc
         foreach($item['awards'] as $award) {
             $target = $target - $award['num'];
             if($target <= 0) {
-                $key = $award['alias_name'] . '_' . $item['start'];
+                // $key = $award['alias_name'] . '_' . $item['start'];
                 $globalKey = Config::get('yaoyiyao.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
-                $usedNumber = GlobalAttributes::incrementByDay($key);
+                // $usedNumber = GlobalAttributes::incrementByDay($key);
+                Cache::increment($globalKey, 1);
+                /*
                 if($usedNumber >= $award['num']) {
                     Cache::increment($globalKey, 100000);
                     // GlobalAttributes::incrementByDay($globalKey, 100000);
@@ -266,6 +267,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
                     Cache::increment($globalKey, 1);
                     // GlobalAttributes::incrementByDay($globalKey, 1);
                 }
+                */
                 return $award;
             }
         }
@@ -358,18 +360,19 @@ class YaoyiyaoJsonRpc extends JsonRpc
     }
 
     /**
-     * 用户是否邀请过
+     * 用户是否投资过1000元六月标
      *
      */
-    private function isInvested($userId) {
-        $key = "yaoyiyao_isfirsttrade_{$userId}";
-        if(Cache::has($key)) {
+    private function isInvested($userId, $config) {
+        $key = "yaoyiyao2_isfirsttrade";
+        if(Session::has($key)) {
             return true;
         }
-        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
-        $res = $client->userIsFirstTrade(['userId' => $userId]);
-        if(isset($res['result']) && isset($res['result']['data']) && intval($res['result']['data']) === 1) {
-            Cache::put($key, 1, 30);
+
+        $inviteNum = Attributes::getNumber($userId, $config['trade_alias_name'], 0);
+
+        if($inviteNum > 0) {
+            Session::put($key, $inviteNum, 30);
             return true;
         }
         return false;
