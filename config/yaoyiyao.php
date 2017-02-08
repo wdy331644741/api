@@ -2,7 +2,7 @@
 return [
     'alias_name' => 'yaoyiyao',
     'invite_alias_name' => 'shake_to_shake2_invite_first',
-    'trade_alias_name' => 'shake_to_shake_6_1000',
+    'trade_alias_name' => 'shake_to_shake_is_satisfy',
     'interval' => 3, // 两次抽奖间隔秒数
     'award_number_multiple' => 0.2,  //奖品数量倍率
     'multipleLists' => [
