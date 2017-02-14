@@ -1136,7 +1136,7 @@ class SendAward
         $where = array();
         $where['coupon_id'] = $info['id'];
         $where['is_use'] = 0;
-        $data = CouponCode::where($where)->get()->lockForUpdate()->first();
+        $data = CouponCode::where($where)->lockForUpdate()->first();
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
             //发送消息
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
