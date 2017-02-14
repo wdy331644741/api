@@ -27,6 +27,7 @@ use App\Service\Flow;
 use App\Models\UserAttribute;
 use Config;
 use Validator;
+use DB;
 use App\Service\Func;
 class SendAward
 {
@@ -1128,11 +1129,14 @@ class SendAward
             self::addLog($info);
             return $err;
         }
+        //事物开始
+        DB::beginTransaction();
+
         //根据id获取出可用的优惠卷
         $where = array();
         $where['coupon_id'] = $info['id'];
         $where['is_use'] = 0;
-        $data = CouponCode::where($where)->get()->first();
+        $data = CouponCode::where($where)->get()->lockForUpdate()->first();
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
             //发送消息
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
@@ -1142,14 +1146,17 @@ class SendAward
             self::sendMessage($info);
             //修改优惠码状态
             CouponCode::where("id",$data['id'])->update(array('is_use'=>1));
+            DB::commit();
             return $err;
         }else{
             //存储到日志
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>false,'err_msg'=>'coupon_empty');
             $info['remark'] = json_encode($err);
             self::addLog($info);
+            DB::commit();
             return $err;
         }
+
     }
     /**
      * 获取表对象
