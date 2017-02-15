@@ -149,7 +149,15 @@ class MoneyShareJsonRpc extends JsonRpc {
         )->where($where)->count();
 
         if(!$isExist){
-            throw new OmgException(OmgException::ACTIVITY_IS_END);
+            //不存在返回值
+            $return = array();
+            $return['enable'] = 0;
+            $return['share'] = array();
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $return
+            );
         }
 
         //根据recordId获取该用户投资金额
@@ -178,11 +186,11 @@ class MoneyShareJsonRpc extends JsonRpc {
 
         //返回值
         $return = array();
-        $return['uri'] = "".$result['identify'];
-        $return['title'] = Config::get('moneyshare.user_red_title');
-        $return['content'] = Config::get('moneyshare.user_red_content');
-        $return['photo_url'] = "";
-        $return['enable'] = "";
+        $return['enable'] = 1;
+        $return['share']['uri'] = env("APP_URL")."/active/red_packet/red_packet.html?k=".$result['identify'];
+        $return['share']['title'] = Config::get('moneyshare.user_red_title');
+        $return['share']['content'] = Config::get('moneyshare.user_red_content');
+        $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
         return array(
             'code' => 0,
             'message' => 'success',
