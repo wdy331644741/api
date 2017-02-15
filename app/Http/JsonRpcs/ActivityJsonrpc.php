@@ -23,6 +23,7 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
 use Cache;
+use App\Service\ActivityService;
 class ActivityJsonRpc extends JsonRpc {
 
     /**
@@ -854,6 +855,33 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data'=>array("award_name"=>$awardName)
+        );
+    }
+    /**
+     * 判断是否是中影票务通渠道和是否领奖
+     *
+     * @JsonRpcMethod
+     */
+    public function zypwtStatus(){
+        global $userId;
+        $return = ['isChannel'=>1,'isGet'=>1];
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //判断是否是该渠道
+        $userInfo = Func::getUserBasicInfo($userId,true);
+        if(isset($userInfo['from_channel']) && $userInfo['from_channel'] != 'zypwt'){
+            $return['isChannel'] = 0;
+        }
+        //判断是否获得
+        $isGet = ActivityService::isExistByAliasUserID('zypwt_channel',$userId);
+        if(empty($isGet)){
+            $return['isGet'] = 0;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=>$return
         );
     }
 }
