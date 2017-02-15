@@ -126,7 +126,6 @@ class MoneyShareJsonRpc extends JsonRpc {
      */
     public function moneyShareByRecordID($params) {
         global $userId;
-        $userId = 1;
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
