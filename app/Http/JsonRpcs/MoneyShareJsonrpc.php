@@ -178,9 +178,10 @@ class MoneyShareJsonRpc extends JsonRpc {
             $param['recordId'] = $recordId;
             $param['money'] = $money;
             $res = $this->addMoneyShare($param);
-            if(isset($res['id']) && $res['id']){
-                $result = $res['result'];
+            if(isset($res['id']) && empty($res['id'])){
+                throw new OmgException(OmgException::DATA_ERROR);
             }
+            $result = $res['result'];
         }
 
         //返回值
