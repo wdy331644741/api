@@ -208,7 +208,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             $param['min'] = $userRedMin;
             $res = $this->addMoneyShare($param);
             if(isset($res['id']) && empty($res['id'])){
-                throw new OmgException(OmgException::DATA_ERROR);
+                throw new OmgException(OmgException::DATABASE_ERROR);
             }
             $result = $res['result'];
         }
