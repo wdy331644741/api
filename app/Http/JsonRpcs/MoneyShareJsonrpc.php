@@ -172,12 +172,12 @@ class MoneyShareJsonRpc extends JsonRpc {
         }
 
         //判断红包分享数据是否添加过
-        $where = array();
-        $where['record_id'] = $recordId;
-        $where['user_id'] = $userId;
-        $where['status'] = 1;
-        $res = MoneyShare::where('created_at', 'like', date("Y-m-d").'%')->where($where)->count();
-        if(!empty($res) && $money <= 1000) {
+//        $where = array();
+//        $where['record_id'] = $recordId;
+//        $where['user_id'] = $userId;
+//        $where['status'] = 1;
+//        $res = MoneyShare::where('created_at', 'like', date("Y-m-d").'%')->where($where)->count();
+        if($money < 500) {
             //不存在返回值
             $return = array();
             $return['enable'] = 0;
@@ -192,8 +192,10 @@ class MoneyShareJsonRpc extends JsonRpc {
             if($money < 5000){
                 $money = 5000;
             }
+            //投资金额大于于2万配置
             $userRedNum = 10;
             $userRedMin = 1000;
+            //投资金额小于2万配置
             if($money < 20000){
                 $userRedNum = 5;
                 $userRedMin = 500;
