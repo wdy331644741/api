@@ -94,12 +94,12 @@ class OpenController extends Controller
         $session = new Session();
         $wxSession= $session->get('weixin');
         if(!$request->code){
-            return redirect($wxSession['userinfo_callback']);
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40001');//用户未授权或者授权失败
         }
         $weixin = new Weixin();
         $data = $weixin->get_web_access_token($request->code);
         if(!$data){
-            return redirect($wxSession['userinfo_callback']);
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40002');//获取access_token失败
         }
         $this->_openid =  $data['openid'];
         $wxSession = $session->get('weixin');
@@ -112,7 +112,9 @@ class OpenController extends Controller
             $userData = WechatUser::where('openid',$this->_openid)->first();
             if(!$userData){
                 $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
-
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40003');//拉取用户信息失败
+                }
                 //存储微信用户数据
                 $wxModel = new WechatUser();
                 $wxModel->openid = $userData['openid'];
@@ -126,21 +128,17 @@ class OpenController extends Controller
             }
         }
 
-        if(!$userData){
-            return redirect($wxSession['userinfo_callback']);
-        }
-
         //判断微信用户是否绑定
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
         if(isset($res['error'])){
-            return redirect($wxSession['userinfo_callback']);
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40004');//用户未绑定
         }
         if($res['result']['data']){
             $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
             return redirect($wxSession['userinfo_callback']);
         }
-        return redirect($wxSession['userinfo_callback']);
+        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40005');//未知错误
     }
 
     //绑定用户
@@ -629,6 +627,21 @@ class OpenController extends Controller
             }
             
         }
+    }
+
+    //拼接url后边参数
+    private function convertUrlQuery($url){
+        $check = strpos($url, '?');
+        if($check !== false) {
+            if(substr($url, $check+1) == '') {
+                $new_url = $url;
+            } else {
+                $new_url = $url.'&';
+            }
+        } else {
+            $new_url = $url.'?';
+        }
+        return $new_url;
     }
 
     //爱有钱生成签名字符串
