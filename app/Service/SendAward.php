@@ -29,6 +29,7 @@ use Config;
 use Validator;
 use DB;
 use App\Service\Func;
+use App\Service\NvshenyueService;
 class SendAward
 {
     static private $userID;
