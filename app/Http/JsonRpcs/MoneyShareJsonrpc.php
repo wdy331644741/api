@@ -8,6 +8,7 @@ use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
 use App\Service\Func;
+use Lib\JsonRpcClient;
 use Illuminate\Contracts\Encryption\DecryptException;
 use DB;
 use Config;
@@ -160,27 +161,56 @@ class MoneyShareJsonRpc extends JsonRpc {
         }
 
         //根据recordId获取该用户投资金额
+        $url = env("MARK_HTTP_URL");
+        $client = new JsonRpcClient($url);
+        $info = $client->GetBuydetailMsg(array("buydetailId"=>$recordId));
+
         //调用韩兆兴接口
-        $money = 10000;
+        $money = isset($info['result']['total_amount']) && !empty($info['result']['total_amount']) ? intval($info['result']['total_amount']) : 0;
+        if(empty($money)){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
 
         //判断红包分享数据是否添加过
         $where = array();
         $where['record_id'] = $recordId;
         $where['user_id'] = $userId;
         $where['status'] = 1;
-        $res = MoneyShare::where($where)->count();
-        if(!empty($res)) {
-            $result = MoneyShare::where($where)->first();
+        $res = MoneyShare::where('created_at', 'like', date("Y-m-d").'%')->where($where)->count();
+        if(!empty($res) && $money <= 1000) {
+            //不存在返回值
+            $return = array();
+            $return['enable'] = 0;
+            $return['share'] = array();
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $return
+            );
         }else{
+            //红包规则计算
+            if($money < 5000){
+                $money = 5000;
+            }
+            $userRedNum = 10;
+            $userRedMin = 1000;
+            if($money < 20000){
+                $userRedNum = 5;
+                $userRedMin = 500;
+            }
+            $shareMoney = intval($money*(mt_rand(60,100)/100));
             //添加到红包分享表
             $param['user_id'] = $userId;
             $param['user_name'] = "冉海强";
             $param['recordId'] = $recordId;
-            $param['money'] = $money;
+            $param['money'] = $shareMoney;
+            $param['total_num'] = $userRedNum;
+            $param['min'] = $userRedMin;
             $res = $this->addMoneyShare($param);
-            if(isset($res['id']) && $res['id']){
-                $result = $res['result'];
+            if(isset($res['id']) && empty($res['id'])){
+                throw new OmgException(OmgException::DATABASE_ERROR);
             }
+            $result = $res['result'];
         }
 
         //返回值
@@ -190,6 +220,8 @@ class MoneyShareJsonRpc extends JsonRpc {
         $return['share']['title'] = Config::get('moneyshare.user_red_title');
         $return['share']['content'] = Config::get('moneyshare.user_red_content');
         $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
+        $return['share']['total_money'] = $result['total_money'];
+        $return['share']['total_num'] = $result['total_num'];
         return array(
             'code' => 0,
             'message' => 'success',
@@ -219,11 +251,11 @@ class MoneyShareJsonRpc extends JsonRpc {
         //总金额
         $data['total_money'] = $param['money'];
         //总数量
-        $data['total_num'] = Config::get('moneyshare.user_red_num');
+        $data['total_num'] = $param['total_num'];
         //最小值
-        $data['min'] = Config::get('moneyshare.user_red_min');
+        $data['min'] = $param['min'];
         //最大值
-        $data['max'] = intval($param['money']/2);
+        $data['max'] = 0;
         //开始时间
         $data['start_time'] = date("Y-m-d H:i:s");
         //结束时间
