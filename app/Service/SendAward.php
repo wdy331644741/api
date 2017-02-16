@@ -28,6 +28,7 @@ use App\Models\UserAttribute;
 use Config;
 use Validator;
 use App\Service\Func;
+use App\Service\NvshenyueService;
 class SendAward
 {
     static private $userID;
