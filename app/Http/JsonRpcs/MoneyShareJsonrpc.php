@@ -326,6 +326,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         return array('id'=>$id,'result'=>$data);
     }
 
+
     /**
      * [投资红包]投资红包记录邀请关系
      *
@@ -385,9 +386,9 @@ class MoneyShareJsonRpc extends JsonRpc {
         ])->orderBy('id', 'desc')->take(300)->get();
 
         return array(
-          'code' => 0,
-          'message' => 'success',
-          'result' => $res
+            'code' => 0,
+            'message' => 'success',
+            'result' => $res
         );
     }
 
@@ -453,9 +454,9 @@ class MoneyShareJsonRpc extends JsonRpc {
         ])->orderBy('id', 'desc')->take(300)->get();
 
         return array(
-          'code' => 0,
-          'message' => 'success',
-          'result' => $res
+            'code' => 0,
+            'message' => 'success',
+            'result' => $res
         );
     }
 
