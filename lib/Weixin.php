@@ -24,7 +24,7 @@ class Weixin
     }
 
     /*
-     * 获取微信授权链接
+     * 获取微信授权链接 test
      * @params: string $callback_url 回调地址
      * @params：string $state 重定向后会带上state参数
      * @params: string $scope snsapi_base(默认)和snsapi_userinfo（需要手动授权）
