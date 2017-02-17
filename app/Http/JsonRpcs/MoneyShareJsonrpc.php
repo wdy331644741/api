@@ -288,6 +288,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         return array('id'=>$id,'result'=>$data);
     }
 
+
     /**
      * [投资红包]投资红包记录邀请关系
      *
@@ -309,17 +310,18 @@ class MoneyShareJsonRpc extends JsonRpc {
             'ip' => Request::getClientIp(),
         ];
         $res = Func::getUserBasicInfo($userId);
-        if(isset($res['result'])){
-            $insert['invite_user_id'] = $res['result']['data']['from_user_id'];
-        }
+        $insert['invite_user_id'] = isset($res['from_user_id']) ? intval($res['from_user_id']) : 0;
 
         $item = MoneyShareRelation::where([
             'user_id' => $userId,
             'invite_user_id' => $insert['invite_user_id'],
         ])->first();
 
-        //已有数据，或用户没有邀请人
-        if($item || !$insert['invite_user_id']) {
+        if(!$insert['invite_user_id']) {
+            throw new OmgException(OmgException::INVITE_USER_NOT_EXIST);
+        }
+        //已有数据
+        if($item) {
             throw new OmgException(OmgException::ALREADY_EXIST);
         }
         MoneyShareRelation::create($insert);
@@ -346,9 +348,9 @@ class MoneyShareJsonRpc extends JsonRpc {
         ])->orderBy('id', 'desc')->take(300)->get();
 
         return array(
-          'code' => 0,
-          'message' => 'success',
-          'result' => $res
+            'code' => 0,
+            'message' => 'success',
+            'result' => $res
         );
     }
 
@@ -373,16 +375,17 @@ class MoneyShareJsonRpc extends JsonRpc {
             'ip' => Request::getClientIp(),
         ];
         $res = Func::getUserBasicInfo($userId);
-        if(isset($res['result'])){
-            $insert['invite_user_id'] = intval($res['result']['data']['from_user_id']);
-        }
+        $insert['invite_user_id'] = isset($res['from_user_id']) ? intval($res['from_user_id']) : 0;
         $item = MoneyShareRelation::where([
             'user_id' => $userId,
             'invite_user_id' => $insert['invite_user_id'],
         ])->first();
 
+        if(!$insert['invite_user_id']) {
+            throw new OmgException(OmgException::INVITE_USER_NOT_EXIST);
+        }
         //已有数据，或用户没有邀请人
-        if($item || !$insert['invite_user_id']) {
+        if($item) {
             throw new OmgException(OmgException::ALREADY_EXIST);
         }
         // 创建记录
@@ -413,9 +416,9 @@ class MoneyShareJsonRpc extends JsonRpc {
         ])->orderBy('id', 'desc')->take(300)->get();
 
         return array(
-          'code' => 0,
-          'message' => 'success',
-          'result' => $res
+            'code' => 0,
+            'message' => 'success',
+            'result' => $res
         );
     }
 
