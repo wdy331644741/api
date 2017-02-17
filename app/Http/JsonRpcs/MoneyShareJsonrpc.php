@@ -201,9 +201,12 @@ class MoneyShareJsonRpc extends JsonRpc {
                 $userRedMin = 500;
             }
             $shareMoney = intval($money*(mt_rand(60,100)/100));
+            //获取微信昵称
+            $nickName = WechartUser::where("uid",$userId)->select('nick_name')->first();
+            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "匿名";
             //添加到红包分享表
             $param['user_id'] = $userId;
-            $param['user_name'] = "冉海强";
+            $param['user_name'] = $nickName;
             $param['recordId'] = $recordId;
             $param['money'] = $shareMoney;
             $param['total_num'] = $userRedNum;
@@ -215,6 +218,9 @@ class MoneyShareJsonRpc extends JsonRpc {
             $result = $res['result'];
         }
 
+        //获取用户手机号
+        $phone = Func::getUserPhone($userId,true);
+
         //返回值
         $return = array();
         $return['enable'] = 1;
@@ -224,6 +230,8 @@ class MoneyShareJsonRpc extends JsonRpc {
         $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
         $return['share']['total_money'] = $result['total_money'];
         $return['share']['total_num'] = $result['total_num'];
+        $return['share']['user_name'] = $result['user_name'];
+        $return['share']['phone'] = !empty($phone) ? substr_replace($phone, '*****', 3, 5) : "";
         return array(
             'code' => 0,
             'message' => 'success',
