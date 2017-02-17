@@ -310,7 +310,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         ];
         $res = Func::getUserBasicInfo($userId);
         if(isset($res['result'])){
-            $insert['invite_user_id'] = $res['result']['from_user_id'];
+            $insert['invite_user_id'] = $res['result']['data']['from_user_id'];
         }
 
         $item = MoneyShareRelation::where([
@@ -354,6 +354,8 @@ class MoneyShareJsonRpc extends JsonRpc {
 
     /**
      * [分享红包]分享红包记录邀请关系
+     *
+     * @JsonRpcMethod
      */
     public function addShareRedPackRelation($params) {
         global $userId;
@@ -372,7 +374,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         ];
         $res = Func::getUserBasicInfo($userId);
         if(isset($res['result'])){
-            $insert['invite_user_id'] = intval($res['result']['from_user_id']);
+            $insert['invite_user_id'] = intval($res['result']['data']['from_user_id']);
         }
         $item = MoneyShareRelation::where([
             'user_id' => $userId,
@@ -396,15 +398,18 @@ class MoneyShareJsonRpc extends JsonRpc {
 
     /**
      * [分享红包]分享红包查询邀请关系
+     *
+     * @JsonRpcMethod
      */
-    public function getShareRedPackRelationList($params) {
-        if(!isset($params->identify)){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
+    public function getShareRedPackRelationList() {
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
         }
 
         $res = MoneyShareRelation::select('user_id', 'invite_user_id')->where([
             'tag' => 'share',
-            'identify' => $params->identify
+            'invite_user_id' => $userId
         ])->orderBy('id', 'desc')->take(300)->get();
 
         return array(
@@ -416,6 +421,8 @@ class MoneyShareJsonRpc extends JsonRpc {
 
     /**
      * [分享红包] 分享后获得1000元体验金
+     *
+     * @JsonRpcMethod
      */
     public function getShareRedPackAward() {
         global $userId;
