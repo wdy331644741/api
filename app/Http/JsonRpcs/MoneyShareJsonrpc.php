@@ -12,7 +12,7 @@ use App\Service\Func;
 use Lib\JsonRpcClient;
 use Illuminate\Contracts\Encryption\DecryptException;
 use DB, Config, Request;
-
+use App\Models\WechatUser;
 class MoneyShareJsonRpc extends JsonRpc {
 
     /**
@@ -202,7 +202,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             }
             $shareMoney = intval($money*(mt_rand(60,100)/100));
             //获取微信昵称
-            $nickName = WechartUser::where("uid",$userId)->select('nick_name')->first();
+            $nickName = WechatUser::where("uid",$userId)->select('nick_name')->first();
             $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "匿名";
             //添加到红包分享表
             $param['user_id'] = $userId;
