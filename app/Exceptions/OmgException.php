@@ -72,6 +72,7 @@ class OmgException extends BasicException
     const NUMBER_IS_NULL = 4314;
     const CONDITION_NOT_ENOUGH = 4315;
     const ACTIVITY_IS_END = 4316;
+    const ALREADY_EXIST = 4317;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -128,6 +129,7 @@ class OmgException extends BasicException
         self::NUMBER_IS_NULL =>"奖品数量不足",
         self::CONDITION_NOT_ENOUGH => "条件不足",
         self::ACTIVITY_IS_END => "活动已结束",
+        self::ALREADY_EXIST => "数据已存在",
     );
 
     public function __construct($code, $data = array())
