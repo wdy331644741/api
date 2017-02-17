@@ -56,7 +56,11 @@ class OpenController extends Controller
         return redirect($oauth_url);
     }
 
-    //获取用户的open_id
+    /**
+     * 获取用户的open_id
+     * @param Request $request
+     * @return mixed
+     */
     public function getOpenid(Request $request){
         if(!$request->code){
             return $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
@@ -89,7 +93,11 @@ class OpenController extends Controller
         return redirect(env('WECHAT_BASE_HOST')."/wechat/");
     }
 
-    //获取用户的信息
+    /**
+     * 获取用户的信息
+     * @param Request $request
+     * @return mixed
+     */
     public function getUserInfo(Request $request){
         $session = new Session();
         $wxSession= $session->get('weixin');
@@ -132,13 +140,14 @@ class OpenController extends Controller
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
         if(isset($res['error'])){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40004');//用户未绑定
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40004');//接口出错
         }
         if($res['result']['data']){
-            $res = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
+            $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
+            WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
             return redirect($wxSession['userinfo_callback']);
         }
-        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40005');//未知错误
+        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40005');//用户未绑定
     }
 
     //绑定用户
@@ -168,8 +177,6 @@ class OpenController extends Controller
         }
         return redirect(env('WECHAT_BASE_HOST')."/wechat/unbindWechat/finish");
     }
-
-    //红包分享活动
 
     //获取响应事件
     public function getEvent(Request $request)
