@@ -23,6 +23,8 @@ class CreateOpen189LogsTable extends Migration
             $table->integer('type')->default(NULL);
             $table->tinyInteger('scatter_type')->default(NULL);
             $table->dateTime('register_time')->default(NULL);
+            $table->tinyInteger('status')->default(0);
+            $table->string('remark')->nullable()->default(NULL);
             $table->timestamps();
         });
     }
