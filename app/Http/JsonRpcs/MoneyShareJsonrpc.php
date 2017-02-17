@@ -9,6 +9,7 @@ use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
 use App\Models\MoneyShareRelation;
 use App\Service\Func;
+use App\Service\SendAward;
 use Lib\JsonRpcClient;
 use Illuminate\Contracts\Encryption\DecryptException;
 use DB, Config, Request;
@@ -314,6 +315,7 @@ class MoneyShareJsonRpc extends JsonRpc {
 
         $item = MoneyShareRelation::where([
             'user_id' => $userId,
+            'tag' => 'invite',
             'invite_user_id' => $insert['invite_user_id'],
         ])->first();
 
@@ -378,6 +380,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         $insert['invite_user_id'] = isset($res['from_user_id']) ? intval($res['from_user_id']) : 0;
         $item = MoneyShareRelation::where([
             'user_id' => $userId,
+            'tag' => 'share',
             'invite_user_id' => $insert['invite_user_id'],
         ])->first();
 
