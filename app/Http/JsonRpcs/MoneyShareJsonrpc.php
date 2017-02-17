@@ -203,7 +203,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             $shareMoney = intval($money*(mt_rand(60,100)/100));
             //获取微信昵称
             $nickName = WechatUser::where("uid",$userId)->select('nick_name')->first();
-            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "匿名";
+            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
             //添加到红包分享表
             $param['user_id'] = $userId;
             $param['user_name'] = $nickName;
@@ -212,6 +212,10 @@ class MoneyShareJsonRpc extends JsonRpc {
             $param['total_num'] = $userRedNum;
             $param['min'] = $userRedMin;
             $res = $this->addMoneyShare($param);
+
+            if(!$res){
+                throw new OmgException(OmgException::DATABASE_ERROR);
+            }
             if(isset($res['id']) && empty($res['id'])){
                 throw new OmgException(OmgException::DATABASE_ERROR);
             }
@@ -230,7 +234,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
         $return['share']['total_money'] = $result['total_money'];
         $return['share']['total_num'] = $result['total_num'];
-        $return['share']['user_name'] = $result['user_name'];
+        $return['share']['nick_name'] = $result['user_name'];
         $return['share']['phone'] = !empty($phone) ? substr_replace($phone, '*****', 3, 5) : "";
         return array(
             'code' => 0,
@@ -245,7 +249,7 @@ class MoneyShareJsonRpc extends JsonRpc {
      * @return bool
      */
     public function addMoneyShare($param){
-        if($param['user_id'] <= 0 || $param['money'] <= 0 || $param['recordId'] <= 0 || empty($param['user_name'])){
+        if($param['user_id'] <= 0 || $param['money'] <= 0 || $param['recordId'] <= 0){
             return false;
         }
         //祝福语
