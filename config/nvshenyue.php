@@ -5,10 +5,10 @@ return [
     'fresh_time' => 10*3600,
     'buy_number' => 500,
     'probability' => [
-        'nv' => 15,
+        'nv' => 20,
         'shen' => 25,
         'yue' => 15,
-        'kuai' => 25,
+        'kuai' => 20,
         'le' => 20
     ],
     'awards' => [

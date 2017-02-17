@@ -181,8 +181,10 @@ class GlobalAttributes
             return $res->number;
         }
 
-        $lastSeconds = strtotime($res['updated_at'])%(24*3600);
-        $nowSeconds = time()%(24*3600);
+        // 超过清空时间
+        $seconds = strtotime(date('Y-m-d 00:00:00')) + $seconds;
+        $lastSeconds = strtotime($res->updated_at);
+        $nowSeconds = time();
         if($lastSeconds < $seconds && $nowSeconds > $seconds) {
             $res->number = $start;
             $res->updated_at = date('Y-m-d H:i:s');
@@ -209,8 +211,10 @@ class GlobalAttributes
             return $res->number;
         }
 
-        $lastSeconds = strtotime($res['updated_at'])%(24*3600);
-        $nowSeconds = time()%(24*3600);
+        // 超过清空时间
+        $seconds = strtotime(date('Y-m-d 00:00:00')) + $seconds;
+        $lastSeconds = strtotime($res->updated_at);
+        $nowSeconds = time();
         if($lastSeconds < $seconds && $nowSeconds > $seconds) {
             $res->number = $start;
             $res->updated_at = date('Y-m-d H:i:s');

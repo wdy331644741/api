@@ -28,9 +28,10 @@ class NvshenyueJsonRpc extends JsonRpc
         }
 
         $user = [];
+        $game = ['available' => 0];
+
         $user['words'] = NvshenyueService::getChance($userId);
         $config = config('nvshenyue');
-        $game = ['available' => 0];
 
         // 活动是否存在
         if(ActivityService::isExistByAlias($config['key'])) {

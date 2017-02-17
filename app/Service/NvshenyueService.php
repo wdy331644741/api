@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use App\Models\UserAttribute;
+use App\Models\NvshenyueInfo;
 
 class NvshenyueService
 {
@@ -102,19 +103,22 @@ class NvshenyueService
         }
 
         if(!is_array($words)) {
-            return false;
+            $words = [];
         }
 
         // 超过清空时间
-        $seconds = strtotime(date('Y-m-d 00:00:00')) + $config['fresh_time'];
-        $lastSeconds = strtotime($item->updated_at);
-        $nowSeconds = time();
+        if($item) {
+            $seconds = strtotime(date('Y-m-d 00:00:00')) + $config['fresh_time'];
+            $lastSeconds = strtotime($item->updated_at);
+            $nowSeconds = time();
 
-        if($lastSeconds < $seconds && $nowSeconds > $seconds) {
-            $item->text = json_encode([]);
-            $item->save();
-            $words = [];
+            if($lastSeconds < $seconds && $nowSeconds > $seconds) {
+                $item->text = json_encode([]);
+                $item->save();
+                $words = [];
+            }
         }
+
 
         foreach($config['probability'] as $key => $value) {
             $resultWords[$key] = 0;
@@ -176,6 +180,15 @@ class NvshenyueService
 
             if(isset($addition[$key])) {
                 $now[$key] += intval($addition[$key]);
+                //写入记录
+                if(intval($addition[$key])) {
+                    NvshenyueInfo::create([
+                        'user_id' => $userId,
+                        'word' => $key,
+                        'source' => $source,
+                        'number' => $addition[$key],
+                    ]);
+                }
             }
         }
 
