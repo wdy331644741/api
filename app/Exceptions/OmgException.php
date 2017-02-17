@@ -73,6 +73,7 @@ class OmgException extends BasicException
     const CONDITION_NOT_ENOUGH = 4315;
     const ACTIVITY_IS_END = 4316;
     const ALREADY_EXIST = 4317;
+    const INVITE_USER_NOT_EXIST = 4318;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -130,6 +131,7 @@ class OmgException extends BasicException
         self::CONDITION_NOT_ENOUGH => "条件不足",
         self::ACTIVITY_IS_END => "活动已结束",
         self::ALREADY_EXIST => "数据已存在",
+        self::INVITE_USER_NOT_EXIST => "邀请人不存在",
     );
 
     public function __construct($code, $data = array())
