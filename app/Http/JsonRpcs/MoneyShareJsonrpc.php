@@ -46,6 +46,16 @@ class MoneyShareJsonRpc extends JsonRpc {
         $result['recentList'] = self::_formatData($recentList);
         $result['topList'] = self::_formatData($topList);
 
+        //二期判断
+        if(!empty($mallInfo['user_id'])){
+            //获取微信昵称
+            $nickName = WechatUser::where("uid",$mallInfo['user_id'])->select('nick_name')->first();
+            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
+            $mallInfo['user_name'] = !empty($nickName) ? $nickName : "";
+            //获取用户手机号
+            $phone = Func::getUserPhone($mallInfo['user_id'],true);
+            $mallInfo['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+        }
         $result['mall'] = $mallInfo;
         // 计算剩余金额和剩余数量
         $remain = $mallInfo->total_money - $mallInfo->use_money;
@@ -105,6 +115,43 @@ class MoneyShareJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => $result
+        );
+    }
+
+    /**
+     *  根据红包标示获取微信名和手机号
+     *
+     * @JsonRpcMethod
+     */
+    public function moneyShareGetUserInfo($params) {
+        $identify = $params->identify;
+        if(empty($identify)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //获取信息
+        $date = date("Y-m-d H:i:s");
+        $mallInfo = MoneyShare::where(['identify' => $identify, 'status' => 1])
+            ->where("start_time","<=",$date)
+            ->where("end_time",">=",$date)
+            ->lockForUpdate()->first();
+        $return = array();
+        if(!$mallInfo){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        //二期判断
+        if(!empty($mallInfo['user_id'])){
+            //获取微信昵称
+            $nickName = WechatUser::where("uid",$mallInfo['user_id'])->select('nick_name')->first();
+            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
+            $return['user_name'] = !empty($nickName) ? $nickName : "";
+            //获取用户手机号
+            $phone = Func::getUserPhone($mallInfo['user_id'],true);
+            $return['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return
         );
     }
     //将列表的数据整理出手机号
@@ -201,12 +248,8 @@ class MoneyShareJsonRpc extends JsonRpc {
                 $userRedMin = 500;
             }
             $shareMoney = intval($money*(mt_rand(60,100)/100));
-            //获取微信昵称
-            $nickName = WechatUser::where("uid",$userId)->select('nick_name')->first();
-            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
             //添加到红包分享表
             $param['user_id'] = $userId;
-            $param['user_name'] = $nickName;
             $param['recordId'] = $recordId;
             $param['money'] = $shareMoney;
             $param['total_num'] = $userRedNum;
@@ -222,9 +265,6 @@ class MoneyShareJsonRpc extends JsonRpc {
             $result = $res['result'];
         }
 
-        //获取用户手机号
-        $phone = Func::getUserPhone($userId,true);
-
         //返回值
         $return = array();
         $return['enable'] = 1;
@@ -234,8 +274,6 @@ class MoneyShareJsonRpc extends JsonRpc {
         $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
         $return['share']['total_money'] = $result['total_money'];
         $return['share']['total_num'] = $result['total_num'];
-        $return['share']['nick_name'] = $result['user_name'];
-        $return['share']['phone'] = !empty($phone) ? substr_replace($phone, '*****', 3, 5) : "";
         return array(
             'code' => 0,
             'message' => 'success',
@@ -257,7 +295,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         //用户ID
         $data['user_id'] = $param['user_id'];
         //用户姓名
-        $data['user_name'] = $param['user_name'];
+        $data['user_name'] = "";
         //奖品类型
         $data['award_type'] = 3;
         //商品id
