@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Models\Open189Log;
 use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
 use Cache;
@@ -34,8 +35,32 @@ class Open189
             }elseif ($data['Investment_amount'] >= 10000){
                 $nb = 1300;
             }else{
-                
+                $log = new Open189Log();
+                $log->user_id = $data['user_id'];
+                $log->project_id = $data['project_id'];
+                $log->investment_amount = $data['Investment_amount'];
+                $log->is_first = $data['is_first'];
+                $log->period = $data['period'];
+                $log->buy_time = $data['buy_time'];
+                $log->type = $data['type'];
+                $log->scatter_type = $data['scatter_type'];
+                $log->register_time = $data['register_time'];
+                $log->status = 0;
+                $log->remark = '投资金额不符合条件';
+
             }
+            $log = new Open189Log();
+            $log->user_id = $data['user_id'];
+            $log->project_id = $data['project_id'];
+            $log->investment_amount = $data['Investment_amount'];
+            $log->is_first = $data['is_first'];
+            $log->period = $data['period'];
+            $log->buy_time = $data['buy_time'];
+            $log->type = $data['type'];
+            $log->scatter_type = $data['scatter_type'];
+            $log->register_time = $data['register_time'];
+            $log->nb = $nb;
+            $msectime = msectime();
             $phone = Func::getUserPhone($data['user_id']);
 
 
