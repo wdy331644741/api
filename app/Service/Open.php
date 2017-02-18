@@ -1,18 +1,20 @@
 <?php
 namespace App\Service;
 
-use App\Models\Open189Log;
 use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
 use Cache;
 use Illuminate\Support\Facades\DB;
+use App\Models\Open189Log;
+use GuzzleHttp\Client;
 
-class Open189
+class Open
 {
     private $_appid = "";
     private $_appsecret = "";
     private $_taskId = "";
     private $_client = null;
+    private $_clientIp = null;
     private $_version = "v1.0";
     private $_clientType = "10010";
 
@@ -20,6 +22,7 @@ class Open189
         $this->_appid = env('OPEN189_APPID');
         $this->_appsecret = env('OPEN189_APP_SECRET');
         $this->_taskId = env('OPEN189_TASKID');
+        $this->_clientIp = env('OPEN189_CLIENTIP');
         $this->_client = new Client([
             'base_uri'=>"https://open.e.189.cn/",
             'timeout'=>9999.0
@@ -27,32 +30,22 @@ class Open189
     }
 
     public function sendNb($data){
-        if(($data['scatter_type'] == 1 && $data['period'] >= 30) || ($data['scatter_type'] == 2)){
-            if($data['Investment_amount'] >= 1000 && $data['Investment_amount'] < 5000){
+        $phone = Func::getUserPhone($data['user_id']);
+        $nb = null;
+        if((($data['scatter_type'] == 1 && $data['period'] >= 30) || ($data['scatter_type'] == 2))
+            && $data['is_first'] == 1 && $data['Investment_amount'] >= 1000) {
+            if ($data['Investment_amount'] >= 1000 && $data['Investment_amount'] < 5000) {
                 $nb = 330;
-            }elseif ($data['Investment_amount'] >= 5000 && $data['Investment_amount'] < 10000){
+            } elseif ($data['Investment_amount'] >= 5000 && $data['Investment_amount'] < 10000) {
                 $nb = 800;
-            }elseif ($data['Investment_amount'] >= 10000){
+            } else {
                 $nb = 1300;
-            }else{
-                $log = new Open189Log();
-                $log->user_id = $data['user_id'];
-                $log->project_id = $data['project_id'];
-                $log->investment_amount = $data['Investment_amount'];
-                $log->is_first = $data['is_first'];
-                $log->period = $data['period'];
-                $log->buy_time = $data['buy_time'];
-                $log->type = $data['type'];
-                $log->scatter_type = $data['scatter_type'];
-                $log->register_time = $data['register_time'];
-                $log->status = 0;
-                $log->remark = '投资金额不符合条件';
-
             }
             $log = new Open189Log();
             $log->user_id = $data['user_id'];
             $log->project_id = $data['project_id'];
             $log->investment_amount = $data['Investment_amount'];
+            $log->phone = $phone;
             $log->is_first = $data['is_first'];
             $log->period = $data['period'];
             $log->buy_time = $data['buy_time'];
@@ -61,9 +54,53 @@ class Open189
             $log->register_time = $data['register_time'];
             $log->nb = $nb;
             $msectime = msectime();
-            $phone = Func::getUserPhone($data['user_id']);
-
-
+            $uuid = $msectime . mt_rand(10000, 99999);
+            $formData = [
+                'clientId' => $this->_appid,
+                'timeStamp' => $msectime,
+                'clientIp' => $this->_clientIp,
+                'version' => $this->_version,
+                'clientType' => $this->_clientType,
+                'taskId' => $this->_taskId,
+                'mobile' => $phone,
+                'coin' => $nb,
+                'uuid' => $uuid
+            ];
+            $sign = $this->makeSign($data);
+            file_put_contents(storage_path('logs/open189_sign_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> ".$sign.PHP_EOL,FILE_APPEND);
+            $data['uuid'] = $uuid;
+            $data['sign'] = $sign;
+            $res = $this->_client->post('/api/oauth2/llb/grantCoin.do', ['form_params' => $formData]);
+            $response = json_decode($res->getBody(), true);
+            $log->uuid = $uuid;
+            $log->status = $response['result'];
+            $log->remark = $response['msg'];
+            $log->save();
+        }else {
+            $log = new Open189Log();
+            $log->user_id = $data['user_id'];
+            $log->project_id = $data['project_id'];
+            $log->phone = $phone;
+            $log->investment_amount = $data['Investment_amount'];
+            $log->is_first = $data['is_first'];
+            $log->period = $data['period'];
+            $log->buy_time = $data['buy_time'];
+            $log->type = $data['type'];
+            $log->scatter_type = $data['scatter_type'];
+            $log->register_time = $data['register_time'];
+            $log->status = 0;
+            $log->remark = '投资标期不符合条件或不是首投';
+            $log->save();
         }
+    }
+
+    //生成签名
+    private function makeSign($data){
+        ksort($data);
+        $str = '';
+        foreach ($data as $val){
+            $str.=$val;
+        }
+        return hash_hmac('sha1',$str,$this->_appsecret);
     }
 }

@@ -16,6 +16,8 @@ class CreateOpen189LogsTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->default(NULL);
             $table->integer('project_id')->default(NULL);
+            $table->string('phone');
+            $table->string('uuid')->nullable()->default(NULL);
             $table->string('investment_amount')->default(NULL);
             $table->tinyInteger('is_first')->default(0);
             $table->tinyInteger('period')->default(NULL);
@@ -24,8 +26,10 @@ class CreateOpen189LogsTable extends Migration
             $table->tinyInteger('scatter_type')->default(NULL);
             $table->dateTime('register_time')->default(NULL);
             $table->integer('nb')->default(0);
-            $table->tinyInteger('status')->default(0);
+            $table->string('status')->default(NULL);
             $table->string('remark')->nullable()->default(NULL);
+            $table->index('phone');
+            $table->index('uuid');
             $table->timestamps();
         });
     }
