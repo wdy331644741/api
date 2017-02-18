@@ -306,7 +306,7 @@ class ActivityJsonRpc extends JsonRpc {
 
         //未签到或非连续签到
         if(empty($awardName)) {
-            $continue = 1;
+            $continue = 1; 
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             if(!isset($awards[0]['award_name'])) {
                 throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
@@ -636,6 +636,7 @@ class ActivityJsonRpc extends JsonRpc {
             $number = 0;
         }
         if($params->isget == 1){
+            $number = isset($number) ? $number :0;
             return array(
                 'code' => 0,
                 'message' => 'success',

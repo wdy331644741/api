@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use App\Models\FlowRechargeLog;
+use App\Models\WechatUser;
 use Illuminate\Http\Request;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
@@ -26,13 +27,40 @@ class OpenController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $session = new Session();
-        $session->set('weixin',array('callback'=>$request->callback));
+        $wxSession = $session->get('weixin');
+        if(empty($wxSession)){
+            $session->set('weixin',array('callback'=>$request->callback));
+        }else{
+            $session->set('weixin',array_merge($wxSession,array('callback'=>$request->callback)));
+        }
         $weixin = new Weixin();
         $oauth_url = $weixin->get_authorize_url();
         return redirect($oauth_url);
     }
 
-    //获取用户的open_id
+    //wwchat_userinfo_auth_uri
+    public function getUserinfoLogin(Request $request){
+        if(!isset($request->callback)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $session = new Session();
+        $wxSession = $session->get('weixin');
+        if(empty($wxSession)){
+            $session->set('weixin',array('userinfo_callback'=>$request->callback));
+        }else{
+            $session->set('weixin',array_merge($wxSession,array('userinfo_callback'=>$request->callback)));
+        }
+
+        $weixin = new Weixin();
+        $oauth_url = $weixin->get_authorize_url('snsapi_userinfo',env('WECHAT_SHARE_REDIRECT_URI'));
+        return redirect($oauth_url);
+    }
+
+    /**
+     * 获取用户的open_id
+     * @param Request $request
+     * @return mixed
+     */
     public function getOpenid(Request $request){
         if(!$request->code){
             return $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
@@ -62,6 +90,64 @@ class OpenController extends Controller
                 return redirect(env('WECHAT_BASE_HOST')."/wechat/");
             }
         }
+        return redirect(env('WECHAT_BASE_HOST')."/wechat/");
+    }
+
+    /**
+     * 获取用户的信息
+     * @param Request $request
+     * @return mixed
+     */
+    public function getUserInfo(Request $request){
+        $session = new Session();
+        $wxSession= $session->get('weixin');
+        if(!$request->code){
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40001');//用户未授权或者授权失败
+        }
+        $weixin = new Weixin();
+        $data = $weixin->get_web_access_token($request->code);
+        if(!$data){
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40002');//获取access_token失败
+        }
+        $this->_openid =  $data['openid'];
+        $wxSession = $session->get('weixin');
+        $new_weixin = array();
+        if(is_array($wxSession)){
+            $new_weixin = array_merge($wxSession,array('openid'=>$this->_openid));
+        }
+        $session->set('weixin',$new_weixin);
+        if(isset($this->_openid)){
+            $userData = WechatUser::where('openid',$this->_openid)->first();
+            if(!$userData){
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40003');//拉取用户信息失败
+                }
+                //存储微信用户数据
+                $wxModel = new WechatUser();
+                $wxModel->openid = $userData['openid'];
+                $wxModel->sex = $userData['sex'];
+                $wxModel->nick_name = $userData['nickname'];
+                $wxModel->province = $userData['province'];
+                $wxModel->city = $userData['city'];
+                $wxModel->country = $userData['country'];
+                $wxModel->headimgurl = $userData['headimgurl'];
+                $wxModel->save();
+            }
+        }
+
+        //判断微信用户是否绑定
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
+        if(isset($res['error'])){
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40004');//接口出错
+        }
+        if($res['result']['data']){
+            $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
+            WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
+            return redirect($wxSession['userinfo_callback']);
+        }
+        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40005');//用户未绑定
     }
 
     //绑定用户
@@ -496,6 +582,8 @@ class OpenController extends Controller
         return response()->json(array('result'=>1,'remark'=>'请求成功','data'=>$res['result']['data']));
     }
 
+    //---------------------------流量充值--------------------------//
+
     //充值流量接口回调地址
     public function postFlowCallback(Request $request){
         if(!$request->customerOrderId || !$request->phoneNo || !$request->orderId || !$request->scope || !$request->spec || !$request->status){
@@ -546,6 +634,21 @@ class OpenController extends Controller
             }
             
         }
+    }
+
+    //拼接url后边参数
+    private function convertUrlQuery($url){
+        $check = strpos($url, '?');
+        if($check !== false) {
+            if(substr($url, $check+1) == '') {
+                $new_url = $url;
+            } else {
+                $new_url = $url.'&';
+            }
+        } else {
+            $new_url = $url.'?';
+        }
+        return $new_url;
     }
 
     //爱有钱生成签名字符串
