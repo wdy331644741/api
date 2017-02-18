@@ -117,43 +117,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             'data' => $result
         );
     }
-
-    /**
-     *  根据红包标示获取微信名和手机号
-     *
-     * @JsonRpcMethod
-     */
-    public function moneyShareGetUserInfo($params) {
-        $identify = $params->identify;
-        if(empty($identify)){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-        //获取信息
-        $date = date("Y-m-d H:i:s");
-        $mallInfo = MoneyShare::where(['identify' => $identify, 'status' => 1])
-            ->where("start_time","<=",$date)
-            ->where("end_time",">=",$date)
-            ->lockForUpdate()->first();
-        $return = array();
-        if(!$mallInfo){
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-        //二期判断
-        if(!empty($mallInfo['user_id'])){
-            //获取微信昵称
-            $nickName = WechatUser::where("uid",$mallInfo['user_id'])->select('nick_name')->first();
-            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
-            $return['user_name'] = !empty($nickName) ? $nickName : "";
-            //获取用户手机号
-            $phone = Func::getUserPhone($mallInfo['user_id'],true);
-            $return['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $return
-        );
-    }
+    
     //将列表的数据整理出手机号
     public static function _formatData($data){
         if(empty($data)){
