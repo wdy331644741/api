@@ -7,12 +7,13 @@ use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;
 use App\Models\MoneyShareInfo;
+use App\Models\MoneyShareRelation;
 use App\Service\Func;
+use App\Service\SendAward;
 use Lib\JsonRpcClient;
 use Illuminate\Contracts\Encryption\DecryptException;
-use DB;
-use Config;
-
+use DB, Config, Request;
+use App\Models\WechatUser;
 class MoneyShareJsonRpc extends JsonRpc {
 
     /**
@@ -45,14 +46,24 @@ class MoneyShareJsonRpc extends JsonRpc {
         $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('created_at', 'asc')->take(5)->get();
         $result['recentList'] = self::_formatData($recentList);
         $result['topList'] = self::_formatData($topList);
-        
+
+        //二期判断
+        if(!empty($mallInfo['user_id'])){
+            //获取微信昵称
+            $nickName = WechatUser::where("uid",$mallInfo['user_id'])->select('nick_name')->first();
+            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
+            $mallInfo['user_name'] = !empty($nickName) ? $nickName : "";
+            //获取用户手机号
+            $phone = Func::getUserPhone($mallInfo['user_id'],true);
+            $mallInfo['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+        }
         $result['mall'] = $mallInfo;
         // 计算剩余金额和剩余数量
         $remain = $mallInfo->total_money - $mallInfo->use_money;
         $remain = $remain > 0 ? $remain : 0;
         $remainNum = $mallInfo->total_num - $mallInfo->receive_num;
         $remainNum = $remainNum > 0 ? $remainNum : 0;
-        
+
         //用户领取过
         if($result['isLogin']){
             $join = MoneyShareInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
@@ -71,7 +82,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             }
         }
 
-        
+
         // 发体验金
         if($result['isLogin'] && !$result['isGot']) {
             $money = MoneyShareBasic::getRandomMoney($remain,$remainNum,$mallInfo->min,$mallInfo->max);
@@ -100,13 +111,14 @@ class MoneyShareJsonRpc extends JsonRpc {
         }
         DB::commit();
 
-        
+
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => $result
         );
     }
+    
     //将列表的数据整理出手机号
     public static function _formatData($data){
         if(empty($data)){
@@ -203,12 +215,15 @@ class MoneyShareJsonRpc extends JsonRpc {
             $shareMoney = intval($money*(mt_rand(60,100)/100));
             //添加到红包分享表
             $param['user_id'] = $userId;
-            $param['user_name'] = "冉海强";
             $param['recordId'] = $recordId;
             $param['money'] = $shareMoney;
             $param['total_num'] = $userRedNum;
             $param['min'] = $userRedMin;
             $res = $this->addMoneyShare($param);
+
+            if(!$res){
+                throw new OmgException(OmgException::DATABASE_ERROR);
+            }
             if(isset($res['id']) && empty($res['id'])){
                 throw new OmgException(OmgException::DATABASE_ERROR);
             }
@@ -237,7 +252,7 @@ class MoneyShareJsonRpc extends JsonRpc {
      * @return bool
      */
     public function addMoneyShare($param){
-        if($param['user_id'] <= 0 || $param['money'] <= 0 || $param['recordId'] <= 0 || empty($param['user_name'])){
+        if($param['user_id'] <= 0 || $param['money'] <= 0 || $param['recordId'] <= 0){
             return false;
         }
         //祝福语
@@ -245,7 +260,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         //用户ID
         $data['user_id'] = $param['user_id'];
         //用户姓名
-        $data['user_name'] = $param['user_name'];
+        $data['user_name'] = "";
         //奖品类型
         $data['award_type'] = 3;
         //商品id
@@ -275,4 +290,171 @@ class MoneyShareJsonRpc extends JsonRpc {
         $id = MoneyShare::insertGetId($data);
         return array('id'=>$id,'result'=>$data);
     }
+
+
+    /**
+     * [投资红包]投资红包记录邀请关系
+     *
+     * @JsonRpcMethod
+     */
+    public function addInviteRedPackRelation($params) {
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        if(!isset($params->identify)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $insert = [
+            'user_id' =>  $userId,
+            'invite_user_id' => 0,
+            'tag' => 'invite',
+            'identify' => $params->identify,
+            'ip' => Request::getClientIp(),
+        ];
+        $res = Func::getUserBasicInfo($userId);
+        $insert['invite_user_id'] = isset($res['from_user_id']) ? intval($res['from_user_id']) : 0;
+
+        $item = MoneyShareRelation::where([
+            'user_id' => $userId,
+            'tag' => 'invite',
+            'invite_user_id' => $insert['invite_user_id'],
+        ])->first();
+
+        if(!$insert['invite_user_id']) {
+            throw new OmgException(OmgException::INVITE_USER_NOT_EXIST);
+        }
+        //已有数据
+        if($item) {
+            throw new OmgException(OmgException::ALREADY_EXIST);
+        }
+        MoneyShareRelation::create($insert);
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+        );
+    }
+
+    /**
+     * [投资红包]投资红包查询邀请关系
+     *
+     * @JsonRpcMethod
+     */
+    public function getInviteRedPackRelationList($params) {
+        if(!isset($params->identify)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+
+        $res = MoneyShareRelation::select('user_id', 'invite_user_id')->where([
+            'tag' => 'invite',
+            'identify' => $params->identify
+        ])->orderBy('id', 'desc')->take(300)->get();
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'result' => $res
+        );
+    }
+
+    /**
+     * [分享红包]分享红包记录邀请关系
+     *
+     * @JsonRpcMethod
+     */
+    public function addShareRedPackRelation($params) {
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        if(!isset($params->identify)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $insert = [
+            'user_id' =>  $userId,
+            'invite_user_id' => 0,
+            'tag' => 'share',
+            'identify' => $params->identify,
+            'ip' => Request::getClientIp(),
+        ];
+        $res = Func::getUserBasicInfo($userId);
+        $insert['invite_user_id'] = isset($res['from_user_id']) ? intval($res['from_user_id']) : 0;
+        $item = MoneyShareRelation::where([
+            'user_id' => $userId,
+            'tag' => 'share',
+            'invite_user_id' => $insert['invite_user_id'],
+        ])->first();
+
+        if(!$insert['invite_user_id']) {
+            throw new OmgException(OmgException::INVITE_USER_NOT_EXIST);
+        }
+        //已有数据，或用户没有邀请人
+        if($item) {
+            throw new OmgException(OmgException::ALREADY_EXIST);
+        }
+        // 创建记录
+        MoneyShareRelation::create($insert);
+        // 给邀请人发奖
+        SendAward::ActiveSendAward($insert['invite_user_id'], 'money_share_invite_award');
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+        );
+    }
+
+    /**
+     * [分享红包]分享红包查询邀请关系
+     *
+     * @JsonRpcMethod
+     */
+    public function getShareRedPackRelationList() {
+        global $userId;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+
+        $res = MoneyShareRelation::select('user_id', 'invite_user_id')->where([
+            'tag' => 'share',
+            'invite_user_id' => $userId
+        ])->orderBy('id', 'desc')->take(300)->get();
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'result' => $res
+        );
+    }
+
+    /**
+     * [分享红包] 分享后获得1000元体验金
+     *
+     * @JsonRpcMethod
+     */
+    public function getShareRedPackAward() {
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $status = SendAward::ActiveSendAward($userId, 'money_share_share_award');
+        if(isset($status['msg'])){
+            if($status['msg'] == "频次验证不通过"){
+                throw new OmgException(OmgException::MALL_IS_HAS);
+            }
+            if($status['msg'] == "活动不存在！"){
+                throw new OmgException(OmgException::AWARD_NOT_EXIST);
+            }
+            if($status['msg'] == "发奖失败！"){
+                throw new OmgException(OmgException::SEND_ERROR);
+            }
+        }
+        $awardName = isset($status[0]['award_name']) ? $status[0]['award_name'] : '';
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=>array("award_name"=>$awardName)
+        );
+    }
 }
+
