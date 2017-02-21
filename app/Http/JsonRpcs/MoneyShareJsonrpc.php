@@ -50,9 +50,8 @@ class MoneyShareJsonRpc extends JsonRpc {
         //二期判断
         if(!empty($mallInfo['user_id'])){
             //获取微信昵称
-            $nickName = WechatUser::where("uid",$mallInfo['user_id'])->select('nick_name')->first();
-            $nickName = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
-            $mallInfo['user_name'] = !empty($nickName) ? $nickName : "";
+            $nickName = Func::wechatInfoByUserID($mallInfo['user_id']);
+            $mallInfo['user_name'] = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
             //获取用户手机号
             $phone = Func::getUserPhone($mallInfo['user_id'],true);
             $mallInfo['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
@@ -128,6 +127,10 @@ class MoneyShareJsonRpc extends JsonRpc {
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                //获取微信信息
+                $wechatInfo = Func::wechatInfoByUserID($item['user_id']);
+                $item['user_name'] = isset($wechatInfo['nick_name']) && !empty($wechatInfo['nick_name']) ? $wechatInfo['nick_name'] : "";
+                $item['user_photo'] = isset($wechatInfo['headimgurl']) && !empty($wechatInfo['headimgurl']) ? $wechatInfo['headimgurl'] : "";
             }
         }
         return $data;
@@ -231,9 +234,13 @@ class MoneyShareJsonRpc extends JsonRpc {
         }
 
         //返回值
+        $inviteCode = Func::getUserBasicInfo($userId,true);
+        $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
+        $callbackURI = urlencode(env("APP_URL")."/active/red_packet/red_packet.html?k=".$result['identify']."&invite_code=".$inviteCode);
+        $uri = env("MONEY_SHARE_WECHAT_URL").$callbackURI;
         $return = array();
         $return['enable'] = 1;
-        $return['share']['uri'] = env("APP_URL")."/active/red_packet/red_packet.html?k=".$result['identify'];
+        $return['share']['uri'] = $uri;
         $return['share']['title'] = Config::get('moneyshare.user_red_title');
         $return['share']['content'] = Config::get('moneyshare.user_red_content');
         $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
@@ -350,7 +357,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             'tag' => 'invite',
             'identify' => $params->identify
         ])->orderBy('id', 'desc')->take(300)->get();
-
+        $res = self::_formatData($res);
         return array(
             'code' => 0,
             'message' => 'success',
@@ -419,7 +426,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             'tag' => 'share',
             'invite_user_id' => $userId
         ])->orderBy('id', 'desc')->take(300)->get();
-
+        $res = self::_formatData($res);
         return array(
             'code' => 0,
             'message' => 'success',
