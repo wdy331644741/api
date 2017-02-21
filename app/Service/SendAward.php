@@ -111,7 +111,15 @@ class SendAward
         $where['alias_name'] = $aliasName;
         $where['trigger_type'] = 0;
         $where['enable'] = 1;
-        $list = Activity::where($where)->first();
+        $list = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where($where)->first();
         if(empty($list)){
             return array('msg'=>'活动不存在！');
         }
