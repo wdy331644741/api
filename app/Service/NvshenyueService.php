@@ -129,6 +129,19 @@ class NvshenyueService
         }
         return $resultWords;
     }
+    /**
+     * 获取兑换套数
+     *
+     */
+    static function getExchangeNum($userId) {
+        $config = config('nvshenyue');
+        $item  = UserAttribute::where(['user_id' => $userId, 'key' => $config['key'] ])->first();
+        if(!$item) {
+            return 0;
+        }else{
+            return intval($item->number);
+        }
+    }
 
     /**
      *  添加次数
