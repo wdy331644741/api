@@ -78,6 +78,9 @@ class RuleCheck
                 case $value->rule_type === 15:
                     $res = self::_joinNum($activity_id,$value);
                     break;
+                case $value->rule_type === 16:
+                    $res = self::_paymentDate($value,$sqsmsg);
+                    break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
                     break;
@@ -238,6 +241,16 @@ class RuleCheck
         return array('send'=>false,'errmsg'=>'回款规则验证不通过');
     }
 
+    //回款期限
+    private static function _paymentDate($rule,$sqsmsg){
+        $rules = (array)json_decode($rule->rule_info);
+        #TODO   字段修改  触发消息接口未开发
+        $payment_date = intval($sqsmsg['回款期限']);
+        if($payment_date >= $rules['min_paymentdate'] && $payment_date < $rules['max_paymentdate']){
+            return array('send'=>true);
+        }
+        return array('send'=>false,'errmsg'=>'回款期限规则验证不通过');
+    }
     //用户投资总金额
     private static function _castAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);
