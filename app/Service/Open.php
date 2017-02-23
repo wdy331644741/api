@@ -66,7 +66,7 @@ class Open
                 'coin' => $nb,
                 'uuid' => $uuid
             ];
-            $sign = $this->makeSign($data);
+            $sign = $this->makeSign($formData);
             file_put_contents(storage_path('logs/open189_sign_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> ".$sign.PHP_EOL,FILE_APPEND);
             $data['uuid'] = $uuid;
             $data['sign'] = $sign;
