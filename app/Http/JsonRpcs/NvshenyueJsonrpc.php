@@ -196,7 +196,7 @@ class NvshenyueJsonRpc extends JsonRpc
         $result = $client->wordPurchase($param);
 
         // 成功
-        if(true || isset($result['result']) && !empty($result['result'])) {
+        if(isset($result['result']) && !empty($result['result'])) {
             $words = NvshenyueService::addChanceByBuy($userId, $word, $number);
             $this->decrementNum($word, $number);
             return array(
@@ -271,14 +271,16 @@ class NvshenyueJsonRpc extends JsonRpc
             $data = Nvshenyue::select('user_id', 'award_name')->orderBy('id', 'desc')->take($number)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+                    $award = [];
                     $phone = Func::getUserPhone($item['user_id']);
-                    $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-                    $result[] = $item;
+                    $award['award_name'] = $item['award_name'];
+                    $award['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                    $result[] = $award;
                 }
             }
 
             if(count($result) !== $number) {
-                //return $result;
+                return $result;
             }
 
             foreach($config['fake_user'] as $user) {
