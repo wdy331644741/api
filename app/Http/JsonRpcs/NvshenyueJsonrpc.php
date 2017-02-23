@@ -196,7 +196,7 @@ class NvshenyueJsonRpc extends JsonRpc
         $result = $client->wordPurchase($param);
 
         // 成功
-        if(true || isset($result['result']) && !empty($result['result'])) {
+        if(isset($result['result']) && !empty($result['result'])) {
             $words = NvshenyueService::addChanceByBuy($userId, $word, $number);
             $this->decrementNum($word, $number);
             return array(
