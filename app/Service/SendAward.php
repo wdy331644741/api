@@ -175,7 +175,8 @@ class SendAward
             //流量包渠道首投触发
             case "channel_liuliangbao":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
-                    Open::sendNb($triggerData);
+                    $open = new Open();
+                    $open->sendNb($triggerData);
                 }
                 break;
             //投资是否满足投资6个月的标，且投资金额大于等于1000元
