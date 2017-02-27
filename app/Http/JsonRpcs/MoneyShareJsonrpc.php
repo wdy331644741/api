@@ -236,7 +236,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         //返回值
         $inviteCode = Func::getUserBasicInfo($userId,true);
         $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
-        $callbackURI = urlencode(env("APP_URL")."/active/red_packet/red_packet.html?k=".$result['identify']."&invite_code=".$inviteCode);
+        $callbackURI = urlencode(env("APP_URL")."/active/share/share.html?k=".$result['identify']."&invite_code=".$inviteCode);
         $uri = env("MONEY_SHARE_WECHAT_URL").$callbackURI;
         $return = array();
         $return['enable'] = 1;
