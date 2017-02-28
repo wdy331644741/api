@@ -23,19 +23,23 @@ class NvshenyueJsonRpc extends JsonRpc
     public function nvshenyueInfo() {
         global $userId;
 
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-
-        $user = [];
+        $user = ['login' => 0];
         $game = ['available' => 0];
 
-        $user['words'] = NvshenyueService::getChance($userId);
         $config = config('nvshenyue');
 
         // 活动是否存在
         if(ActivityService::isExistByAlias($config['key'])) {
             $game['available'] = 1;
+        }
+        if(!$userId) {
+            $user['login'] = 0;
+        }
+
+        if($userId) {
+            $user['login'] = 1;
+            $user['exchange_num'] = NvshenyueService::getExchangeNum($userId);
+            $user['words'] = NvshenyueService::getChance($userId);
         }
         return array(
             'code' => 0,
@@ -59,7 +63,7 @@ class NvshenyueJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => [
                 'list' => $this->getExchangeList($config),
-                'words' => $this->getExchangeRank($config)
+                'rank' => $this->getExchangeRank($config)
             ]
         );
     }
@@ -192,7 +196,7 @@ class NvshenyueJsonRpc extends JsonRpc
         $result = $client->wordPurchase($param);
 
         // 成功
-        if(true || isset($result['result']) && !empty($result['result'])) {
+        if(isset($result['result']) && !empty($result['result'])) {
             $words = NvshenyueService::addChanceByBuy($userId, $word, $number);
             $this->decrementNum($word, $number);
             return array(
@@ -245,7 +249,7 @@ class NvshenyueJsonRpc extends JsonRpc
     private function getExchangeRank($config) {
         $key = $config['key'] . '_rank';
         return Cache::remember($key, 5, function() use($config) {
-            $data = UserAttribute::select('user_id', 'number')->where(['key' => $config['key']])->orderBy('number', 'desc')->take(20)->get();
+            $data = UserAttribute::select('user_id', 'number')->where(['key' => $config['key']])->where('number', '!=', 0)->orderBy('number', 'desc')->take(20)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                     $phone = Func::getUserPhone($item['user_id']);
@@ -267,14 +271,16 @@ class NvshenyueJsonRpc extends JsonRpc
             $data = Nvshenyue::select('user_id', 'award_name')->orderBy('id', 'desc')->take($number)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+                    $award = [];
                     $phone = Func::getUserPhone($item['user_id']);
-                    $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-                    $result[] = $item;
+                    $award['award_name'] = $item['award_name'];
+                    $award['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                    $result[] = $award;
                 }
             }
 
             if(count($result) !== $number) {
-                //return $result;
+                return $result;
             }
 
             foreach($config['fake_user'] as $user) {
