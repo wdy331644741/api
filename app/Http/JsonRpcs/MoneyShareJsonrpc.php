@@ -43,7 +43,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(5)->get();
-        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('created_at', 'asc')->take(5)->get();
+        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('id', 'asc')->take(5)->get();
         $result['recentList'] = self::_formatData($recentList);
         $result['topList'] = self::_formatData($topList);
 
@@ -236,7 +236,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         //返回值
         $inviteCode = Func::getUserBasicInfo($userId,true);
         $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
-        $callbackURI = urlencode(env("APP_URL")."/active/red_packet/red_packet.html?k=".$result['identify']."&invite_code=".$inviteCode);
+        $callbackURI = urlencode(env("APP_URL")."/active/share/share.html?k=".$result['identify']."&invite_code=".$inviteCode);
         $uri = env("MONEY_SHARE_WECHAT_URL").$callbackURI;
         $return = array();
         $return['enable'] = 1;
