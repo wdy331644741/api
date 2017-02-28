@@ -30,6 +30,7 @@ use Validator;
 use DB;
 use App\Service\Func;
 use App\Service\NvshenyueService;
+use App\Service\Open;
 class SendAward
 {
     static private $userID;
@@ -172,6 +173,13 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            //流量包渠道首投触发
+            case "channel_liuliangbao":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $open = new Open();
+                    $open->sendNb($triggerData);
+                }
+                break;
             /**女神月活动*****开始****/
             //投资送次数(满一千送一次)
             case "nvshenyue_invest":
