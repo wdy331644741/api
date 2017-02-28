@@ -173,13 +173,6 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
-            //流量包渠道首投触发
-            case "channel_liuliangbao":
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
-                    $open = new Open();
-                    $open->sendNb($triggerData);
-                }
-                break;
             /**女神月活动*****开始****/
             //投资送次数(满一千送一次)
             case "nvshenyue_invest":
@@ -198,6 +191,14 @@ class SendAward
                 }
                 break;
             /**女神月活动*****结束****/
+            //流量包渠道首投触发
+            case "channel_liuliangbao":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $open = new Open();
+                    $open->sendNb($triggerData);
+                }
+                break;
+
             //投资是否满足投资6个月的标，且投资金额大于等于1000元
             case "shake_to_shake_6_1000":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
