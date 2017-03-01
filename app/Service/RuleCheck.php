@@ -244,8 +244,14 @@ class RuleCheck
     //回款期限
     private static function _paymentDate($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
-        #TODO   字段修改  触发消息接口未开发
-        $payment_date = intval($sqsmsg['回款期限']);
+        $payment_date = 0;
+        if($sqsmsg['scatter_type'] == 1){
+            $payment_date = intval($sqsmsg['period_day']);
+        }elseif ($sqsmsg['scatter_type'] == 2){
+            $payment_date = intval($sqsmsg['period'] * 30);
+        }else{
+            return array('send'=>false,'errmsg'=>'回款期限不正确');
+        }
         if($payment_date >= $rules['min_paymentdate'] && $payment_date < $rules['max_paymentdate']){
             return array('send'=>true);
         }
