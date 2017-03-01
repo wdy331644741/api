@@ -143,6 +143,9 @@ class Weixin
                     Cache::put('wechat_access_token',$data['access_token'],120);
                     return $data['access_token'];
                 }else{
+                    if($data['errcode'] == 40001){
+                        Cache::forget('wechat_access_token');
+                    }
                     file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
                     return false;
                 }
