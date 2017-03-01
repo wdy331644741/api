@@ -227,8 +227,7 @@ class MoneyShareJsonRpc extends JsonRpc {
                 $userRedNum = 5;
                 $userRedMin = 500;
             }
-            //红包体验金金额
-
+            //计算生成体验金金额
             $shareMoney = intval($expMoney*(mt_rand(60,100)/100));
             //添加到红包分享表
             $param['user_id'] = $userId;
