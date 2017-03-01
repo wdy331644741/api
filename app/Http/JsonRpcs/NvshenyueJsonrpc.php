@@ -190,7 +190,7 @@ class NvshenyueJsonRpc extends JsonRpc
         $param['userId'] = $userId;
         $param['id'] = 0;
         $param['uuid'] = $uuid;
-        $param['amount'] = $number;
+        $param['amount'] = $number * 2;
         $param['trade_pwd'] = $tradePassword;
         $param['sign'] = hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft");
         $result = $client->wordPurchase($param);
@@ -249,7 +249,7 @@ class NvshenyueJsonRpc extends JsonRpc
     private function getExchangeRank($config) {
         $key = $config['key'] . '_rank';
         return Cache::remember($key, 5, function() use($config) {
-            $data = UserAttribute::select('user_id', 'number')->where(['key' => $config['key']])->where('number', '!=', 0)->orderBy('number', 'desc')->take(20)->get();
+            $data = UserAttribute::select('user_id', 'number')->where(['key' => $config['key']])->where('number', '!=', 0)->orderBy('number', 'desc')->take(10)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                     $phone = Func::getUserPhone($item['user_id']);
