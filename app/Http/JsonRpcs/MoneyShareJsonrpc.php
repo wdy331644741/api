@@ -120,7 +120,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             'data' => $result
         );
     }
-    
+
     //将列表的数据整理出手机号
     public static function _formatData($data){
         if(empty($data)){
@@ -369,7 +369,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
 
-        $res = MoneyShareRelation::select('user_id', 'invite_user_id')->where([
+        $res = MoneyShareRelation::select('user_id', 'invite_user_id', 'created_at')->where([
             'tag' => 'invite',
             'identify' => $params->identify
         ])->orderBy('id', 'desc')->take(300)->get();
@@ -438,7 +438,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NO_LOGIN);
         }
 
-        $res = MoneyShareRelation::select('user_id', 'invite_user_id')->where([
+        $res = MoneyShareRelation::select('user_id', 'invite_user_id', 'created_at')->where([
             'tag' => 'share',
             'invite_user_id' => $userId
         ])->orderBy('id', 'desc')->take(300)->get();
