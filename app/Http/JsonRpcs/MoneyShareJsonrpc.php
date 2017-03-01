@@ -32,6 +32,9 @@ class MoneyShareJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
 
+        //显示条数
+        $pages = isset($params->pages) ? $params->pages : 5;
+
         // 商品是否存在
         $date = date("Y-m-d H:i:s");
         DB::beginTransaction();
@@ -42,8 +45,8 @@ class MoneyShareJsonRpc extends JsonRpc {
         if(!$mallInfo){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take(5)->get();
-        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('id', 'asc')->take(5)->get();
+        $recentList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($pages)->get();
+        $topList = MoneyShareInfo::where('main_id', $mallInfo['id'])->orderBy('money', 'desc')->orderBy('id', 'asc')->take($pages)->get();
         $result['recentList'] = self::_formatData($recentList);
         $result['topList'] = self::_formatData($topList);
 
