@@ -64,21 +64,17 @@ class Weixin
      */
 
     public function get_web_access_token($code=""){
-        if (!Cache::has('wechat_web_access_token')) {
-            $access_token_url = "/sns/oauth2/access_token?appid=".$this->_appid."&secret=".$this->_appsecret."&code={$code}&grant_type=authorization_code";
-            $res = $this->_client->get($access_token_url);
-            if($res->getStatusCode() == 200) {
-                $data = (array)json_decode($res->getBody());
-                if (isset($data['openid'])) {
-                    Cache::put('wechat_web_access_token', $data, 120);
-                    return $data;
-                }
+        $access_token_url = "/sns/oauth2/access_token?appid=".$this->_appid."&secret=".$this->_appsecret."&code={$code}&grant_type=authorization_code";
+        $res = $this->_client->get($access_token_url);
+        if($res->getStatusCode() == 200) {
+            $data = (array)json_decode($res->getBody());
+            if (isset($data['openid'])) {
+                return $data;
             }
-            file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>[web]code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
-            return false;
-        }else{
-            return Cache::get('wechat_web_access_token');
         }
+        file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>[web]code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+        return false;
+
     }
 
     /*
