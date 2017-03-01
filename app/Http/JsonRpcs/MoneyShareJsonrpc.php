@@ -205,7 +205,19 @@ class MoneyShareJsonRpc extends JsonRpc {
         }else{
             //红包规则计算
             if($money < 5000){
-                $money = 5000;
+                $expMoney = 5000;
+            }else if($money >= 5000 && $money < 10000){
+                $expMoney = 8000;
+            }else if($money >= 10000 && $money < 20000){
+                $expMoney = 10000;
+            }else if($money >= 20000 && $money < 50000){
+                $expMoney = 20000;
+            }else if($money >= 50000 && $money < 100000){
+                $expMoney = 30000;
+            }else if($money >= 100000 && $money < 200000){
+                $expMoney = 40000;
+            }else{
+                $expMoney = 60000;
             }
             //投资金额大于于2万配置
             $userRedNum = 10;
@@ -215,7 +227,9 @@ class MoneyShareJsonRpc extends JsonRpc {
                 $userRedNum = 5;
                 $userRedMin = 500;
             }
-            $shareMoney = intval($money*(mt_rand(60,100)/100));
+            //红包体验金金额
+
+            $shareMoney = intval($expMoney*(mt_rand(60,100)/100));
             //添加到红包分享表
             $param['user_id'] = $userId;
             $param['recordId'] = $recordId;
