@@ -661,6 +661,28 @@ class ActivityController extends Controller
         }
     }
 
+    //用户还款期限
+    private function rule_paymentdate($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_paymentdate' => 'required|numeric',
+            'max_paymentdate' => 'required|numeric',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_paymentdate','max_paymentdate'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     //投资标类型
     private function rule_casttype($type,$request){
         $validator = Validator::make($request->all(), [
