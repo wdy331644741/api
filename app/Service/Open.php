@@ -101,6 +101,6 @@ class Open
         foreach ($data as $val){
             $str.=$val;
         }
-        return hash_hmac('sha1',$str,$this->_appsecret);
+        return strtoupper(hash_hmac('sha1',$str,$this->_appsecret));
     }
 }
