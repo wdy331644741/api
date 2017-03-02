@@ -67,8 +67,8 @@ class Open
                 'uuid' => $uuid
             ];
             $sign = $this->makeSign($formData);
-            file_put_contents(storage_path('logs/open189_sign_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> ".$sign.PHP_EOL,FILE_APPEND);
-            $data['uuid'] = $uuid;
+            $params_str = "clientId=".$this->_appid."&timeStamp=".$msectime."&clientIp=182.18.19.162&version=v1.0&clientType=10010&taskId=100004915&mobile=".$phone."&coin=".$nb."&uuid=".$uuid."&sign=".$sign;
+            file_put_contents(storage_path('logs/open189_sign_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> ".$params_str."===".$sign.PHP_EOL,FILE_APPEND);
             $data['sign'] = $sign;
             $res = $this->_client->post('/api/oauth2/llb/grantCoin.do', ['form_params' => $formData]);
             $response = json_decode($res->getBody(), true);
