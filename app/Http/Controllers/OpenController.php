@@ -102,12 +102,12 @@ class OpenController extends Controller
         $session = new Session();
         $wxSession= $session->get('weixin');
         if(!$request->code){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40001');//用户未授权或者授权失败
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40001');//用户未授权或者授权失败
         }
         $weixin = new Weixin();
         $data = $weixin->get_web_access_token($request->code);
         if(!$data){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40002');//获取access_token失败
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40002');//获取access_token失败
         }
         $this->_openid =  $data['openid'];
         $wxSession = $session->get('weixin');
@@ -121,7 +121,7 @@ class OpenController extends Controller
             if(!$userData){
                 $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
                 if(!$userData){
-                    return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40003');//拉取用户信息失败
+                    return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40003');//拉取用户信息失败
                 }
                 //存储微信用户数据
                 $wxModel = new WechatUser();
@@ -140,14 +140,14 @@ class OpenController extends Controller
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
         if(isset($res['error'])){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40004');//接口出错
+            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40004');//接口出错
         }
         if($res['result']['data']){
             $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
             WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
             return redirect($wxSession['userinfo_callback']);
         }
-        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'code=40005');//用户未绑定
+        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40005');//用户未绑定
     }
 
     //绑定用户
