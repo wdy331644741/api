@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
+use App\Service\NvshenyueService;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -26,6 +27,8 @@ use App\Http\JsonRpcs\OneYuanJsonRpc;
 use App\Http\JsonRpcs\XjdbJsonRpc;
 use App\Http\JsonRpcs\MoneyShareJsonRpc;
 use App\Http\JsonRpcs\YaoyiyaoJsonRpc;
+use App\Http\JsonRpcs\NvshenyueJsonRpc;
+
 class RpcController extends Controller
 {
 
@@ -61,6 +64,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new XjdbJsonRpc());
         $jsonRpcServer->addService(new MoneyShareJsonRpc());
         $jsonRpcServer->addService(new YaoyiyaoJsonRpc());
+        $jsonRpcServer->addService(new NvshenyueJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
