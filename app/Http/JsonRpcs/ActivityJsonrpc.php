@@ -24,6 +24,7 @@ use App\Models\Award5;
 use App\Models\Coupon;
 use Cache;
 use App\Service\ActivityService;
+use Lib\MqClient;
 class ActivityJsonRpc extends JsonRpc {
 
     /**
@@ -315,13 +316,14 @@ class ActivityJsonRpc extends JsonRpc {
             Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
         }
 
-        // 送积分
+        // 送积分 & 发消息
         if(!$isSignIn) {
             if($continue >=7 )  {
                 SendAward::ActiveSendAward($userId, 'signin_point7'); // 连续签到7天送2积分
             } else {
                 SendAward::ActiveSendAward($userId, 'signin_point'); // 签到送1积分
             }
+            MqClient::send('daylySignin', array('user_id' => $userId, 'days' => $continue));
         }
 
         // 额外奖励进度
