@@ -2,7 +2,6 @@
 
 namespace App\Http\JsonRpcs;
 
-use App\Models\Activity;
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;
@@ -10,7 +9,6 @@ use App\Models\MoneyShareInfo;
 use App\Service\Func;
 use Illuminate\Contracts\Encryption\DecryptException;
 use DB;
-use Config;
 
 class MoneyShareJsonRpc extends JsonRpc {
 
@@ -118,127 +116,5 @@ class MoneyShareJsonRpc extends JsonRpc {
             }
         }
         return $data;
-    }
-    /**
-     *  根据交易记录id添加红包分享数据
-     *
-     * @JsonRpcMethod
-     */
-    public function moneyShareByRecordID($params) {
-        global $userId;
-        if(empty($userId)){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $recordId = intval($params->recordId);
-        if(empty($recordId)){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-
-        //根据别名查询该活动是否开启
-        $where['alias_name'] = "money_share_for_user";
-        $where['enable'] = 1;
-        $isExist = Activity::where(
-            function($query) {
-                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
-            }
-        )->where(
-            function($query) {
-                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
-            }
-        )->where($where)->count();
-
-        if(!$isExist){
-            //不存在返回值
-            $return = array();
-            $return['enable'] = 0;
-            $return['share'] = array();
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => $return
-            );
-        }
-
-        //根据recordId获取该用户投资金额
-        //调用韩兆兴接口
-        $money = 10000;
-
-        //判断红包分享数据是否添加过
-        $where = array();
-        $where['record_id'] = $recordId;
-        $where['user_id'] = $userId;
-        $where['status'] = 1;
-        $res = MoneyShare::where($where)->count();
-        if(!empty($res)) {
-            $result = MoneyShare::where($where)->first();
-        }else{
-            //添加到红包分享表
-            $param['user_id'] = $userId;
-            $param['user_name'] = "冉海强";
-            $param['recordId'] = $recordId;
-            $param['money'] = $money;
-            $res = $this->addMoneyShare($param);
-            if(isset($res['id']) && $res['id']){
-                $result = $res['result'];
-            }
-        }
-
-        //返回值
-        $return = array();
-        $return['enable'] = 1;
-        $return['share']['uri'] = env("APP_URL")."/active/red_packet/red_packet.html?k=".$result['identify'];
-        $return['share']['title'] = Config::get('moneyshare.user_red_title');
-        $return['share']['content'] = Config::get('moneyshare.user_red_content');
-        $return['share']['photo_url'] = Config::get('moneyshare.user_red_photo_url');
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $return
-        );
-    }
-
-    /**
-     * 添加到红包分享表中
-     * @param $param
-     * @return bool
-     */
-    public function addMoneyShare($param){
-        if($param['user_id'] <= 0 || $param['money'] <= 0 || $param['recordId'] <= 0 || empty($param['user_name'])){
-            return false;
-        }
-        //祝福语
-        $data['blessing'] = "分享给好友哦";
-        //用户ID
-        $data['user_id'] = $param['user_id'];
-        //用户姓名
-        $data['user_name'] = $param['user_name'];
-        //奖品类型
-        $data['award_type'] = 3;
-        //商品id
-        $data['award_id'] = 1;
-        //总金额
-        $data['total_money'] = $param['money'];
-        //总数量
-        $data['total_num'] = Config::get('moneyshare.user_red_num');
-        //最小值
-        $data['min'] = Config::get('moneyshare.user_red_min');
-        //最大值
-        $data['max'] = intval($param['money']/2);
-        //开始时间
-        $data['start_time'] = date("Y-m-d H:i:s");
-        //结束时间
-        $data['end_time'] = date("Y-m-d H:i:s",strtotime("+7 days"));
-        //红包标示
-        $data['identify'] = "record_".$param['recordId']."_".Func::randomStr(15);
-        //交易id
-        $data['record_id'] = $param['recordId'];
-        //状态为上线
-        $data['status'] = 1;
-        //添加时间
-        $data['created_at'] = date("Y-m-d H:i:s");
-        //修改时间
-        $data['updated_at'] = date("Y-m-d H:i:s");
-        $id = MoneyShare::insertGetId($data);
-        return array('id'=>$id,'result'=>$data);
     }
 }

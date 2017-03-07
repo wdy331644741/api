@@ -9,7 +9,6 @@ use Lib\Session;
 use Lib\McQueue;
 use Lib\Weixin;
 use Config;
-use App\Models\WechatUser;
 
 
 class OpenJsonRpc extends JsonRpc {
@@ -35,12 +34,6 @@ class OpenJsonRpc extends JsonRpc {
             $mcQueue = new McQueue();
             $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
             $putStatus = $mcQueue->put('binding',$data);
-
-            //微信用户信息表更新uid
-            $openid = WechatUser::where('openid',$weixin['openid'])->value('openid');
-            if($openid){
-                WechatUser::where('openid',$openid)->update(['uid'=>$userId]);
-            }
             if(!$putStatus)
             {
                 $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
