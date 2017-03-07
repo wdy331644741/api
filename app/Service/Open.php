@@ -89,7 +89,7 @@ class Open
             $log->scatter_type = $data['scatter_type'];
             $log->register_time = $data['register_time'];
             $log->status = 0;
-            $log->remark = '投资标期不符合条件或不是首投';
+            $log->remark = '投资标期或金额不符合条件或不是首投';
             $log->save();
         }
     }
