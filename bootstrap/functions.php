@@ -268,6 +268,7 @@ if (!function_exists('getallheaders')) {
     }
 }
 
+
 if(!function_exists('msectime')){
     //毫秒时间戳(格式化)
     function msectime() {
