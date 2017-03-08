@@ -2,7 +2,6 @@
 
 namespace App\Http\JsonRpcs;
 
-use App\Models\Activity;
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;
@@ -12,8 +11,13 @@ use App\Service\Func;
 use App\Service\SendAward;
 use Lib\JsonRpcClient;
 use Illuminate\Contracts\Encryption\DecryptException;
+<<<<<<< HEAD
 use DB, Config, Request;
 use App\Models\WechatUser;
+=======
+use DB;
+
+>>>>>>> feature-integral
 class MoneyShareJsonRpc extends JsonRpc {
 
     /**
@@ -138,6 +142,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         }
         return $data;
     }
+<<<<<<< HEAD
     /**
      *  根据交易记录id添加红包分享数据
      *
@@ -479,5 +484,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             'data'=>array("award_name"=>$awardName)
         );
     }
+=======
+>>>>>>> feature-integral
 }
 
