@@ -57,7 +57,7 @@ class AdvancedJsonRpc extends JsonRpc {
         $data = UserAttribute::where($where)->first();
         if(isset($data->number) && isset($data->text) && !empty($data->text)){
             $status = json_decode($data->text,1);
-            if(isset($status['advanced_signin_3']) && isset($status['advanced_invite_3']) && isset($status['advanced_wechat_first']) &&
+            if(isset($status['advanced_signin_3']) && isset($status['advanced_invite_3']) && isset($status['advanced_wechat_binding_first']) &&
                 isset($status['advanced_target_term_1']) && isset($status['advanced_target_term_3']) && isset($status['advanced_target_term_6'])
                 && isset($status['advanced_target_term_12'])
             ){
