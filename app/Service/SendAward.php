@@ -402,9 +402,6 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $userBase = Func::globalUserBasicInfo($triggerData['user_id']);
                     if(isset($userBase['result']['data']) && !empty($userBase['result']['data']) && isset($userBase['result']['data']['level'])){
-//                        if($userBase['result']['data']['level'] < 0){
-//                            return false;
-//                        }
                         $level = $userBase['result']['data']['level'] <= 0 ? 1 : $userBase['result']['data']['level'];
                     }
                     $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
