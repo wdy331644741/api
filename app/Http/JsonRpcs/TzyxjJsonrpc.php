@@ -9,6 +9,7 @@ use App\Service\ActivityService;
 use Lib\JsonRpcClient;
 use App\Service\Func;
 use Validator, Config, Request, Cache, DB, Session;
+use Illuminate\Pagination\Paginator;
 
 class TzyxjJsonRpc extends JsonRpc
 {
@@ -65,12 +66,21 @@ class TzyxjJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function tzyxjRank($params) {
-        if(empty($params->min) || empty($params->max)) {
+        if(empty($params->min) || empty($params->max) || empty($params->page)) {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
-        $res = TzyxjUniquRecord::select('user_id', 'updated_at', 'amount')->where(['number' => 1, 'week' => date('W')])->where('amount',  '>=',  $params->min)->where('amount', '<=', $params->max)->orderBy('updated_at', 'asc')->get();
-        if($res) {
-            foreach($res as &$value) {
+
+        $page = $params->page;
+        $perPage = isset($params->per_page) ? $params->per_page : 10;
+
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $result = TzyxjUniquRecord::select('user_id', 'updated_at', 'amount')->where(['number' => 1, 'week' => date('W')])->where('amount',  '>=',  $params->min)->where('amount', '<=', $params->max)->orderBy('updated_at', 'asc')->paginate($perPage)->toArray();
+        $data = &$result['data'];
+        if($data) {
+            foreach($data as &$value) {
                 $phone = Func::getUserPhone($value['user_id']);
                 $value['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
@@ -78,7 +88,47 @@ class TzyxjJsonRpc extends JsonRpc
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $res
+            'data' => $result
+        ];
+    }
+
+    /**
+     * 获取投资记录
+     *
+     * @JsonRpcMethod
+     */
+    public function tzyxjRecord($params) {
+        global $userId;
+
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+
+        if(empty($params->page)) {
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $page = $params->page;
+
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $result = Tzyxj::select('amount', 'updated_at')->where(['user_id'=> $userId, 'week' => date('W')])->orderBy('created_at', 'asc')->paginate(10)->toArray();
+        $data = &$result['data'];
+        if($data) {
+            foreach($data as &$value) {
+                $item = TzyxjUniquRecord::select('number')->where(['amount' => $value['amount'], 'week' => date('W')])->first();
+                if($item && $item['number'] > 1) {
+                    $value['is_unique']  = 0;
+                } else {
+                    $value['is_unique']  = 1;
+                }
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $result
         ];
     }
 
