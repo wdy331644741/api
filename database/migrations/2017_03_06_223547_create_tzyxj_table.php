@@ -20,8 +20,8 @@ class CreateTzyxjTable extends Migration
             $table->timestamps();
 
             $table->index('user_id');
-            $table->index('amount');
             $table->index('week');
+            $table->index(['amount', 'week']);
         });
     }
 

@@ -20,9 +20,10 @@ class CreateTzyxjUniqueRecordTable extends Migration
             $table->integer('week');
             $table->timestamps();
 
-            $table->index('number');
-            $table->index('amount');
+            $table->index(['number', 'week']);
+            $table->index(['amount', 'week']);
             $table->index('week');
+            $table->index('user_id');
         });
     }
 

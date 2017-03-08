@@ -93,7 +93,7 @@ class TzyxjJsonRpc extends JsonRpc
         $rangeList = [];
         $recList = [];
         foreach($config['range_list'] as $range) {
-            $rangeList[] = TzyxjUniquRecord::select('amount')->where('number', 0)->where('amount', '>=', $range['min'])->where('amount',  '<=', $range['max'])->inRandomOrder()->take(8)->get();
+            $rangeList[] = TzyxjUniquRecord::select('amount')->where(['number' => 0, 'week' => date('W')])->where('amount', '>=', $range['min'])->where('amount',  '<=', $range['max'])->inRandomOrder()->take(8)->get();
         }
         for($i =0; $i <$uniqueRecNum; $i++) {
             foreach($rangeList as $range) {
