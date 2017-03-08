@@ -71,12 +71,9 @@ class OmgException extends BasicException
     const SEND_ERROR = 4313;
     const NUMBER_IS_NULL = 4314;
     const CONDITION_NOT_ENOUGH = 4315;
-<<<<<<< HEAD
     const ACTIVITY_IS_END = 4316;
     const ALREADY_EXIST = 4317;
     const INVITE_USER_NOT_EXIST = 4318;
-=======
->>>>>>> feature-integral
 
     protected static $errorArray = array(
         //接口调用错误
@@ -132,12 +129,9 @@ class OmgException extends BasicException
         self::SEND_ERROR => "发送失败",
         self::NUMBER_IS_NULL =>"剩余数量不足",
         self::CONDITION_NOT_ENOUGH => "条件不足",
-<<<<<<< HEAD
         self::ACTIVITY_IS_END => "活动已结束",
         self::ALREADY_EXIST => "数据已存在",
         self::INVITE_USER_NOT_EXIST => "邀请人不存在",
-=======
->>>>>>> feature-integral
     );
 
     public function __construct($code, $data = array())
