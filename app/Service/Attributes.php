@@ -27,7 +27,7 @@ class Attributes
         'advanced_target_term_12'=>0,
         'advanced_signin_3'=>0,
         'advanced_invite_3'=>0,
-        'advanced_wechat_first'=>0,
+        'advanced_wechat_binding_first'=>0,
     ];
     private $user_url;
 
