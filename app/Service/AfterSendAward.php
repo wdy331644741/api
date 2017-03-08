@@ -68,7 +68,9 @@ class AfterSendAward
                 break;
             //连续签到3天
             case "advanced_signin_3":
-                $Attributes->advanced($triggerData['user_id'],'advanced','advanced_signin_3:1');
+                if(isset($triggerData['days']) && $triggerData['days'] >= 3){
+                    $Attributes->advanced($triggerData['user_id'],'advanced','advanced_signin_3:1');
+                }
                 break;
             //邀请好友首投累计
             case "advanced_invite":
