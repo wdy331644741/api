@@ -107,8 +107,8 @@ class NvshenyueJsonRpc extends JsonRpc
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
 
-            $client = new JsonRpcClient(env('TRADE_HTTP_URL'));
-            $purchaseRes = $client->purchaseShake([
+            $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+            $purchaseRes = $client->goddessIncrement([
                 'userId' => $userId,
                 'id' => $res->id,
                 'uuid' => $uuid,

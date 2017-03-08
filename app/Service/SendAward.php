@@ -32,6 +32,7 @@ use App\Service\Func;
 use App\Service\NvshenyueService;
 use App\Service\Open;
 use App\Service\AfterSendAward;
+use App\Service\TzyxjService;
 class SendAward
 {
     static private $userID;
@@ -181,10 +182,20 @@ class SendAward
         $Attributes = new Attributes();
 
         if(!$activityInfo['alias_name']) {
-            return $return;    
+            return $return;
         }
 
         switch ($activityInfo['alias_name']) {
+            /* 投资赢现金 start */
+            case 'tzyxj_invest':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount > 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        TzyxjService::addRecord($triggerData['user_id'], $amount);
+                    }
+                }
+                break;
+            /* 投资赢现金 end */
             /**女神月活动*****开始****/
             //投资送次数(满一千送一次)
             case "nvshenyue_invest":
@@ -237,7 +248,7 @@ class SendAward
                 }
                 break;
             //*********新春嘉年华活动****START****//
-            // 记录最大投资额 
+            // 记录最大投资额
             case "xjdb_max_invest":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
@@ -245,7 +256,7 @@ class SendAward
                         Attributes::setNumberByMax($triggerData['user_id'], 'xjdb_max_invest', $amount);
                     }
                 }
-                break;    
+                break;
             //金牌投手奖
             case "new_year_bidding" :
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['project_id'])){
@@ -443,20 +454,20 @@ class SendAward
                     $url = env('INSIDE_HTTP_URL');
                     $client = new JsonRpcClient($url);
                     $userBase = $client->userBasicInfo(array('userId' =>$triggerData['user_id']));
-                    $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';            
+                    $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
                     if(!empty($phone)) {
-                        $res = $Attributes::setText($triggerData['user_id'], Config::get('activity.double_eleven.baotuan'), $phone);    
+                        $res = $Attributes::setText($triggerData['user_id'], Config::get('activity.double_eleven.baotuan'), $phone);
                     }
                 }
                 break;
             //双十一大转盘送次数
             case Config::get('activity.double_eleven.chance1'):
                 $alias = Config::get('activity.double_eleven.key2');
-                $Attributes::increment($triggerData['user_id'], $alias);    
+                $Attributes::increment($triggerData['user_id'], $alias);
                 break;
             case Config::get('activity.double_eleven.chance2'):
                 $alias = Config::get('activity.double_eleven.key3');
-                $Attributes::increment($triggerData['user_id'], $alias);    
+                $Attributes::increment($triggerData['user_id'], $alias);
                 break;
             //按照充值金额送比例体验金
             case 'songtiyanjin':
@@ -1225,25 +1236,25 @@ class SendAward
         }
     }
     /**
-     *  根据awardType获取奖品详情 
-     * 
+     *  根据awardType获取奖品详情
+     *
      * @param $awardType
      * @param $awardId
      * @return mixed
      */
-    
+
     static function getAward($awardType, $awardId) {
-        $table = self::_getAwardTable($awardType);    
+        $table = self::_getAwardTable($awardType);
         return $table->where('id', $awardId)->first();
     }
     //获取奖品
     static function getSendedAwards($userId, $activityId, $day) {
         return SendRewardLog::where(array(
-            'user_id'  => $userId, 
+            'user_id'  => $userId,
             'activity_id' => $activityId,
         ))->whereRaw("date(created_at) = '{$day}'")->get();
     }
-    
+
     //生成Guid
     static function create_guid()
     {

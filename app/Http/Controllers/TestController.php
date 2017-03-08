@@ -15,13 +15,18 @@ use DB;
 use App\Models\Cqssc;
 use App\Service\NvshenyueService;
 use Lib\MqClient;
+use App\Service\TzyxjService;
+
 
 
 class TestController extends Controller
 {
 
-    public function getRedis() {
-        MqClient::send('test', ['user_id' => 'ok']);
+    public function getTzyxj($userId, $amount) {
+        if(empty($userId) || empty($amount)) {
+            return 'invalid params';
+        }
+        return TzyxjService::addRecord($userId, $amount);
     }
     public function getTest2($userId, $number) {
         $result = NvshenyueService::addChanceByInvest($userId, $number);
