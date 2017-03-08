@@ -35,11 +35,11 @@ class Open
         if((($data['scatter_type'] == 1 && $data['period'] >= 30) || ($data['scatter_type'] == 2))
             && $data['is_first'] == 1 && $data['Investment_amount'] >= 1000) {
             if ($data['Investment_amount'] >= 1000 && $data['Investment_amount'] < 5000) {
-                $nb = 1;//330;
+                $nb = 330;
             } elseif ($data['Investment_amount'] >= 5000 && $data['Investment_amount'] < 10000) {
-                $nb = 2;//800;
+                $nb = 800;
             } else {
-                $nb = 3;//1300;
+                $nb = 1300;
             }
             $log = new Open189Log();
             $log->user_id = $data['user_id'];
