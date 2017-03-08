@@ -3,6 +3,7 @@ namespace App\Service;
 use App\Service\Attributes;
 use App\Service\SendAward;
 use App\Models\UserAttribute;
+use Lib\JsonRpcClient;
 
 class AfterSendAward
 {
@@ -35,10 +36,19 @@ class AfterSendAward
             //投资
             case "advanced_target_term":
                 //获取刘奇接口取得标期限
-//                $period = array(1,3,6,12);
-//                foreach($period as $item){
-//                    SendAward::ActiveSendAward($triggerData['user_id'],"advanced_target_term_".$item);
-//                }
+                $url = env('TRADE_HTTP_URL');
+                $client = new JsonRpcClient($url);
+                $param['user_id'] = $triggerData['user_id'];
+                $param['secret'] = hash('sha256',$triggerData['user_id']."3d07dd21b5712a1c221207bf2f46e4ft");
+                $result = $client->investProductStatus($param);
+                if(isset($result['result']) && !empty($result['result'])){
+                    $period = $result['result'];
+                    foreach($period as $key => $item){
+                        if($item === 1){
+                            SendAward::ActiveSendAward($triggerData['user_id'],"advanced_target_term_".$key);
+                        }
+                    }
+                }
                 break;
             //投资1月标(主动)
             case "advanced_target_term_1":
@@ -74,12 +84,8 @@ class AfterSendAward
                 $Attributes->advanced($triggerData['user_id'],'advanced','advanced_invite_3:1');
                 break;
             //微信绑定触发
-            case "advanced_wechat":
-
-                break;
-            //微信首次绑定（主动）
-            case "advanced_wechat_first":
-                $Attributes->advanced($triggerData['user_id'],'advanced','advanced_wechat_first:1');
+            case "advanced_wechat_binding":
+                $Attributes->advanced($triggerData['user_id'],'advanced','advanced_wechat_binding_first:1');
                 break;
             /**进阶活动*****结束****/
         }

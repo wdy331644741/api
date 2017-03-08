@@ -30,8 +30,8 @@ use Validator;
 use DB;
 use App\Service\Func;
 use App\Service\NvshenyueService;
-use App\Service\AfterSendAward;
 use App\Service\Open;
+use App\Service\AfterSendAward;
 class SendAward
 {
     static private $userID;

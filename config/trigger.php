@@ -37,7 +37,7 @@ return [
         ),
         8=>array(
             'name' => '签到',
-            'model_name' => 'signin',
+            'model_name' => 'daylySignin',
         )
     ]
 
