@@ -370,6 +370,10 @@ return [
         16=>[
             'name'=>'回款期限',
             'model_name'=>'Paymentdate'
+        ],
+        17=>[
+            'name'=>'签到天数',
+            'model_name'=>'Signday'
         ]
     ],
     'activity_type'=>[
