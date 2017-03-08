@@ -29,10 +29,13 @@ class Weixin
      * @params：string $state 重定向后会带上state参数
      * @params: string $scope snsapi_base(默认)和snsapi_userinfo（需要手动授权）
      */
-    public function get_authorize_url($scope='snsapi_base'){
-        $callback_url = urlencode($this->_redirect_uri);
+    public function get_authorize_url($scope='snsapi_base',$userinfoURI=''){
+        if($scope !== 'snsapi_base'){
+            $callback_url = urlencode($userinfoURI);
+        }else{
+            $callback_url = urlencode($this->_redirect_uri);
+        }
         return $this->_oauth_base_uri."/connect/oauth2/authorize?appid=".$this->_appid."&redirect_uri={$callback_url}&response_type=code&scope={$scope}&state=".$this->_state."#wechat_redirect";
-
     }
 
     /*
@@ -54,7 +57,6 @@ class Weixin
     }
 
     /*
-<<<<<<< HEAD
      * 通过code换取网页授权access_token
      * @params: string $app_id 公众号的唯一标识
      * @params: string $secret 公众号的appsecret
@@ -95,8 +97,6 @@ class Weixin
     }
 
     /*
-=======
->>>>>>> feature-integral
      *通过access_token获取用户信息
      * @params：string access_token
      * @params：string open_id
@@ -122,7 +122,7 @@ class Weixin
                     }
                 }
             }
-            file_put_contents(storage_path('logs/wechat_userinfo_error_'.date('Y-m-d').'log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+            file_put_contents(storage_path('logs/wechat_userinfo_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
         }
         return false;
     }
@@ -143,14 +143,10 @@ class Weixin
                     Cache::put('wechat_access_token',$data['access_token'],120);
                     return $data['access_token'];
                 }else{
-<<<<<<< HEAD
                     if($data['errcode'] == 40001){
                         Cache::forget('wechat_access_token');
                     }
                     file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
-=======
-                    file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
->>>>>>> feature-integral
                     return false;
                 }
             }
@@ -236,7 +232,7 @@ class Weixin
                     Cache::put('wechat_js_apiticket',$data['ticket'],118);
                     return $data['ticket'];
                 }else{
-                    file_put_contents(storage_path('logs/wechat_js_apiticket_error_'.date('Y-m-d').'log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+                    file_put_contents(storage_path('logs/wechat_js_apiticket_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
                     return false;
                 }
             }

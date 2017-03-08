@@ -2,6 +2,7 @@
 
 namespace App\Http\JsonRpcs;
 
+use App\Models\Activity;
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;

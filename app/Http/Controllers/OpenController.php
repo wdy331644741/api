@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests;
 use App\Models\FlowRechargeLog;
+use App\Models\WechatUser;
 use Illuminate\Http\Request;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
@@ -26,13 +27,40 @@ class OpenController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $session = new Session();
-        $session->set('weixin',array('callback'=>$request->callback));
+        $wxSession = $session->get('weixin');
+        if(empty($wxSession)){
+            $session->set('weixin',array('callback'=>$request->callback));
+        }else{
+            $session->set('weixin',array_merge($wxSession,array('callback'=>$request->callback)));
+        }
         $weixin = new Weixin();
         $oauth_url = $weixin->get_authorize_url();
         return redirect($oauth_url);
     }
 
-    //获取用户的open_id
+    //wwchat_userinfo_auth_uri
+    public function getUserinfoLogin(Request $request){
+        if(!isset($request->callback)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $session = new Session();
+        $wxSession = $session->get('weixin');
+        if(empty($wxSession)){
+            $session->set('weixin',array('userinfo_callback'=>$request->callback));
+        }else{
+            $session->set('weixin',array_merge($wxSession,array('userinfo_callback'=>$request->callback)));
+        }
+
+        $weixin = new Weixin();
+        $oauth_url = $weixin->get_authorize_url('snsapi_userinfo',env('WECHAT_SHARE_REDIRECT_URI'));
+        return redirect($oauth_url);
+    }
+
+    /**
+     * 获取用户的open_id
+     * @param Request $request
+     * @return mixed
+     */
     public function getOpenid(Request $request){
         if(!$request->code){
             return $this->outputJson(10008,array('error_msg'=>'Authorization Fails'));
@@ -554,6 +582,8 @@ class OpenController extends Controller
         return response()->json(array('result'=>1,'remark'=>'请求成功','data'=>$res['result']['data']));
     }
 
+    //---------------------------流量充值--------------------------//
+
     //充值流量接口回调地址
     public function postFlowCallback(Request $request){
         if(!$request->customerOrderId || !$request->phoneNo || !$request->orderId || !$request->scope || !$request->spec || !$request->status){
@@ -604,6 +634,21 @@ class OpenController extends Controller
             }
             
         }
+    }
+
+    //拼接url后边参数
+    private function convertUrlQuery($url){
+        $check = strpos($url, '?');
+        if($check !== false) {
+            if(substr($url, $check+1) == '') {
+                $new_url = $url;
+            } else {
+                $new_url = $url.'&';
+            }
+        } else {
+            $new_url = $url.'?';
+        }
+        return $new_url;
     }
 
     //爱有钱生成签名字符串
