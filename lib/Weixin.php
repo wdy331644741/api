@@ -29,8 +29,12 @@ class Weixin
      * @params：string $state 重定向后会带上state参数
      * @params: string $scope snsapi_base(默认)和snsapi_userinfo（需要手动授权）
      */
-    public function get_authorize_url($scope='snsapi_base'){
-        $callback_url = urlencode($this->_redirect_uri);
+    public function get_authorize_url($scope='snsapi_base',$userinfoURI=''){
+        if($scope !== 'snsapi_base'){
+            $callback_url = urlencode($userinfoURI);
+        }else{
+            $callback_url = urlencode($this->_redirect_uri);
+        }
         return $this->_oauth_base_uri."/connect/oauth2/authorize?appid=".$this->_appid."&redirect_uri={$callback_url}&response_type=code&scope={$scope}&state=".$this->_state."#wechat_redirect";
 
     }
