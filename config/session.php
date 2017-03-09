@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'lifetime' => 600,
+    'lifetime' => 120,
 
     'expire_on_close' => false,
 
@@ -87,19 +87,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Session Cache Store
-    |--------------------------------------------------------------------------
-    |
-    | When using the "apc" or "memcached" session drivers, you may specify a
-    | cache store that should be used for these sessions. This value must
-    | correspond with one of the application's configured cache stores.
-    |
-    */
-
-    'store' => null,
-
-    /*
-    |--------------------------------------------------------------------------
     | Session Sweeping Lottery
     |--------------------------------------------------------------------------
     |
@@ -122,9 +109,7 @@ return [
     |
     */
 
-
-    //'cookie' => env('SESSION_NAME', 'laravel_session'),
-    'cookie' => 'laravel_session',
+    'cookie' => env('SESSION_NAME', 'laravel_session'),
 
     /*
     |--------------------------------------------------------------------------
@@ -150,8 +135,7 @@ return [
     |
     */
 
-    //'domain' => null,
-    'domain' => env('SESSION_DOMAIN', null),
+    'domain' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -164,8 +148,7 @@ return [
     |
     */
 
-    //'secure' => false,
-    'secure' => env('SESSION_SECURE_COOKIE', false),
+    'secure' => false,
 
     /*
     |--------------------------------------------------------------------------

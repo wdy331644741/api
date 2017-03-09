@@ -106,7 +106,7 @@ class OmgException extends BasicException
         self::EXCEED_FAIL => "超出兑换次数限制",
         self::INTEGRAL_REMOVE_FAIL => "兑换失败",
         self::EXCEED_NUM_FAIL => "商品已售罄",
-        self::EXCEED_USER_NUM_FAIL => "用户次数不够",
+        self::EXCEED_USER_NUM_FAIL => "用户次数不足",
         self::ONEYUAN_FULL_FAIL => "该奖品已经参与满",
 
         //应用错误
@@ -126,7 +126,7 @@ class OmgException extends BasicException
         self::MALL_IS_HAS => "已经领取过该奖品",
         self::DATA_ERROR => "数据有误",
         self::SEND_ERROR => "发送失败",
-        self::NUMBER_IS_NULL =>"奖品数量不足",
+        self::NUMBER_IS_NULL =>"剩余数量不足",
         self::CONDITION_NOT_ENOUGH => "条件不足",
         self::ACTIVITY_IS_END => "活动已结束",
         self::ALREADY_EXIST => "数据已存在",

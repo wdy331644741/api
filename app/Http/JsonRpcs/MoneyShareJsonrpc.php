@@ -2,7 +2,6 @@
 
 namespace App\Http\JsonRpcs;
 
-use App\Models\Activity;
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;
@@ -138,6 +137,7 @@ class MoneyShareJsonRpc extends JsonRpc {
         }
         return $data;
     }
+
     /**
      *  根据交易记录id添加红包分享数据
      *
