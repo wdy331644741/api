@@ -26,6 +26,9 @@ class AdvancedJsonRpc extends JsonRpc {
         $where['key'] = 'advanced';
         $where['user_id'] = $userId;
         $status = UserAttribute::where($where)->first();
+        if(empty($status)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
         $text = json_decode($status->text,1);
         $result['number'] = $status->number;
         $result['statusList'] = $text;
