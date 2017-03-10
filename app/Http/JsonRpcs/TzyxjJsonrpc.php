@@ -169,10 +169,11 @@ class TzyxjJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function tzyxjUniqueList() {
-        $uniqueList = TzyxjUniquRecord::select('user_id', 'amount')->where(['number' => 1, 'week' => date('W')])->orderBy('updated_at', 'asc')->take(50)->get();
+        $uniqueList = TzyxjUniquRecord::select('user_id', 'amount')->where(['number' => 1, 'week' => date('W')])->orderBy('updated_at', 'desc')->take(50)->get();
         if($uniqueList) {
             foreach($uniqueList as &$item) {
-                $item['phone'] = Func::getUserPhone($item['user_id']);
+                $phone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
         }
         return [
@@ -240,6 +241,7 @@ class TzyxjJsonRpc extends JsonRpc
                 $res = TzyxjUniquRecord::where(array('week' => $value, 'number' => 1))->orderBy('updated_at', 'desc')->first();
                 if($res) {
                     $phone = Func::getUserPhone($res['user_id']);
+                    $phone = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                     $data[] = ['phone' => $phone, 'award_size' => $config['award_size']];
                 }
 
