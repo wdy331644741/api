@@ -31,6 +31,7 @@ use DB;
 use App\Service\Func;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
+use App\Service\Open;
 class SendAward
 {
     static private $userID;
@@ -113,7 +114,15 @@ class SendAward
         $where['alias_name'] = $aliasName;
         $where['trigger_type'] = 0;
         $where['enable'] = 1;
-        $list = Activity::where($where)->first();
+        $list = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where($where)->first();
         if(empty($list)){
             return array('msg'=>'活动不存在！');
         }
@@ -201,6 +210,14 @@ class SendAward
                 }
                 break;
             /**女神月活动*****结束****/
+            //流量包渠道首投触发
+            case "channel_liuliangbao":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $open = new Open();
+                    $open->sendNb($triggerData);
+                }
+                break;
+
             //投资是否满足投资6个月的标，且投资金额大于等于1000元
             case "shake_to_shake_6_1000":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
@@ -404,10 +421,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $userBase = Func::globalUserBasicInfo($triggerData['user_id']);
                     if(isset($userBase['result']['data']) && !empty($userBase['result']['data']) && isset($userBase['result']['data']['level'])){
-                        if($userBase['result']['data']['level'] < 0){
-                            return false;
-                        }
-                        $level = $userBase['result']['data']['level'] == 0 ? 1 : $userBase['result']['data']['level'];
+                        $level = $userBase['result']['data']['level'] <= 0 ? 1 : $userBase['result']['data']['level'];
                     }
                     $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $period = isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;

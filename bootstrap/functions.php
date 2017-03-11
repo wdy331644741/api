@@ -267,3 +267,12 @@ if (!function_exists('getallheaders')) {
         return $headers;
     }
 }
+
+
+if(!function_exists('msectime')){
+    //毫秒时间戳(格式化)
+    function msectime() {
+        list($tmp1, $tmp2) = explode(' ', microtime());
+        return (float)sprintf('%.0f', (floatval($tmp1) + floatval($tmp2)) * 1000);
+    }
+}
