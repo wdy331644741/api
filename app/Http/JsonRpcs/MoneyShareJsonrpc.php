@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\JsonRpcs;
-
+use App\Models\Activity;
 use App\Exceptions\OmgException;
 use App\Service\MoneyShareBasic;
 use App\Models\MoneyShare;
@@ -279,7 +279,7 @@ class MoneyShareJsonRpc extends JsonRpc {
             return false;
         }
         //祝福语
-        $data['blessing'] = "分享给好友哦";
+        $data['blessing'] = "";
         //用户ID
         $data['user_id'] = $param['user_id'];
         //用户姓名
