@@ -145,6 +145,12 @@ class TzyxjJsonRpc extends JsonRpc
         foreach($config['range_list'] as $range) {
             $rangeList[] = TzyxjUniquRecord::select('amount')->where(['number' => 0, 'week' => date('W')])->where('amount', '>=', $range['min'])->where('amount',  '<=', $range['max'])->inRandomOrder()->take(8)->get();
         }
+        $largeAmount = rand(2000,10000) * 100;
+        $largeAmountRes = TzyxjUniquRecord::select('amount')->where(['week' => date('W'), 'amount' => $largeAmount])->first();
+        if(!$largeAmountRes) {
+            $recList[] = $largeAmount;
+        }
+
         for($i =0; $i <$uniqueRecNum; $i++) {
             foreach($rangeList as $range) {
                 if(isset($range[$i])) {
@@ -238,7 +244,7 @@ class TzyxjJsonRpc extends JsonRpc
                 if($value == $currentWeek) {
                     break;
                 }
-                $res = TzyxjUniquRecord::where(array('week' => $value, 'number' => 1))->orderBy('updated_at', 'desc')->first();
+                $res = TzyxjUniquRecord::where(array('week' => $value, 'number' => 1))->orderBy('updated_at', 'asc')->first();
                 if($res) {
                     $phone = Func::getUserPhone($res['user_id']);
                     $phone = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
