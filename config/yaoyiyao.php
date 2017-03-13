@@ -1,8 +1,8 @@
 <?php
 return [
     'alias_name' => 'yaoyiyao',
-    'invite_alias_name' => 'shake_to_shake2_invite_first',
-    'trade_alias_name' => 'shake_to_shake_is_satisfy',
+    'invite_alias_name' => 'shake_to_shake3_invite_first',
+    'trade_alias_name' => 'shake_to_shake3_threshold',
     'interval' => 3, // 两次抽奖间隔秒数
     'award_number_multiple' => 0.8,  //奖品数量倍率
     'multipleLists' => [
