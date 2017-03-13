@@ -1,7 +1,7 @@
 <?php
 return [
     'alias_name' => 'tzyxj',
-    'weeks' => [9, 10, 11, 12, 13, 14],
+    'weeks' => [11, 12, 13, 14],
     'award_size' => 3000,
     'amount_max_size' => 200000,
     'range_list' => [
