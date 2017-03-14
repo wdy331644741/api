@@ -218,6 +218,21 @@ class SendAward
                 }
                 break;
 
+            //摇一摇活动3 门槛
+            case "shake_to_shake3_threshold":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    Attributes::increment($triggerData['user_id'],"shake_to_shake3_threshold",1);
+                }
+                break;
+            //摇一摇活动3 邀请好友首投累计
+            case "shake_to_shake3_invite_first":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'shake_to_shake3_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
+
             //投资是否满足投资6个月的标，且投资金额大于等于1000元
             case "shake_to_shake_6_1000":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
