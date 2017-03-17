@@ -17,7 +17,7 @@ class AdvancedJsonRpc extends JsonRpc {
      */
     public function getAdvancedStatus() {
         global $userId;
-        $result = ['number'=> 0 ,'statusList' => []];
+        $result = ['name'=>'','number'=> 0 ,'statusList' => []];
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -32,6 +32,12 @@ class AdvancedJsonRpc extends JsonRpc {
         $text = json_decode($status->text,1);
         foreach($text as &$item){
             $item = intval($item);
+        }
+        $userInfo = Func::getUserBasicInfo($userId);
+        if(!isset($userInfo['phone'])){
+            $result['name'] = "";
+        }else{
+            $result['name'] = isset($userInfo['realname']) && !empty($userInfo['realname']) ? $userInfo['realname'] : substr_replace($userInfo['phone'], '******', 3, 6);
         }
         $result['number'] = $status->number;
         $result['statusList'] = $text;
