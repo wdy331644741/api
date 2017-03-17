@@ -111,13 +111,13 @@ class AdvancedJsonRpc extends JsonRpc {
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => $data[0]
+                'data' => $sendData[0]
             );
         }else{
             //失败
             return array(
                 'code' => -1,
-                'message' => isset($data['msg']) ? $data['msg'] : ""
+                'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
             );
         }
     }
