@@ -117,7 +117,7 @@ class AdvancedJsonRpc extends JsonRpc {
             //失败
             return array(
                 'code' => -1,
-                'message' => isset($data['msg']) ? $data['msg'] : ""
+                'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
             );
         }
     }
