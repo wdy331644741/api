@@ -111,7 +111,7 @@ class AdvancedJsonRpc extends JsonRpc {
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => $data[0]
+                'data' => $sendData[0]
             );
         }else{
             //失败
