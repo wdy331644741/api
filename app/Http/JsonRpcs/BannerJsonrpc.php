@@ -80,7 +80,7 @@ class BannerJsonRpc extends JsonRpc {
                     })
                     ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
                 break;
-            case "annualreport":
+            case "anualreport":
                 Paginator::currentPageResolver(function () use ($page) {
                     return $page;
                 });
