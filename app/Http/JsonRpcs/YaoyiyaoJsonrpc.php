@@ -76,7 +76,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
         if($game['available']) {
             $item = $this->selectList($config['lists']);
             $game['awardNum'] = $this->getLastGlobalNum($item);
-            $game['nextSeconds'] = $item['endTimestamps'] - time();
+            $game['nextSeconds'] = $item['endTimestamps'] - time() + rand(0,3);
         }
 
 
@@ -119,6 +119,7 @@ class YaoyiyaoJsonRpc extends JsonRpc
             'awardType' => 0,
             'amount' => 0,
             'multiple' => 1,
+            'lastGlobalNum' => 0
         ];
         $remark = [];
 
@@ -130,7 +131,8 @@ class YaoyiyaoJsonRpc extends JsonRpc
         $item = $this->selectList($config['lists']);
 
         // 奖品是否还有
-        if(!$this->getLastGlobalNum($item)) {
+        $result['lastGlobalNum'] = $this->getLastGlobalNum($item);
+        if(!$result['lastGlobalNum']) {
             throw new OmgException(OmgException::NUMBER_IS_NULL);
         }
         // 获取奖品
