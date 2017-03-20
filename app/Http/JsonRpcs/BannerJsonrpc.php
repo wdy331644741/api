@@ -93,7 +93,6 @@ class BannerJsonRpc extends JsonRpc {
                     })
                     ->orderByRaw('id + sort DESC')->paginate($pageNum)->toArray();
                 $data = $res['data'];
-                dd($res);
                 $rData['total'] = $res['total'];
                 $rData['per_page'] = $res['per_page'];
                 $rData['current_page'] = $res['current_page'];
@@ -114,7 +113,6 @@ class BannerJsonRpc extends JsonRpc {
                     })
                     ->orderByRaw('id + sort DESC')->paginate($pageNum)->toArray();
                 $data = $res['data'];
-                dd($res);
                 $rData['total'] = $res['total'];
                 $rData['per_page'] = $res['per_page'];
                 $rData['current_page'] = $res['current_page'];
