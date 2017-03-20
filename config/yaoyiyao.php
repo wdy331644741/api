@@ -4,7 +4,7 @@ return [
     'invite_alias_name' => 'shake_to_shake3_invite_first',
     'trade_alias_name' => 'shake_to_shake3_threshold',
     'interval' => 3, // 两次抽奖间隔秒数
-    'award_number_multiple' => 0.8,  //奖品数量倍率
+    'award_number_multiple' => 1,  //奖品数量倍率
     'multipleLists' => [
         [
             'min' => 0,
@@ -32,7 +32,7 @@ return [
     'lists' => [
         [
             'start' => 11,
-            'end' => 18,
+            'end' => 17,
             'times' => 60*15, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
                 ['alias_name' => 'yaoyiyao_0.1', 'size' => 0.1, 'num' => 3000, 'is_rmb' => 1],
@@ -45,7 +45,7 @@ return [
                 ['alias_name' => 'yaoyiyao_100', 'size' => 0, 'num' => 1000, 'is_rmb' => 0],
             ]
         ], [
-            'start' => 18,
+            'start' => 17,
             'end' => 21,
             'times' => 60*15, // 活动最长持续时间(秒),到时间后强制结束
             'awards' => [
