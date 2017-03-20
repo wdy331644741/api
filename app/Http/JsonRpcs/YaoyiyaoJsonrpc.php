@@ -131,10 +131,12 @@ class YaoyiyaoJsonRpc extends JsonRpc
         $item = $this->selectList($config['lists']);
 
         // 奖品是否还有
-        $result['lastGlobalNum'] = $this->getLastGlobalNum($item);
-        if(!$result['lastGlobalNum']) {
+        $lastGlobalNum = $this->getLastGlobalNum($item);
+        if(!$lastGlobalNum) {
             throw new OmgException(OmgException::NUMBER_IS_NULL);
         }
+
+        $result['lastGlobalNum'] = $lastGlobalNum - 1;
         // 获取奖品
         $award = $this->getAward($item);
 
