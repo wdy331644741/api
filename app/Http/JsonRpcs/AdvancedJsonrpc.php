@@ -17,7 +17,7 @@ class AdvancedJsonRpc extends JsonRpc {
      */
     public function getAdvancedStatus() {
         global $userId;
-        $result = ['number'=> 0 ,'statusList' => []];
+        $result = ['name'=>'','number'=> 0 ,'statusList' => []];
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -26,7 +26,19 @@ class AdvancedJsonRpc extends JsonRpc {
         $where['key'] = 'advanced';
         $where['user_id'] = $userId;
         $status = UserAttribute::where($where)->first();
+        if(empty($status)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
         $text = json_decode($status->text,1);
+        foreach($text as &$item){
+            $item = intval($item);
+        }
+        $userInfo = Func::getUserBasicInfo($userId);
+        if(!isset($userInfo['phone'])){
+            $result['name'] = "";
+        }else{
+            $result['name'] = isset($userInfo['realname']) && !empty($userInfo['realname']) ? $userInfo['realname'] : substr_replace($userInfo['phone'], '******', 3, 6);
+        }
         $result['number'] = $status->number;
         $result['statusList'] = $text;
         return array(
@@ -99,13 +111,13 @@ class AdvancedJsonRpc extends JsonRpc {
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => $data[0]
+                'data' => $sendData[0]
             );
         }else{
             //失败
             return array(
                 'code' => -1,
-                'message' => isset($data['msg']) ? $data['msg'] : ""
+                'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
             );
         }
     }
