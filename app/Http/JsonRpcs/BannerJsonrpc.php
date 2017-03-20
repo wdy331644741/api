@@ -91,7 +91,7 @@ class BannerJsonRpc extends JsonRpc {
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-                    ->orderByRaw('id + sort DESC')->paginate($pageNum)->toArray();
+                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
                 $data = $res['data'];
                 $rData['total'] = $res['total'];
                 $rData['per_page'] = $res['per_page'];
@@ -111,7 +111,7 @@ class BannerJsonRpc extends JsonRpc {
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-                    ->orderByRaw('id + sort DESC')->paginate($pageNum)->toArray();
+                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
                 $data = $res['data'];
                 $rData['total'] = $res['total'];
                 $rData['per_page'] = $res['per_page'];
