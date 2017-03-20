@@ -24,7 +24,7 @@ use App\Models\Award5;
 use App\Models\Coupon;
 use Cache;
 use App\Service\ActivityService;
-use Lib\MqClient;
+use Lib\McQueue;
 class ActivityJsonRpc extends JsonRpc {
 
     /**
@@ -323,7 +323,8 @@ class ActivityJsonRpc extends JsonRpc {
             } else {
                 SendAward::ActiveSendAward($userId, 'signin_point'); // 签到送1积分
             }
-            MqClient::send('daylySignin', array('user_id' => $userId, 'days' => $continue));
+            $mcQueue = new McQueue();
+            $mcQueue->put('daylySignin', array('user_id' => $userId, 'days' => $continue));
         }
 
         // 额外奖励进度
