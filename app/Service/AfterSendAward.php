@@ -3,6 +3,7 @@ namespace App\Service;
 use App\Service\Attributes;
 use App\Service\SendAward;
 use App\Models\UserAttribute;
+use App\Service\Advanced;
 use Lib\JsonRpcClient;
 
 class AfterSendAward
@@ -35,17 +36,24 @@ class AfterSendAward
                 break;
             //投资
             case "advanced_target_term":
-                //获取刘奇接口取得标期限
-                $url = env('TRADE_HTTP_URL');
-                $client = new JsonRpcClient($url);
-                $param['user_id'] = $triggerData['user_id'];
-                $param['secret'] = hash('sha256',$triggerData['user_id']."3d07dd21b5712a1c221207bf2f46e4ft");
-                $result = $client->investProductStatus($param);
-                if(isset($result['result']) && !empty($result['result'])){
-                    $period = $result['result'];
-                    foreach($period as $key => $item){
-                        if($item === 1){
-                            SendAward::ActiveSendAward($triggerData['user_id'],"advanced_target_term_".$key);
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment') {
+                    $period = 0;
+                    if(isset($triggerData['scatter_type'])){
+                        if($triggerData['scatter_type'] == 2){
+                            $period = $triggerData['period'];
+                        }
+                        if($triggerData['scatter_type'] == 1 && $triggerData['period'] == 30){
+                            $period = 1;
+                        }
+                    }
+                    if($period >= 1){
+                        //获取刘奇接口取得标期限
+                        $periodList = Advanced::getMarkStatus($triggerData['user_id']);
+                        foreach ($periodList as $key => $item) {
+                            //如果发奖
+                            if ($item == 1 && $key == $period) {
+                                SendAward::ActiveSendAward($triggerData['user_id'], "advanced_target_term_" . $key);
+                            }
                         }
                     }
                 }
@@ -91,7 +99,10 @@ class AfterSendAward
                 break;
             //微信绑定触发
             case "advanced_wechat_binding":
-                $Attributes->advanced($triggerData['user_id'],'advanced','advanced_wechat_binding_first:1');
+                SendAward::ActiveSendAward($triggerData['user_id'],"advanced_wechat_binding_first");
+                break;
+            case "advanced_wechat_binding_first":
+                $Attributes->advanced($triggerData['user_id'], 'advanced', 'advanced_wechat_binding_first:1');
                 break;
             /**进阶活动*****结束****/
         }

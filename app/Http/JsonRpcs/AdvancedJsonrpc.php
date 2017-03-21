@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use App\Service\SendAward;
+use App\Service\Advanced;
 use DB;
 
 class AdvancedJsonRpc extends JsonRpc {
@@ -21,6 +22,10 @@ class AdvancedJsonRpc extends JsonRpc {
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
+
+        //获取老用户完成状态
+        Advanced::updateAdvancedStatus($userId);
+
         //获取当前用户进阶状态
         $where = array();
         $where['key'] = 'advanced';
