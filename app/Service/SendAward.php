@@ -186,6 +186,16 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /* 现金宝箱 start */
+            case 'treasure_num':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']/1000) : 0;
+                    if($num > 0){
+                        Attributes::increment($triggerData['user_id'],"treasure_num",$num);
+                    }
+                }
+                break;
+            /* 现金宝箱 end */
             /* 投资赢现金 start */
             case 'tzyxj_invest':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){

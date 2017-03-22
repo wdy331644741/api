@@ -30,7 +30,7 @@ use App\Http\JsonRpcs\MoneyShareJsonRpc;
 use App\Http\JsonRpcs\YaoyiyaoJsonRpc;
 use App\Http\JsonRpcs\NvshenyueJsonRpc;
 use App\Http\JsonRpcs\TzyxjJsonRpc;
-
+use App\Http\JsonRpcs\TreasureJsonRpc;
 class RpcController extends Controller
 {
 
@@ -69,6 +69,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new NvshenyueJsonRpc());
         $jsonRpcServer->addService(new AdvancedJsonRpc());
         $jsonRpcServer->addService(new TzyxjJsonRpc());
+        $jsonRpcServer->addService(new TreasureJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
