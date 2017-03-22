@@ -35,7 +35,7 @@ class Advanced
      * @return array
      */
     static function getUserStatus($userId){
-        $return = ['advanced_register'=>0,'advanced_real_name'=>0];
+        $return = ['advanced_register'=>0,'advanced_real_name'=>0,'advanced_wechat_binding_first'=>0];
         if(empty($userId)){
             return $return;
         }
@@ -48,6 +48,13 @@ class Advanced
         }
         if(isset($userInfo['realname']) && !empty($userInfo['realname'])){
             $return['advanced_real_name'] = 1;
+        }
+        //查询用户是否绑定
+        $url = env("ACCOUNT_HTTP_URL");
+        $client = new JsonRpcClient($url);
+        $info = $client->hasBindWechat(array("user_id"=>$userId));
+        if(isset($info['result']['has_bind']) && $info['result']['has_bind'] === true){
+            $return['advanced_wechat_binding_first'] = 1;
         }
         return $return;
     }
