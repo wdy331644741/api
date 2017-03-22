@@ -433,7 +433,7 @@ class Attributes
             $res->update();
             if($res) return $res->text;
         }else{
-            $this->advanced[$kvarr[0]] = $kvarr[1];
+            $this->advanced[$kvarr[0]] = intval($kvarr[1]);
             $UserAttribute = new UserAttribute();
             $UserAttribute->user_id = $uid;
             $UserAttribute->key = $key;
