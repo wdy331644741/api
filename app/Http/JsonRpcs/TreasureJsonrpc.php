@@ -282,7 +282,13 @@ class TreasureJsonRpc extends JsonRpc
      * @return int
      */
     private function getCollectMoney($userId){
-        return 100000;
+        $client = new JsonRpcClient(env('MARK_HTTP_URL'));
+        $userId = !empty($userId) ? intval($userId) : 0;
+        $info = $client->assetStatistics(["userid" => $userId]);
+        if(isset($info['result']['data']['unPaidIncome']) && isset($info['result']['data']['unpayed_principle'])){
+            return ceil($info['result']['data']['unPaidIncome']+$info['result']['data']['unpayed_principle']);
+        }
+        return 0;
     }
 }
 
