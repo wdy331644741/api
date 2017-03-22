@@ -51,6 +51,7 @@ class TreasureJsonRpc extends JsonRpc
      */
     public function treasureDraw($params) {
         global $userId;
+
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -73,9 +74,7 @@ class TreasureJsonRpc extends JsonRpc
 
         $result = [
             'awardName' => '',
-            'awardType' => 0,
-            'amount' => 0,
-            'multiple' => 1,
+            'amount' => 0
         ];
         $remark = [];
 
@@ -98,7 +97,6 @@ class TreasureJsonRpc extends JsonRpc
         // 创建记录
         $result['awardName'] = $award['size'] . '元';
         $result['amount'] = strval($award['size']);
-        $result['awardType'] = 7;
         //宝箱类型
         $treasureType = 0;
         if($type == 'copper'){
@@ -113,7 +111,7 @@ class TreasureJsonRpc extends JsonRpc
             'award_name' => $result['awardName'],
             'uuid' => $uuid,
             'ip' => Request::getClientIp(),
-            'multiple' => $result['multiple'],
+            'multiple' => 1,
             'user_agent' => Request::header('User-Agent'),
             'status' => 0,
             'type' => $treasureType,
@@ -123,7 +121,7 @@ class TreasureJsonRpc extends JsonRpc
         $purchaseRes = $client->incrementAvailable([
             'record_id' => $res->id,
             'uuid' => $uuid,
-            'amount' => bcmul($award['size'], $result['multiple'], 2),
+            'amount' => $award['size'],
             'type' => 'goddess',
             'sign' => hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft")
         ]);
@@ -284,7 +282,7 @@ class TreasureJsonRpc extends JsonRpc
      * @return int
      */
     private function getCollectMoney($userId){
-        return 110000;
+        return 100000;
     }
 }
 
