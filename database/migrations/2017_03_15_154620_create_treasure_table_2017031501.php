@@ -18,7 +18,7 @@ class CreateTreasureTable2017031501 extends Migration
             $table->string('multiple')->default('1');
             $table->string('award_name')->default('');
             $table->string('uuid', 64)->default('');
-            $table->tinyInteger('type');  //7:现金 3:体验金
+            $table->tinyInteger('type')->comment("1:铜宝箱 2:银宝箱 3:金宝箱");
             $table->tinyInteger('status')->default(0);
             $table->string('ip', 15)->default('');
             $table->string('user_agent', 256)->default('');

@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\Treasure;
 use App\Service\Attributes;
 use App\Service\ActivityService;
+use App\Service\Func;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use Validator, Config, Request, Cache, DB, Session;
@@ -34,7 +35,8 @@ class TreasureJsonRpc extends JsonRpc
             $status = $this->treasureIsOpen($userId,$key);
             $item = $status;
         }
-
+        //用户待收本息
+        $result['collect_money'] = self::getCollectMoney($userId);
         return [
             'code' => 0,
             'message' => 'success',
@@ -49,7 +51,6 @@ class TreasureJsonRpc extends JsonRpc
      */
     public function treasureDraw($params) {
         global $userId;
-
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -83,7 +84,7 @@ class TreasureJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
 
-        $item = $this->selectList($config['config'],$type);
+        $item = isset($config['config'][$type]) ? $config['config'][$type] : array();
         if(empty($item)){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -98,6 +99,15 @@ class TreasureJsonRpc extends JsonRpc
         $result['awardName'] = $award['size'] . '元';
         $result['amount'] = strval($award['size']);
         $result['awardType'] = 7;
+        //宝箱类型
+        $treasureType = 0;
+        if($type == 'copper'){
+            $treasureType = 1;
+        }elseif($type == 'silver'){
+            $treasureType = 2;
+        }elseif($type == 'gold'){
+            $treasureType = 3;
+        }
         $res = Treasure::create([
             'user_id' => $userId,
             'award_name' => $result['awardName'],
@@ -106,7 +116,7 @@ class TreasureJsonRpc extends JsonRpc
             'multiple' => $result['multiple'],
             'user_agent' => Request::header('User-Agent'),
             'status' => 0,
-            'type' => 7,
+            'type' => $treasureType,
             'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
         ]);
         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
@@ -140,13 +150,42 @@ class TreasureJsonRpc extends JsonRpc
     }
 
     /**
-     * 活动开始天数
-     * @return int
+     * 查询宝箱获奖列表
+     *
+     * @JsonRpcMethod
      */
-    private function getDays(){
-        $start_time = strtotime(Config::get("treasure.start_time"));
-        $days = intval((time()-$start_time)/(3600*24))+1;
-        return $days;
+    public function treasureList($params) {
+        global $userId;
+
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $num = isset($params->num) && !empty($params->num) ? $params->num : 15;
+
+        //查询
+        $list = Treasure::where(['user_id'=>$userId,'status'=>1])->take($num)->orderByRaw("id desc")->get();
+        $result = [];
+        foreach($list as $item){
+            //获取用户手机号
+            if(isset($item->user_id) && !empty($item->user_id)){
+                $phone = Func::getUserPhone($item->user_id);
+                $phone = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                $typeName = "";
+                if($item->type == 1){
+                    $typeName = "铜";
+                }elseif($item->type == 2){
+                    $typeName = "银";
+                }elseif($item->type == 3){
+                    $typeName = "金";
+                }
+                $result[] = "恭喜用户".$phone."开启".$typeName."级宝箱获得".$item->award_name."现金";
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $result,
+        ];
     }
 
     /**
@@ -190,24 +229,6 @@ class TreasureJsonRpc extends JsonRpc
         return $awards[0];
     }
 
-
-    /**
-     * 选择奖品
-     *
-     * @param $lists
-     * @return mixed
-     * @throws OmgException
-     */
-    private function selectList($lists,$type) {
-        $days = $this->getDays();
-        foreach($lists as $item) {
-            if($item['start'] <= $days && $item['end'] >= $days) {
-                return isset($item['awards'][$type]) ? $item['awards'][$type] : array();
-            }
-        }
-        throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-    }
-
     /**
      * 抽奖间隔验证
      *
@@ -243,8 +264,7 @@ class TreasureJsonRpc extends JsonRpc
     private function treasureIsOpen($userId,$type) {
         $return = ['is_open'=>0,'diff_money'=>0];
         //从刘奇那边获取代收本金
-
-        $money = 30000;
+        $money = self::getCollectMoney($userId);
         $section = Config::get("treasure.".$type);
         if(empty($section) || !isset($section['min'])){
             return $return;
@@ -256,6 +276,15 @@ class TreasureJsonRpc extends JsonRpc
             $return['diff_money'] = $section['min']-$money;
         }
         return $return;
+    }
+
+    /**
+     * 用户待收本息
+     * @param $userId
+     * @return int
+     */
+    private function getCollectMoney($userId){
+        return 110000;
     }
 }
 
