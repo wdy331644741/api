@@ -99,7 +99,9 @@ class AfterSendAward
                 break;
             //微信绑定触发
             case "advanced_wechat_binding":
-                SendAward::ActiveSendAward($triggerData['user_id'],"advanced_wechat_binding_first");
+                if(isset($triggerData['tag']) && $triggerData['tag'] == 'binding' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['is_first']) && $triggerData['is_first'] == true) {
+                    SendAward::ActiveSendAward($triggerData['user_id'], "advanced_wechat_binding_first");
+                }
                 break;
             case "advanced_wechat_binding_first":
                 $Attributes->advanced($triggerData['user_id'], 'advanced', 'advanced_wechat_binding_first:1');
