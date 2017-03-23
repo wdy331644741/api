@@ -153,15 +153,10 @@ class TreasureJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function treasureList($params) {
-        global $userId;
-
-        if(!$userId){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
         $num = isset($params->num) && !empty($params->num) ? $params->num : 15;
 
         //查询
-        $list = Treasure::where(['user_id'=>$userId,'status'=>1])->take($num)->orderByRaw("id desc")->get();
+        $list = Treasure::where(['status'=>1])->take($num)->orderByRaw("id desc")->get();
         $result = [];
         foreach($list as $item){
             //获取用户手机号
