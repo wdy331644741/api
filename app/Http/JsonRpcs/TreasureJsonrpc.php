@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\Treasure;
+use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\Func;
@@ -37,6 +38,9 @@ class TreasureJsonRpc extends JsonRpc
         }
         //用户待收本息
         $result['collect_money'] = self::getCollectMoney($userId);
+        //用户开宝箱次数
+        $number = UserAttribute::where(['user_id'=>$userId,'key'=>'treasure_num'])->select('number')->first();
+        $result['num'] = isset($number['number']) ? $number['number'] : 0;
         return [
             'code' => 0,
             'message' => 'success',
