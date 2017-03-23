@@ -25,27 +25,11 @@ class OpenJsonRpc extends JsonRpc {
         global $userId;
         $session = new Session();
         $weixin = $session->get('weixin');
-        /*$userId = 5000032;
-        $weixin['openid'] = 'ovewut6VpqDz6ux4nJg2cKx0srh0';*/
         file_put_contents(storage_path('logs/test-error.log'),$weixin['openid'].'--'.$userId.'--'.$this->_weixin.PHP_EOL,FILE_APPEND);
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountBind(array('channel'=>$this->_weixin,'openId'=>$weixin['openid'],'userId'=>$userId));
+        $res = $client->wechatBind(array('open_id'=>$weixin['openid']));
 
         if(!isset($res['error'])){
-            $mcQueue = new McQueue();
-            $data =  ['user_id' => $userId ,'datetime' => date('Y-m-d H:i:s')];
-            $putStatus = $mcQueue->put('binding',$data);
-
-            //微信用户信息表更新uid
-            $openid = WechatUser::where('openid',$weixin['openid'])->value('openid');
-            if($openid){
-                WechatUser::where('openid',$openid)->update(['uid'=>$userId]);
-            }
-            if(!$putStatus)
-            {
-                $error = $mcQueue->getErr();//  ['err_code' => $mcQueue->errCode ,'err_msg' => $mcQueue->errMsg];
-                file_put_contents(storage_path('logs/McQueue-Error-'.date('Y-m-d')).'.log','【userId:'.$userId.'-err_code:'.$error['err_code'].'-err_msg:'.$error['err_msg'].'】-Send Msg Fails-'.date('Y-m-d').PHP_EOL,FILE_APPEND);
-            }
             $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
             $userBase = $client->userBasicInfo(array('userId'=>$userId));
             if(isset($userBase['result'])){
