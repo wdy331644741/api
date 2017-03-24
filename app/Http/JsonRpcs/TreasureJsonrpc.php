@@ -115,7 +115,7 @@ class TreasureJsonRpc extends JsonRpc
         }
         $res = Treasure::create([
             'user_id' => $userId,
-            'award_name' => $result['awardName'],
+            'award_name' => $award['size'],
             'uuid' => $uuid,
             'ip' => Request::getClientIp(),
             'multiple' => 1,
