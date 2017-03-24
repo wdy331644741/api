@@ -43,7 +43,7 @@ class TreasureJsonRpc extends JsonRpc
         $result['num'] = isset($number['number']) ? $number['number'] : 0;
         //用户获取宝箱总金额
         $money = Treasure::where(['user_id'=>$userId])->sum('amount');
-        $result['has_money'] = !empty($money) ? floatval($money) : 0;
+        $result['has_money'] = !empty($money) ? $money : "0.00";
         return [
             'code' => 0,
             'message' => 'success',
