@@ -42,8 +42,8 @@ class TreasureJsonRpc extends JsonRpc
         $number = UserAttribute::where(['user_id'=>$userId,'key'=>'treasure_num'])->select('number')->first();
         $result['num'] = isset($number['number']) ? $number['number'] : 0;
         //用户获取宝箱总金额
-        $money = Treasure::where(['user_id'=>$userId])->sum('award_name');
-        $result['has_money'] = !empty($money) ? $money : 0;
+        $money = Treasure::where(['user_id'=>$userId])->sum('amount');
+        $result['has_money'] = !empty($money) ? floatval($money) : 0;
         return [
             'code' => 0,
             'message' => 'success',
@@ -115,10 +115,10 @@ class TreasureJsonRpc extends JsonRpc
         }
         $res = Treasure::create([
             'user_id' => $userId,
-            'award_name' => $award['size'],
+            'amount' => $award['size'],
+            'award_name' => $result['awardName'],
             'uuid' => $uuid,
             'ip' => Request::getClientIp(),
-            'multiple' => 1,
             'user_agent' => Request::header('User-Agent'),
             'status' => 0,
             'type' => $treasureType,

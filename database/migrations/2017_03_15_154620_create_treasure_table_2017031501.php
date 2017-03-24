@@ -15,7 +15,7 @@ class CreateTreasureTable2017031501 extends Migration
         Schema::create('treasure', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id');
-            $table->string('multiple')->default('1');
+            $table->decimal('amount',10,2)->default(0);
             $table->string('award_name')->default('');
             $table->string('uuid', 64)->default('');
             $table->tinyInteger('type')->comment("1:铜宝箱 2:银宝箱 3:金宝箱");
