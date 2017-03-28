@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\UserAttribute;
+use App\Service\ActivityService;
 use App\Service\Func;
 use App\Service\SendAward;
 use App\Service\Advanced;
@@ -45,6 +46,15 @@ class AdvancedJsonRpc extends JsonRpc {
             $result['name'] = isset($userInfo['realname']) && !empty($userInfo['realname']) ? $userInfo['realname'] : substr_replace($userInfo['phone'], '******', 3, 6);
         }
         $result['number'] = $status->number;
+        //活跃达人奖
+        $res1 = ActivityService::isExistByAliasUserID("advanced_integral_8888",$userId);
+        $text['advanced_integral_8888'] = empty($res1) ? 0 : 1;
+        //首投奖
+        $res2 = ActivityService::isExistByAliasUserID("advanced_integral_15000",$userId);
+        $text['advanced_integral_15000'] = empty($res2) ? 0 : 1;
+        //终极大奖
+        $res3 = ActivityService::isExistByAliasUserID("advanced_big_prize",$userId);
+        $text['advanced_big_prize'] = empty($res3) ? 0 : 1;
         $result['statusList'] = $text;
         return array(
             'code' => 0,
