@@ -38,6 +38,7 @@ class TreasureJsonRpc extends JsonRpc
         }
         //用户待收本息
         $result['collect_money'] = self::getCollectMoney($userId);
+        $result['collect_money'] = number_format($result['collect_money'],2,".","");
         //用户开宝箱次数
         $number = UserAttribute::where(['user_id'=>$userId,'key'=>'treasure_num'])->select('number')->first();
         $result['num'] = isset($number['number']) ? $number['number'] : 0;
@@ -262,7 +263,7 @@ class TreasureJsonRpc extends JsonRpc
      *
      */
     private function treasureIsOpen($userId,$type) {
-        $return = ['is_open'=>0,'diff_money'=>0];
+        $return = ['is_open'=>0,'diff_money'=>"0.00"];
         //从刘奇那边获取代收本金
         $money = self::getCollectMoney($userId);
         $section = Config::get("treasure.".$type);
@@ -273,7 +274,7 @@ class TreasureJsonRpc extends JsonRpc
             $return['is_open'] = 1;
         }
         if($money < $section['min']){
-            $return['diff_money'] = $section['min']-$money;
+            $return['diff_money'] = number_format($section['min']-$money,2,".","");
         }
         return $return;
     }
