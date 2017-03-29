@@ -90,7 +90,7 @@ class AdvancedJsonRpc extends JsonRpc {
             ){
                 if(!empty($status) && $mark == "active"){
                     //活跃分子
-                    if($status['advanced_signin_3'] == 1 && $status['advanced_wechat_first'] == 1 && $status['advanced_invite_3'] == 1){
+                    if($status['advanced_signin_3'] == 1 && $status['advanced_wechat_binding_first'] == 1 && $status['advanced_invite_3'] == 1){
                         //发奖
                         $sendData = SendAward::ActiveSendAward($userId,"advanced_integral_8888");
                     }else{
