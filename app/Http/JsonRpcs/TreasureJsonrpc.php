@@ -288,7 +288,7 @@ class TreasureJsonRpc extends JsonRpc
         $userId = !empty($userId) ? intval($userId) : 0;
         $info = $client->assetStatistics(["userid" => $userId]);
         if(isset($info['result']['data']['unPaidIncome']) && isset($info['result']['data']['unpayed_principle'])){
-            return ceil($info['result']['data']['unPaidIncome']+$info['result']['data']['unpayed_principle']);
+            return $info['result']['data']['unPaidIncome']+$info['result']['data']['unpayed_principle'];
         }
         return 0;
     }
