@@ -130,7 +130,7 @@ class TreasureJsonRpc extends JsonRpc
             'record_id' => $res->id,
             'uuid' => $uuid,
             'amount' => $award['size'],
-            'type' => 'goddess',
+            'type' => 'cash_box',
             'sign' => hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft")
         ]);
 
