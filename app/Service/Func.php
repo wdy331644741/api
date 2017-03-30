@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
 use Cache;
 use Illuminate\Support\Facades\DB;
+use App\Models\WechatUser;
 
 class Func
 {
@@ -177,5 +178,18 @@ class Func
         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
         $userBasicInfo = $client->userBasicInfo(array('userId'=>$userId));
         return $userBasicInfo;
+    }
+
+    /**
+     * 根据userId获取微信信息
+     * @param $userId
+     * @return array
+     */
+    static function wechatInfoByUserID($userId){
+        if(empty($userId)){
+            return array();
+        }
+        $data = WechatUser::where("uid",$userId)->first();
+        return $data;
     }
 }

@@ -107,8 +107,8 @@ class NvshenyueJsonRpc extends JsonRpc
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
 
-            $client = new JsonRpcClient(env('TRADE_HTTP_URL'));
-            $purchaseRes = $client->purchaseShake([
+            $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+            $purchaseRes = $client->goddessIncrement([
                 'userId' => $userId,
                 'id' => $res->id,
                 'uuid' => $uuid,
@@ -369,13 +369,13 @@ class NvshenyueJsonRpc extends JsonRpc
     private function getVirtualAward($awards) {
         $number = 0;
         foreach($awards as $award) {
-            if(award['is_rmb'] === 0) {
+            if($award['is_rmb'] === 0) {
                 $number += $award['num'];
             }
         }
         $target = rand(1, $number);
         foreach($awards as $award) {
-            if(award['is_rmb'] === 0) {
+            if($award['is_rmb'] === 0) {
                 $target = $target - $award['num'];
                 if ($target <= 0) {
                     return $award;
