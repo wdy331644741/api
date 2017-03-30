@@ -173,11 +173,11 @@ class TreasureJsonRpc extends JsonRpc
                 $phone = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 $typeName = "";
                 if($item->type == 1){
-                    $typeName = "铜";
+                    $typeName = "初";
                 }elseif($item->type == 2){
-                    $typeName = "银";
+                    $typeName = "中";
                 }elseif($item->type == 3){
-                    $typeName = "金";
+                    $typeName = "高";
                 }
                 $result[] = "恭喜用户".$phone."开启".$typeName."级宝箱获得".$item->award_name."现金";
             }
