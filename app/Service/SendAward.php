@@ -193,7 +193,6 @@ class SendAward
                 break;
             case 'treasure_invite':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
-                    echo 1;
                     Attributes::increment($triggerData['from_user_id'],"treasure_num",1);
                 }
                 break;
