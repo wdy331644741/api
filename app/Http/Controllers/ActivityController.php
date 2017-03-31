@@ -726,6 +726,28 @@ class ActivityController extends Controller
     }
 
 
+    //连续签到天数规则添加
+    private function rule_signday($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'day_min' => 'required|integer',
+            'day_max' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('day_min','day_max'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     private function getStorageTypeByName($type_name){
         $rules = config('activity.rule_child');
         foreach($rules as $key=>$val){

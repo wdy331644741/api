@@ -81,6 +81,9 @@ class RuleCheck
                 case $value->rule_type === 16:
                     $res = self::_paymentDate($value,$sqsmsg);
                     break;
+                case $value->rule_type === 17:
+                    $res = self::_signDay($value,$sqsmsg);
+                    break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
                     break;
@@ -257,6 +260,20 @@ class RuleCheck
         }
         return array('send'=>false,'errmsg'=>'回款期限规则验证不通过');
     }
+
+    //连续签到天数
+    private static function _signDay($rule,$sqsmsg){
+        $rules = (array)json_decode($rule->rule_info);
+        $signDay = $sqsmsg['days'];
+        if(isset($signDay)){
+            return array('send'=>false,'errmsg'=>'触发参数不正确');
+        }
+        if($signDay >= $rules['day_min'] && $signDay < $rules['day_max']){
+            return array('send'=>true);
+        }
+        return array('send'=>false,'errmsg'=>'签到天数规则验证不通过');
+    }
+
     //用户投资总金额
     private static function _castAll($userId,$rule){
         $rules = (array)json_decode($rule->rule_info);

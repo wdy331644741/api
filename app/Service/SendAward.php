@@ -32,6 +32,7 @@ use App\Service\Func;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
 use App\Service\Open;
+use App\Service\AfterSendAward;
 class SendAward
 {
     static private $userID;
@@ -79,6 +80,9 @@ class SendAward
 
         //******给邀请人发奖励*****
         $invite_status = self::InviteSendAward($userID, $activityID);
+
+        //发奖后操作
+        AfterSendAward::afterSendAward($activityInfo,$triggerData);
 
         //拼接状态
         if(!empty($additional_status)){
