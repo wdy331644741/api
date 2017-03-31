@@ -67,10 +67,23 @@ class TreasureJsonRpc extends JsonRpc
 
         $config = Config::get('treasure');
 
+        // 活动是否存在
+        if(!ActivityService::isExistByAlias($config['alias_name'])) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+
+        $item = isset($config['config'][$type]) ? $config['config'][$type] : array();
+        if(empty($item)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+
+        //宝箱是否开启
         $isOpen = $this->treasureIsOpen($userId,$type);
         if(isset($isOpen['is_open']) && $isOpen['is_open'] == 0){
             throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
         }
+
+        //宝箱开启次数验证
         if(!$this->isInvested($userId)) {
             throw new OmgException(OmgException::NUMBER_IS_NULL);
         }
@@ -85,16 +98,6 @@ class TreasureJsonRpc extends JsonRpc
             'amount' => 0
         ];
         $remark = [];
-
-        // 活动是否存在
-        if(!ActivityService::isExistByAlias($config['alias_name'])) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-
-        $item = isset($config['config'][$type]) ? $config['config'][$type] : array();
-        if(empty($item)){
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
 
         // 获取奖品
         $award = $this->getAward($item,$type);
