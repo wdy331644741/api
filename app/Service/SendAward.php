@@ -191,7 +191,10 @@ class SendAward
             /** 破百亿 start **/
             case 'pobaiyi':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
-                    PoBaiYiService::addMoneyByInvestment($triggerData);
+                    //非新手标
+                    if(!(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1)){
+                        PoBaiYiService::addMoneyByInvestment($triggerData);
+                    }
                 }
                 break;
             /** 破百亿 end **/
@@ -200,10 +203,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
                     $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']/1000) : 0;
                     if($num > 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
-                        //非新手标
-                        if(!(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1)){
-                            Attributes::increment($triggerData['user_id'],"treasure_num",$num);
-                        }
+                        Attributes::increment($triggerData['user_id'],"treasure_num",$num);
                     }
                 }
                 break;
