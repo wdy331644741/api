@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\JsonRpcs\AdvancedJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
@@ -30,6 +31,7 @@ use App\Http\JsonRpcs\MoneyShareJsonRpc;
 use App\Http\JsonRpcs\YaoyiyaoJsonRpc;
 use App\Http\JsonRpcs\NvshenyueJsonRpc;
 use App\Http\JsonRpcs\TzyxjJsonRpc;
+use App\Http\JsonRpcs\TreasureJsonRpc;
 use App\Http\JsonRpcs\PoBaiYiJsonRpc;
 
 class RpcController extends Controller
@@ -69,7 +71,10 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new YaoyiyaoJsonRpc());
         $jsonRpcServer->addService(new NvshenyueJsonRpc());
         $jsonRpcServer->addService(new TzyxjJsonRpc());
+        $jsonRpcServer->addService(new AdvancedJsonRpc());
+        $jsonRpcServer->addService(new TreasureJsonRpc());
         $jsonRpcServer->addService(new PoBaiYiJsonRpc());
+
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
