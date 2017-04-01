@@ -16,11 +16,24 @@ use App\Models\Cqssc;
 use App\Service\NvshenyueService;
 use Lib\MqClient;
 use App\Service\TzyxjService;
+use App\Service\PoBaiYiService;
 
 
 
 class TestController extends Controller
 {
+    public function getPobaiyi($userId, $money) {
+        PoBaiYiService::addMoney($userId, $money);
+    }
+    public function getPobaiyi2($userId, $amount, $type, $period) {
+        $investment = [
+            'user_id' => $userId,
+            'Investment_amount' => $amount,
+            'scatter_type' => $type,
+            'period' => $period,
+        ];
+        PoBaiYiService::addMoneyByInvestment($investment);
+    }
 
     public function getTzyxj($userId, $amount) {
         if(empty($userId) || empty($amount)) {

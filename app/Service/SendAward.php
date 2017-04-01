@@ -33,6 +33,8 @@ use App\Service\NvshenyueService;
 use App\Service\Open;
 use App\Service\AfterSendAward;
 use App\Service\TzyxjService;
+use App\Service\PoBaiYiService;
+
 class SendAward
 {
     static private $userID;
@@ -190,6 +192,13 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 破百亿 start **/
+            case 'pobaiyi':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    PoBaiYiService::addMoneyByInvestment($triggerData);
+                }
+                break;
+            /** 破百亿 end **/
             /* 现金宝箱 start */
             case 'treasure_num':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
