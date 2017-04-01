@@ -18,7 +18,7 @@ class PoBaiYiJsonRpc extends JsonRpc
     public function pobaiyiList() {
         $list = Cache::remember('pobaiyi_list', 2, function() {
             $result = [];
-            $list = PoBaiYi::select('user_id', 'award_name')->where('amount', '<', 15)->orderBy('id', 'desc')->take(5)->get();
+            $list = PoBaiYi::select('user_id', 'award_name')->where('amount', '<', 25)->orderBy('id', 'desc')->take(5)->get();
             foreach ($list as $item) {
                 if (!empty($item) && isset($item['user_id']) && !empty($item['user_id'])) {
                     $award = [];
@@ -28,7 +28,7 @@ class PoBaiYiJsonRpc extends JsonRpc
                     $result[] = $award;
                 }
             }
-            $list2 = PoBaiYi::select('user_id', 'award_name')->where('amount', '>', 15)->orderBy('id', 'desc')->take(15)->get();
+            $list2 = PoBaiYi::select('user_id', 'award_name')->where('amount', '>', 25)->orderBy('id', 'desc')->take(15)->get();
             foreach ($list2 as $item) {
                 if (!empty($item) && isset($item['user_id']) && !empty($item['user_id'])) {
                     $award = [];
