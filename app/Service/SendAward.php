@@ -88,9 +88,7 @@ class SendAward
 
         //拼接状态
         if(!empty($additional_status)){
-            if(!empty($status)) {
-                $status[] = $additional_status;
-            }
+            $status[] = $additional_status;
             if(isset($invite_status['awards']) && !empty($invite_status['awards'])) {
                 $invite_status['awards'][] = $additional_status;
             }
@@ -188,6 +186,13 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 现金分享 start */
+            case 'amount_share_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $return['amount_share_status'] = AmountShareBasic::amountShareCreate($triggerData);
+                }
+                break;
+            /** 现金分享 end */
             /** 破百亿 start **/
             case 'pobaiyi':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
