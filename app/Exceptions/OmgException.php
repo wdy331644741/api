@@ -35,6 +35,12 @@ class OmgException extends BasicException
     const VALID_CITY_FAIL = 4115;
     const VALID_COLLATERAL_FAIL = 4116;
     const VALID_AMOUNT_FAIL = 4117;
+    const CITY_IS_TOO_LONG = 4118;
+    const REALNAME_IS_TOO_LONG = 4119;
+    const ADDRESS_IS_TOO_LONG = 4120;
+    const AREA_IS_TOO_BIG = 4121;
+    const NAME_IS_ALIVE = 4122;
+    const ADDRESS_IS_ALIVE = 4123;
 
     //服务器错误
     const GET_BANNER_FAIL = 4200;
@@ -94,6 +100,13 @@ class OmgException extends BasicException
         self::VALID_AMOUNT_FAIL => "金额不能为空",
         self::PARAMS_NOT_NULL => "参数不能为空",
         self::PARAMS_NEED_ERROR => "缺少必要的参数",
+        self::CITY_IS_TOO_LONG => "城市名过长",
+        self::REALNAME_IS_TOO_LONG => "产权人名字过长",
+        self::ADDRESS_IS_TOO_LONG => "地址过长",
+        self::AREA_IS_TOO_BIG => "面积无法计算",
+        self::NAME_IS_ALIVE => "用户名含有敏感字符",
+        self::ADDRESS_IS_ALIVE => "地址含有敏感字符",
+        
         //服务器错误
         self::NO_LOGIN => "用户未登陆",
         self::GET_BANNER_FAIL => "获取banner图列表失败",
