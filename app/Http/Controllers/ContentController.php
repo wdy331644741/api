@@ -28,11 +28,6 @@ class ContentController extends Controller
             $data = Notice::select('id','title','content','release_at')->where($where)->whereIn('platform',[0,1])->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
             return view('content.list_'.$type,['data'=>$data,'type'=>$type,'base_url'=>env('YY_BASE_HOST')]);
         }
-        if($page === null)
-            $page = 1;
-        Paginator::currentPageResolver(function () use ($page) {
-            return $page;
-        });
         $contentType = ContentType::where(array('alias_name' =>$type))->first();
         $where = array('type_id' => $contentType->id, 'release' => 1);
         $data = Content::select('id','cover','title','content','release_at','description','keywords')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
