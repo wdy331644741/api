@@ -24,6 +24,11 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('cms/idiom','Cms\IdiomController');
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
+    //动态调用文章
+    Route::get('content/help','ContentController@getHelp');
+    Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
+    Route::get('content/{type?}/{page?}','ContentController@getList');
+
     // 测试控制器
     Route::controller('test','TestController');
     // 模板控制
