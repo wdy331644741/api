@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\JsonRpcs\AdvancedJsonRpc;
+use App\Http\JsonRpcs\AmountShareJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
@@ -74,6 +75,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new AdvancedJsonRpc());
         $jsonRpcServer->addService(new TreasureJsonRpc());
         $jsonRpcServer->addService(new PoBaiYiJsonRpc());
+        $jsonRpcServer->addService(new AmountShareJsonRpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
