@@ -89,7 +89,9 @@ class AmountShareJsonRpc extends JsonRpc
         $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
         $result['recentList'] = self::_formatData($recentList);
 
-        //二期判断
+        //获取用户的微信昵称和手机号
+        $mallInfo['user_name'] = '';
+        $mallInfo['phone'] = '';
         if (!empty($mallInfo['user_id'])) {
             //获取微信昵称
             $nickName = Func::wechatInfoByUserID($mallInfo['user_id']);
