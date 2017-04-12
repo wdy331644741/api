@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Thread extends Model
 {
-    protected $tables = 'bbs_threads';
+    protected $table = 'bbs_threads';
 
     protected $hidden = ['deleted_at'];
 
@@ -20,6 +20,6 @@ class Thread extends Model
     }
 
     public function sections(){
-        return $this->hasOne('App\Models\Bbs\Section','id','type_id');
+        return $this->hasOne('App\Models\Bbs\ThreadSection','id','type_id');
     }
 }

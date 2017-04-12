@@ -10,7 +10,11 @@ use App\Models\Bbs\Thread;
 
 class ThreadController extends Controller
 {
-    public function getList(Request $request){
-        Thread::select('id','verify_time','user_id','type_id');
+    //帖子为审核列表
+    public function getList(){
+        $res = Thread::where('isverify',0)->with('users','sections')->get()->toArray();
+        return $this->outputJson(0,$res);
     }
+
+    //
 }
