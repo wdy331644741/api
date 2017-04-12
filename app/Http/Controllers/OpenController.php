@@ -181,7 +181,12 @@ class OpenController extends Controller
     //获取响应事件
     public function getEvent(Request $request)
     {
-        $this->valid($request);
+        if(isset($request->echostr)){
+            $this->valid($request);
+        }else{
+            $resStr = $this->responseMsg();
+            echo $resStr;
+        }
     }
 
     public function postEvent(Request $request)
@@ -197,10 +202,16 @@ class OpenController extends Controller
             $fromUsername = $postObj->FromUserName;
             $toUsername = $postObj->ToUserName;
             $type = $postObj->MsgType;
-            //$keyword = trim($postObj->Content);
-            $time = time();
             $textTpl = config('open.weixin.xml_template.textTpl');
+            $time = time();
             $msgType = "text";
+            $typeArr = array('text','image','voice','video','shortvideo','link');
+            if(in_array($type,$typeArr)){
+                $content="点击<a href='http://wanglibao.udesk.cn/im_client/'>【在线客服】</a>，可以随时向客服MM咨询问题哦，等你~/亲亲\n\n您也可以致电4008-588-066进行咨询哦，点击下方菜单了解更多~";
+                echo  sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType,$content);
+                exit;
+            }
+
             if($type == 'event'){
                 $content = $this->receiveEvent($postObj,$fromUsername);
                 if($content['error']){
