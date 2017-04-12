@@ -32,6 +32,9 @@ use App\Service\Func;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
 use App\Service\Open;
+use App\Service\AfterSendAward;
+use App\Service\PoBaiYiService;
+
 class SendAward
 {
     static private $userID;
@@ -79,6 +82,9 @@ class SendAward
 
         //******给邀请人发奖励*****
         $invite_status = self::InviteSendAward($userID, $activityID,$triggerData);
+
+        //发奖后操作
+        AfterSendAward::afterSendAward($activityInfo,$triggerData);
 
         //拼接状态
         if(!empty($additional_status)){
@@ -186,6 +192,31 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 破百亿 start **/
+            case 'pobaiyi':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    //非新手标
+                    if(!(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1)){
+                        PoBaiYiService::addMoneyByInvestment($triggerData);
+                    }
+                }
+                break;
+            /** 破百亿 end **/
+            /* 现金宝箱 start */
+            case 'treasure_num':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']/1000) : 0;
+                    if($num > 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        Attributes::increment($triggerData['user_id'],"treasure_num",$num);
+                    }
+                }
+                break;
+            case 'treasure_invite':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"treasure_num",1);
+                }
+                break;
+            /* 现金宝箱 end */
             /* 投资赢现金 start */
             case 'tzyxj_invest':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){

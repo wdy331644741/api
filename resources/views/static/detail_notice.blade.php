@@ -25,7 +25,7 @@
             <a href="/cms/news/list/1.html" class="about_sidebar_a">媒体报道</a>
             <a href="/cms/dynamic/list/1.html" class="about_sidebar_a">网利动态</a>
             <a href="/cms/notice/list/1.html" class="about_sidebar_a active">网站公告</a>
-            <a href="/cms/study/list/1.html" class="about_sidebar_a">理财课堂</a>
+            <a href="/cms/study/list/1.html" class="about_sidebar_a">网贷课堂</a>
             <a href="/theme/runreports/" class="">运营报告</a>
         </div>
     </div>

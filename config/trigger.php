@@ -34,6 +34,10 @@ return [
         7=>array(
             'name' => '微信绑定',
             'model_name' => 'binding',
+        ),
+        8=>array(
+            'name' => '签到',
+            'model_name' => 'daylySignin',
         )
     ]
 
