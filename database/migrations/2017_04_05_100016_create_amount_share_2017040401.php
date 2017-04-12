@@ -30,6 +30,7 @@ class CreateAmountShare2017040401 extends Migration
             //索引
             $table->index('user_id');
             $table->index('identify');
+            $table->index('status');
         });
         Schema::table('amount_share', function (Blueprint $table) {
             $table->softDeletes();
