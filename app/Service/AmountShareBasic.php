@@ -2,6 +2,7 @@
 namespace App\Service;
 use App\Models\AmountShare;
 use App\Models\Activity;
+use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
 use Config;
@@ -17,14 +18,18 @@ class AmountShareBasic
     static function amountShareCreate($triggerData) {
         $multiple = 0;
         if(isset($triggerData['user_id']) && isset($triggerData['Investment_amount']) && isset($triggerData['scatter_type']) && isset($triggerData['period'])){
+            $countKey = '';
             if(($triggerData['scatter_type'] == 1 && $triggerData['period'] == 30) || ($triggerData['scatter_type'] == 2 && $triggerData['period'] == 1)){
                 $multiple = 0.001;
+                $countKey = "amount_share_1";
             }
             if($triggerData['scatter_type'] == 2 && $triggerData['period'] == 3){
                 $multiple = 0.002;
+                $countKey = "amount_share_3";
             }
-            if($triggerData['scatter_type'] == 2 && $triggerData['period'] == 6){
+            if($triggerData['scatter_type'] == 2 && $triggerData['period'] >= 6){
                 $multiple = 0.003;
+                $countKey = "amount_share_6";
             }
             if($triggerData['user_id'] <= 0 || $triggerData['Investment_amount'] < 100 || $multiple == 0){
                 return 'params error';
@@ -38,6 +43,9 @@ class AmountShareBasic
         if($amountShare < 0.1){
            return 'amount error';
         }
+
+        //统计各个标的的参与人数
+        Attributes::increment($triggerData['user_id'],$countKey,1);
 
         //根据别名查询该活动是否开启
         $where['alias_name'] = "amount_share";

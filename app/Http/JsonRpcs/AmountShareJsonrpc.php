@@ -2,9 +2,11 @@
 
 namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
+use App\Models\UserAttribute;
 use App\Service\AmountShareBasic;
 use App\Models\AmountShare;
 use App\Models\AmountShareInfo;
+use App\Service\Attributes;
 use App\Service\Func;
 use DB, Request;
 
@@ -18,17 +20,31 @@ class AmountShareJsonRpc extends JsonRpc
     public function amountShareList($params)
     {
         global $userId;
-
+        $userId = 1716707;
         $num = isset($params->num) && !empty($params->num) ? $params->num : 5;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
+        $result = ['my_top' => 0, 'my_total_money' => 0, 'my_list' => []];
+
+        //我的投资生成的红包列表
         $where['user_id'] = $userId;
         $list = AmountShare::where($where)->take($num)->orderByRaw("id desc")->get();
+        $result['my_list'] = $list;
+        //我的排名&总计生成的红包金额
+        $total_count = UserAttribute::where('key','amount_share_total_money')->count();
+        if (!empty($result['my_list'])) {
+            $myTotalMoney = UserAttribute::where('key','amount_share_total_money')->where('user_id',$userId)->select('string')->get();
+
+            $result['my_total_money'] = isset($myTotalMoney['string']) ? number_format($myTotalMoney['string'],2,".","") : "0.00";
+            $my_top = UserAttribute::where('key','amount_share_total_money')->where('user_id',$userId)->select('')->groupBy("user_id")->having('money', '<', $result['my_total_money'])->get()->toArray();
+            print_r($my_top);exit;
+        }
+        $result['my_top'] = $total_count+1;
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $list
+            'data' => $result
         );
     }
 
@@ -39,19 +55,28 @@ class AmountShareJsonRpc extends JsonRpc
      */
     public function amountShareTopList($params)
     {
+        $result = ['amount_share_1'=>0,'amount_share_3'=>0,'amount_share_6'=>0,'top_list'=>[]];
         $num = isset($params->num) && !empty($params->num) ? $params->num : 5;
-        $list = AmountShare::select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->take($num)->get();
+        $list = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->take($num)->get();
         foreach ($list as &$item) {
             if (!empty($item)) {
                 $phone = Func::getUserPhone($item['user_id']);
-                unset($item['max_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+            }
+        }
+        $result['top_list'] = $list;
+        //查询各个标的的参与人数
+        $res = UserAttribute::whereIn('key', ['amount_share_1', 'amount_share_3', 'amount_share_6'])->select('key','number')->get();
+
+        foreach($res as $item){
+            if(!empty($item->key)){
+                $result[$item->key] = $item->number;
             }
         }
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $list
+            'data' => $result
         );
     }
 
@@ -63,7 +88,7 @@ class AmountShareJsonRpc extends JsonRpc
     public function amountShareSendAward($params)
     {
         global $userId;
-
+        $userId = 1716716;
         $result = ['isLogin' => 1, 'amount' => 0, 'isGot' => 0, 'mall' => [], 'recentList' => []];
         if (empty($userId)) {
             $result['isLogin'] = 0;
@@ -148,6 +173,13 @@ class AmountShareJsonRpc extends JsonRpc
                 'status' => 1,
             ]);
             $result['amount'] = $money;
+            //判断分享的是否领取完
+            if(!empty($mallInfo->id) && $mallInfo->total_num  === $mallInfo->receive_num){
+                //修改为领取完状态
+                AmountShare::where('id',$mallInfo->id)->update(['status'=>1]);
+                //添加到用户属性表
+                Attributes::incrementSting($mallInfo->user_id,'amount_share_total_money',$mallInfo->total_money);
+            }
         }
         DB::commit();
 
@@ -185,7 +217,6 @@ class AmountShareJsonRpc extends JsonRpc
             if (!isset($res['result']['code'])) {
                 throw new OmgException(OmgException::API_FAILED);
             }
-            AmountShare::where($where)->update(['status'=>1]);
             $result['money'] = $isFinish->total_money;
             return array(
                 'code' => 0,
