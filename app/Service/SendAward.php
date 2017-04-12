@@ -1132,7 +1132,7 @@ class SendAward
         $data['platform'] = $info['platform_type'];
         $data['limit_desc'] = $info['limit_desc'];
         $data['trigger'] = $info['trigger'];
-        $data['remark'] = isset($data['child_user_id']) ? $data['child_user_id'] : '';
+        $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->experience($data);
