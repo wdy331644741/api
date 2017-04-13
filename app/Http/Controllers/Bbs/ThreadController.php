@@ -103,6 +103,6 @@ class ThreadController extends Controller
 
     //删除帖子（审核失败）
     public function postDel(Request $request){
-
+        
     }
 }
