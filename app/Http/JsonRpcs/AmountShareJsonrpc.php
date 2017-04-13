@@ -74,11 +74,11 @@ class AmountShareJsonRpc extends JsonRpc
         }
         $result['top_list'] = $list;
         //查询各个标的的参与人数
-        $res = UserAttribute::whereIn('key', ['amount_share_1', 'amount_share_3', 'amount_share_6'])->select('key','number')->get();
+        $res = UserAttribute::select(DB::raw('sum(number) as num,`key`'))->whereIn('key', ['amount_share_1', 'amount_share_3', 'amount_share_6'])->groupBy("key")->get();
 
         foreach($res as $item){
             if(!empty($item->key)){
-                $result[$item->key] = $item->number;
+                $result[$item->key] = $item->num;
             }
         }
         return array(
