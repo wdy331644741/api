@@ -83,20 +83,26 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $thread = new Thread();
-        $thread->user_id = $request->user_id;
-        $thread->type_id = $request->type_id;
-        $thread->title = isset($request->title) ? $request->title : NULL;
-        $thread->content = $request->content;
-        $thread->isinside = 1;
-        $thread->isgreat = $request->isgreat ? $request->isgreat : 0;
-        $thread->ishot = $request->ishot ? $request->ishot : 0;
-        $thread->istop = $request->istop ? $request->istop : 0;
-        $thread->save();
-        if($thread->id){
-            return $this->outputJson(0,array('insert_id'=>$thread->id));
+        $putData = [
+            'user_id'=>$request->user_id,
+            'type_id'=>$request->type_id,
+            'title'=>isset($request->title) ? $request->title : NULL,
+            'content'=>$request->content,
+            'isinside'=>1,
+            'isgreat'=>$request->isgreat ? $request->isgreat : 0,
+            'ishot'=>$request->ishot ? $request->ishot : 0,
+            'istop'=>$request->istop ? $request->istop : 0
+        ];
+        $res  =Thread::find($request->id)->update($putData);
+        if($res){
+            return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
+    }
+
+    //删除帖子（审核失败）
+    public function postDel(Request $request){
+
     }
 }
