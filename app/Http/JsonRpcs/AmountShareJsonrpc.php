@@ -179,6 +179,8 @@ class AmountShareJsonRpc extends JsonRpc
                 'money' => $money,
                 'remark' => json_encode($res, JSON_UNESCAPED_UNICODE),
                 'status' => 1,
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s")
             ]);
             $result['amount'] = $money;
             //判断分享的是否领取完
@@ -224,6 +226,8 @@ class AmountShareJsonRpc extends JsonRpc
                 throw new OmgException(OmgException::API_FAILED);
             }
             $result['money'] = $isFinish->total_money;
+            //修改为领取完状态
+            AmountShare::where('id',$isFinish->id)->update(['status'=>2]);
             return array(
                 'code' => 0,
                 'message' => 'success',
