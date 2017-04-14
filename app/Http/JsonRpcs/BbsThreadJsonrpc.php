@@ -30,7 +30,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         });
         $res = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at', 'created_at', 'updated_at')->where(['isverify'=>1,'type_id'=>$thread_section])
             ->with('users')
-            ->orderByRaw('updated_at DESC')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         $rData['list'] = $res['data'];
@@ -68,7 +68,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             );
 
         }
-        $thread_info = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at', 'created_at', 'updated_at')
+        $thread_info = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at',  'updated_at')
             ->where(['isverify'=>1,'id'=>$params->id])
             ->first();
         $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info->id])
@@ -92,8 +92,6 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
-
-
         $validator = Validator::make(get_object_vars($params), [
             'user_id'=>'required|exists:bbs_users,user_id',
             'type_id'=>'required|exists:bbs_thread_sections,id',
@@ -112,14 +110,13 @@ class BbsThreadJsonRpc extends JsonRpc {
         $thread->type_id = $params->type_id;
         $thread->title = isset($params->title) ? $params->title : NULL;
         $thread->content = $params->content;
-
         $thread->istop =  0;
         $thread->isverify = 0;
         $thread->verify_time = date('Y-m-d H:i:s');
         $thread->save();
         if($thread->id){
             return array(
-                'code' => -1,
+                'code' => 0,
                 'message' => 'success',
                 'data' => Thread::where(['id'=>$thread->id])->first()
             );
@@ -132,13 +129,23 @@ class BbsThreadJsonRpc extends JsonRpc {
         }
 
     }
-    /*
+    /**
      *
-     * 查询置顶帖子
+     *
+     * 获取热门帖子列表
+     *
      * @JsonRpcMethod
-     * **/
-    public function getBbsThreadTop(){
-
+     */
+    public function getBbsThreadTopList($params){
+        $res =Thread::where(['istop'=>1,'isverify'=>1])
+            ->orderByRaw('created_at DESC')
+            ->get()
+            ->toArray();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        );
 
 
     }
