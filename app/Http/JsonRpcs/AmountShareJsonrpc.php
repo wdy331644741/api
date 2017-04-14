@@ -224,6 +224,8 @@ class AmountShareJsonRpc extends JsonRpc
                 throw new OmgException(OmgException::API_FAILED);
             }
             $result['money'] = $isFinish->total_money;
+            //修改为领取完状态
+            AmountShare::where('id',$isFinish->id)->update(['status'=>2]);
             return array(
                 'code' => 0,
                 'message' => 'success',
