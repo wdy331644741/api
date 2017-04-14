@@ -27,6 +27,7 @@
             <a href="{!! action('ContentController@getList',['type'=>'notice']) !!}" class="about_sidebar_a active">网站公告</a>
             <a href="{!! action('ContentController@getList',['type'=>'classroom']) !!}" class="about_sidebar_a">网贷课堂</a>
             <a href="/theme/runreports/" class="">运营报告</a>
+        </div>
     </div>
     <div class='section'>
         <div class="page_nav">
@@ -42,7 +43,6 @@
             </div>
         </div>
     </div>
-</div>
 </div>
 <div id="sfooter"></div>
 <script type="text/javascript" src="{!! env('YY_BASE_HOST') !!}/js/sea.js"></script>
