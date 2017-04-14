@@ -214,7 +214,7 @@ class AmountShareJsonRpc extends JsonRpc
         //判断该红包是否被全部领取
         $where['user_id'] = $userId;
         $where['id'] = $id;
-        $where['status'] = 0;
+        $where['status'] = 1;
         $isFinish = AmountShare::where($where)->first();
         if(!empty($isFinish) && $isFinish->total_money === $isFinish->use_money && $isFinish->total_num === $isFinish->receive_num){
             //发奖
