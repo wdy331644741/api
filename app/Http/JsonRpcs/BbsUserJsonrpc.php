@@ -6,6 +6,7 @@ use Lib\JsonRpcClient;
 
 
 
+
 class BbsUserJsonRpc extends JsonRpc {
 
     /**
@@ -28,16 +29,43 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $data
             );
 
+        }else{
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => '上传头像失败'
+            );
+        }
+
+    }
+
+    /**
+     *  用户更改昵称
+     *
+     * @JsonRpcMethod
+     */
+    public function updateBbsUserNickname($param){
+        global $user_id;
+
+        $res = User::select('user_id',$user_id)->update(['head_img'=>$param->nickname]);
+        if($res){
+            $data = array(
+                'user_id'=>$user_id,
+                'head_img'=>$param->nickname,
+            );
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data
+            );
 
         }else{
             return array(
                 'code' => -1,
                 'message' => 'fail',
-                'data' => ''
+                'data' => '更改昵称失败'
             );
         }
-
-
 
     }
 }
