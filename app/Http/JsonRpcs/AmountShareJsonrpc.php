@@ -179,6 +179,8 @@ class AmountShareJsonRpc extends JsonRpc
                 'money' => $money,
                 'remark' => json_encode($res, JSON_UNESCAPED_UNICODE),
                 'status' => 1,
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s")
             ]);
             $result['amount'] = $money;
             //判断分享的是否领取完
