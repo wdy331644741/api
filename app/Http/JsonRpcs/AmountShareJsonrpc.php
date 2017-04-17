@@ -218,6 +218,7 @@ class AmountShareJsonRpc extends JsonRpc
         $where['user_id'] = $userId;
         $where['id'] = $id;
         $where['status'] = 1;
+        $where['award_status'] = 0;
         $isFinish = AmountShare::where($where)->first();
         if(!empty($isFinish) && $isFinish->total_money === $isFinish->use_money && $isFinish->total_num === $isFinish->receive_num){
             //发奖
