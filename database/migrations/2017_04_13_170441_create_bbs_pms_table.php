@@ -17,6 +17,7 @@ class CreateBbsPmsTable extends Migration
             $table->integer('user_id');
             $table->integer('from_user_id')->comment('from_user_id为0时，为官方回复消息');
             $table->integer('tid')->nullable()->default(NULL);
+            $table->integer('cid')->nulllable()->default(NULL)->comment('回复配置id');
             $table->string('content');
             $table->timestamps();
         });

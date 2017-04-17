@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Service\Func;
 use App\Http\Controllers\Controller;
 use App\Models\Bbs\Thread;
+use App\Models\Bbs\ThreadPm;
 use Validator;
 
 class ThreadController extends Controller
@@ -103,6 +104,25 @@ class ThreadController extends Controller
 
     //删除帖子（审核失败）
     public function postDel(Request $request){
-        
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+            'user_id'=>'required|exists:bbs_users,id',
+            'cid'=>'required|exists:bbs_reply_configs,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        Thread::destroy($request->id);
+        $pm = new ThreadPm();
+        $pm->user_id = $request->user_id;
+        $pm->from_user_id = 0;
+        $pm->tid = $request->id;
+        $pm->cid = $request->cid;
+        $pm->save();
+        if($pm->id){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
     }
 }
