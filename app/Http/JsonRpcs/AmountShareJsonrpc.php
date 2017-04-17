@@ -32,12 +32,12 @@ class AmountShareJsonRpc extends JsonRpc
         $list = AmountShare::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
         $result['my_list'] = $list;
         //我的排名&总计生成的红包金额
-        $totalList = AmountShare::where('status',">",0)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
+        $totalList = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
         $total_count = count($totalList);
 
         if (!empty($result['my_list'])) {
             //自己的分享领取完金额
-            $result['my_total_money'] = AmountShare::where('status',">",0)->where('user_id',$userId)->sum('total_money');
+            $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
             //自己的排名
             $top = 0;
             foreach($totalList as $key => $item){
@@ -227,8 +227,8 @@ class AmountShareJsonRpc extends JsonRpc
                 throw new OmgException(OmgException::API_FAILED);
             }
             $result['money'] = $isFinish->total_money;
-            //修改为领取完状态
-            AmountShare::where('id',$isFinish->id)->update(['status'=>2]);
+            //修改为本人领取完状态
+            AmountShare::where('id',$isFinish->id)->update(['award_status'=>1]);
             return array(
                 'code' => 0,
                 'message' => 'success',

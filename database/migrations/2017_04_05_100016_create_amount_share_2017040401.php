@@ -25,12 +25,14 @@ class CreateAmountShare2017040401 extends Migration
             $table->timestamp('start_time')->nullable()->default(NULL)->comment("开始时间");
             $table->timestamp('end_time')->nullable()->default(NULL)->comment("结束时间");
             $table->text('uri')->default('')->comment("分享的uri");
-            $table->tinyInteger('status',false,true)->nullable()->default(0)->comment("本人领奖状态0未领取1已领取");
+            $table->tinyInteger('status',false,true)->nullable()->default(0)->comment("参与状态0未满1已满");
+            $table->tinyInteger('award_status',false,true)->nullable()->default(0)->comment("本人领奖状态0未领取1已领取");
             $table->timestamps();
             //索引
             $table->index('user_id');
             $table->index('identify');
             $table->index('status');
+            $table->index('award_status');
         });
         Schema::table('amount_share', function (Blueprint $table) {
             $table->softDeletes();
