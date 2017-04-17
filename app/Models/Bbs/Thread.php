@@ -22,4 +22,8 @@ class Thread extends Model
     public function sections(){
         return $this->hasOne('App\Models\Bbs\ThreadSection','id','type_id');
     }
+
+    public function comments(){
+        return $this->hasMany('App\Models\Bbs\Comment','tid','id');
+    }
 }
