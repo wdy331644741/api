@@ -12,5 +12,9 @@ class User extends Model
         return $this->hasMany('App\Models\Bbs\Thread','user_id','user_id');
     }
 
+    public function blacks(){
+        return $this->hasOne('App\Models\Bbs\ReplyConfig','id','black_type_id');
+    }
+
 
 }

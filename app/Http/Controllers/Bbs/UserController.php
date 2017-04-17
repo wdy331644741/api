@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use phpDocumentor\Reflection\Types\Null_;
 use Validator;
 use App\Models\Bbs\User;
 use Config;
@@ -86,7 +87,48 @@ class UserController extends Controller
 
     //黑名单列表
     public function getBlackList(){
-        $data = User::where('isblack',1)->get();
+        $data = User::select('nickname','phone','black_time')->where('isblack',1)->with('blacks')->paginate(20)->toArray();
         return $this->outputJson(0,$data);
+    }
+
+    //拉黑
+    public function postToBlack(Request $request){
+        $validator = Validator::make($request->all(), [
+            'phone'=>'required|exists:bbs_users,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $putArr = [
+            'isblack'=>1,
+            'black_time'=>date('Y-m-d H:i:s')
+        ];
+        $res = User::where('phone',$request->phone)->update($putArr);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+
+    //移除黑名单
+    public function postToUser(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_users,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $putArr = [
+            'isblack'=>0,
+            'black_time'=>NULL
+        ];
+        $res = User::find($request->id)->update($putArr);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
     }
 }
