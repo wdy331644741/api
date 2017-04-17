@@ -25,20 +25,21 @@ class AmountShareJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $result = ['my_top' => 0, 'my_total_money' => 0, 'my_list' => []];
+        $result = ['my_top' => 0, 'my_total_money' => 0, 'time' => '', 'my_list' => []];
 
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
         $list = AmountShare::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
         $result['my_list'] = $list;
         //我的排名&总计生成的红包金额
-        $totalList = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get()->toArray();
+        $totalList = AmountShare::where('status',">",0)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
         $total_count = count($totalList);
 
         if (!empty($result['my_list'])) {
             //自己的分享领取完金额
             $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
             //自己的排名
+            $top = 0;
             foreach($totalList as $key => $item){
                 if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
                     $top = $key + 1;
@@ -48,7 +49,7 @@ class AmountShareJsonRpc extends JsonRpc
         }else{
             $result['my_top'] = $total_count+1;
         }
-
+        $result['time'] = time();
         return array(
             'code' => 0,
             'message' => 'success',
