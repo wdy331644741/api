@@ -8,6 +8,7 @@ use App\Models\Bbs\User;
 use App\Models\Bbs\ThreadPm;
 use Lib\JsonRpcClient;
 use Validator;
+use Config;
 
 
 
@@ -29,14 +30,19 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function updateBbsUserHeadimg($param){
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
-        $res = User::select('user_id', $this->userId)->update(['head_img' => $param->head_img]);
+        if(!isset(Config::get('headimg')['user'][$param->head_img])){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $headimg_url = Config::get('headimg')['user'][$param->head_img];
+        $res = User::select('user_id', $this->userId)->update(['head_img' => $headimg_url]);
         if ($res) {
             $user = array(
                 'user_id' => $this->userId,
-                'head_img' => $param->head_img,
+                'head_img' => $param->$headimg_url,
             );
             return array(
                 'code' => 0,
@@ -135,7 +141,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishComment($params){
-        $this->userId = '123';
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -181,6 +187,16 @@ class BbsUserJsonRpc extends JsonRpc {
         $pms->cid = $cid;
         $pms->isverify = 0;
         $pms->save();
+    }
+    /**
+     *  获取用户发表的帖子 分页
+     *
+     * @JsonRpcMethod
+     */
+    public  function getBbsUserThread($params){
+
+
+
     }
 
 }
