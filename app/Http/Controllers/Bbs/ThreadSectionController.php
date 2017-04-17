@@ -73,6 +73,11 @@ class ThreadSectionController extends Controller
     }
     //版块列表
     public function getList(){
-
+        $data = ThreadSection::where('isuse',1)->orderBy('sort asc')->get();
+        return $this->outputJson(0,$data);
     }
+
+    //开启版块
+
+    //关闭版块
 }

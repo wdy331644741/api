@@ -14,9 +14,8 @@ class CreateBbsReplayConfigsTable extends Migration
     {
         Schema::create('bbs_replay_configs', function (Blueprint $table) {
             $table->increments('id');
-            $table->tinyInteger('type_id')->comment('1:拉黑配置，2：审核配置');
             $table->string('name');
-            
+            $table->string('description');
             $table->timestamps();
         });
     }
