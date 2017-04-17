@@ -78,6 +78,40 @@ class ThreadSectionController extends Controller
     }
 
     //开启版块
+    public function postOpen(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $putArr = [
+            'isuse'=> 1,
+        ];
+        $res = ThreadSection::find($request->id)->update($putArr);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
 
     //关闭版块
+    public function postClose(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $putArr = [
+            'isuse'=> 0,
+        ];
+        $res = ThreadSection::find($request->id)->update($putArr);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
 }

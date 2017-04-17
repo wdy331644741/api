@@ -27,6 +27,8 @@ Route::group(['middleware' => 'admin'], function(){
     //社区相关
     Route::controller('bbs/thread','Bbs\ThreadController');
     Route::controller('bbs/section','Bbs\ThreadSectionController');
+    Route::controller('bbs/user','Bbs\UserController');
+
     // 测试控制器
     Route::controller('test','TestController');
     // 模板控制
