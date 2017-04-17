@@ -82,4 +82,11 @@ class UserController extends Controller
         $data = User::where('isadmin',1)->get();
         return $this->outputJson(0,$data);
     }
+
+
+    //黑名单列表
+    public function getBlackList(){
+        $data = User::where('isblack',1)->get();
+        return $this->outputJson(0,$data);
+    }
 }
