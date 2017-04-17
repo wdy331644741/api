@@ -58,7 +58,6 @@ class BbsThreadJsonRpc extends JsonRpc {
     public  function getBbsThreadDetail($params){
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
-
         ]);
         if($validator->fails()){
             return array(
@@ -69,10 +68,12 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         }
         $thread_info = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at',  'updated_at')
+            ->with('users')
             ->where(['isverify'=>1,'id'=>$params->id])
             ->first();
         $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info->id])
             ->with('users')
+            ->orderByRaw('created_at')
             ->get()
             ->toArray();
         $data['thread_info'] = $thread_info;
@@ -86,53 +87,8 @@ class BbsThreadJsonRpc extends JsonRpc {
     }
     /**
      *
-     *发布帖子
-     * @
      *
-     * @JsonRpcMethod
-     */
-    public  function BbsPublishThread($params){
-        $validator = Validator::make(get_object_vars($params), [
-            'user_id'=>'required|exists:bbs_users,user_id',
-            'type_id'=>'required|exists:bbs_thread_sections,id',
-            'title'=>'required',
-            'content'=>'required',
-        ]);
-        if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
-        }
-        $thread = new Thread();
-        $thread->user_id = $params->user_id;
-        $thread->type_id = $params->type_id;
-        $thread->title = isset($params->title) ? $params->title : NULL;
-        $thread->content = $params->content;
-        $thread->istop =  0;
-        $thread->isverify = 0;
-        $thread->verify_time = date('Y-m-d H:i:s');
-        $thread->save();
-        if($thread->id){
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => Thread::where(['id'=>$thread->id])->first()
-            );
-        }else{
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => 'Database Error'
-            );
-        }
-
-    }
-    /**
-     *
-     *
-     * 获取热门帖子列表
+     * 获取置顶帖子列表
      *
      * @JsonRpcMethod
      */
@@ -146,9 +102,8 @@ class BbsThreadJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $res
         );
-
-
     }
+
 
 }
 
