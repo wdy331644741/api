@@ -29,7 +29,11 @@ class AmountShareJsonRpc extends JsonRpc
 
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
-        $list = AmountShare::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
+        if($num == 0){
+            $list = AmountShare::where($where)->orderByRaw("id desc")->get()->toArray();
+        }else{
+            $list = AmountShare::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
+        }
         //失效列表
         foreach($list as $item){
             if(isset($item['id']) && !empty($item['id'])){
