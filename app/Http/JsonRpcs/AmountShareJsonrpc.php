@@ -37,7 +37,7 @@ class AmountShareJsonRpc extends JsonRpc
 
         if (!empty($result['my_list'])) {
             //自己的分享领取完金额
-            $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
+            $result['my_total_money'] = AmountShare::where('status',">",0)->where('user_id',$userId)->sum('total_money');
             //自己的排名
             $top = 0;
             foreach($totalList as $key => $item){
