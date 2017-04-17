@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
 use Cache;
 use Illuminate\Support\Facades\DB;
+use App\Models\WechatUser;
 
 class Func
 {
@@ -143,7 +144,7 @@ class Func
 
     static function randomStr($length) {
         $strArr = 'abcdefghigklmnopqrstuvwxyz0123456';
-        $str = ''; 
+        $str = '';
         for ($i = 0; $i < $length; $i++) {
             $str .= $strArr[rand(0, strlen($strArr)-1)];
         }
@@ -177,5 +178,33 @@ class Func
         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
         $userBasicInfo = $client->userBasicInfo(array('userId'=>$userId));
         return $userBasicInfo;
+    }
+
+    /**
+     * 根据userId获取微信信息
+     * @param $userId
+     * @return array
+     */
+    static function wechatInfoByUserID($userId){
+        if(empty($userId)){
+            return array();
+        }
+        $data = WechatUser::where("uid",$userId)->first();
+        return $data;
+    }
+
+    /**
+     * 给用户加钱
+     */
+    static function incrementAvailable($userId, $recordId, $uuid, $amount, $type) {
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        return $client->incrementAvailable(array(
+            "user_id" => $userId,
+            "record_id"  => $recordId,
+            "uuid" => $uuid,
+            "amount" => $amount,
+            "type" => $type,
+            "sign" => hash('sha256', $userId.env('INSIDE_SECRET')),
+        ));
     }
 }

@@ -52,7 +52,7 @@ class BannerJsonRpc extends JsonRpc {
                 Paginator::currentPageResolver(function () use ($page) {
                     return $page;
                 });
-                
+
                 $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
                     ->where(function($query) {
                         $query->whereNull('start')->orWhereRaw('start < now()');
@@ -78,7 +78,47 @@ class BannerJsonRpc extends JsonRpc {
                     ->where(function($query) {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
-                    ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();          
+                    ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
+                break;
+            case "annualreport":
+                Paginator::currentPageResolver(function () use ($page) {
+                    return $page;
+                });
+                $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
+                $data = $res['data'];
+                $rData['total'] = $res['total'];
+                $rData['per_page'] = $res['per_page'];
+                $rData['current_page'] = $res['current_page'];
+                $rData['last_page'] = $res['last_page'];
+                $rData['from'] = $res['from'];
+                $rData['to'] = $res['to'];
+                break;
+            case "annualreport_app":
+                Paginator::currentPageResolver(function () use ($page) {
+                    return $page;
+                });
+                $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
+                $data = $res['data'];
+                $rData['total'] = $res['total'];
+                $rData['per_page'] = $res['per_page'];
+                $rData['current_page'] = $res['current_page'];
+                $rData['last_page'] = $res['last_page'];
+                $rData['from'] = $res['from'];
+                $rData['to'] = $res['to'];
                 break;
             // 默认
             default:
@@ -100,12 +140,12 @@ class BannerJsonRpc extends JsonRpc {
             'data' => $rData
         );
     }
-    
+
      /**
      * 分享配置
      *
      * @JsonRpcMethod
-     */   
+     */
       public function shareConfig($params) {
         $where = array(
             'can_use' => 1,
@@ -122,7 +162,7 @@ class BannerJsonRpc extends JsonRpc {
               $query->whereNull('end')->orWhereRaw('end > now()');
           })
           ->orderByRaw('sort DESC')->first();
-          
+
         if(!$data) {
             throw new OmgException(OmgException::NO_DATA);
         }
@@ -181,7 +221,55 @@ class BannerJsonRpc extends JsonRpc {
              'message' => 'success',
              'data' => $data
          );
-    }   
+    }
+
+    /**
+     * PC渠道落地页
+     *
+     * @JsonRpcMethod
+     */
+     public function bannerPCChannel($params) {
+         if(!isset($params->channel)) {
+             throw new OmgException(OmgException::VALID_POSITION_FAIL);
+         }
+         $where = array(
+             'can_use' => 1,
+             'position' => 'pc_channel',
+             'name' => strtolower($params->channel),
+         );
+         $data = BANNER::select('id', 'name', 'type', 'img_path', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+             ->where(function($query) {
+                 $query->whereNull('start')->orWhereRaw('start < now()');
+             })
+             ->where(function($query) {
+                 $query->whereNull('end')->orWhereRaw('end > now()');
+             })
+             ->orderByRaw('id + sort DESC')->first();
+         if(!$data) {
+             $where = array(
+                 'can_use' => 1,
+                 'position' => 'pc_channel',
+                 'name' => '',
+             );
+             $data = BANNER::select('id', 'name', 'type', 'img_path', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                 ->where(function($query) {
+                     $query->whereNull('start')->orWhereRaw('start < now()');
+                 })
+                 ->where(function($query) {
+                     $query->whereNull('end')->orWhereRaw('end > now()');
+                 })
+                 ->orderByRaw('id + sort DESC')->first();
+         }
+         if(!$data) {
+             throw new OmgException(OmgException::NO_DATA);
+         }
+         $data['Etag'] = $data['release_time'];
+         return array(
+             'code' => 0,
+             'message' => 'success',
+             'data' => $data
+         );
+    }
 
     /**
      * 活动弹窗

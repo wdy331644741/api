@@ -27,7 +27,14 @@ use App\Service\Flow;
 use App\Models\UserAttribute;
 use Config;
 use Validator;
+use DB;
 use App\Service\Func;
+use App\Service\NvshenyueService;
+use App\Service\TzyxjService;
+use App\Service\Open;
+use App\Service\AfterSendAward;
+use App\Service\PoBaiYiService;
+
 class SendAward
 {
     static private $userID;
@@ -76,6 +83,9 @@ class SendAward
         //******给邀请人发奖励*****
         $invite_status = self::InviteSendAward($userID, $activityID);
 
+        //发奖后操作
+        AfterSendAward::afterSendAward($activityInfo,$triggerData);
+
         //拼接状态
         if(!empty($additional_status)){
             if(!empty($status)) {
@@ -110,7 +120,15 @@ class SendAward
         $where['alias_name'] = $aliasName;
         $where['trigger_type'] = 0;
         $where['enable'] = 1;
-        $list = Activity::where($where)->first();
+        $list = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where($where)->first();
         if(empty($list)){
             return array('msg'=>'活动不存在！');
         }
@@ -166,10 +184,103 @@ class SendAward
         $Attributes = new Attributes();
 
         if(!$activityInfo['alias_name']) {
-            return $return;    
+            return $return;
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 破百亿 start **/
+            case 'pobaiyi':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    //非新手标
+                    if(!(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1)){
+                        PoBaiYiService::addMoneyByInvestment($triggerData);
+                    }
+                }
+                break;
+            /** 破百亿 end **/
+            /* 现金宝箱 start */
+            case 'treasure_num':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']/1000) : 0;
+                    if($num > 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        Attributes::increment($triggerData['user_id'],"treasure_num",$num);
+                    }
+                }
+                break;
+            case 'treasure_invite':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"treasure_num",1);
+                }
+                break;
+            /* 现金宝箱 end */
+            /* 投资赢现金 start */
+            case 'tzyxj_invest':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount > 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        TzyxjService::addRecord($triggerData['user_id'], $amount);
+                    }
+                }
+                break;
+            /* 投资赢现金 end */
+            /**女神月活动*****开始****/
+            //投资送次数(满一千送一次)
+            case "nvshenyue_invest":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])) {
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $num = intval($amount/1000);
+                    if(!empty($num)){
+                        NvshenyueService::addChanceByInvest($triggerData['user_id'], $num);
+                    }
+                }
+                break;
+            //邀请人首投（给邀请人）
+            case "nvshenyue_invite":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    NvshenyueService::addChanceByInvite($triggerData['from_user_id']);
+                }
+                break;
+            /**女神月活动*****结束****/
+            //流量包渠道首投触发
+            case "channel_liuliangbao":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
+                    $open = new Open();
+                    $open->sendNb($triggerData);
+                }
+                break;
+
+            //摇一摇活动3 门槛
+            case "shake_to_shake3_threshold":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    Attributes::increment($triggerData['user_id'],"shake_to_shake3_threshold",1);
+                }
+                break;
+            //摇一摇活动3 邀请好友首投累计
+            case "shake_to_shake3_invite_first":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'shake_to_shake3_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
+
+            //投资是否满足投资6个月的标，且投资金额大于等于1000元
+            case "shake_to_shake_6_1000":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 1000 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        Attributes::increment($triggerData['user_id'],"shake_to_shake_is_satisfy",1);
+                    }
+                }
+                break;
+            //摇一摇活动2
+            case "shake_to_shake2_invite_first":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'shake_to_shake2_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
             //摇一摇活动
             case "shake_to_shake_invite_first":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
@@ -179,7 +290,7 @@ class SendAward
                 }
                 break;
             //*********新春嘉年华活动****START****//
-            // 记录最大投资额 
+            // 记录最大投资额
             case "xjdb_max_invest":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
@@ -187,7 +298,7 @@ class SendAward
                         Attributes::setNumberByMax($triggerData['user_id'], 'xjdb_max_invest', $amount);
                     }
                 }
-                break;    
+                break;
             //金牌投手奖
             case "new_year_bidding" :
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['project_id'])){
@@ -356,10 +467,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
                     $userBase = Func::globalUserBasicInfo($triggerData['user_id']);
                     if(isset($userBase['result']['data']) && !empty($userBase['result']['data']) && isset($userBase['result']['data']['level'])){
-                        if($userBase['result']['data']['level'] < 0){
-                            return false;
-                        }
-                        $level = $userBase['result']['data']['level'] == 0 ? 1 : $userBase['result']['data']['level'];
+                        $level = $userBase['result']['data']['level'] <= 0 ? 1 : $userBase['result']['data']['level'];
                     }
                     $amount = isset($triggerData['Investment_amount']) && !empty($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $period = isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 ? $triggerData['period'] : 1;
@@ -385,20 +493,20 @@ class SendAward
                     $url = env('INSIDE_HTTP_URL');
                     $client = new JsonRpcClient($url);
                     $userBase = $client->userBasicInfo(array('userId' =>$triggerData['user_id']));
-                    $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';            
+                    $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
                     if(!empty($phone)) {
-                        $res = $Attributes::setText($triggerData['user_id'], Config::get('activity.double_eleven.baotuan'), $phone);    
+                        $res = $Attributes::setText($triggerData['user_id'], Config::get('activity.double_eleven.baotuan'), $phone);
                     }
                 }
                 break;
             //双十一大转盘送次数
             case Config::get('activity.double_eleven.chance1'):
                 $alias = Config::get('activity.double_eleven.key2');
-                $Attributes::increment($triggerData['user_id'], $alias);    
+                $Attributes::increment($triggerData['user_id'], $alias);
                 break;
             case Config::get('activity.double_eleven.chance2'):
                 $alias = Config::get('activity.double_eleven.key3');
-                $Attributes::increment($triggerData['user_id'], $alias);    
+                $Attributes::increment($triggerData['user_id'], $alias);
                 break;
             //按照充值金额送比例体验金
             case 'songtiyanjin':
@@ -1111,11 +1219,14 @@ class SendAward
             self::addLog($info);
             return $err;
         }
+        //事物开始
+        DB::beginTransaction();
+
         //根据id获取出可用的优惠卷
         $where = array();
         $where['coupon_id'] = $info['id'];
         $where['is_use'] = 0;
-        $data = CouponCode::where($where)->get()->first();
+        $data = CouponCode::where($where)->lockForUpdate()->first();
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
             //发送消息
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
@@ -1125,14 +1236,17 @@ class SendAward
             self::sendMessage($info);
             //修改优惠码状态
             CouponCode::where("id",$data['id'])->update(array('is_use'=>1));
+            DB::commit();
             return $err;
         }else{
             //存储到日志
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>false,'err_msg'=>'coupon_empty');
             $info['remark'] = json_encode($err);
             self::addLog($info);
+            DB::commit();
             return $err;
         }
+
     }
     /**
      * 获取表对象
@@ -1161,25 +1275,25 @@ class SendAward
         }
     }
     /**
-     *  根据awardType获取奖品详情 
-     * 
+     *  根据awardType获取奖品详情
+     *
      * @param $awardType
      * @param $awardId
      * @return mixed
      */
-    
+
     static function getAward($awardType, $awardId) {
-        $table = self::_getAwardTable($awardType);    
+        $table = self::_getAwardTable($awardType);
         return $table->where('id', $awardId)->first();
     }
     //获取奖品
     static function getSendedAwards($userId, $activityId, $day) {
         return SendRewardLog::where(array(
-            'user_id'  => $userId, 
+            'user_id'  => $userId,
             'activity_id' => $activityId,
         ))->whereRaw("date(created_at) = '{$day}'")->get();
     }
-    
+
     //生成Guid
     static function create_guid()
     {

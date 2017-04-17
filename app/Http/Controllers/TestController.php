@@ -13,10 +13,148 @@ use Lib\JsonRpcClient;
 use Config;
 use DB;
 use App\Models\Cqssc;
+use App\Service\NvshenyueService;
+use App\Service\TzyxjService;
+use App\Service\PoBaiYiService;
+
 
 
 class TestController extends Controller
 {
+    public function getPobaiyi($userId, $money) {
+        PoBaiYiService::addMoney($userId, $money);
+    }
+    public function getPobaiyi2($userId, $amount, $type, $period) {
+        $investment = [
+            'user_id' => $userId,
+            'Investment_amount' => $amount,
+            'scatter_type' => $type,
+            'period' => $period,
+        ];
+        PoBaiYiService::addMoneyByInvestment($investment);
+    }
+
+    public function getTzyxj($userId, $amount) {
+        if(empty($userId) || empty($amount)) {
+            return 'invalid params';
+        }
+        return TzyxjService::addRecord($userId, $amount);
+    }
+    public function getTest2($userId, $number) {
+        $result = NvshenyueService::addChanceByInvest($userId, $number);
+        var_dump($result);
+    }
+
+    /*
+    public function getNvshenyue() {
+        $arr = ['nv' => 10, 'shen' => 5, 'yue' => 40, 'kuai' => 10, 'le' => 35];
+        $num = 100;
+        $total = array_sum($arr);
+
+        while($num > 0) {
+            $targetWord = '';
+            $rand = rand(1, $total);
+            foreach($arr as $key => $value) {
+                $rand -= $value;
+                if($rand <= 0) {
+                    $targetWord = $key;
+                    break;
+                }
+            }
+            if($num <= 5) {
+                $randNum = $num;
+            }else{
+                $randNum = rand(5, $num);
+            }
+
+            if(isset($result[$key])){
+                $result[$targetWord] += $randNum;
+            }else{
+                $result[$targetWord] = $randNum;
+            }
+            $num -= $randNum;
+        }
+
+        var_dump($result);
+
+    }
+    public function getNsy($num) {
+        $arr = ['女' => 20, '神' => 25, '月' => 15, '快' => 20, '乐' => 20];
+        $rangeMultiple = 1000;
+        $rangeMin = 0.6 * $rangeMultiple;
+        $rangeMax = 1.4 * $rangeMultiple;
+        $total = array_sum($arr);
+        //$num = 100;
+        $result = [];
+        // 粗略分配
+        foreach($arr as $key => $value) {
+            $range = rand($rangeMin, $rangeMax)/$rangeMultiple;
+            $prop = $num*$range*($value/$total);
+            if(intval(($prop*1000))%1000 > rand(1, 1000)) {
+                $result[$key] = intval($prop)+1;
+            }else{
+                $result[$key] = intval($prop);
+            }
+        }
+        //补余
+        $nowTotal = array_sum($result);
+        $diffValue = $num - $nowTotal;
+        $i = 0;
+        while($diffValue !== 0) {
+            $i++;
+            $rand = rand(1, $total);
+            foreach($arr as $key => $value) {
+                $rand -= $value;
+                if($rand <= 0) {
+                    break;
+                }
+            }
+            $result[$key] += $diffValue;
+            if($result[$key] < 0) {
+                $diffValue = $result[$key];
+                $result[$key] = 0;
+            }else{
+                $diffValue = 0;
+            }
+        }
+        return $result;
+
+    }
+
+    public function getTest() {
+        $totalResult = [];
+        $total = 0;
+        for($i = 1; $i <= 100; $i ++) {
+            for($j = 0; $j < 10; $j++) {
+                $total += $i;
+                $result = $this->getNsy($i);
+                foreach($result as $key => $value) {
+                    echo  '' . $value . '_' ;
+                   if(isset($totalResult[$key])) {
+                       $totalResult[$key] += $value;
+                   }else{
+                       $totalResult[$key] = $value;
+                   }
+                }
+                echo '总:' . array_sum($result);
+                echo '<hr />';
+            }
+        }
+
+        $sum = array_sum($totalResult);
+        foreach($totalResult as $key => $value) {
+           echo $key . ':' . $value . ' ';
+           echo intval(10000*($value/$sum))/100;
+           echo ' ';
+        }
+        echo '<hr />';
+        echo $total;
+        echo '|';
+        echo $sum;
+    }
+    */
+
+
     public function getXjdbTotal() {
         $total = 0;
         $config = Config::get('activity.xjdb');

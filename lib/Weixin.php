@@ -29,8 +29,12 @@ class Weixin
      * @params：string $state 重定向后会带上state参数
      * @params: string $scope snsapi_base(默认)和snsapi_userinfo（需要手动授权）
      */
-    public function get_authorize_url($scope='snsapi_base'){
-        $callback_url = urlencode($this->_redirect_uri);
+    public function get_authorize_url($scope='snsapi_base',$userinfoURI=''){
+        if($scope !== 'snsapi_base'){
+            $callback_url = urlencode($userinfoURI);
+        }else{
+            $callback_url = urlencode($this->_redirect_uri);
+        }
         return $this->_oauth_base_uri."/connect/oauth2/authorize?appid=".$this->_appid."&redirect_uri={$callback_url}&response_type=code&scope={$scope}&state=".$this->_state."#wechat_redirect";
 
     }
@@ -50,6 +54,46 @@ class Weixin
             if(isset($data['openid']))
             return $data['openid'];
         }
+        return false;
+    }
+
+    /*
+     * 通过code换取网页授权access_token
+     * @params: string $app_id 公众号的唯一标识
+     * @params: string $secret 公众号的appsecret
+     * @params：string $code  用户同意授权后得到的code
+     */
+
+    public function get_web_access_token($code=""){
+        $access_token_url = "/sns/oauth2/access_token?appid=".$this->_appid."&secret=".$this->_appsecret."&code={$code}&grant_type=authorization_code";
+        $res = $this->_client->get($access_token_url);
+        if($res->getStatusCode() == 200) {
+            $data = (array)json_decode($res->getBody());
+            if (isset($data['openid'])) {
+                return $data;
+            }
+        }
+        file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>[web]code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+        return false;
+
+    }
+
+    /*
+     * 通过access_token换取用户信息
+     * @params: string $access_token 网页授权接口调用凭证,注意：此access_token与基础支持的access_token不同
+     * @params: string $openid 	用户的唯一标识
+     * @params：string $lang  返回国家地区语言版本，zh_CN 简体，zh_TW 繁体，en 英语
+     */
+
+    public function get_web_user_info($access_token,$openid){
+        $access_token_url = "/sns/userinfo?access_token=".urlencode($access_token)."&openid=".urlencode($openid)."&lang=zh_CN";
+        $res = $this->_client->get($access_token_url);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            if(isset($data['openid']))
+                return $data;
+        }
+        file_put_contents(storage_path('logs/wechat_userinfo_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> [web]code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
         return false;
     }
 
@@ -100,7 +144,10 @@ class Weixin
                     Cache::put('wechat_access_token',$data['access_token'],120);
                     return $data['access_token'];
                 }else{
-                    file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+                    if($data['errcode'] == 40001){
+                        Cache::forget('wechat_access_token');
+                    }
+                    file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
                     return false;
                 }
             }

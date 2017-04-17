@@ -13,6 +13,7 @@ use App\Service\Func;
 use App\Service\SignIn;
 use App\Models\UserAttribute;
 use Lib\JsonRpcClient;
+use Lib\HouseOwnership;
 use Validator, Config;
 
 use App\Models\Award;
@@ -22,9 +23,62 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
+use App\Models\DataBlackWord;
 use Cache;
+use App\Service\ActivityService;
+use Lib\McQueue;
 class ActivityJsonRpc extends JsonRpc {
 
+
+    /**
+     * 房产证生成
+     *
+     * @JsonRpcMethod
+     */
+    public function createImg($params) {
+        if(empty($params->city) || empty($params->realname) || empty($params->address) || empty($params->area)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $params = (array)$params;
+        $city = I('data.city/s', '北京', 'trim', $params);
+        $realname = I('data.realname/s', '小明', 'trim', $params);
+        $address = I('data.address/s', '朝阳区三元桥海南航空大厦A座7层', 'trim', $params);
+        $area = I('data.area/f', '180.00', 'trim', $params);
+
+        if (mb_strlen($city) > 5)
+            throw new OmgException(OmgException::CITY_IS_TOO_LONG);
+
+        if (mb_strlen($realname) > 20)
+            throw new OmgException(OmgException::REALNAME_IS_TOO_LONG);
+
+        if (mb_strlen($address) > 30)
+            throw new OmgException(OmgException::ADDRESS_IS_TOO_LONG);
+
+        if ($area < 0 || $area > 10000)
+            throw new OmgException(OmgException::AREA_IS_TOO_BIG);
+
+        $nums = DataBlackWord::whereRaw("locate(word,\"{$params['realname']}\")")->count();
+        if ($nums)
+            throw new OmgException(OmgException::NAME_IS_ALIVE);
+        $nums = DataBlackWord::whereRaw("locate(word,\"{$params['address']}\")")->count();
+        if ($nums)
+            throw new OmgException(OmgException::ADDRESS_IS_ALIVE);
+
+        $houseOwnTool = new HouseOwnership();
+        $cityTextPos = $houseOwnTool::CITY_TEXT_POS;
+        $cityTextPos['x'] = $cityTextPos['x'] - (mb_strlen($city) - 5) * 20;
+        $houseOwnTool->writeText($city, $cityTextPos, 16);
+        $houseOwnTool->writeText($realname, $houseOwnTool::NAME_TEXT_POS);
+        $houseOwnTool->writeText($address, $houseOwnTool::ADDRESS_TEXT_POS);
+        $houseOwnTool->writeText(date("Y年m月d日"), $houseOwnTool::RECORDTIME_TEXT_POS);
+        $houseOwnTool->writeText($area, $houseOwnTool::AREA_TEXT_POS);
+        $houseOwnTool->writeText(round(($area * 0.81), 2), $houseOwnTool::TRUEAREA_TEXT_POS);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $houseOwnTool->getBase64Png()
+        ];
+    }
     /**
      * 领取分享奖励
      *
@@ -314,13 +368,15 @@ class ActivityJsonRpc extends JsonRpc {
             Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
         }
 
-        // 送积分
+        // 送积分 & 发消息
         if(!$isSignIn) {
             if($continue >=7 )  {
                 SendAward::ActiveSendAward($userId, 'signin_point7'); // 连续签到7天送2积分
             } else {
                 SendAward::ActiveSendAward($userId, 'signin_point'); // 签到送1积分
             }
+            $mcQueue = new McQueue();
+            $mcQueue->put('daylySignin', array('user_id' => $userId, 'days' => $continue));
         }
 
         // 额外奖励进度
@@ -827,7 +883,7 @@ class ActivityJsonRpc extends JsonRpc {
         );
     }
     /**
-     * 给用户发1000元体验金
+     * 给用户发100元红包
      *
      * @JsonRpcMethod
      */
@@ -836,7 +892,7 @@ class ActivityJsonRpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $status = SendAward::ActiveSendAward($userId,'shake_to_shake_share');
+        $status = SendAward::ActiveSendAward($userId,'shake_to_shake3_share');
         if(isset($status['msg'])){
             if($status['msg'] == "频次验证不通过"){
                 throw new OmgException(OmgException::MALL_IS_HAS);
@@ -853,6 +909,33 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data'=>array("award_name"=>$awardName)
+        );
+    }
+    /**
+     * 判断是否是中影票务通渠道和是否领奖
+     *
+     * @JsonRpcMethod
+     */
+    public function zypwtStatus(){
+        global $userId;
+        $return = ['isChannel'=>1,'isGet'=>1];
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //判断是否是该渠道
+        $userInfo = Func::getUserBasicInfo($userId,true);
+        if(isset($userInfo['from_channel']) && $userInfo['from_channel'] != 'zypwt'){
+            $return['isChannel'] = 0;
+        }
+        //判断是否获得
+        $isGet = ActivityService::isExistByAliasUserID('zypwt_channel',$userId);
+        if(empty($isGet)){
+            $return['isGet'] = 0;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=>$return
         );
     }
 }

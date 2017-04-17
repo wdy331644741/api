@@ -169,6 +169,64 @@ class GlobalAttributes
     }
 
     /**
+     * 根据$key获取number, 按今天的秒数清空
+     *
+     * @param $key
+     * @return int
+     */
+    static public function getNumberByTodaySeconds($key, $start=0, $seconds = 0) {
+        $res = GlobalAttribute::where(array('key' => $key))->lockforupdate()->first();
+        if(!$res) {
+            $res = GlobalAttribute::create(['key' => $key,  'number' => $start]);
+            return $res->number;
+        }
+
+        // 超过清空时间
+        $seconds = strtotime(date('Y-m-d 00:00:00')) + $seconds;
+        $lastSeconds = strtotime($res->updated_at);
+        $nowSeconds = time();
+        if($lastSeconds < $seconds && $nowSeconds > $seconds) {
+            $res->number = $start;
+            $res->updated_at = date('Y-m-d H:i:s');
+            $res->save();
+            return $res->number;
+        }
+
+        return $res->number;
+    }
+
+    /**
+     * 根据$key递减number, 按今天的秒数清空
+     *
+     * @param $key
+     * @param $num
+     * @param $seconds
+     * @param $start
+     * @return int
+     */
+    static public function decrementByTodaySeconds($key, $num = 1, $seconds = 0, $start = 0) {
+        $res = GlobalAttribute::where(array('key' => $key))->lockforupdate()->first();
+        if(!$res) {
+            $res = GlobalAttribute::create(['key' => $key,  'number' => $start - $num]);
+            return $res->number;
+        }
+
+        // 超过清空时间
+        $seconds = strtotime(date('Y-m-d 00:00:00')) + $seconds;
+        $lastSeconds = strtotime($res->updated_at);
+        $nowSeconds = time();
+        if($lastSeconds < $seconds && $nowSeconds > $seconds) {
+            $res->number = $start;
+            $res->updated_at = date('Y-m-d H:i:s');
+            $res->save();
+            return $res->number;
+        }
+
+        $res->decrement('number', $num);
+        return $res->number;
+    }
+
+    /**
      * 根据$key递增number,每日number清空
      *
      * @param $key
