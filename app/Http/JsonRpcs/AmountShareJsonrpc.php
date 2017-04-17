@@ -21,7 +21,7 @@ class AmountShareJsonRpc extends JsonRpc
     {
         global $userId;
 
-        $num = isset($params->num) && !empty($params->num) ? $params->num : 5;
+        $num = isset($params->num) ? $params->num : 0;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
