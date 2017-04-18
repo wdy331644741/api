@@ -16,19 +16,28 @@ class BbsThreadJsonRpc extends JsonRpc {
     /**
      *  根据板块获取帖子列表
      *
-     * @param thread_id 区域id
+     * @param id 区域id
      * @param pageNum  每页条数
      * @param page 当前页
      * @JsonRpcMethod
      */
     public function getBbsThreadList($params){
-        $thread_section = isset($params->thread_section)?$params->thread_section:2;//默认闲聊
+        $validator = Validator::make(get_object_vars($params), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+        if($validator->fails()){
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => $validator->errors()->first()
+            );
+        }
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at', 'created_at', 'updated_at')->where(['isverify'=>1,'type_id'=>$thread_section])
+        $res = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at', 'created_at', 'updated_at')->where(['isverify'=>1,'type_id'=>$params->id])
             ->with('users')
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)

@@ -9,6 +9,7 @@ use App\Models\Bbs\ThreadPm;
 use Lib\JsonRpcClient;
 use Validator;
 use Config;
+use Illuminate\Pagination\Paginator;
 
 
 
@@ -194,6 +195,72 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function getBbsUserThread($params){
+
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at',  'updated_at')
+            ->where(['isverify'=>1,'user_id'=>$this->userId])
+            ->orderByRaw('created_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+        $rData['list'] = $res['data'];
+        $rData['total'] = $res['total'];
+        $rData['per_page'] = $res['per_page'];
+        $rData['current_page'] = $res['current_page'];
+        $rData['last_page'] = $res['last_page'];
+        $rData['from'] = $res['from'];
+        $rData['to'] = $res['to'];
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$rData,
+        );
+
+
+
+    }
+    /**
+     *  获取用户发表的评论 分页
+     *
+     * @JsonRpcMethod
+     */
+    public  function getBbsUserComment($params){
+        $this->userId = 123;
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = Comment::select('id','from_user_id', 'tid', 'content', 'isverify', 'verify_time', 'created_at',  'updated_at')
+            ->where(['isverify'=>1,'user_id'=>$this->userId])
+            ->orderByRaw('created_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+        $rData['list'] = $res['data'];
+        $rData['total'] = $res['total'];
+        $rData['per_page'] = $res['per_page'];
+        $rData['current_page'] = $res['current_page'];
+        $rData['last_page'] = $res['last_page'];
+        $rData['from'] = $res['from'];
+        $rData['to'] = $res['to'];
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$rData,
+        );
 
 
 
