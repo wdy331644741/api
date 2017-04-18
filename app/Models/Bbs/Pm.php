@@ -4,7 +4,7 @@ namespace App\Models\Bbs;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ThreadPm extends Model
+class Pm extends Model
 {
-    protected $table = 'bbs_thread_pms';
+    protected $table = 'bbs_pms';
 }

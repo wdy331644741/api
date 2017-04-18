@@ -47,7 +47,7 @@ class UserController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = User::find($request->id)->forceDelete();
+        $res = User::where('id',$request->id)->where('isadmin',1)->delete();
         if($res){
             return $this->outputJson(0);
         }else{
@@ -60,17 +60,23 @@ class UserController extends Controller
     public function postPut(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_users,id',
-            'head_img'=>'required|integer',
-            'nickname'=>'required',
+            'head_img'=>'integer',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $putArr = [
-            'head_img'=>config('headimg.admin.'.$request->head_img),
-            'nickname'=>$request->nickname
-        ];
-        $res = User::find($request->id)->update($putArr);
+        $putData = [];
+        if(isset($request->head_img)){
+            $headArr = config('headimg.admin');
+            $putData['head_img'] = $headArr[$request->head_img];
+        }
+        if(isset($request->nickname)){
+            $putData['nickname'] = $request->nickname;
+        }
+        if (empty($putData)){
+            return $this->outputJson(10009,array('error_msg'=>'Not Changed'));
+        }
+        $res = User::where('id',$request->id)->update($putData);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -87,14 +93,14 @@ class UserController extends Controller
 
     //黑名单列表
     public function getBlackList(){
-        $data = User::select('nickname','phone','black_time')->where('isblack',1)->with('blacks')->paginate(20)->toArray();
+        $data = User::where('isblack',1)->with('blacks')->paginate(20)->toArray();
         return $this->outputJson(0,$data);
     }
 
     //拉黑
     public function postToBlack(Request $request){
         $validator = Validator::make($request->all(), [
-            'phone'=>'required|exists:bbs_users,id',
+            'phone'=>'required|exists:bbs_users,phone',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -124,7 +130,8 @@ class UserController extends Controller
             'isblack'=>0,
             'black_time'=>NULL
         ];
-        $res = User::find($request->id)->update($putArr);
+        $res = User::where('id',$request->id)->update($putArr);
+        dd($res);
         if($res){
             return $this->outputJson(0);
         }else{

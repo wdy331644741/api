@@ -14,7 +14,7 @@ class ThreadSectionController extends Controller
     //添加版块
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
-            'name'=>'required',
+            'name'=>'required|unique:bbs_thread_sections,name',
             'sort'=>'required|integer'
         ]);
         if($validator->fails()){
@@ -52,19 +52,29 @@ class ThreadSectionController extends Controller
     public function postPut(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_thread_sections,id',
-            'name'=>'required',
-            'sort'=>'required|integer'
+            'name'=>'unique:bbs_thread_sections,name',
+            'sort'=>'integer'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $putArr = [
-            'name'=>$request->name,
-            'isuse'=> $request->isuse ? $request->isuse : 0,
-            'sort'=>$request->sort,
-            'description'=>isset($request->description) ? $request->description : NULL
-        ];
-        $res = ThreadSection::find($request->id)->update($putArr);
+        $putData = [];
+        if(isset($request->name)){
+            $putData['name'] = $request->name;
+        }
+        if(isset($request->isuse)){
+            $putData['isuse'] = $request->isuse;
+        }
+        if(isset($request->sort)){
+            $putData['sort'] = $request->sort;
+        }
+        if(isset($request->description)){
+            $putData['description'] = $request->description;
+        }
+        if (empty($putData)){
+            return $this->outputJson(10009,array('error_msg'=>'Not Changed'));
+        }
+        $res = ThreadSection::where('id',$request->id)->update($putData);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -73,7 +83,7 @@ class ThreadSectionController extends Controller
     }
     //版块列表
     public function getList(){
-        $data = ThreadSection::where('isuse',1)->orderBy('sort asc')->get();
+        $data = ThreadSection::where('isuse',1)->orderBy('sort','asc')->orderBy('id','desc')->get();
         return $this->outputJson(0,$data);
     }
 
@@ -88,7 +98,7 @@ class ThreadSectionController extends Controller
         $putArr = [
             'isuse'=> 1,
         ];
-        $res = ThreadSection::find($request->id)->update($putArr);
+        $res = ThreadSection::where('id',$request->id)->update($putArr);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -107,7 +117,7 @@ class ThreadSectionController extends Controller
         $putArr = [
             'isuse'=> 0,
         ];
-        $res = ThreadSection::find($request->id)->update($putArr);
+        $res = ThreadSection::where('id',$request->id)->update($putArr);
         if($res){
             return $this->outputJson(0);
         }else{

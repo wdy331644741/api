@@ -20,7 +20,7 @@ class CreateBbsUsersTable extends Migration
             $table->string('nickname');
             $table->tinyInteger('isblack')->default(0)->comment('是否加黑名单 0(默认):否，1：是');
             $table->tinyInteger('black_type_id')->nullable()->default(NULL)->comment('拉黑理由');
-            $table->dateTime('black_time')->comment('拉黑时间');
+            $table->dateTime('black_time')->nullable()->default(NULL)->comment('拉黑时间');
             $table->timestamps();
         });
     }

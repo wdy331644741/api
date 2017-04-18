@@ -24,7 +24,7 @@ class CreateBbsThreadsTable extends Migration
             $table->tinyInteger('isgreat')->default(0)->comment('是否加精 0（默认）:否  1：是');
             $table->tinyInteger('ishot')->default(0)->comment('是否最热');
             $table->tinyInteger('isverify')->default(0)->commnet('是否审核 0:未审核,1:审核通过');
-            $table->dateTime('verify_time')->commemt('审核时间');
+            $table->dateTime('verify_time')->nullable()->default(NULL)->commemt('审核时间');
             $table->index('user_id');
             $table->softDeletes();
             $table->timestamps();
