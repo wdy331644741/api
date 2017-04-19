@@ -142,7 +142,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishComment($params){
-
+        $this->userId=123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -165,7 +165,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->save();
         if($comment->id){
             $thread_info = Thread::where(['id'=>$params->id])->first();
-            $this->commentUserPm($thread_info['user_id'],$params->id,$comment->id);//评论后添加到消息列表
+            $this->commentUserPm($thread_info['user_id'],$this->userId,$params->id,$comment->id,"");//评论后添加到消息列表
             return array(
                 'code' => 0,
                 'message' => 'success',
@@ -181,12 +181,14 @@ class BbsUserJsonRpc extends JsonRpc {
 
 
     }
-    private function commentUserPm($pmUserId,$tid,$cid){
-        $pms = new ThreadPm();
+    private function commentUserPm($pmUserId,$from_user_id,$tid,$cid,$content=""){
+        $pms = new Pm();
         $pms->user_id = $pmUserId;
+        $pms->from_user_id = $from_user_id;
         $pms->tid = $tid;
         $pms->cid = $cid;
-        $pms->isverify = 0;
+        $pms->content = $content;
+        $pms->isread = 0;
         $pms->save();
     }
     /**
@@ -233,7 +235,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function getBbsUserComment($params){
-        $this->userId = 123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -263,6 +264,45 @@ class BbsUserJsonRpc extends JsonRpc {
         );
 
     }
+    /**
+     *  获取用户消息 分页
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserPm($params){
+        $this->userId=123;
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+
+        $res = Pm::where(['isread'=>0,'user_id'=>$this->userId])
+            ->with('fromUsers','threads','comments')
+            ->orderByRaw('created_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+        $rData['list'] = $res['data'];
+        $rData['total'] = $res['total'];
+        $rData['per_page'] = $res['per_page'];
+        $rData['current_page'] = $res['current_page'];
+        $rData['last_page'] = $res['last_page'];
+        $rData['from'] = $res['from'];
+        $rData['to'] = $res['to'];
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$rData,
+        );
+
+
+    }
+
 
 }
 
