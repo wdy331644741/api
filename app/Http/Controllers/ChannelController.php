@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Channel;
 use Illuminate\Http\Request;
+use App\Http\Traits\BasicDatatables;
 
 use App\Http\Requests;
 
@@ -11,6 +12,13 @@ use Validator;
 
 class ChannelController extends Controller
 {
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id','name', 'alias_name', 'created_at'];
+    function __construct() {
+        $this->model = new Channel;
+    }
+
     //渠道列表
     public function getList(){
         $data = Channel::orderBy('id','desc')->paginate(20);
@@ -22,8 +30,6 @@ class ChannelController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
             'alias_name'=>'required|alpha_dash|unique:channels,alias_name',
-            'coop_status'=>'required|in:0,1,2,3',
-            'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -36,8 +42,8 @@ class ChannelController extends Controller
         $channel = new Channel();
         $channel->name = $request->name;
         $channel->alias_name = $request->alias_name;
-        $channel->coop_status = $request->coop_status;
-        $channel->classification = $request->classification;
+        $channel->coop_status = 0;
+        $channel->classification = '----';
         $channel->pre = $request->pre;
         $res = $channel->save();
         if($res){
@@ -50,7 +56,7 @@ class ChannelController extends Controller
     //删除渠道
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:channels,id',
+            'id' => "required|exists:{$this->table},id",
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -69,8 +75,6 @@ class ChannelController extends Controller
             'id'=>'required|exists:channels,id',
             'name' => 'required|min:2|max:255',
             'alias_name'=>'required|alpha_dash|unique:channels,alias_name,'.$request->id,
-            'coop_status'=>'required|in:0,1,2,3',
-            'classification'=>'required|in:----,CPC,CPD,CPT,CPA,CPS',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -84,9 +88,6 @@ class ChannelController extends Controller
         $updata = [
             'name' => $request->name,
             'alias_name' => $request->alias_name,
-            'pre'=>$request->pre,
-            'coop_status'=>$request->coop_status,
-            'classification'=>$request->classification,
         ];
 
         $res = Channel::where('id',$request->id)->update($updata);
