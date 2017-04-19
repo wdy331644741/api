@@ -84,6 +84,8 @@ class ImgManageController extends Controller
         $data['updated_at'] = date("Y-m-d H:i:s");
         //是否可用
         $data['can_use'] = 0;
+        $data['tag'] = empty($request['tag']) ? null : $request['tag'];
+
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
         $id = Banner::insertGetId($data);
@@ -471,7 +473,7 @@ class ImgManageController extends Controller
         $data = Func::Search($request,new AppStartpage);
         return $this->outputJson(0,$data);
     }
-    
+
     //启动页列表 通过平台id获取
     public function getAppInfoPid($platform){
         $filter = [

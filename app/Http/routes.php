@@ -10,7 +10,7 @@ Route::get('/ip', function () {
 Route::group(['middleware' => 'internal'], function() {
     // 触发发奖路由
     Route::get('channel/count-json', 'ChannelController@getCountJson'); // 数据获取渠道列表
-    Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口 
+    Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口
     Route::controller('mc', 'MessageCenterController');
     Route::controller('wsm', 'WechatSendmsgController'); //微信模板消息发送
 });
@@ -29,9 +29,11 @@ Route::group(['middleware' => 'admin'], function(){
     // 模板控制
     Route::controller('template', 'TemplateController');
     // 奖品路由
-    Route::controller('award', 'AwardController'); 
+    Route::controller('award', 'AwardController');
     // 权限管理
-    Route::controller('admin', 'AdminController'); 
+    Route::controller('admin', 'AdminController');
+    //用户组
+    Route::controller('privilege', 'PrivilegeController');
     // 兑换码
     Route::controller('redeem', 'RedeemController');
     // 贷款提交
