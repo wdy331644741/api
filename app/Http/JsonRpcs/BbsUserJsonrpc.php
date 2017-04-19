@@ -5,7 +5,7 @@ use App\Exceptions\OmgException;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
 use App\Models\Bbs\User;
-use App\Models\Bbs\ThreadPm;
+use App\Models\Bbs\Pm;
 use Lib\JsonRpcClient;
 use Validator;
 use Config;
@@ -261,8 +261,6 @@ class BbsUserJsonRpc extends JsonRpc {
             'message'=>'success',
             'data'=>$rData,
         );
-
-
 
     }
 
