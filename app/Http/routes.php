@@ -29,6 +29,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('bbs/thread','Bbs\ThreadController');
     Route::controller('bbs/section','Bbs\ThreadSectionController');
     Route::controller('bbs/user','Bbs\UserController');
+    Route::controller('bbs/global','Bbs\GlobalController');
 
     // 测试控制器
     Route::controller('test','TestController');
