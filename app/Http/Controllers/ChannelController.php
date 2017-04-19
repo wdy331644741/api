@@ -56,7 +56,7 @@ class ChannelController extends Controller
     //删除渠道
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => "required|exists:{$this->table},id",
+            'id' => 'required|exists:channels,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
