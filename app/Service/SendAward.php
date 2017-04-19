@@ -81,7 +81,7 @@ class SendAward
         $status = self::addAwardByActivity($userID, $activityID,$triggerData);
 
         //******给邀请人发奖励*****
-        $invite_status = self::InviteSendAward($userID, $activityID);
+        $invite_status = self::InviteSendAward($userID, $activityID,$triggerData);
 
         //发奖后操作
         AfterSendAward::afterSendAward($activityInfo,$triggerData);
@@ -154,7 +154,7 @@ class SendAward
      * @param $activityID
      * @return array
      */
-    static function InviteSendAward($userID, $activityID)
+    static function InviteSendAward($userID, $activityID,$triggerData = array())
     {
         $url = Config::get('award.reward_http_url');
         $client = new JsonRpcClient($url);
@@ -165,7 +165,11 @@ class SendAward
             $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
             if (!empty($inviteUserID)) {
                 //调用发奖接口
-                $status = self::addAwardToInvite($inviteUserID, $activityID);
+                //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+                if(isset($triggerData['tag']) && $triggerData['tag'] == "register"){
+                    $triggerData['child_user_id'] = $userID;
+                }
+                $status = self::addAwardToInvite($inviteUserID, $activityID,$triggerData);
                 $invite_status['inviteUserID'] = $inviteUserID;
                 $invite_status['awards'] = $status;
             }
@@ -730,12 +734,12 @@ class SendAward
      * @param $activityId
      * @return array
      */
-    static function addAwardToInvite($userId, $activityId) {
+    static function addAwardToInvite($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('award_invite')->first();
         $awardInvite = $activity['award_invite'];
         $res = [];
         foreach($awardInvite as $award) {
-            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] ,'',0,0,$triggerData);
         }
         return $res;
     }
@@ -793,6 +797,10 @@ class SendAward
             }
         } elseif ($award_type == 3) {
             //体验金
+            //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+            if(isset($triggerData['child_user_id'])){
+                $info['child_user_id'] = $triggerData['child_user_id'];
+            }
             return self::experience($info);
         } elseif ($award_type == 4) {
             //用户积分
@@ -1104,6 +1112,10 @@ class SendAward
         $uuid = self::create_guid();
         //体验金
         $data['user_id'] = $info['user_id'];
+        //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+        if(isset($info['child_user_id'])){
+            $data['child_user_id'] = $info['child_user_id'];
+        }
         $data['uuid'] = $uuid;
         $data['source_id'] = $info['source_id'];
         $data['name'] = $info['name'];
@@ -1127,7 +1139,7 @@ class SendAward
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
-                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['status'] = 1;
                 $info['uuid'] = $uuid;
                 $info['remark'] = json_encode($arr);
@@ -1135,7 +1147,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
