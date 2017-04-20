@@ -134,8 +134,6 @@ class AmountShareJsonRpc extends JsonRpc
         if (!$mallInfo) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
-        $result['recentList'] = self::_formatData($recentList);
 
         //获取用户的微信昵称和手机号
         $mallInfo['user_name'] = '';
@@ -206,6 +204,9 @@ class AmountShareJsonRpc extends JsonRpc
         }
         DB::commit();
 
+        //获奖记录
+        $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+        $result['recentList'] = self::_formatData($recentList);
 
         return array(
             'code' => 0,
