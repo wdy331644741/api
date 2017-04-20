@@ -13,9 +13,12 @@ class GlobalController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','alias_name','vip_level', 'send_max', 'comment_max'];
+    protected $fileds = ['id','key','val', 'remark'];
     protected $deleteValidates = [];
-    protected $addValidates = [];
+    protected $addValidates = [
+        'key' => 'required|alpha_dash',
+        'val' => 'required'
+    ];
     protected $updateValidates = [
         'id' => 'required|exists:bbs_global_configs,id'
     ];
@@ -23,10 +26,4 @@ class GlobalController extends Controller
     function __construct() {
         $this->model = new GlobalConfig();
     }
-    
-    //获取全局配置
-    public function getConfig(){
-        $data = GlobalConfig::where('alias_name','global_config')->first();
-        return $this->outputJson(0,$data);
-    } 
 }
