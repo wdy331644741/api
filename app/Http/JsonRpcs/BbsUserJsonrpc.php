@@ -270,7 +270,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsUserPm($params){
-        $this->userId=123;
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -280,8 +280,6 @@ class BbsUserJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-
-
         $res = Pm::where(['isread'=>0,'user_id'=>$this->userId])
             ->with('fromUsers','threads','comments')
             ->orderByRaw('created_at DESC')
