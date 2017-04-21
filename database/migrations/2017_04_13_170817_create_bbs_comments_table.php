@@ -15,7 +15,6 @@ class CreateBbsCommentsTable extends Migration
         Schema::create('bbs_comments', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id');
-            $table->integer('from_user_id')->comment('from_user_id为0时，为官方回复消息');
             $table->integer('tid')->comment('帖子id');
             $table->string('content');
             $table->tinyInteger('isverify')->default(0)->comment('是否审核：0（默认）：否，1：是');

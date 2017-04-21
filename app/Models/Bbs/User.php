@@ -16,5 +16,9 @@ class User extends Model
         return $this->hasOne('App\Models\Bbs\ReplyConfig','id','black_type_id');
     }
 
+    public function comments(){
+        return $this->hasMany('App\Models\Bbs\Comment','user_id','user_id');
+    }
+
 
 }
