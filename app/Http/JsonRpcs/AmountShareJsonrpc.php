@@ -159,6 +159,11 @@ class AmountShareJsonRpc extends JsonRpc
             if ($join) {
                 $result['isGot'] = 1;
                 $result['amount'] = $join['money'];
+
+                //获奖记录
+                $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+                $result['recentList'] = self::_formatData($recentList);
+                
                 return array(
                     'code' => 0,
                     'message' => 'success',
