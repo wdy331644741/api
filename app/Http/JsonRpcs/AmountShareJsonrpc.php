@@ -51,15 +51,21 @@ class AmountShareJsonRpc extends JsonRpc
 
         if (!empty($result['my_list'])) {
             //自己的分享领取完金额
-            $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
-            //自己的排名
-            $top = 0;
-            foreach($totalList as $key => $item){
-                if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
-                    $top = $key + 1;
+            $myTotalMoney = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
+            if(!empty($myTotalMoney)){
+                //自己的排名
+                $top = 0;
+                foreach($totalList as $key => $item){
+                    if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
+                        $top = $key + 1;
+                    }
                 }
+                $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
+                $result['my_top'] = $top;
+            }else{
+                $result['my_total_money'] = 0;
+                $result['my_top'] = $total_count+1;
             }
-            $result['my_top'] = $top;
         }else{
             $result['my_top'] = $total_count+1;
         }
