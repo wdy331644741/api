@@ -49,7 +49,7 @@ class AmountShareJsonRpc extends JsonRpc
         $totalList = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
         $total_count = count($totalList);
 
-        if (!empty($result['my_list'])) {
+        if (!empty($list)) {
             //自己的分享领取完金额
             $myTotalMoney = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
             if(!empty($myTotalMoney)){
