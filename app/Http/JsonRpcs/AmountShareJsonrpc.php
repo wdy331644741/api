@@ -60,7 +60,7 @@ class AmountShareJsonRpc extends JsonRpc
                         $top = $key + 1;
                     }
                 }
-                $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
+                $result['my_total_money'] = $myTotalMoney;
                 $result['my_top'] = $top;
             }else{
                 $result['my_total_money'] = 0;
