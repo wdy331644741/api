@@ -10,6 +10,8 @@ use Lib\JsonRpcClient;
 use Validator;
 use Config;
 use Illuminate\Pagination\Paginator;
+use App\Service\Func;
+use App\Models\Bbs\GlobalConfig;
 
 
 
@@ -18,10 +20,13 @@ class BbsUserJsonRpc extends JsonRpc {
 
 
     private $userId;
+    private $userInfo;
     public function __construct()
     {
         global $userId;
         $this->userId = $userId;
+        $this->userInfo = Func::getUserBasicInfo($userId);
+
 
     }
 
@@ -35,15 +40,32 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+
         if(!isset(Config::get('headimg')['user'][$param->head_img])){
             throw new OmgException(OmgException::DATA_ERROR);
         }
-        $headimg_url = Config::get('headimg')['user'][$param->head_img];
-        $res = User::select('user_id', $this->userId)->update(['head_img' => $headimg_url]);
+
+        $headImg = Config::get('headimg')['user'][$param->head_img];
+        $user = User::where(['user_id' => $this->userId])->first();
+        if($user){
+            //更新
+            $res = User::where(['user_id' => $this->userId])->update(['head_img'=>$headImg]);
+        }else{
+            //新建用户
+            $newUser = new User();
+            $newUser->user_id = $this->userId;
+            $newUser->head_img = $headImg;
+            $newUser->phone = $this->userInfo['phone'];
+            $newUser->nickname = $this->userInfo['username'];
+            $newUser->isblack = 0;
+            $newUser->isadmin = 0;
+            $res = $newUser->save();
+
+        }
         if ($res) {
             $user = array(
                 'user_id' => $this->userId,
-                'head_img' => $param->$headimg_url,
+                'head_img' => $headImg,
             );
             return array(
                 'code' => 0,
@@ -70,7 +92,21 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
-        $res = User::select('user_id', $this->userId)->update(['head_img' => $param->nickname]);
+        $user = User::where(['user_id' => $this->userId])->first();
+        if($user){
+            //更新
+            $res = User::where(['user_id' => $this->userId])->update(['nickname'=>$param->nickname]);
+        }else{
+            //新建用户
+            $newUser = new User();
+            $newUser->user_id = $this->userId;
+            $newUser->phone = $this->userInfo['phone'];
+            $newUser->nickname = $this->$param->nickname;
+            $newUser->isblack = 0;
+            $newUser->isadmin = 0;
+            $res = $newUser->save();
+
+        }
         if ($res) {
             $user = array(
                 'user_id' => $this->userId,
@@ -97,6 +133,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -110,6 +147,15 @@ class BbsUserJsonRpc extends JsonRpc {
                 'code' => -1,
                 'message' => 'fail',
                 'data' => $validator->errors()->first()
+            );
+        }
+        //发帖等级限制
+        $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
+        if($this->userInfo['level']<= $publishLimit['val']){
+            return array(
+                'code' => 2,
+                'message' => 'fail',
+                'data' => $publishLimit['remark']
             );
         }
         $thread = new Thread();
