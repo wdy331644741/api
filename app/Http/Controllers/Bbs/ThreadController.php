@@ -8,11 +8,29 @@ use App\Http\Requests;
 use App\Service\Func;
 use App\Http\Controllers\Controller;
 use App\Models\Bbs\Thread;
+use App\Http\Traits\BasicDatatables;
 use App\Models\Bbs\Pm;
 use Validator;
 
 class ThreadController extends Controller
 {
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id','user_id','title','content'];
+    protected $deleteValidates = [
+        'id' => 'required|exists:bbs_threads,id'
+    ];
+    protected $addValidates = [
+        'name' => 'required'
+    ];
+    protected $updateValidates = [
+        'id' => 'required|exists:bbs_threads,id'
+    ];
+
+    function __construct() {
+        $this->model = new Thread();
+    }
+
     //帖子为审核列表
     public function getList($isverify=0){
         if(!in_array($isverify,[0,1])){
