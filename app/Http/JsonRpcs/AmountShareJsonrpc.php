@@ -144,10 +144,12 @@ class AmountShareJsonRpc extends JsonRpc
         //获取用户的微信昵称和手机号
         $mallInfo['user_name'] = '';
         $mallInfo['phone'] = '';
+        $mallInfo['user_photo'] = '';
         if (!empty($mallInfo['user_id'])) {
             //获取微信昵称
             $nickName = Func::wechatInfoByUserID($mallInfo['user_id']);
             $mallInfo['user_name'] = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
+            $mallInfo['user_photo'] = isset($nickName['headimgurl']) && !empty($nickName['headimgurl']) ? $nickName['headimgurl'] : "";
             //获取用户手机号
             $phone = Func::getUserPhone($mallInfo['user_id'], true);
             $mallInfo['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
