@@ -133,14 +133,14 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
-
+        $this->userId=123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
             'title'=>'required',
-            'content'=>'required',
+            'content'=>'required|max:512',
         ]);
         if($validator->fails()){
             return array(

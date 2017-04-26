@@ -85,6 +85,8 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->orderByRaw('created_at')
             ->get()
             ->toArray();
+        //view +1
+        Thread::where(['id'=>$params->id])->update(['views'=>$thread_info['views']+1]);
         $data['thread_info'] = $thread_info;
         $data['comment_list'] = $comment_info;
         return array(
