@@ -14,11 +14,11 @@ class AccountController extends Controller
     public function __construct() {
         $this->jsonRpc = new JsonRpc();
     }
-    
+
     public function postLogin(Request $request) {
         $params = $request->all();
         $validator = Validator::make($params, [
-            'username'  => 'required', 
+            'username'  => 'required',
             'password' => 'required',
         ]);
         if($validator->fails()){
@@ -28,40 +28,50 @@ class AccountController extends Controller
         $result = $this->jsonRpc->account()->signin($params);
         return $this->outputRpc($result);
     }
-    
+
     public function getCaptcha() {
         $result = $this->jsonRpc->account()->captcha();
-        return $this->outputRpc($result);                               
+        return $this->outputRpc($result);
     }
-    
+
     public function getProfile() {
+        $privilege = ['default' => false, 'allow' => []];
+        $isAdmin = false;
+
         $res = $this->jsonRpc->account()->profile();
 
         if(isset($res['error'])){
-            $response['error_code']  = $res['error']['code'];      
+            $response['error_code']  = $res['error']['code'];
             $response['data'] = array( 'error_msg' => $res['error']['message']);
             return response()->json($response);
         }
-    
+
         $response['error_code']  = $res['result']['code'];
         $data = isset($res['result']['data']) ? $res['result']['data'] : [];
 
         $mobile = $data['phone'];
-        $admin = Admin::where('mobile', $mobile)->first();
-        if(!$admin || !$admin['level']) {
-            $level = 0;
-        }else{
+        $admin = Admin::where('mobile', $mobile)->with('privilege')->first();
+        if($admin) {
+            $isAdmin = true;
             $admin->last_login = date('Y-m-d H:i:s');
             $admin->update();
-            $level = $admin['level'] ? $admin['level'] : 0;
+            if(isset($admin['privilege'])
+                && isset($admin['privilege']['privilege'])
+                && !empty($admin['privilege']['privilege'])
+            ) {
+                $jsonRes = json_decode($admin['privilege']['privilege'],true);
+                if(!empty($jsonRes)) {
+                    $privilege = $jsonRes;
+                }
+            }
         }
-        $permission = Config::get("permission.{$level}");
-        $data['permission'] = $permission;
+        $data['privilege'] = $privilege;
+        $data['is_admin'] = $isAdmin;
         $response['data'] = $data;
         return response()->json($response);
     }
     public function getLogout() {
         $result = $this->jsonRpc->account()->signout();
-        return $this->outputRpc($result);       
+        return $this->outputRpc($result);
     }
 }
