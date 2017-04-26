@@ -16,7 +16,7 @@ class ThreadController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','user_id','title','content'];
+    protected $fileds = ['id','user_id','title','content', 'created_at'];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_threads,id'
     ];
