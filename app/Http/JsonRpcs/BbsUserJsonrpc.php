@@ -210,7 +210,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->save();
         if($comment->id){
             $thread_info = Thread::where(['id'=>$params->id])->first();
-            $this->commentUserPm($thread_info['user_id'],$this->userId,$params->id,$comment->id,"");//评论后添加到消息列表
+            $this->commentUserPm($thread_info['user_id'],$this->userId,$params->id,$comment->id,"");//评论后添加到消息列
+            Thread::where(['id'=>$params->id])->update(['comment_num'=>$thread_info['comment_num']+1]);
             return array(
                 'code' => 0,
                 'message' => 'success',
