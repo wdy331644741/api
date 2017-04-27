@@ -190,6 +190,13 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 网贷天眼首投送积分 start */
+            case 'wdty_investment_first':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    self::_wdtyIsSendAward($triggerData);
+                }
+                break;
+            /** 网贷天眼首投送积分 end */
             /** 现金分享 start */
             case 'amount_share_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
@@ -1575,5 +1582,41 @@ class SendAward
             $yearMoney = ceil(($amount*$time)/12);
         }
         return $yearMoney;
+    }
+
+    /**
+     * 网贷天眼首投送积分活动是否发奖
+     * @param $triggerData
+     * @return bool
+     */
+    static function _wdtyIsSendAward($triggerData){
+        $wdtyConfig = config::get("wdty");
+        if(empty($wdtyConfig)){
+            return false;
+        }
+        $money = isset($triggerData['Investment_amount']) ? $triggerData['Investment_amount'] : 0;
+        if($money < 1000){
+            return false;
+        }
+        //判断是否超过
+        $globalKey = $wdtyConfig['alias_name']."_".date("Ymd");
+        $totalIntegral = GlobalAttributes::getItem($globalKey);
+        if(isset($totalIntegral['number']) && $totalIntegral['number']>= $wdtyConfig['max_integral']){
+            return false;
+        }
+        $integral = 0;
+        foreach($wdtyConfig['integral_list'] as $key => $item){
+            if($money >= $item['min'] && $money <= $item['max']){
+                $integral = $key;
+            }
+        }
+        if($integral <= 0){
+            return false;
+        }
+        //累加
+        GlobalAttributes::increment($globalKey,$integral);
+        //发奖
+        self::ActiveSendAward($triggerData['user_id'],'wdty_'.$integral);
+        return true;
     }
 }
