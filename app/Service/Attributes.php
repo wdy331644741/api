@@ -444,22 +444,4 @@ class Attributes
         }
         return false;
     }
-
-    static public function incrementSting($uid,$key,$string = 1){
-
-        $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
-
-        if($res){
-            $res->increment('string', $string);
-            $res->save();
-            return $res->string;
-        }
-
-        $attribute = new UserAttribute();
-        $attribute->user_id = $uid;
-        $attribute->key = $key;
-        $attribute->string = $string;
-        $attribute->save();
-        return $string;
-    }
 }

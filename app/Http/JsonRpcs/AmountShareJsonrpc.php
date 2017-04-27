@@ -49,17 +49,23 @@ class AmountShareJsonRpc extends JsonRpc
         $totalList = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
         $total_count = count($totalList);
 
-        if (!empty($result['my_list'])) {
+        if (!empty($list)) {
             //自己的分享领取完金额
-            $result['my_total_money'] = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
-            //自己的排名
-            $top = 0;
-            foreach($totalList as $key => $item){
-                if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
-                    $top = $key + 1;
+            $myTotalMoney = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
+            if(!empty($myTotalMoney)){
+                //自己的排名
+                $top = 0;
+                foreach($totalList as $key => $item){
+                    if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
+                        $top = $key + 1;
+                    }
                 }
+                $result['my_total_money'] = $myTotalMoney;
+                $result['my_top'] = $top;
+            }else{
+                $result['my_total_money'] = 0;
+                $result['my_top'] = $total_count+1;
             }
-            $result['my_top'] = $top;
         }else{
             $result['my_top'] = $total_count+1;
         }
@@ -134,16 +140,16 @@ class AmountShareJsonRpc extends JsonRpc
         if (!$mallInfo) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
-        $result['recentList'] = self::_formatData($recentList);
 
         //获取用户的微信昵称和手机号
         $mallInfo['user_name'] = '';
         $mallInfo['phone'] = '';
+        $mallInfo['user_photo'] = '';
         if (!empty($mallInfo['user_id'])) {
             //获取微信昵称
             $nickName = Func::wechatInfoByUserID($mallInfo['user_id']);
             $mallInfo['user_name'] = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
+            $mallInfo['user_photo'] = isset($nickName['headimgurl']) && !empty($nickName['headimgurl']) ? $nickName['headimgurl'] : "";
             //获取用户手机号
             $phone = Func::getUserPhone($mallInfo['user_id'], true);
             $mallInfo['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
@@ -161,6 +167,11 @@ class AmountShareJsonRpc extends JsonRpc
             if ($join) {
                 $result['isGot'] = 1;
                 $result['amount'] = $join['money'];
+
+                //获奖记录
+                $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+                $result['recentList'] = self::_formatData($recentList);
+                
                 return array(
                     'code' => 0,
                     'message' => 'success',
@@ -206,6 +217,9 @@ class AmountShareJsonRpc extends JsonRpc
         }
         DB::commit();
 
+        //获奖记录
+        $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+        $result['recentList'] = self::_formatData($recentList);
 
         return array(
             'code' => 0,

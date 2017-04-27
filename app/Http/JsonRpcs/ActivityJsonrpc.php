@@ -27,6 +27,7 @@ use App\Models\DataBlackWord;
 use Cache;
 use App\Service\ActivityService;
 use Lib\McQueue;
+use App\Service\GlobalAttributes;
 class ActivityJsonRpc extends JsonRpc {
 
 
@@ -937,6 +938,37 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data'=>$return
+        );
+    }
+
+    /**
+     * 网贷天眼积分值是否超过预算
+     *
+     * @JsonRpcMethod
+     */
+    static function wdtyExceedLimit(){
+        $wdtyConfig = config::get("wdty");
+        if(empty($wdtyConfig)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> false
+            );
+        }
+        //判断是否超过
+        $globalKey = $wdtyConfig['alias_name']."_".date("Ymd");
+        $totalIntegral = GlobalAttributes::getItem($globalKey);
+        if(isset($totalIntegral['number']) && $totalIntegral['number']>= $wdtyConfig['max_integral']){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> false
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> true
         );
     }
 }
