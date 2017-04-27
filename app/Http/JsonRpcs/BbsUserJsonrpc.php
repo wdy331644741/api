@@ -17,8 +17,6 @@ use App\Models\Bbs\GlobalConfig;
 
 
 class BbsUserJsonRpc extends JsonRpc {
-
-
     private $userId;
     private $userInfo;
     public function __construct()
