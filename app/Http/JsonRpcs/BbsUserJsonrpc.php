@@ -344,6 +344,55 @@ class BbsUserJsonRpc extends JsonRpc {
 
 
     }
+    /**
+     *  获取用户信息 分页
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserInfo($param){
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+        //has Userinfo
+        if($BbsUserInfo){
+            return array(
+                'code'=>0,
+                'message'=>'success',
+                'data'=>$BbsUserInfo->toArray()
+            );
+        }else{
+            $User = new User();
+            $User->user_id = $this->userInfo['id'];
+            $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
+            $User->phone = $this->userInfo['phone'];
+            $User->nickname ='网利宝'.$this->userInfo['id'];
+            $User->isblack = 0;
+            $User->isadmin = 0;
+            $User->save();
+            $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+            return array(
+                'code'=>0,
+                'message'=>'success',
+                'data'=>$BbsUserInfo->toArray()
+            );
+        }
+
+    }
+    /**
+     *  获取全部用户头像
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserAllHeadImg($param){
+        $allHeadImg = Config::get('headimg')['user'];
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$allHeadImg
+        );
+
+    }
 
 
 }
