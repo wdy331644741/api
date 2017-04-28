@@ -1613,10 +1613,14 @@ class SendAward
         if($integral <= 0){
             return false;
         }
-        //累加
-        GlobalAttributes::increment($globalKey,$integral);
         //发奖
-        self::ActiveSendAward($triggerData['user_id'],'wdty_'.$integral);
+        $status = self::ActiveSendAward($triggerData['user_id'],'wdty_'.$integral);
+        //如果发奖成功才累加
+        if($status[0]['status'] === true){
+            //累加
+            GlobalAttributes::increment($globalKey,$integral);
+            return true;
+        }
         return true;
     }
 }
