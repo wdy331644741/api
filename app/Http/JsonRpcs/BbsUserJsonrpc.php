@@ -6,6 +6,7 @@ use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
 use App\Models\Bbs\User;
 use App\Models\Bbs\Pm;
+use App\Models\Bbs\ReplyConfig;
 use Lib\JsonRpcClient;
 use Validator;
 use Config;
@@ -208,7 +209,6 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->save();
         if($comment->id){
             $thread_info = Thread::where(['id'=>$params->id])->first();
-            $this->commentUserPm($thread_info['user_id'],$this->userId,$params->id,$comment->id,"");//评论后添加到消息列
             Thread::where(['id'=>$params->id])->update(['comment_num'=>$thread_info['comment_num']+1]);
             return array(
                 'code' => 0,
@@ -314,11 +314,9 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsUserPm($params){
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
-
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
@@ -329,6 +327,16 @@ class BbsUserJsonRpc extends JsonRpc {
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
+        foreach ($res['data'] as $key=>$value){
+            if($value['from_user_id'] ==0){//系统管理员回复
+                $replyInfo =ReplyConfig::where(['id'=>$value['cid']])->first()->toArray();
+                $res['data'][$key]['del_reason'] =$replyInfo['description'];
+                unset($res['data'][$key]['from_users']);
+                unset($res['data'][$key]['threads']);
+                unset($res['data'][$key]['comments']);
+            }
+        }
+        //Pm::where(['isread'=>0,'user_id'=>$this->userId])->update(['isread'=>1]);
         $rData['list'] = $res['data'];
         $rData['total'] = $res['total'];
         $rData['per_page'] = $res['per_page'];
@@ -341,6 +349,76 @@ class BbsUserJsonRpc extends JsonRpc {
             'message'=>'success',
             'data'=>$rData,
         );
+
+    }
+    /**
+     *  获取用户信息 分页
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserInfo($param){
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+        //has Userinfo
+        if($BbsUserInfo){
+            return array(
+                'code'=>0,
+                'message'=>'success',
+                'data'=>$BbsUserInfo->toArray()
+            );
+        }else{
+            $User = new User();
+            $User->user_id = $this->userInfo['id'];
+            $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
+            $User->phone = $this->userInfo['phone'];
+            $User->nickname ='网利宝'.$this->userInfo['id'];
+            $User->isblack = 0;
+            $User->isadmin = 0;
+            $User->save();
+            $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+            return array(
+                'code'=>0,
+                'message'=>'success',
+                'data'=>$BbsUserInfo->toArray()
+            );
+        }
+
+    }
+    /**
+     *  获取全部用户头像
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserAllHeadImg($param){
+        $allHeadImg = Config::get('headimg')['user'];
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$allHeadImg
+        );
+
+    }
+    /**
+     *  获取用户消息条数 分页
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserCountPm($params){
+        $this->userId =1;
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $res['num'] = Pm::where(['isread'=>0,'user_id'=>$this->userId])
+            ->count();
+
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+
 
     }
     /**
