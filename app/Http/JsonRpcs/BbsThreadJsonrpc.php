@@ -3,8 +3,7 @@
 namespace App\Http\JsonRpcs;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
-use App\Models\Bbs\ThreadSection;
-use APP\Models\Bbs\User;
+use App\Models\Bbs\User;
 use Lib\JsonRpcClient;
 use Illuminate\Pagination\Paginator;
 use Validator;
@@ -22,6 +21,7 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsThreadList($params){
+
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_thread_sections,id',
         ]);
@@ -37,8 +37,14 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
+        $threadSectionId = $params->id;
         $res = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at', 'created_at', 'updated_at')->where(['isverify'=>1,'type_id'=>$params->id])
             ->with('users')
+            ->whereNotIn('user_id', function($query){
+                $query->select('user_id')
+                    ->from('bbs_users')
+                    ->where(['isadmin'=>1]);
+            })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -104,7 +110,25 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsThreadTopList($params){
-        $res =Thread::where(['istop'=>1,'isverify'=>1])
+        $validator = Validator::make(get_object_vars($params), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+        if($validator->fails()){
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => $validator->errors()->first()
+            );
+        }
+        $limit = isset($params->limit)?$params->limit:-1;
+        $res =Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
+            ->whereIn('user_id',function ($query){
+                $query->select('user_id')
+                    ->from('bbs_users')
+                ->where(['isadmin'=>1]);
+            })
+            ->with('users')
+            ->limit($limit)
             ->orderByRaw('created_at DESC')
             ->get()
             ->toArray();
