@@ -11,6 +11,8 @@ class Thread extends Model
 
     protected $hidden = ['deleted_at'];
 
+    protected $guarded = ['created_at', 'update_at'];
+
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
