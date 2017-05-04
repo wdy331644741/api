@@ -126,7 +126,6 @@ class UserController extends Controller
             'black_time'=>NULL
         ];
         $res = User::where('id',$request->id)->update($putArr);
-        dd($res);
         if($res){
             return $this->outputJson(0);
         }else{
