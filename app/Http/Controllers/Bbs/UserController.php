@@ -9,10 +9,28 @@ use App\Http\Controllers\Controller;
 use phpDocumentor\Reflection\Types\Null_;
 use Validator;
 use App\Models\Bbs\User;
+use App\Http\Traits\BasicDatatables;
 use Config;
 
 class UserController extends Controller
 {
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id','user_id','head_img','phone', 'nickname', 'isblack', 'created_at', 'isadmin'];
+    protected $deleteValidates = [
+        'id' => 'required|exists:bbs_users,id'
+    ];
+    protected $addValidates = [
+        'user_id' => 'required',
+    ];
+    protected $updateValidates = [
+        'id' => 'required|exists:bbs_users,id'
+    ];
+
+    function __construct() {
+        $this->model = new User();
+    }
+
     //添加机器人账户
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
