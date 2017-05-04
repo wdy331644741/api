@@ -40,7 +40,7 @@ class UserController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $putData = ['isadmin',1];
+        $putData = array('isadmin'=>1);
         if(isset($request->head_img)){
             $putData['head_img'] = $request->head_img;
         }
@@ -60,7 +60,7 @@ class UserController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = User::where('id',$request->id)->update(['isadmin',0]);
+        $res = User::where('id',$request->id)->update(['isadmin'=>0]);
         if($res){
             return $this->outputJson(0);
         }else{
