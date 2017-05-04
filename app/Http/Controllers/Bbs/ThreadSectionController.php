@@ -7,10 +7,28 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Validator;
+use App\Http\Traits\BasicDatatables;
 use App\Models\Bbs\ThreadSection;
 
 class ThreadSectionController extends Controller
 {
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id','name','description','isuse', 'created_at', 'sort' ];
+    protected $deleteValidates = [
+        'id' => 'required|exists:bbs_thread_sections,id'
+    ];
+    protected $addValidates = [
+        'name' => 'required',
+    ];
+    protected $updateValidates = [
+        'id' => 'required|exists:bbs_thread_sections,id'
+    ];
+
+    function __construct() {
+        $this->model = new ThreadSection();
+    }
+
     //添加版块
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
