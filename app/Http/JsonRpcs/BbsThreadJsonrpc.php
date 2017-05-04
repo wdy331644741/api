@@ -37,13 +37,12 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $threadSectionId = $params->id;
-        $res = Thread::select('id', 'user_id', 'type_id', 'title', 'views', 'comment_num', 'istop', 'isgreat', 'ishot', 'created_at', 'created_at', 'updated_at')->where(['isverify'=>1,'type_id'=>$params->id])
+        $res = Thread::where(['isverify'=>1,'type_id'=>$params->id])
             ->with('users')
             ->whereNotIn('user_id', function($query){
                 $query->select('user_id')
                     ->from('bbs_users')
-                    ->where(['isadmin'=>1]);
+                    ->where(['isadmin'=>1,'istop'=>1]);
             })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
