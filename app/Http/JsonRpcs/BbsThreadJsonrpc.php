@@ -42,7 +42,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->whereNotIn('user_id', function($query){
                 $query->select('user_id')
                     ->from('bbs_users')
-                    ->where(['isadmin'=>1]);
+                    ->where(['isadmin'=>1,'istop'=>1]);
             })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
