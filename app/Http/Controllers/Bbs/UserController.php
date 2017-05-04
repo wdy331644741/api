@@ -35,7 +35,7 @@ class UserController extends Controller
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'head_img'=>'',
-            'user_id'=>'required',
+            'id'=>'required|exists:bbs_users,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -44,7 +44,7 @@ class UserController extends Controller
         if(isset($request->head_img)){
             $putData['head_img'] = $request->head_img;
         }
-        $res = User::where('user_id',$request->user_id)->update($putData);
+        $res = User::where('id',$request->id)->update($putData);
         if($res){
             return $this->outputJson(0);
         }else{
