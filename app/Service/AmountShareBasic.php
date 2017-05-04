@@ -69,6 +69,7 @@ class AmountShareBasic
         $param['money'] = $amountShare;
         $param['total_num'] = 10;
         $param['min'] = 0.01;
+        $param['multiple'] = $multiple;
         return self::addAmountShare($param);
     }
     /**
@@ -94,6 +95,8 @@ class AmountShareBasic
         $data['max'] = 0;
         //红包标示
         $data['identify'] = "amount_share_".Func::randomStr(15);
+        //红包倍数
+        $data['multiple'] = $param['multiple'];
         //开始时间
         $data['start_time'] = date("Y-m-d H:i:s");
         //结束时间
