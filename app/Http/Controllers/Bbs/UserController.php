@@ -17,7 +17,7 @@ class UserController extends Controller
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'head_img'=>'',
-            'phone'=>'required',
+            'user_id'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -26,7 +26,7 @@ class UserController extends Controller
         if(isset($request->head_img)){
             $putData['head_img'] = $request->head_img;
         }
-        $res = User::where('phone',$request->phone)->update($putData);
+        $res = User::where('user_id',$request->user_id)->update($putData);
         if($res){
             return $this->outputJson(0);
         }else{
