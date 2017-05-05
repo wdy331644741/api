@@ -37,19 +37,24 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $comment = Comment::find($request->id);
-        $user_id = Thread::find($comment->tid)->value('user_id');
+        $thread = Thread::find($comment->tid);
+        $user_id = null;
+        if($thread != null){
+            $user_id = $thread->user_id;
+            $pm = new Pm();
+            $pm->user_id = $user_id;
+            $pm->from_user_id = $comment->user_id;
+            $pm->tid = $comment->tid;
+            $pm->cid = 0;
+            $pm->content = $comment->content;
+            $pm->save();
+            Thread::where('id',$comment->tid)->increment('comment_num');
+        }
         $putData = [
             'isverify'=>1,
             'verify_time'=>date('Y-m-d H:i:s')
         ];
         $res = Comment::find($request->id)->update($putData);
-        $pm = new Pm();
-        $pm->user_id = $user_id;
-        $pm->from_user_id = $comment->user_id;
-        $pm->tid = $comment->tid;
-        $pm->cid = 0;
-        $pm->content = $comment->content;
-        $pm->save();
         if($res){
             return $this->outputJson(0);
         }else{
