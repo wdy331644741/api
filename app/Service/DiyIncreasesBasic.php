@@ -2,11 +2,8 @@
 namespace App\Service;
 
 use App\Models\DiyIncreases;
-use App\Service\Func;
-use App\Service\Attributes;
 use App\Models\UserAttribute;
 use Config;
-use Illuminate\Foundation\Auth\User;
 
 class DiyIncreasesBasic
 {
@@ -41,7 +38,7 @@ class DiyIncreasesBasic
             return false;
         }
         //按照传来的$num给用户添加加息值
-        $id = self::setUserAttributesItem($fromUserId,$config['key'],$num,$config);
+        $id = self::setUserAttributesItem($fromUserId,$num,$config);
         if($id === false){
             return false;
         }
@@ -66,16 +63,14 @@ class DiyIncreasesBasic
             return false;
         }
         //判断领取是否超过三次
-        if($id <= 0){
-            $num = Attributes::getNumber($userId,$config['num_key']);
-            if($num >= 3){
-                return false;
-            }
+        $count = UserAttribute::where(['user_id'=>$userId,'key'=>$config['key'],'string'=>1])->count();
+        if($count >= $config['max_num']){
+            return false;
         }
         //获取好友累加的加息值
         $res = UserAttribute::where(['id' => $id])->first();
         //判断是否领取过
-        if($id > 0 && isset($res->text) && $res->text == 1){
+        if($id > 0 && isset($res->string) && $res->string == 1){
             return false;
         }
         //给用户累加加息券
@@ -118,20 +113,15 @@ class DiyIncreasesBasic
      * @param $config
      * @return bool|mixed
      */
-    static function setUserAttributesItem($userId,$key,$number,$config){
-        //获取最新的一个领取完的是第几个
-        $thisNum = UserAttribute::where(['user_id'=>$userId,'key'=>$key,'text' => 1])->select('string')->orderBy('id','desc')->first();
-        if(empty($thisNum)){
-            $thisNum['string'] = 0;
-        }
-        $thisNum = $thisNum['string'];
-        //判断是否超过了活动期间的领取限制
-        if($thisNum >= $config['max_num']){
+    static function setUserAttributesItem($userId,$number,$config){
+        //判断生成的是否超过三条
+        $count = UserAttribute::where(['user_id'=>$userId,'key'=>$config['key'],'string'=>1])->count();
+        if($count >= $config['max_num']){
             return false;
         }
-        //判断新的加息券是否存在
-        $isExist = UserAttribute::where(['user_id'=>$userId,'key'=>$key,'string' => $thisNum+1])->first();
-        if(isset($isExist['id']) && $isExist['id'] > 0){
+        //判断正在增加的加息券是否存在
+        $isExist = UserAttribute::where(['user_id'=>$userId,'key'=>$config['key'],'string'=>0])->first();
+        if(isset($isExist['id']) && $isExist['id'] > 0 && $number !== 0){
             if($isExist->number >= 20){
                 return false;
             }
@@ -142,10 +132,9 @@ class DiyIncreasesBasic
         }
         $attribute = new UserAttribute();
         $attribute->user_id = $userId;
-        $attribute->key = $key;
-        $attribute->string = $thisNum+1;
+        $attribute->key = $config['key'];
         $attribute->number = $number;
-        $attribute->text = 0;
+        $attribute->string = 0;
         $attribute->save();
         return $attribute->id;
     }

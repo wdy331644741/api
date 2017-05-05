@@ -1,7 +1,6 @@
 <?php
 return [
     'key' => 'diy_increases',//diy加息券key名
-    'num_key' => 'diy_increases_num',//领取优惠券的key
     'default_value'=> '15',//就是1.5%加息券
     'max_num' => 3,
     'source_id' => 40000000,

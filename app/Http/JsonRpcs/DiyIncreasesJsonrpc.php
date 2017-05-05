@@ -4,10 +4,6 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\DiyIncreases;
 use App\Models\UserAttribute;
-use App\Service\AmountShareBasic;
-use App\Models\AmountShare;
-use App\Models\AmountShareInfo;
-use App\Service\Attributes;
 use App\Service\DiyIncreasesBasic;
 use App\Service\Func;
 use Config;
@@ -22,7 +18,7 @@ class DiyIncreasesJsonRpc extends JsonRpc
     public function DiyIncreasesList()
     {
         global $userId;
-        $userId = 1716845;
+
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -37,21 +33,19 @@ class DiyIncreasesJsonRpc extends JsonRpc
 
         //格式化列表
         $newList = [];
-        foreach($list as $item){
+        foreach($list as $k => $item){
             if(isset($item['id']) && !empty($item['id'])){
                 $increases = $config['default_value'] + $item['number'];
                 if($increases > 35){
                     $increases = 35;
                 }
                 //第几个加息券
-                $thisNum = intval($item['string']);
-                $newList[$thisNum]['increases'] = $increases/10;
-                $newList[$thisNum]['this_number'] = $thisNum;
-                $newList[$thisNum]['is_receive'] = intval($item['text']);
-                $newList[$thisNum]['expired_time'] = !empty($item['updated_at']) ? strtotime($item['updated_at']) + (3600*24*7) : 0;
+                $newList[$k]['id'] = $item['id'];
+                $newList[$k]['increases'] = $increases / 10;
+                $newList[$k]['is_receive'] = intval($item['string']);
                 //获取邀请人加息列表
-                $newList[$thisNum]['invite_list'] = DiyIncreases::where(['increases_id' => $item['id']])->orderBy('id','desc')->get()->toArray();
-                foreach($newList[$thisNum]['invite_list'] as &$val){
+                $newList[$k]['invite_list'] = DiyIncreases::where(['increases_id' => $item['id']])->orderBy('id','desc')->get()->toArray();
+                foreach($newList[$k]['invite_list'] as &$val){
                     if(isset($val['id']) && !empty($val['id'])) {
                         $val['number'] = $val['number'] / 10;
                         //获取用户加密手机号
@@ -77,7 +71,7 @@ class DiyIncreasesJsonRpc extends JsonRpc
     public function DiyIncreasesSend($params)
     {
         global $userId;
-        $userId = 1716845;
+
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -91,12 +85,18 @@ class DiyIncreasesJsonRpc extends JsonRpc
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
         $status = DiyIncreasesBasic::_DIYIncreasesSend($id,$userId);
         if(isset($status['status']) && $status['status'] == true){
-            //修改为已经领取状态
-            Attributes::increment($userId,$config['num_key'],1);
-            //修改为已经领取状态
-            if($id > 0){
-                UserAttribute::where(['id' => $id])->update(['text'=>1]);
+            //如果没有生成记录就手动生成
+            if($id <= 0){
+                //添加到用户属性表
+                $userAttId = DiyIncreasesBasic::setUserAttributesItem($userId,0,$config);
+                //修改为已发送状态
+                if($userAttId > 0){
+                    $id = $userAttId;
+                }
+
             }
+            //修改为已领取状态
+            UserAttribute::where(['id' => $id])->update(['string'=>1]);
             return array(
                 'code' => 0,
                 'message' => 'success',
