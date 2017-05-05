@@ -194,13 +194,14 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $publishLimit['remark']
             );
         }
+
         $thread = new Thread();
         $thread->user_id = $this->userId;
         $thread->type_id = $params->type_id;
         $thread->title = isset($params->title) ? $params->title : NULL;
         $thread->content = $params->content;
         $thread->istop =  0;
-        $thread->isverify = 0;
+        $thread->isverify = Config::get('bbsConfig')['threadVerify']?0:1;
         $thread->verify_time = date('Y-m-d H:i:s');
         $thread->save();
         if($thread->id){
@@ -242,7 +243,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
         $comment->content = $params->content;
-        $comment->isverify = 0;
+        $comment->isverify = Config::get('bbsConfig')['commentVerify']?0:1;
         $comment->save();
         if($comment->id){
             $thread_info = Thread::where(['id'=>$params->id])->first();
