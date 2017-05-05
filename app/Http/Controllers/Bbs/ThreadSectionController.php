@@ -7,10 +7,28 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Validator;
+use App\Http\Traits\BasicDatatables;
 use App\Models\Bbs\ThreadSection;
 
 class ThreadSectionController extends Controller
 {
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id','name','description','isuse', 'created_at', 'sort' ];
+    protected $deleteValidates = [
+        'id' => 'required|exists:bbs_thread_sections,id'
+    ];
+    protected $addValidates = [
+        'name' => 'required',
+    ];
+    protected $updateValidates = [
+        'id' => 'required|exists:bbs_thread_sections,id'
+    ];
+
+    function __construct() {
+        $this->model = new ThreadSection();
+    }
+
     //添加版块
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
@@ -22,7 +40,8 @@ class ThreadSectionController extends Controller
         }
         $section = new ThreadSection();
         $section->name = $request->name;
-        $section->isuse = $request->isuse ? $request->isuse : 0;
+        $section->isuse = isset($request->isuse) ? $request->isuse : 0;
+        $section->isban = isset($request->isban) ? $request->isban : 0;
         $section->sort = isset($request->sort) ? $request->sort : 0;
         $section->description = isset($request->description) ? $request->description : NULL;
         $section->save();
@@ -61,6 +80,9 @@ class ThreadSectionController extends Controller
         $putData = [];
         if(isset($request->name)){
             $putData['name'] = $request->name;
+        }
+        if(isset($request->isban)){
+            $putData['isban'] = $request->isban;
         }
         if(isset($request->isuse)){
             $putData['isuse'] = $request->isuse;
@@ -116,6 +138,45 @@ class ThreadSectionController extends Controller
         }
         $putArr = [
             'isuse'=> 0,
+        ];
+        $res = ThreadSection::where('id',$request->id)->update($putArr);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //禁止版块普通用户发帖
+    public function postBan(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $putArr = [
+            'isban'=> 1,
+        ];
+        $res = ThreadSection::where('id',$request->id)->update($putArr);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+
+    //解除版块普通用户发帖
+    public function postUnBan(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $putArr = [
+            'isban'=> 0,
         ];
         $res = ThreadSection::where('id',$request->id)->update($putArr);
         if($res){
