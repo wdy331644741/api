@@ -176,7 +176,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
             'title'=>'required',
-            'content'=>'required|max:512',
+            'content'=>'required|max:500',
         ]);
         if($validator->fails()){
             return array(
