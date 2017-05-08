@@ -144,15 +144,15 @@ class ThreadController extends Controller
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id',
-            'user_id'=>'required|exists:bbs_users,user_id',
             'cid'=>'required|exists:bbs_replay_configs,id'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $user_id = Thread::find($request->id)->value('user_id');
         Thread::destroy($request->id);
         $pm = new Pm();
-        $pm->user_id = $request->user_id;
+        $pm->user_id = $user_id;
         $pm->from_user_id = 0;
         $pm->tid = $request->id;
         $pm->cid = $request->cid;
