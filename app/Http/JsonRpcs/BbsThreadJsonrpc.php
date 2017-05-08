@@ -44,6 +44,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         $hotThread = Thread::where(['isverify'=>1,'type_id'=>$typeId])
             ->where('created_At','>',$mondayTime)
             ->with('users')
+            ->with('comments')
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
@@ -61,6 +62,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         }
         $res = Thread::where(['isverify'=>1,'type_id'=>$typeId])
             ->with('users')
+            ->with('comments')
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
@@ -92,6 +94,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             }
             $result = Thread::where(['isverify'=>1,'type_id'=>$typeId])
                 ->with('users')
+                ->with('comments')
                 ->whereNotIn('id', function($query) use($typeId){
                     $query->select('id')
                         ->from('bbs_threads')
@@ -191,7 +194,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             );
         }
         $limit = isset($params->limit)?$params->limit:-1;
-        $res =Thread::where(['istop'=>1,'inside'=>1,'isverify'=>1,'type_id'=>$params->id])
+        $res =Thread::where(['istop'=>1,'isinside'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('users')
             ->limit($limit)
             ->orderByRaw('created_at DESC')

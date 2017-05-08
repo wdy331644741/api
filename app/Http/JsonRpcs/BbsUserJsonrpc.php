@@ -121,7 +121,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $user = User::where(['user_id' => $this->userId])->first();
         if($user){
             //更新
-            $userNickname = User::where(['nickname'=>$param->nickname]);
+            $userNickname = User::where(['nickname'=>$param->nickname])->whereNotIn('id',['$this->userId'])->first();
+
             if(!$userNickname) {
                 $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
             }else{
@@ -147,7 +148,7 @@ class BbsUserJsonRpc extends JsonRpc {
             Redis::setBit($this->achieveUserImgOrNameKey,$this->userId,1);
             $user = array(
                 'user_id' => $this->userId,
-                'head_img' => $param->nickname,
+                'nickName' => $param->nickname,
             );
             return array(
                 'code' => 0,
@@ -480,7 +481,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTargetFive = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayThreadFive','user_id'=> $this->userId])->count();
         //任务类型 每日任务  成就任务
         //每日任务：主题贴  1次 dayThreadOne  5次 dayThreadFive
-        $dayThreadTaskOne['description'] = "当日发布一次主题贴";
+        $dayThreadTaskOne['description'] = "发布一次主题贴";
         $dayThreadTaskOne['taskType'] = "dayThreadOne";
         $dayThreadTaskOne['task'] = "day";
         $dayThreadTaskOne['taskMark'] = "dayThread";
@@ -488,7 +489,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskOne['current'] = $threadCount;
         $dayThreadTaskOne['finish'] =$this->bbsDayThreadOneTaskFinsh;
         $dayThreadTaskOne['isAward'] = $dayThreadTargetOne;
-        $dayThreadTaskFive['description'] = "当日发行五次次主题贴";
+        $dayThreadTaskOne['icon'] = "";
+        $dayThreadTaskFive['description'] = "发行五次主题贴";
         $dayThreadTaskFive['taskType'] = "dayThreadFive";
         $dayThreadTaskFive['task'] = "day";
         $dayThreadTaskFive['taskMark'] = "dayThread";
@@ -496,12 +498,13 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskFive['current'] = $threadCount;
         $dayThreadTaskFive['finish'] =$this->bbsDayThreadFiveTaskFinsh;
         $dayThreadTaskFive['isAward'] = $dayThreadTargetFive;
+        $dayThreadTaskFive['icon'] = "";
         //每日任务：评论 1次 dayCommentOne  5次 dayCommentFive
-        $commentCount = Comment::where('created_at','<',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
+        $commentCount = Comment::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
         //是否领过奖
         $dayCommentTargetOne =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayCommentOne','user_id'=> $this->userId])->count();
         $dayCommentTargetFive = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayCommentFive','user_id'=> $this->userId])->count();
-        $dayCommentTaskOne['description'] = "当日发布一次";
+        $dayCommentTaskOne['description'] = "发布一次评论";
         $dayCommentTaskOne['taskType'] = "dayCommentOne";
         $dayCommentTaskOne['task'] = "day";
         $dayCommentTaskOne['taskMark'] = "dayComment";
@@ -509,7 +512,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayCommentTaskOne['current'] = $commentCount;
         $dayCommentTaskOne['finish'] =$this->bbsDayCommentOneTaskFinsh;
         $dayCommentTaskOne['isAward'] = $dayCommentTargetOne;
-        $dayCommentTaskFive['description'] = "当日发行五次次主题贴";
+        $dayCommentTaskOne['icon'] = "";
+        $dayCommentTaskFive['description'] = "发行五次评论";
         $dayCommentTaskFive['taskType'] = "dayCommentFive";
         $dayCommentTaskFive['task'] = "day";
         $dayCommentTaskFive['taskMark'] = "dayComment";
@@ -517,6 +521,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayCommentTaskFive['current'] = $commentCount;
         $dayCommentTaskFive['finish'] =$this->bbsDayCommentFiveTaskFinsh;
         $dayCommentTaskFive['isAward'] = $dayCommentTargetFive;
+        $dayCommentTaskFive['icon'] = "";
         //完成所有每日任务
         $dayAllTaskCount = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayAllTask','user_id'=> $this->userId])->count();
         $dayAllTask['description'] = "完成所有每日任务";
@@ -527,11 +532,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayAllTask['current'] = $dayThreadTargetOne+$dayThreadTargetFive+$dayCommentTargetOne+$dayCommentTargetFive;
         $dayAllTask['finish'] =4;
         $dayAllTask['isAward'] = $dayAllTaskCount;
-        $res['day']['dayThreadOne'] = $dayThreadTaskOne;
-        $res['day']['dayThreadFive'] = $dayThreadTaskFive;
-        $res['day']['dayCommentOne'] = $dayCommentTaskOne;
-        $res['day']['dayCommentFive'] = $dayCommentTaskFive;
-        $res['day']['dayAllTask'] =$dayAllTask;
+        $dayAllTask['icon'] = "";
         //成就任务 发布10主题帖 achieveThreadTen
         $achieveThreadCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
         $achieveThreadTenCount = Task::where(['task_type'=>'achieveThreadTen','user_id'=> $this->userId])->count();
@@ -543,6 +544,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveThreadTenTask['current'] = $achieveThreadCount;
         $achieveThreadTenTask['finish'] =$this->bbsAchieveThreadTenTaskFinsh;
         $achieveThreadTenTask['isAward'] = $achieveThreadTenCount;
+        $achieveThreadTenTask['icon'] = "";
         //评论50 achieveCommentFifty
         $achieveCommentCount = Comment::where(['isverify'=>1,'user_id'=>$this->userId])->count();
         $achieveCommentFiftyCount = Task::where(['task_type'=>'achieveCommentFifty','user_id'=> $this->userId])->count();
@@ -554,6 +556,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveCommentFiftyTask['current'] = $achieveCommentCount;
         $achieveCommentFiftyTask['finish'] =$this->bbsAchieveCommentFiftyTaskFinsh;
         $achieveCommentFiftyTask['isAward'] = $achieveCommentFiftyCount;
+        $achieveCommentFiftyTask['icon'] = "";
         //上传头像及修改昵称  achieveUpdateImgOrName
         $achieveUpdateImgOrName = Redis::getBit($this->achieveUserImgOrNameKey,$this->userId);
         $achieveUpdateImgOrNameCount = Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
@@ -565,9 +568,20 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveUpdateImgOrNameTask['current'] = $achieveUpdateImgOrName;
         $achieveUpdateImgOrNameTask['finish'] =1;
         $achieveUpdateImgOrNameTask['isAward'] = $achieveUpdateImgOrNameCount;
-        $res['achieve']['achieveThreadTen'] =$achieveThreadTenTask;
-        $res['achieve']['achieveCommentFifty'] =$achieveCommentFiftyTask;
-        $res['achieve']['achieveUpdateImgOrName'] =$achieveUpdateImgOrNameTask;
+        $achieveUpdateImgOrNameTask['icon'] = "";
+        $res = [
+            [
+                "title"=>"每日任务",
+                "task"=>"day",
+                "list"=>[$dayThreadTaskOne,$dayThreadTaskFive,$dayCommentTaskOne,$dayCommentTaskFive]
+            ],
+            [
+                "title"=>"成就任务",
+                "task"=>"achieve",
+                "list"=>[$achieveThreadTenTask,$achieveCommentFiftyTask,$achieveUpdateImgOrNameTask]
+            ]
+
+        ];
         return array(
             'code'=>0,
             'message'=>'success',
@@ -581,7 +595,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
      public function BbsUserSendAward($param){
-
          if (empty($this->userId)) {
              throw  new OmgException(OmgException::NO_LOGIN);
          }
