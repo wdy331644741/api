@@ -17,7 +17,7 @@ class CreateBbsCommentsTable extends Migration
             $table->integer('user_id');
             $table->integer('tid')->comment('帖子id');
             $table->string('content');
-            $table->tinyInteger('isverify')->default(0)->comment('是否审核：0（默认）：否，1：是');
+            $table->tinyInteger('isverify')->default(0)->comment('是否审核：0（默认）：否，1：是，2：审核失败');
             $table->dateTime('verify_time')->nullable()->default(NULL)->comment('审核时间');
             $table->timestamps();
         });

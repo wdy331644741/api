@@ -1,5 +1,5 @@
 <?php
 return [
-    'threadVerify'=>false,
-    'commentVerify'=>false,
+    'threadVerify'=>true,
+    'commentVerify'=>true,
 ];
