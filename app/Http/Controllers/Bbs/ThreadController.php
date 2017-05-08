@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bbs;
 
+use App\Models\Bbs\ReplyConfig;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -16,7 +17,7 @@ class ThreadController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','user_id','title','content', 'created_at', 'istop', 'isgreat', 'ishot', 'isverify', 'comment_num'];
+    protected $fileds = ['id','user_id','title','content', 'cover', 'created_at', 'istop', 'isgreat', 'ishot', 'isverify', 'comment_num'];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_threads,id'
     ];
@@ -143,18 +144,21 @@ class ThreadController extends Controller
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id',
-            'user_id'=>'required|exists:bbs_users,user_id',
             'cid'=>'required|exists:bbs_replay_configs,id'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $user_id = Thread::find($request->id)->value('user_id');
         Thread::destroy($request->id);
         $pm = new Pm();
-        $pm->user_id = $request->user_id;
+        $pm->user_id = $user_id;
         $pm->from_user_id = 0;
         $pm->tid = $request->id;
         $pm->cid = $request->cid;
+        $pm->type = 2;
+        $reply = ReplyConfig::find($request->cid);
+        $pm->content = $reply->description;
         $pm->save();
         if($pm->id){
             return $this->outputJson(0);
@@ -183,8 +187,16 @@ class ThreadController extends Controller
             $putData['ishot'] = $request->ishot;
         }
         if(isset($request->isverify)){
+            $verify_time = date('Y-m-d H:i:s');
             $putData['isverify'] = $request->isverify;
-            $putData['verify_time'] = date('Y-m-d H:i:s');
+            $putData['verify_time'] = $verify_time;
+            $thread = Thread::find($request->id);
+            $pm = new Pm();
+            $pm->user_id = $thread->user_id;
+            $pm->from_user_id = 0;
+            $pm->tid = $request->id;
+            $pm->type = 1;
+            $pm->save();
         }
         $res = Thread::where('id',$request->id)->update($putData);
         if($res){
