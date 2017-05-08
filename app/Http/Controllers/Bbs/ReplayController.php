@@ -27,4 +27,10 @@ class ReplayController extends Controller
     function __construct() {
         $this->model = new ReplyConfig();
     }
+
+    //拒审列表
+    public function getList(){
+        $data = ReplyConfig::get();
+        return $this->outputJson(0,$data);
+    }
 }
