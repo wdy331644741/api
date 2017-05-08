@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bbs;
 
+use App\Models\Bbs\ReplyConfig;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -155,6 +156,9 @@ class ThreadController extends Controller
         $pm->from_user_id = 0;
         $pm->tid = $request->id;
         $pm->cid = $request->cid;
+        $pm->type = 2;
+        $reply = ReplyConfig::find($request->cid);
+        $pm->content = $reply->description;
         $pm->save();
         if($pm->id){
             return $this->outputJson(0);
@@ -183,8 +187,16 @@ class ThreadController extends Controller
             $putData['ishot'] = $request->ishot;
         }
         if(isset($request->isverify)){
+            $verify_time = date('Y-m-d H:i:s');
             $putData['isverify'] = $request->isverify;
-            $putData['verify_time'] = date('Y-m-d H:i:s');
+            $putData['verify_time'] = $verify_time;
+            $thread = Thread::find($request->id);
+            $pm = new Pm();
+            $pm->user_id = $thread->user_id;
+            $pm->from_user_id = 0;
+            $pm->tid = $request->id;
+            $pm->type = 1;
+            $pm->save();
         }
         $res = Thread::where('id',$request->id)->update($putData);
         if($res){
