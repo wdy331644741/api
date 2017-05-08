@@ -9,37 +9,50 @@ use App\Http\Controllers\Controller;
 use phpDocumentor\Reflection\Types\Null_;
 use Validator;
 use App\Models\Bbs\User;
+use App\Http\Traits\BasicDatatables;
 use Config;
 
 class UserController extends Controller
 {
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id','user_id','head_img','phone', 'nickname', 'isblack', 'created_at', 'isadmin'];
+    protected $deleteValidates = [
+        'id' => 'required|exists:bbs_users,id'
+    ];
+    protected $addValidates = [
+        'user_id' => 'required',
+    ];
+    protected $updateValidates = [
+        'id' => 'required|exists:bbs_users,id'
+    ];
+
+    function __construct() {
+        $this->model = new User();
+    }
+
     //添加机器人账户
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
-            'user_id'=>'required|integer',
-            'head_img'=>'required|integer',
-            'phone'=>'required',
-            'nickname'=>'required',
+            'head_img'=>'',
+            'id'=>'required|exists:bbs_users,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $user = new User();
-        $user->user_id = $request->user_id;
-        $headArr = config('headimg.admin');
-        $user->head_img =  $headArr[$request->head_img];
-        $user->phone = $request->phone;
-        $user->nickname = $request->nickname;
-        $user->isadmin = 1;
-        $user->save();
-        if($user->id){
-            return $this->outputJson(0,array('insert_id'=>$user->id));
+        $putData = array('isadmin'=>1);
+        if(isset($request->head_img)){
+            $putData['head_img'] = $request->head_img;
+        }
+        $res = User::where('id',$request->id)->update($putData);
+        if($res){
+            return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
 
-    //删除机器人账户
+    //移除机器人账户
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_users,id',
@@ -47,7 +60,7 @@ class UserController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $res = User::where('id',$request->id)->where('isadmin',1)->delete();
+        $res = User::where('id',$request->id)->update(['isadmin'=>0]);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -100,7 +113,7 @@ class UserController extends Controller
     //拉黑
     public function postToBlack(Request $request){
         $validator = Validator::make($request->all(), [
-            'phone'=>'required|exists:bbs_users,phone',
+            'id'=>'required|exists:bbs_users,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -109,7 +122,7 @@ class UserController extends Controller
             'isblack'=>1,
             'black_time'=>date('Y-m-d H:i:s')
         ];
-        $res = User::where('phone',$request->phone)->update($putArr);
+        $res = User::where('id',$request->id)->update($putArr);
         if($res){
             return $this->outputJson(0);
         }else{
@@ -131,7 +144,6 @@ class UserController extends Controller
             'black_time'=>NULL
         ];
         $res = User::where('id',$request->id)->update($putArr);
-        dd($res);
         if($res){
             return $this->outputJson(0);
         }else{
