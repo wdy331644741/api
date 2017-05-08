@@ -16,7 +16,7 @@ class CommentController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','user_id','content', 'isverify','verify_time'];
+    protected $fileds = ['id','user_id', 'tid', 'content', 'isverify', 'created_at'];
     protected $deleteValidates = [
         'id'=>'required|exists:bbs_comments,id',
     ];
