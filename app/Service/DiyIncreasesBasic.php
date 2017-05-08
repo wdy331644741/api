@@ -3,6 +3,7 @@ namespace App\Service;
 
 use App\Models\DiyIncreases;
 use App\Models\UserAttribute;
+use App\Models\Activity;
 use Config;
 
 class DiyIncreasesBasic
@@ -137,5 +138,32 @@ class DiyIncreasesBasic
         $attribute->string = 0;
         $attribute->save();
         return $attribute->id;
+    }
+
+    /**
+     * 活动是否结束
+     * @param $aliasName
+     * @return bool
+     */
+    static function activityIsExist($aliasName){
+        if(empty($aliasName)){
+            return false;
+        }
+        $where['alias_name'] = $aliasName;
+        $where['enable'] = 1;
+        $isExist = Activity::where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where($where)->count();
+
+        if(!$isExist){
+            return false;
+        }
+        return true;
     }
 }

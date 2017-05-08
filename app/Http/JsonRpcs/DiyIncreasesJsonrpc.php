@@ -26,6 +26,11 @@ class DiyIncreasesJsonRpc extends JsonRpc
         if(empty($config)){
             throw new OmgException(OmgException::API_FAILED);
         }
+        //判断多动是否结束
+        $isEnd = DiyIncreasesBasic::activityIsExist('diy_increases_time');
+        if(!$isEnd){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //DIY加息列表
         $where['user_id'] = $userId;
         $where['key'] = $config['key'];
@@ -82,6 +87,12 @@ class DiyIncreasesJsonRpc extends JsonRpc
                 'message' => 'config_faild'
             );
         }
+        //判断多动是否结束
+        $isEnd = DiyIncreasesBasic::activityIsExist('diy_increases_time');
+        if(!$isEnd){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
         $status = DiyIncreasesBasic::_DIYIncreasesSend($id,$userId);
         if(isset($status['status']) && $status['status'] == true){
@@ -108,5 +119,4 @@ class DiyIncreasesJsonRpc extends JsonRpc
             'message' => 'faild'
         );
     }
-
 }
