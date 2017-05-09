@@ -75,9 +75,11 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->toArray();
 
         if(empty($hotThread)){
-            foreach ($res['list'] as $key => $value){
+
+            foreach ($res['data'] as $key => $value){
                 foreach ($value['comments'] as $k =>$v) {
-                    $res['list'][$key]['comments'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first()->toArray();
+
+                    $res['data'][$key]['comments'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
                 }
             }
             $rData['total'] = $res['total'];
