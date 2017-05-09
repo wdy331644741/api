@@ -194,7 +194,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             );
         }
         $limit = isset($params->limit)?$params->limit:-1;
-        $res =Thread::where(['istop'=>1,'inside'=>1,'isverify'=>1,'type_id'=>$params->id])
+        $res =Thread::where(['istop'=>1,'isinside'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('users')
             ->limit($limit)
             ->orderByRaw('created_at DESC')
