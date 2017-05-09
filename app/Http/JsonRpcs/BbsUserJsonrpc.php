@@ -171,6 +171,14 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
+        $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
+        if($threadTimeLimit){
+            throw new OmgException(OmgException::API_BUSY);
+        }else{
+            Redis::SET('threadTimeLimit_'.$this->userId,"1");
+            $timeLimit = Config::get('bbsConfig')['threadPublishTimeLimit'];
+            Redis::PEXPIRE('threadTimeLimit_'.$this->userId,$timeLimit);
+        }
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -226,6 +234,14 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishComment($params){
+        $commentTimeLimit = Redis::GET('commentTimeLimit_'.$this->userId);
+        if($commentTimeLimit){
+            throw new OmgException(OmgException::API_BUSY);
+        }else{
+            Redis::SET('commentTimeLimit_'.$this->userId,"1");
+            $timeLimit = Config::get('bbsConfig')['commentPublishTimeLimit'];
+            Redis::PEXPIRE('commentTimeLimit_'.$this->userId,$timeLimit);
+        }
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
