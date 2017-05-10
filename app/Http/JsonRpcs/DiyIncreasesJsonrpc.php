@@ -54,8 +54,8 @@ class DiyIncreasesJsonRpc extends JsonRpc
                     $expired_time = !empty($item['updated_at']) ? strtotime($item['updated_at']) + (3600*24*7) : 0;
                     if(time() > $expired_time){
                         $newList[$k]['is_expired'] = 1;
-                        $newList[$k]['expired_time'] = $expired_time;
                     }
+                    $newList[$k]['expired_time'] = $expired_time;
                 }
                 //获取邀请人加息列表
                 $newList[$k]['invite_list'] = DiyIncreases::where(['increases_id' => $item['id']])->orderBy('id','desc')->get()->toArray();
