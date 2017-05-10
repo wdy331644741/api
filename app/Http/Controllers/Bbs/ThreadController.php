@@ -81,7 +81,6 @@ class ThreadController extends Controller
         $validator = Validator::make($request->all(), [
             'user_id'=>'required|exists:bbs_users,user_id',
             'type_id'=>'required|exists:bbs_thread_sections,id',
-            'content'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -91,7 +90,7 @@ class ThreadController extends Controller
         $thread->type_id = $request->type_id;
         $thread->cover = isset($request->cover) ? $request->cover : NULL;
         $thread->title = isset($request->title) ? $request->title : NULL;
-        $thread->content = $request->content;
+        $thread->content = isset($request->content) ? $request->content : NULL;
         $thread->isinside = 1;
         $thread->istop = $request->istop ? $request->istop : 0;
         $thread->isverify = 1;
