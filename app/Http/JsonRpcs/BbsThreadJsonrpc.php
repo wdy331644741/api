@@ -50,13 +50,14 @@ class BbsThreadJsonRpc extends JsonRpc {
                     ->from('bbs_threads')
                     ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
             })
-            ->where('created_at','>',$mondayTime)
+
             ->orderByRaw('views DESC')
             ->offset(0)
             ->limit(2)
             ->orderByRaw('created_at DESC')
             ->get()
             ->toArray();
+
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
@@ -68,17 +69,26 @@ class BbsThreadJsonRpc extends JsonRpc {
                     ->from('bbs_threads')
                     ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
             })
+
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
+
         if(empty($hotThread)){
-            $rData['list'] = $res['data'];
+
+            foreach ($res['data'] as $key => $value){
+                foreach ($value['comments'] as $k =>$v) {
+
+                    $res['data'][$key]['comments'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                }
+            }
             $rData['total'] = $res['total'];
             $rData['per_page'] = $res['per_page'];
             $rData['current_page'] = $res['current_page'];
             $rData['last_page'] = $res['last_page'];
             $rData['from'] = $res['from'];
             $rData['to'] = $res['to'];
+            $rData['list'] = $res['data'];
             return array(
                 'code'=>0,
                 'message'=>'success',
@@ -110,6 +120,11 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $data['list'] = array_merge($hotThread,$result);
             }else{
                 $data['list'] = $result;
+            }
+            foreach ($data['list'] as $key => $value){
+                    foreach ($value['comments'] as $k =>$v) {
+                        $data['list'][$key]['comments'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first()->toArray();
+                    }
             }
             $rData['list'] = $data['list'];
             $rData['total'] = $res['total'];
@@ -161,8 +176,8 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->toArray();
         //view +1
 
-        Thread::where(['id'=>$params->id])->update(['views'=>$thread_info['views']+1]);
-        //PM入口处理消息
+        Thread::where(['id'=>$params->id])->update(['views'=>$thread_info->views+1]);
+
         if(!empty($params->fromPm)){
             Pm::where(['id'=>$params->fromPm])->update(['isread'=>1]);
         }
