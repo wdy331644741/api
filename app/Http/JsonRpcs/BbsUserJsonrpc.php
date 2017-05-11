@@ -115,8 +115,19 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function updateBbsUserNickname($param){
+        $this->userId =123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($param), [
+            'nickname'=>'required',
+        ]);
+        if($validator->fails()){
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => " 昵称不能为空"
+            );
         }
         $user = User::where(['user_id' => $this->userId])->first();
         if($user){
@@ -198,7 +209,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
         if($this->userInfo['level']<= $publishLimit['val']){
             return array(
-                'code' => 2,
+                'code' => -1,
                 'message' => 'fail',
                 'data' => $publishLimit['remark']
             );
@@ -402,6 +413,24 @@ class BbsUserJsonRpc extends JsonRpc {
             'data'=>$rData,
         );
 
+
+    }
+    /**
+     *  全部删除用户消息
+     *
+     * @JsonRpcMethod
+     */
+    public function delBbsUserAllPm($params){
+        $this->userId = 1716774;
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $deleted['num'] = Pm::where(['user_id'=>$this->userId])->delete();
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$deleted,
+        );
 
     }
     /**

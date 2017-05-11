@@ -250,12 +250,14 @@ class BbsThreadJsonRpc extends JsonRpc {
                 'data' => $validator->errors()->first()
             );
         }
-        $limit = isset($params->limit)?$params->limit:-1;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         $res =Thread::where(['istop'=>1,'isinside'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('users')
-            ->limit($limit)
-            ->orderByRaw('created_at DESC')
-            ->get()
+            ->paginate($pageNum)
             ->toArray();
         return array(
             'code' => 0,
