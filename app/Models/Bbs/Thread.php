@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Thread extends Model
 {
+
     protected $table = 'bbs_threads';
 
     protected $hidden = ['deleted_at'];
@@ -16,6 +17,15 @@ class Thread extends Model
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
+
+    protected $userId;
+
+    public  function __construct(array $attributes = [])
+    {
+        if($attributes) {
+            $this->userId = $attributes['userId'];
+        }
+    }
 
     public function users(){
         return $this->hasOne('App\Models\Bbs\User','user_id','user_id');
@@ -27,5 +37,10 @@ class Thread extends Model
 
     public function comments(){
         return $this->hasMany('App\Models\Bbs\Comment','tid','id');
+    }
+    public function commentAndVerify(){
+
+        $userId = $this->userId;
+        return $this->hasMany('App\Models\Bbs\Comment','tid','id')->where(['isverify'=>1])->orwhere(function($query)use($userId){$query->where(['user_id'=>$userId]);});
     }
 }

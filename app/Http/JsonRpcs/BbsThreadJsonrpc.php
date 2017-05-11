@@ -13,6 +13,12 @@ use Validator;
 
 class BbsThreadJsonRpc extends JsonRpc {
 
+
+    public  function __construct()
+    {
+        global $userId;
+        $this->userId =$userId;
+    }
     /**
      *  根据板块获取帖子列表
      *
@@ -22,10 +28,11 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsThreadList($params){
-
+        $userId = $this->userId;
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_thread_sections,id',
         ]);
+
         if($validator->fails()){
             return array(
                 'code' => -1,
@@ -41,16 +48,21 @@ class BbsThreadJsonRpc extends JsonRpc {
         });
         //自定义分页  查找本周2条view最多的帖子  剔除 管理员发的置顶贴
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
-        $hotThread = Thread::where(['isverify'=>1,'type_id'=>$typeId])
+
+        $thread = new Thread(['userId'=>$userId]);
+
+        $hotThread = $thread->where(['isverify'=>1,'type_id'=>$typeId])
+                             ->orWhere(function($query)use($typeId,$userId){
+                                 $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                })
             ->where('created_At','>',$mondayTime)
             ->with('users')
-            ->with('comments')
+            ->with("commentAndVerify")
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
                     ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
             })
-
             ->orderByRaw('views DESC')
             ->offset(0)
             ->limit(2)
@@ -61,27 +73,36 @@ class BbsThreadJsonRpc extends JsonRpc {
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
-        $res = Thread::where(['isverify'=>1,'type_id'=>$typeId])
+        $res = $thread->where(['isverify'=>1,'type_id'=>$typeId])
+            ->orWhere(function($query)use($typeId,$userId){
+                $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+            })
             ->with('users')
-            ->with('comments')
+            ->with("commentAndVerify")
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
                     ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
             })
-
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
-        if(empty($hotThread)){
+        if(empty($thread)){
 
             foreach ($res['data'] as $key => $value){
-                foreach ($value['comments'] as $k =>$v) {
+                $res['data'][$key]['comments']=[];
+                foreach ($value['comment_and_verify'] as $k =>$v) {
 
-                    $res['data'][$key]['comments'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                    $res['data'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                    $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
+
                 }
+                unset($res['data'][$key]['comment_and_verify']);
+
+
             }
+
             $rData['total'] = $res['total'];
             $rData['per_page'] = $res['per_page'];
             $rData['current_page'] = $res['current_page'];
@@ -102,29 +123,40 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $offset = ($page-1)*$pageNum-count($hotThreadId);
                 $step =$pageNum;
             }
-            $result = Thread::where(['isverify'=>1,'type_id'=>$typeId])
-                ->with('users')
-                ->with('comments')
-                ->whereNotIn('id', function($query) use($typeId){
-                    $query->select('id')
-                        ->from('bbs_threads')
-                        ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
-                })
+
+            $result = $thread->whereNotIn('id', function($query) use($typeId){
+                                         $query->select('id')
+                                          ->from('bbs_threads')
+                                          ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                        })
                 ->whereNotIn('id',$hotThreadId)
+                ->where(['isverify'=>1,"type_id"=>$typeId])
+                ->orWhere(function($query)use($typeId,$userId){
+                    $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                })
+                ->with('users')
+                ->with('commentAndVerify')
                 ->orderByRaw('created_at DESC')
                 ->offset($offset)
                 ->limit($step)
                 ->get()
                 ->toArray();
+
+
             if($page == 1){
                 $data['list'] = array_merge($hotThread,$result);
             }else{
                 $data['list'] = $result;
             }
             foreach ($data['list'] as $key => $value){
-                    foreach ($value['comments'] as $k =>$v) {
-                        $data['list'][$key]['comments'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first()->toArray();
-                    }
+                $res['list'][$key]['comments']=[];
+                foreach ($value['comment_and_verify'] as $k =>$v) {
+
+                    $res['list'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                    $res['list'][$key]['comments'][$k] = $res['list'][$key]['comment_and_verify'][$k];
+
+                }
+                unset($res['data'][$key]['comment_and_verify']);
             }
             $rData['list'] = $data['list'];
             $rData['total'] = $res['total'];
@@ -153,6 +185,7 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function getBbsThreadDetail($params){
+        $userId = $this->userId;
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
         ]);
@@ -165,18 +198,27 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         }
 
-        $thread_info = Thread::where(['isverify'=>1,'id'=>$params->id])
+        $thread =  new Thread(['userId'=>$userId]);
+
+        $thread_info =  $thread->where(['isverify'=>1,'id'=>$params->id])
+               ->orWhere(function($query)use($userId){
+                   $query->where(['user_id'=>$userId]);
+               })
             ->with('users')
             ->first();
 
-        $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info->id])
+
+        $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info['id']])
+                            ->orWhere(function($query)use($userId){
+                                $query->where(['user_id'=>$userId]);
+                })
             ->with('users')
             ->orderByRaw('created_at')
             ->get()
             ->toArray();
         //view +1
 
-        Thread::where(['id'=>$params->id])->update(['views'=>$thread_info->views+1]);
+        Thread::where(['id'=>$params->id])->update(['views'=>$thread_info['views']+1]);
 
         if(!empty($params->fromPm)){
             Pm::where(['id'=>$params->fromPm])->update(['isread'=>1]);
@@ -221,6 +263,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             'data' => $res
         );
     }
+
 
 
 }

@@ -324,8 +324,6 @@ class BbsUserJsonRpc extends JsonRpc {
             'data'=>$rData,
         );
 
-
-
     }
     /**
      *  获取用户发表的评论 分页
@@ -383,14 +381,14 @@ class BbsUserJsonRpc extends JsonRpc {
             ->toArray();
         foreach ($res['data'] as $key=>$value){
             if($value['from_user_id'] ==0){//系统管理员回复
-                $replyInfo =ReplyConfig::where(['id'=>$value['cid']])->first()->toArray();
+                $replyInfo =ReplyConfig::where(['id'=>$value['cid']])->first();
                 $res['data'][$key]['del_reason'] =$replyInfo['description'];
                 unset($res['data'][$key]['from_users']);
                 unset($res['data'][$key]['threads']);
                 unset($res['data'][$key]['comments']);
             }
         }
-        //Pm::where(['isread'=>0,'user_id'=>$this->userId])->update(['isread'=>1]);
+
         $rData['list'] = $res['data'];
         $rData['total'] = $res['total'];
         $rData['per_page'] = $res['per_page'];
@@ -438,16 +436,14 @@ class BbsUserJsonRpc extends JsonRpc {
         $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         //has Userinfo
         if($BbsUserInfo){
-            $userInfos = $BbsUserInfo->toArray();
             $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
             $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
             $restAward = $this->bbsSumAward -$dayUserAward-$achieveUserAward;
-
-            $userInfos['restAward'] = $restAward;
+            $BbsUserInfo['restAward'] = $restAward;
             return array(
                 'code'=>0,
                 'message'=>'success',
-                'data'=>$userInfos
+                'data'=>$BbsUserInfo
             );
         }else{
             $User = new User();
@@ -462,7 +458,7 @@ class BbsUserJsonRpc extends JsonRpc {
             return array(
                 'code'=>0,
                 'message'=>'success',
-                'data'=>$BbsUserInfo->toArray()
+                'data'=>$BbsUserInfo
             );
         }
 
