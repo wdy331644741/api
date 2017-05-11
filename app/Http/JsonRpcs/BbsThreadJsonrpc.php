@@ -196,14 +196,14 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         $thread =  new Thread(['userId'=>$userId]);
         $id = $params->id;
-        $thread_info =  $thread->where(['isverify'=>1,'id'=>$params->id])
+        $thread_info =  $thread->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
                })
             ->with('users')
             ->first();
 
-
+        
         $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info['id']])
                             ->orWhere(function($query)use($userId,$thread_info){
                                 $query->where(['user_id'=>$userId,'tid'=>$thread_info['id']]);
