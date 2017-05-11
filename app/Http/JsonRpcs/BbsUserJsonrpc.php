@@ -118,6 +118,16 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        $validator = Validator::make(get_object_vars($param), [
+            'nickname'=>'required',
+        ]);
+        if($validator->fails()){
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => " 昵称不能为空"
+            );
+        }
         $user = User::where(['user_id' => $this->userId])->first();
         if($user){
             //更新
@@ -198,7 +208,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
         if($this->userInfo['level']<= $publishLimit['val']){
             return array(
-                'code' => 2,
+                'code' => -1,
                 'message' => 'fail',
                 'data' => $publishLimit['remark']
             );
@@ -324,8 +334,6 @@ class BbsUserJsonRpc extends JsonRpc {
             'data'=>$rData,
         );
 
-
-
     }
     /**
      *  获取用户发表的评论 分页
@@ -383,14 +391,14 @@ class BbsUserJsonRpc extends JsonRpc {
             ->toArray();
         foreach ($res['data'] as $key=>$value){
             if($value['from_user_id'] ==0){//系统管理员回复
-                $replyInfo =ReplyConfig::where(['id'=>$value['cid']])->first()->toArray();
+                $replyInfo =ReplyConfig::where(['id'=>$value['cid']])->first();
                 $res['data'][$key]['del_reason'] =$replyInfo['description'];
                 unset($res['data'][$key]['from_users']);
                 unset($res['data'][$key]['threads']);
                 unset($res['data'][$key]['comments']);
             }
         }
-        //Pm::where(['isread'=>0,'user_id'=>$this->userId])->update(['isread'=>1]);
+
         $rData['list'] = $res['data'];
         $rData['total'] = $res['total'];
         $rData['per_page'] = $res['per_page'];
@@ -404,6 +412,24 @@ class BbsUserJsonRpc extends JsonRpc {
             'data'=>$rData,
         );
 
+
+    }
+    /**
+     *  全部删除用户消息
+     *
+     * @JsonRpcMethod
+     */
+    public function delBbsUserAllPm($params){
+        $this->userId = 1716774;
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $deleted['num'] = Pm::where(['user_id'=>$this->userId])->delete();
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$deleted,
+        );
 
     }
     /**
@@ -438,16 +464,14 @@ class BbsUserJsonRpc extends JsonRpc {
         $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         //has Userinfo
         if($BbsUserInfo){
-            $userInfos = $BbsUserInfo->toArray();
             $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
             $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
             $restAward = $this->bbsSumAward -$dayUserAward-$achieveUserAward;
-
-            $userInfos['restAward'] = $restAward;
+            $BbsUserInfo['restAward'] = $restAward;
             return array(
                 'code'=>0,
                 'message'=>'success',
-                'data'=>$userInfos
+                'data'=>$BbsUserInfo
             );
         }else{
             $User = new User();
@@ -462,7 +486,7 @@ class BbsUserJsonRpc extends JsonRpc {
             return array(
                 'code'=>0,
                 'message'=>'success',
-                'data'=>$BbsUserInfo->toArray()
+                'data'=>$BbsUserInfo
             );
         }
 

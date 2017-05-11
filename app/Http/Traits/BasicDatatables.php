@@ -56,7 +56,7 @@ trait BasicDatatables{
     public function postDtDelete(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:channels,id',
+            'id' => 'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonRpcs\AdvancedJsonRpc;
 use App\Http\JsonRpcs\AmountShareJsonRpc;
+use App\Http\JsonRpcs\BbsCommentJsonrpc;
 use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
@@ -84,7 +85,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new BbsThreadJsonRpc());
         $jsonRpcServer->addService(new BbsThreadSectionJsonRpc());
         $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
-
+        $jsonRpcServer->addService(new BbsCommentJsonrpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
