@@ -420,7 +420,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function delBbsUserAllPm($params){
-        $this->userId = 1716774;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
