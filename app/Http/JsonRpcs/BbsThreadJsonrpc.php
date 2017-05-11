@@ -88,18 +88,15 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->paginate($pageNum)
             ->toArray();
 
-        if(empty($thread)){
+        if(empty($hotThread)){
 
             foreach ($res['data'] as $key => $value){
                 $res['data'][$key]['comments']=[];
                 foreach ($value['comment_and_verify'] as $k =>$v) {
-
                     $res['data'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
                     $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
-
                 }
                 unset($res['data'][$key]['comment_and_verify']);
-
 
             }
 
@@ -141,7 +138,6 @@ class BbsThreadJsonRpc extends JsonRpc {
                 ->limit($step)
                 ->get()
                 ->toArray();
-
 
             if($page == 1){
                 $data['list'] = array_merge($hotThread,$result);
@@ -199,18 +195,18 @@ class BbsThreadJsonRpc extends JsonRpc {
         }
 
         $thread =  new Thread(['userId'=>$userId]);
-
-        $thread_info =  $thread->where(['isverify'=>1,'id'=>$params->id])
-               ->orWhere(function($query)use($userId){
-                   $query->where(['user_id'=>$userId]);
+        $id = $params->id;
+        $thread_info =  $thread->where(['isverify'=>1,'id'=>$id])
+               ->orWhere(function($query)use($userId,$id){
+                   $query->where(['user_id'=>$userId,'id'=>$id]);
                })
             ->with('users')
             ->first();
 
-
+        
         $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info['id']])
-                            ->orWhere(function($query)use($userId){
-                                $query->where(['user_id'=>$userId]);
+                            ->orWhere(function($query)use($userId,$thread_info){
+                                $query->where(['user_id'=>$userId,'tid'=>$thread_info['id']]);
                 })
             ->with('users')
             ->orderByRaw('created_at')
