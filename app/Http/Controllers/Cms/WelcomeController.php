@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\Cms\Welcome;
 use App\Http\Traits\BasicDatatables;
+use Validator;
 
 class WelcomeController extends Controller
 {
