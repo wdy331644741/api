@@ -22,6 +22,7 @@ class Thread extends Model
 
     public  function __construct(array $attributes = [])
     {
+        parent::__construct();
         if($attributes) {
             $this->userId = $attributes['userId'];
         }
