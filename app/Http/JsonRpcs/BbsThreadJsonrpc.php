@@ -145,14 +145,14 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $data['list'] = $result;
             }
             foreach ($data['list'] as $key => $value){
-                $res['list'][$key]['comments']=[];
+                $data['list'][$key]['comments']=[];
                 foreach ($value['comment_and_verify'] as $k =>$v) {
 
-                    $res['list'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
-                    $res['list'][$key]['comments'][$k] = $res['list'][$key]['comment_and_verify'][$k];
+                    $data['list'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                    $data['list'][$key]['comments'][$k] = $data['list'][$key]['comment_and_verify'][$k];
 
                 }
-                unset($res['data'][$key]['comment_and_verify']);
+                unset($data['list'][$key]['comment_and_verify']);
             }
             $rData['list'] = $data['list'];
             $rData['total'] = $res['total'];
