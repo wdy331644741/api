@@ -13,11 +13,15 @@ class RuleCheck
     private static $inside_api_url;
 
     private static $account_reward_url;
+    
+    private static $trade_api_url;
 
     private function __construct(){
         self::$inside_api_url = env('INSIDE_HTTP_URL');
         self::$account_reward_url = env('REWARD_HTTP_URL');
+        self::$trade_api_url = env('TRADE_HTTP_URL');
     }
+    #TODO  未完成 投资次数规则，回款次数规则
 
     //规则验证
     public static function check($activity_id,$userId,$sqsmsg){
@@ -83,6 +87,12 @@ class RuleCheck
                     break;
                 case $value->rule_type === 17:
                     $res = self::_signDay($value,$sqsmsg);
+                    break;
+                case $value->rule_type === 18:
+                    $res = self::_castNum($value,$userId);
+                    break;
+                case $value->rule_type === 19:
+                    $res = self::_paymentNum($value,$userId);
                     break;
                 default :
                     $res = array('send'=>false,'errmsg'=>'未知规则');
@@ -309,6 +319,19 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $name = trim($sqsmsg['name']);
         $short_name = trim($sqsmsg['short_name']);
+        if($rules['name']){
+            if(substr_count($name.$short_name,$rules['name'])){
+                return array('send'=>true);
+            }
+        }
+        return array('send'=>false,'errmsg'=>'投资标名称规则验证不通过');
+    }
+
+
+    //投资次数
+    private static function _castNum($rule,$sqsmsg){
+        $rules = (array)json_decode($rule->rule_info);
+        $castnum = 
         if($rules['name']){
             if(substr_count($name.$short_name,$rules['name'])){
                 return array('send'=>true);
