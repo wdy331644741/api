@@ -389,16 +389,6 @@ class BbsUserJsonRpc extends JsonRpc {
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        foreach ($res['data'] as $key=>$value){
-            if($value['from_user_id'] ==0){//系统管理员回复
-                $replyInfo =ReplyConfig::where(['id'=>$value['cid']])->first();
-                $res['data'][$key]['del_reason'] =$replyInfo['description'];
-                unset($res['data'][$key]['from_users']);
-                unset($res['data'][$key]['threads']);
-                unset($res['data'][$key]['comments']);
-            }
-        }
-
         $rData['list'] = $res['data'];
         $rData['total'] = $res['total'];
         $rData['per_page'] = $res['per_page'];
