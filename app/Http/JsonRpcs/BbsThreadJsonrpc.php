@@ -56,7 +56,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                                  $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
                 })
             ->where('created_At','>',$mondayTime)
-            ->with('users')
+            ->with('user')
             ->with("commentAndVerify")
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
@@ -78,7 +78,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             $query->where(['user_id'=>$userId,"type_id"=>$typeId])
                 ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
         })
-            ->with('users')
+            ->with('user')
             ->with("commentAndVerify")
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
@@ -93,7 +93,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             foreach ($res['data'] as $key => $value){
                 $res['data'][$key]['comments']=[];
                 foreach ($value['comment_and_verify'] as $k =>$v) {
-                    $res['data'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                    $res['data'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
                 }
                 unset($res['data'][$key]['comment_and_verify']);
@@ -132,7 +132,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                         ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
                 })
 
-                ->with('users')
+                ->with('user')
                 ->with('commentAndVerify')
                 ->orderByRaw('created_at DESC')
                 ->offset($offset)
@@ -148,7 +148,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $data['list'][$key]['comments']=[];
                 foreach ($value['comment_and_verify'] as $k =>$v) {
 
-                    $data['list'][$key]['comment_and_verify'][$k]['users'] = User::where(['user_id' => $v['user_id']])->first();
+                    $data['list'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $data['list'][$key]['comments'][$k] = $data['list'][$key]['comment_and_verify'][$k];
 
                 }
@@ -200,7 +200,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
                })
-            ->with('users')
+            ->with('user')
             ->with('commentAndVerify')
             ->first();
 
@@ -245,7 +245,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             return $page;
         });
         $res =Thread::where(['istop'=>1,'isinside'=>1,'isverify'=>1,'type_id'=>$params->id])
-            ->with('users')
+            ->with('user')
             ->paginate($pageNum)
             ->toArray();
         return array(
