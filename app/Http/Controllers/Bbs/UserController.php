@@ -106,7 +106,7 @@ class UserController extends Controller
 
     //黑名单列表
     public function getBlackList(){
-        $data = User::where('isblack',1)->with('blacks')->paginate(20)->toArray();
+        $data = User::where('isblack',1)->with('black')->paginate(20)->toArray();
         return $this->outputJson(0,$data);
     }
 

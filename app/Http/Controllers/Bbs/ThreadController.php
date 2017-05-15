@@ -34,10 +34,10 @@ class ThreadController extends Controller
     //帖子为审核列表
     public function getList($isverify=0){
         if(!in_array($isverify,[0,1])){
-            $res = Thread::onlyTrashed()->with('users','sections')->orderBy('id','desc')->paginate(20)->toArray();
+            $res = Thread::onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
             return $this->outputJson(0,$res);
         }
-        $res = Thread::where('isverify',$isverify)->with('users','sections')->orderBy('id','desc')->paginate(20)->toArray();
+        $res = Thread::where('isverify',$isverify)->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
         return $this->outputJson(0,$res);
     }
 
