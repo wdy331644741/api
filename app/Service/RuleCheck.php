@@ -21,7 +21,6 @@ class RuleCheck
         self::$account_reward_url = env('REWARD_HTTP_URL');
         self::$trade_api_url = env('TRADE_HTTP_URL');
     }
-    #TODO  未完成 投资次数规则，回款次数规则
 
     //规则验证
     public static function check($activity_id,$userId,$sqsmsg){
