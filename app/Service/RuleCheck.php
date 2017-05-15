@@ -329,15 +329,33 @@ class RuleCheck
 
 
     //投资次数
-    private static function _castNum($rule,$sqsmsg){
+    private static function _castNum($rule,$userId){
         $rules = (array)json_decode($rule->rule_info);
-        $castnum = 
-        if($rules['name']){
-            if(substr_count($name.$short_name,$rules['name'])){
-                return array('send'=>true);
-            }
+        $client = new JsonRpcClient(self::$trade_api_url);
+        $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>'7afffa47824c5b6fde5f5fe7c458cb0877f9b30b03d60fa6ace11ff1a255e699'));
+        if(!isset($res['error'])){
+            return array('send'=>false,'errmsg'=>'获取累计投资次数失败');
         }
-        return array('send'=>false,'errmsg'=>'投资标名称规则验证不通过');
+        $castNum = $res['result']['tradeTimes'];
+        if($castNum > $rules['min_num'] && $castNum <= $rules['max_num']){
+            return array('send'=>true);
+        }
+        return array('send'=>false,'errmsg'=>'投资次数规则验证不通过');
+    }
+
+    //回款次数
+    private static function _paymentNum($rule,$userId){
+        $rules = (array)json_decode($rule->rule_info);
+        $client = new JsonRpcClient(self::$trade_api_url);
+        $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>'7afffa47824c5b6fde5f5fe7c458cb0877f9b30b03d60fa6ace11ff1a255e699'));
+        if(!isset($res['error'])){
+            return array('send'=>false,'errmsg'=>'获取累计回款次数失败');
+        }
+        $paymentNum = $res['result']['repaymentTimes'];
+        if($paymentNum > $rules['payment_num'] && $paymentNum <= $rules['payment_num']){
+            return array('send'=>true);
+        }
+        return array('send'=>false,'errmsg'=>'回款次数规则验证不通过');
     }
 
     //用户渠道黑名单

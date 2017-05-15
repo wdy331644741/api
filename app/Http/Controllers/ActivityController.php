@@ -761,7 +761,7 @@ class ActivityController extends Controller
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_info = $this->Params2json($request,array('day_min','day_max'));
+        $rule->rule_info = $this->Params2json($request,array('min_num','max_num'));
         $rule->save();
         if($rule->id){
             return array('error_code'=>0,'insert_id'=>$rule->id);
@@ -784,7 +784,7 @@ class ActivityController extends Controller
         $rule = new Rule();
         $rule->activity_id = $request->activity_id;
         $rule->rule_type = $type;
-        $rule->rule_info = $this->Params2json($request,array('day_min','day_max'));
+        $rule->rule_info = $this->Params2json($request,array('min_num','max_num'));
         $rule->save();
         if($rule->id){
             return array('error_code'=>0,'insert_id'=>$rule->id);
