@@ -34,7 +34,7 @@ class IdiomJsonrpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getWelcomes() {
-        $data = Welcome::where('enable',1)->first();
+        $data = Welcome::where('enable',1)->orderBy('updated_at','desc')->first();
         if($data){
             return array(
                 'code' => 0,
