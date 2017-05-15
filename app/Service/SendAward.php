@@ -195,7 +195,7 @@ class SendAward
             case 'diy_increases_bind_bank_card':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
                     $fromUserId = Func::getUserBasicInfo($triggerData['user_id']);
-                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$fromUserId['from_user_id'],'注册并绑卡',1);
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$fromUserId,'注册并绑卡',1);
                 }
                 break;
             //投资
