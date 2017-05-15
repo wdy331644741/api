@@ -22,17 +22,17 @@ class Thread extends Model
 
     public  function __construct(array $attributes = [])
     {
-        parent::__construct();
-        if($attributes) {
+        parent::__construct($attributes);
+        if(isset($attributes['userId'])) {
             $this->userId = $attributes['userId'];
         }
     }
 
-    public function users(){
+    public function user(){
         return $this->hasOne('App\Models\Bbs\User','user_id','user_id');
     }
 
-    public function sections(){
+    public function section(){
         return $this->hasOne('App\Models\Bbs\ThreadSection','id','type_id');
     }
 

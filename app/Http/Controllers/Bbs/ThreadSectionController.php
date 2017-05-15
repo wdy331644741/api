@@ -14,7 +14,7 @@ class ThreadSectionController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','name','description','isuse', 'created_at', 'sort' ];
+    protected $fileds = ['id','name','description','isuse', 'created_at', 'sort', 'isban' ];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_thread_sections,id'
     ];
