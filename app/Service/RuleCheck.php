@@ -333,7 +333,7 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
         $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>'7afffa47824c5b6fde5f5fe7c458cb0877f9b30b03d60fa6ace11ff1a255e699'));
-        if(!isset($res['error'])){
+        if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>'获取累计投资次数失败');
         }
         $castNum = $res['result']['tradeTimes'];
@@ -348,7 +348,7 @@ class RuleCheck
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
         $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>'7afffa47824c5b6fde5f5fe7c458cb0877f9b30b03d60fa6ace11ff1a255e699'));
-        if(!isset($res['error'])){
+        if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>'获取累计回款次数失败');
         }
         $paymentNum = $res['result']['repaymentTimes'];
