@@ -243,11 +243,11 @@ class RuleCheck
         return array('send'=>false,'errmsg'=>'单笔充值规则验证不通过');
     }
 
-    //用户回款
+    //用户回款(本金)
     private static function _payment($rule,$sqsmsg){
         $rules = (array)json_decode($rule->rule_info);
 
-        $payment_meony = ceil(floatval($sqsmsg['amount']));
+        $payment_meony = ceil(floatval($sqsmsg['principal']));
         if($payment_meony >= $rules['min_payment'] && $payment_meony <= $rules['max_payment']){
             return array('send'=>true);
         }
