@@ -73,10 +73,11 @@ class BbsThreadJsonRpc extends JsonRpc {
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
-        $res = $thread->where(['isverify'=>1,'type_id'=>$typeId])
-            ->orWhere(function($query)use($typeId,$userId){
-                $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
-            })
+        $res = $thread
+            ->Where(function($query)use($typeId,$userId){
+            $query->where(['user_id'=>$userId,"type_id"=>$typeId])
+                ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
+        })
             ->with('users')
             ->with("commentAndVerify")
             ->whereNotIn('id', function($query) use($typeId){
@@ -87,7 +88,6 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
-
         if(empty($hotThread)){
 
             foreach ($res['data'] as $key => $value){
@@ -120,17 +120,18 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $offset = ($page-1)*$pageNum-count($hotThreadId);
                 $step =$pageNum;
             }
-
-            $result = $thread->whereNotIn('id', function($query) use($typeId){
-                                         $query->select('id')
-                                          ->from('bbs_threads')
-                                          ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
-                        })
-                ->whereNotIn('id',$hotThreadId)
-                ->where(['isverify'=>1,"type_id"=>$typeId])
-                ->orWhere(function($query)use($typeId,$userId){
-                    $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+            $result = $thread
+                ->Where(function($query)use($typeId,$userId){
+                    $query->where(['user_id'=>$userId,"type_id"=>$typeId])
+                          ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
                 })
+                ->whereNotIn('id',$hotThreadId)
+                ->whereNotIn('id', function($query) use($typeId){
+                    $query->select('id')
+                        ->from('bbs_threads')
+                        ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                })
+
                 ->with('users')
                 ->with('commentAndVerify')
                 ->orderByRaw('created_at DESC')
@@ -138,7 +139,6 @@ class BbsThreadJsonRpc extends JsonRpc {
                 ->limit($step)
                 ->get()
                 ->toArray();
-
             if($page == 1){
                 $data['list'] = array_merge($hotThread,$result);
             }else{
@@ -201,30 +201,23 @@ class BbsThreadJsonRpc extends JsonRpc {
                    $query->where(['user_id'=>$userId,'id'=>$id]);
                })
             ->with('users')
+            ->with('commentAndVerify')
             ->first();
 
-        
-        $comment_info = Comment::where(['isverify' => 1, 'tid' => $thread_info['id']])
-                            ->orWhere(function($query)use($userId,$thread_info){
-                                $query->where(['user_id'=>$userId,'tid'=>$thread_info['id']]);
-                })
-            ->with('users')
-            ->orderByRaw('created_at')
-            ->get()
-            ->toArray();
-        //view +1
-
-        Thread::where(['id'=>$params->id])->update(['views'=>$thread_info['views']+1]);
-
-        if(!empty($params->fromPm)){
-            Pm::where(['id'=>$params->fromPm])->update(['isread'=>1]);
+        if($thread_info) {
+            $thread_info->comments = $thread_info->commentAndVerify;
+            unset($thread_info->commentAndVerify);
+            //view +1
+            Thread::where(['id' => $params->id])->update(['views' => $thread_info->views + 1]);
+            //dd($thread_info);
+            if (!empty($params->fromPm)) {
+                Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
+            }
         }
-        $data['thread_info'] = $thread_info;
-        $data['comment_list'] = $comment_info;
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $data,
+            'data' => $thread_info,
         );
 
     }
