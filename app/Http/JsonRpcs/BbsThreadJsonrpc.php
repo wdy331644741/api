@@ -61,7 +61,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
-                    ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                    ->where(['istop'=>1,'type_id'=>$typeId]);
             })
             ->orderByRaw('views DESC')
             ->offset(0)
@@ -83,7 +83,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
-                    ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                    ->where(['istop'=>1,'type_id'=>$typeId]);
             })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
@@ -95,6 +95,9 @@ class BbsThreadJsonRpc extends JsonRpc {
                 foreach ($value['comment_and_verify'] as $k =>$v) {
                     $res['data'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
+                    if($k >3){
+                        break;
+                    }
                 }
                 unset($res['data'][$key]['comment_and_verify']);
 
@@ -129,7 +132,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 ->whereNotIn('id', function($query) use($typeId){
                     $query->select('id')
                         ->from('bbs_threads')
-                        ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                        ->where(['istop'=>1,'type_id'=>$typeId]);
                 })
 
                 ->with('user')
@@ -150,10 +153,14 @@ class BbsThreadJsonRpc extends JsonRpc {
 
                     $data['list'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $data['list'][$key]['comments'][$k] = $data['list'][$key]['comment_and_verify'][$k];
+                    if($k>3){
+                        break;
+                    }
 
                 }
                 unset($data['list'][$key]['comment_and_verify']);
             }
+
             $rData['list'] = $data['list'];
             $rData['total'] = $res['total'];
             $rData['per_page'] = $res['per_page'];
@@ -244,7 +251,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::where(['istop'=>1,'isinside'=>1,'isverify'=>1,'type_id'=>$params->id])
+        $res =Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('user')
             ->paginate($pageNum)
             ->toArray();
