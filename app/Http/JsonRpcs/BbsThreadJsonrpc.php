@@ -61,7 +61,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
-                    ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                    ->where(['istop'=>1,'type_id'=>$typeId]);
             })
             ->orderByRaw('views DESC')
             ->offset(0)
@@ -83,7 +83,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->whereNotIn('id', function($query) use($typeId){
                 $query->select('id')
                     ->from('bbs_threads')
-                    ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                    ->where(['istop'=>1,'type_id'=>$typeId]);
             })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
@@ -129,7 +129,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 ->whereNotIn('id', function($query) use($typeId){
                     $query->select('id')
                         ->from('bbs_threads')
-                        ->where(['isinside'=>1,'istop'=>1,'type_id'=>$typeId]);
+                        ->where(['istop'=>1,'type_id'=>$typeId]);
                 })
 
                 ->with('user')
@@ -244,7 +244,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::where(['istop'=>1,'isinside'=>1,'isverify'=>1,'type_id'=>$params->id])
+        $res =Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('user')
             ->paginate($pageNum)
             ->toArray();
