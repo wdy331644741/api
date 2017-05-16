@@ -31,7 +31,7 @@ class Attributes
     ];
     private $user_url;
 
-   static public function increment($uid,$key,$number = 1, $string= null, $text= null){
+    static public function increment($uid,$key,$number = 1, $string= null, $text= null){
 
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
 
@@ -68,6 +68,49 @@ class Attributes
         $attribute->number = -$number;
         $attribute->save();
         return $number;
+    }
+    /**
+     * 根据$key递增number,每日number清空
+     *
+     * @param $key
+     * @param $num
+     * @return int
+     */
+    static public function incrementByDay($userId, $key, $num=1) {
+        $res = UserAttribute::where(['user_id' => $userId, 'key' => $key])->first();
+
+        if(!$res) {
+            $res = UserAttribute::create(['user_id' => $userId, 'key' => $key,  'number' => $num]);
+            return $res->number;
+        }
+
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
+            $res->number = $num;
+            $res->updated_at = date('Y-m-d H:i:s');
+            $res->save();
+            return $res->number;
+        }
+
+        $res->increment('number', $num);
+        return $res->number;
+    }
+
+    /**
+     * 根据$key获取number,每日number清空
+     *
+     * @param $key
+     * @return int
+     */
+    static public function getNumberByDay($userId, $key) {
+        $res = UserAttribute::where(array('user_id' => $userId, 'key' => $key))->lockforupdate()->first();
+        if(!$res) {
+            return 0;
+        }
+        // 不是今天
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
+            return 0;
+        }
+        return intval($res->number);
     }
 
     public function status($uid,$key,$status){
