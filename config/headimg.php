@@ -1,22 +1,22 @@
 <?php
 return [
     'admin'=>[
-        1=>'sdasd',
-        2=>'sdsds',
-        3=>'qweqwe',
-        4=>'asdasd',
-        5=>'qweq',
-        6=>'qweqw'
+        1=>'https://php1.wanglibao.com/images/bbs/avatar1.png',
+        2=>'https://php1.wanglibao.com/images/bbs/avatar2.png',
+        3=>'https://php1.wanglibao.com/images/bbs/avatar3.png',
+        4=>'https://php1.wanglibao.com/images/bbs/avatar4.png',
+        5=>'https://php1.wanglibao.com/images/bbs/avatar5.png',
+        6=>'https://php1.wanglibao.com/images/bbs/avatar6.png'
     ],
     'user'=>[
-        1=>'sdasd',
-        2=>'sdsds',
-        3=>'qweqwe',
-        4=>'asdasd',
-        5=>'qweq',
-        6=>'qweqw',
-        7=>'asdasd',
-        8=>'qweq',
-        9=>'qweqw'
+        1=>'https://php1.wanglibao.com/images/bbs/avatar1.png',
+        2=>'https://php1.wanglibao.com/images/bbs/avatar2.png',
+        3=>'https://php1.wanglibao.com/images/bbs/avatar3.png',
+        4=>'https://php1.wanglibao.com/images/bbs/avatar4.png',
+        5=>'https://php1.wanglibao.com/images/bbs/avatar5.png',
+        6=>'https://php1.wanglibao.com/images/bbs/avatar6.png',
+        7=>'https://php1.wanglibao.com/images/bbs/avatar7.png',
+        8=>'https://php1.wanglibao.com/images/bbs/avatar8.png',
+        9=>'https://php1.wanglibao.com/images/bbs/avatar9.png'
     ]
 ];
