@@ -131,7 +131,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $user = User::where(['user_id' => $this->userId])->first();
         if($user){
             //更新
-            $userNickname = User::where(['nickname'=>$param->nickname])->whereNotIn('id',['$this->userId'])->first();
+            $userNickname = User::where(['nickname'=>$param->nickname])->whereNotIn('user_id',["$this->userId"])->first();
 
             if(!$userNickname) {
                 $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
