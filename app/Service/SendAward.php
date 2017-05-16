@@ -190,6 +190,24 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 签到系统活动 start */
+            //投资就给该用户添加48小时摇红包时间
+            case 'sign_in_system_threshold':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $config = Config::get('signinsystem');
+                    $expiredTime = time() + 3600 * $config['expired_hour'];
+                    Attributes::setItem($triggerData['user_id'],"sign_in_system_threshold",$expiredTime);
+                }
+                break;
+            //投资给邀请人增加倍数
+            case 'sign_in_system_invite_first':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'sign_in_system_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
+            /** 签到系统活动 end */
             /** 网贷天眼首投送积分 start */
             case 'wdty_investment_first':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){

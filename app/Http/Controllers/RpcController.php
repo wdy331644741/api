@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\JsonRpcs\AdvancedJsonRpc;
 use App\Http\JsonRpcs\AmountShareJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
+use App\Http\JsonRpcs\SignInSystemJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
 use App\Models\PoBaiYi;
@@ -76,6 +77,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new TreasureJsonRpc());
         $jsonRpcServer->addService(new PoBaiYiJsonRpc());
         $jsonRpcServer->addService(new AmountShareJsonRpc());
+        $jsonRpcServer->addService(new SignInSystemJsonRpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
