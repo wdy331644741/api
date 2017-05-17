@@ -59,6 +59,7 @@ class CommentController extends Controller
         $res = Comment::find($request->id)->update($putData);
         if($res){
             return $this->outputJson(0);
+            $thread->increment('comment_num');
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
