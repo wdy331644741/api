@@ -95,6 +95,9 @@ class BbsThreadJsonRpc extends JsonRpc {
                 foreach ($value['comment_and_verify'] as $k =>$v) {
                     $res['data'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
+                    if($k >3){
+                        break;
+                    }
                 }
                 unset($res['data'][$key]['comment_and_verify']);
 
@@ -150,10 +153,14 @@ class BbsThreadJsonRpc extends JsonRpc {
 
                     $data['list'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $data['list'][$key]['comments'][$k] = $data['list'][$key]['comment_and_verify'][$k];
+                    if($k>3){
+                        break;
+                    }
 
                 }
                 unset($data['list'][$key]['comment_and_verify']);
             }
+
             $rData['list'] = $data['list'];
             $rData['total'] = $res['total'];
             $rData['per_page'] = $res['per_page'];

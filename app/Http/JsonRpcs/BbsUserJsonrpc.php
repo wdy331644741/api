@@ -131,7 +131,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $user = User::where(['user_id' => $this->userId])->first();
         if($user){
             //更新
-            $userNickname = User::where(['nickname'=>$param->nickname])->whereNotIn('id',['$this->userId'])->first();
+            $userNickname = User::where(['nickname'=>$param->nickname])->whereNotIn('user_id',["$this->userId"])->first();
 
             if(!$userNickname) {
                 $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
@@ -273,8 +273,6 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->isverify = Config::get('bbsConfig')['commentVerify']?0:1;
         $comment->save();
         if($comment->id){
-            $thread_info = Thread::where(['id'=>$params->id])->first();
-            Thread::where(['id'=>$params->id])->update(['comment_num'=>$thread_info['comment_num']+1]);
             return array(
                 'code' => 0,
                 'message' => 'success',
