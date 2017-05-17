@@ -129,48 +129,43 @@ class BbsUserJsonRpc extends JsonRpc {
             );
         }
         $user = User::where(['user_id' => $this->userId])->first();
-        if($user){
-            //更新
-            $userNickname = User::where(['nickname'=>$param->nickname])->whereNotIn('user_id',["$this->userId"])->first();
 
-            if(!$userNickname) {
-                $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
-            }else{
-                return array(
-                    'code' => -1,
-                    'message' => 'fail',
-                    'data' => '昵称重复'
+        if($user) {
+            if ($user->nickname == $param->nickname) {
+                $userInfo = array(
+                    'user_id' => $this->userId,
+                    'nickName' => $param->nickname,
                 );
+                return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => $userInfo
+                );
+            } else {
+                $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
+                if (!$users) {
+                    $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
+                    if ($res) {
+                        //成就任务redis setbit  key achieveUserImgOrName  offset user_id
+                        Redis::setBit($this->achieveUserImgOrNameKey, $this->userId, 1);
+                        $userInfo = array(
+                            'user_id' => $this->userId,
+                            'nickName' => $param->nickname,
+                        );
+                        return array(
+                            'code' => 0,
+                            'message' => 'success',
+                            'data' => $userInfo
+                        );
+                    } else {
+                        return array(
+                            'code' => -1,
+                            'message' => 'fail',
+                            'data' => '昵称重复'
+                        );
+                    }
+                }
             }
-        }else{
-            //新建用户
-            $newUser = new User();
-            $newUser->user_id = $this->userId;
-            $newUser->phone = $this->userInfo['phone'];
-            $newUser->nickname = $this->$param->nickname;
-            $newUser->isblack = 0;
-            $newUser->isadmin = 0;
-            $res = $newUser->save();
-
-        }
-        if ($res) {
-            //成就任务redis setbit  key achieveUserImgOrName  offset user_id
-            Redis::setBit($this->achieveUserImgOrNameKey,$this->userId,1);
-            $user = array(
-                'user_id' => $this->userId,
-                'nickName' => $param->nickname,
-            );
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => $user
-            );
-        } else {
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => '更改昵称失败'
-            );
         }
 
     }
