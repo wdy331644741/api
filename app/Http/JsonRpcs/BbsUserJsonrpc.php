@@ -273,8 +273,6 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->isverify = Config::get('bbsConfig')['commentVerify']?0:1;
         $comment->save();
         if($comment->id){
-            $thread_info = Thread::where(['id'=>$params->id])->first();
-            Thread::where(['id'=>$params->id])->update(['comment_num'=>$thread_info['comment_num']+1]);
             return array(
                 'code' => 0,
                 'message' => 'success',
