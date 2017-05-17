@@ -51,20 +51,9 @@ class ThreadController extends Controller
     public function postRestore(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id',
-            'user_id'=>'required',
-            'cid'=>'required|exists:bbs_replay_configs,id'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
-        }
-        $isverify = Thread::find($request->id)->value('isverify');
-        if($isverify){
-            $pm = new Pm();
-            $pm->user_id = $request->user_id;
-            $pm->from_user_id = 0;
-            $pm->tid = $request->id;
-            $pm->cid = $request->cid;
-            $pm->save();
         }
         $res = Thread::where('id',$request->id)->restore();
         if($res){
