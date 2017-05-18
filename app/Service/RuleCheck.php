@@ -332,7 +332,8 @@ class RuleCheck
     private static function _castNum($rule,$userId){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>'7afffa47824c5b6fde5f5fe7c458cb0877f9b30b03d60fa6ace11ff1a255e699'));
+        $secret = hash('sha256',$userId.'3d07dd21b5712a1c221207bf2f46e4ft');
+        $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>$secret));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>'获取累计投资次数失败');
         }
@@ -347,7 +348,8 @@ class RuleCheck
     private static function _paymentNum($rule,$userId){
         $rules = (array)json_decode($rule->rule_info);
         $client = new JsonRpcClient(self::$trade_api_url);
-        $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>'7afffa47824c5b6fde5f5fe7c458cb0877f9b30b03d60fa6ace11ff1a255e699'));
+        $secret = hash('sha256',$userId.'3d07dd21b5712a1c221207bf2f46e4ft');
+        $res =  $client->getTradeAndRepamentTimes(array('user_id'=>$userId,'secret'=>$secret));
         if(isset($res['error'])){
             return array('send'=>false,'errmsg'=>'获取累计回款次数失败');
         }
