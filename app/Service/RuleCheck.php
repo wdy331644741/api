@@ -354,7 +354,7 @@ class RuleCheck
             return array('send'=>false,'errmsg'=>'获取累计回款次数失败');
         }
         $paymentNum = $res['result']['repaymentTimes'];
-        if($paymentNum > $rules['payment_num'] && $paymentNum <= $rules['payment_num']){
+        if($paymentNum > $rules['min_num'] && $paymentNum <= $rules['max_num']){
             return array('send'=>true);
         }
         return array('send'=>false,'errmsg'=>'回款次数规则验证不通过');
