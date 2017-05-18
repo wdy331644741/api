@@ -67,6 +67,11 @@ class FiveOneEightJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
 
+        $number = $config['draw_number'] - Attributes::getNumberByDay($userId, $config['drew_daily_key']);
+        if($number <= 0) {
+            throw new OmgException(OmgException::NUMBER_IS_NULL);
+        }
+
         $result = [
             'awardName' => '谢谢参与',
             'aliasName' => 'empty',
