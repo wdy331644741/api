@@ -748,6 +748,51 @@ class ActivityController extends Controller
         }
     }
 
+    //投资次数
+    private function rule_castnum($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_num' => 'required|integer',
+            'max_num' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_num','max_num'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+
+    //回款次数
+    private function rule_paymentnum($type,$request){
+        $validator = Validator::make($request->all(), [
+            'activity_id'=>'required|alpha_num|exists:activities,id',
+            'min_num' => 'required|integer',
+            'max_num' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return array('error_code'=>10001,'error_msg'=>$validator->errors()->first());
+        }
+        $rule = new Rule();
+        $rule->activity_id = $request->activity_id;
+        $rule->rule_type = $type;
+        $rule->rule_info = $this->Params2json($request,array('min_num','max_num'));
+        $rule->save();
+        if($rule->id){
+            return array('error_code'=>0,'insert_id'=>$rule->id);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
     private function getStorageTypeByName($type_name){
         $rules = config('activity.rule_child');
         foreach($rules as $key=>$val){

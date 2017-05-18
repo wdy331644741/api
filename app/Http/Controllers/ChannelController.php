@@ -29,7 +29,7 @@ class ChannelController extends Controller
     public function postAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
-            'alias_name'=>'required|alpha_dash|unique:channels,alias_name',
+            'alias_name'=>'required|alpha_dash',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
