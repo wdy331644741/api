@@ -465,6 +465,10 @@ class BbsUserJsonRpc extends JsonRpc {
             $User->isadmin = 0;
             $User->save();
             $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+            $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
+            $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
+            $restAward = $this->bbsSumAward -$dayUserAward-$achieveUserAward;
+            $BbsUserInfo['restAward'] = $restAward;
             return array(
                 'code'=>0,
                 'message'=>'success',
