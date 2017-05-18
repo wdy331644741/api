@@ -10,7 +10,10 @@ trait BasicDatatables{
     public function getDtList(Request $request)
     {
         $items = $this->model->select($this->fileds);
-
+        // 只显示删除
+        if ($request->has('onlyTrashed')) {
+            $items->onlyTrashed()->orderBy('id', 'desc');
+        }
         // 定制化搜索
         if ($request->has('customSearch')) {
             $customSearch = $request->get('customSearch');
