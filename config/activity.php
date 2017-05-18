@@ -374,6 +374,14 @@ return [
         17=>[
             'name'=>'签到天数',
             'model_name'=>'Signday'
+        ],
+        18=>[
+            'name'=>'投资次数',
+            'model_name'=>'Castnum'
+        ],
+        19=>[
+            'name'=>'回款次数',
+            'model_name'=>'Paymentnum'
         ]
     ],
     'activity_type'=>[
