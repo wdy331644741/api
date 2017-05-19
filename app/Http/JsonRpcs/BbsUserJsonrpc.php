@@ -23,7 +23,6 @@ use App\Service\SendAward;
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;
-    private $bbsUserInfo;
     private $achieveUserImgOrNameKey = '';
     private $bbsDayTaskSumAwardKey = '';
     private $bbsAchieveTaskSumAwardKey = '';
@@ -48,7 +47,6 @@ class BbsUserJsonRpc extends JsonRpc {
         global $userId;
         $this->userId = $userId;
         $this->userInfo = Func::getUserBasicInfo($userId);
-        $this->bbsUserInfo = self::getBbsUserInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
         $this->achieveUserImgOrNameKey = 'achieveUserImgOrName';
@@ -213,7 +211,8 @@ class BbsUserJsonRpc extends JsonRpc {
             );
         }
         //拉黑限制
-        if($this->bbsUserInfo->isblack==1){
+        $bbsUserInfo = self::getBbsUserInfo($$this->userId);
+        if($bbsUserInfo->isblack==1){
             return array(
                 'code' => -1,
                 'message' => 'fail',
@@ -273,7 +272,8 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $validator->errors()->first()
             );
         }
-        if($this->bbsUserInfo->isblack==1){
+        $bbsUserInfo = self::getBbsUserInfo($this->userId);
+        if($bbsUserInfo->isblack==1){
             return array(
                 'code' => -1,
                 'message' => 'fail',
