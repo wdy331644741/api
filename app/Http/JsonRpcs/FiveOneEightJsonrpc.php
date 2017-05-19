@@ -218,7 +218,7 @@ class FiveOneEightJsonRpc extends JsonRpc
     private function getAward($userId, $config) {
         // 获取累计抽奖次数
         $number = Attributes::getNumber($userId, $config['drew_total_key']);
-        if ($number < 3) {
+        if ($number < 2) {
             $awardList = $config['awards_1'];
         } else {
             $awardList = $config['awards_2'];
