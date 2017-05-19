@@ -220,12 +220,19 @@ class BbsThreadJsonRpc extends JsonRpc {
             if (!empty($params->fromPm)) {
                 Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
             }
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $thread_info,
+            );
+        }else{
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => "帖子不存在",
+            );
         }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $thread_info,
-        );
+
 
     }
     /**
