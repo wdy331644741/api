@@ -498,7 +498,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function queryBbsUserTask($param){
-        
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -657,7 +657,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -694,7 +694,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -731,7 +731,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -768,7 +768,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -808,7 +808,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -844,7 +844,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -881,7 +881,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
@@ -918,7 +918,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
