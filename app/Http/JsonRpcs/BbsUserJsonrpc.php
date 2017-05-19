@@ -465,6 +465,10 @@ class BbsUserJsonRpc extends JsonRpc {
             $User->isadmin = 0;
             $User->save();
             $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+            $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
+            $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
+            $restAward = $this->bbsSumAward -$dayUserAward-$achieveUserAward;
+            $BbsUserInfo['restAward'] = $restAward;
             return array(
                 'code'=>0,
                 'message'=>'success',
@@ -816,7 +820,7 @@ class BbsUserJsonRpc extends JsonRpc {
                  break;
              case "achieveThreadTen":
                  //是否领过奖
-                 $alisa = "	task_achieve_thread_ten";
+                 $alisa = "task_achieve_thread_ten";
                  $achieveThreadTenTask =  Task::where(['task_type'=>'achieveThreadTen','user_id'=> $this->userId])->count();
                  if($achieveThreadTenTask){
                      throw new OmgException(OmgException::MALL_IS_HAS);
@@ -852,7 +856,7 @@ class BbsUserJsonRpc extends JsonRpc {
                  break;
              case "achieveCommentFifty":
                  //是否领过奖
-                 $alisa = "	task_achieve_comment_fifty";
+                 $alisa = "task_achieve_comment_fifty";
                  $achieveCommentFiftyTask =  Task::where(['task_type'=>'achieveCommentFifty','user_id'=> $this->userId])->count();
                  if($achieveCommentFiftyTask){
                      throw new OmgException(OmgException::MALL_IS_HAS);
@@ -889,7 +893,7 @@ class BbsUserJsonRpc extends JsonRpc {
                  break;
              case "achieveUpdateImgOrName":
                  //是否领过奖
-                 $alisa = "	task_achieve_imgOrName";
+                 $alisa = "task_achieve_imgOrName";
                  $dayCommentTargetFive =  Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
                  if($dayCommentTargetFive){
                      throw new OmgException(OmgException::MALL_IS_HAS);
