@@ -25,7 +25,6 @@ class SignInSystemJsonRpc extends JsonRpc
                 return 0;
             }
             $item = $this->selectList($config['lists']);
-            print_r($item);
             return $this->getLastGlobalNum($item);
         });
         return [
@@ -46,7 +45,7 @@ class SignInSystemJsonRpc extends JsonRpc
         global $userId;
 
         $config = Config::get('signinsystem');
-        $user = ['invested' => false, 'login' => false, 'multiple' => 1];
+        $user = ['invested' => false, 'login' => false, 'multiple' => 1, 'multiple_card' => 0];
         $game = ['available' => false, 'awardNum' => 0, 'nextSeconds' => 0];
         $awardList = $this->getAwardList();
 
@@ -63,6 +62,11 @@ class SignInSystemJsonRpc extends JsonRpc
         // 获取用户倍数
         if($user['login']) {
             $user['multiple'] = $this->getMultiple($userId, $config);
+            //获取加倍卡
+            $multipleCard = SignInSystemBasic::signInEveryDayMultiple($userId);
+            if($multipleCard > 0){
+                $result['multiple_card'] = $multipleCard;
+            }
         }
 
 
@@ -119,6 +123,7 @@ class SignInSystemJsonRpc extends JsonRpc
             'awardType' => 0,
             'amount' => 0,
             'multiple' => 1,
+            'multiple_card' => 0,
             'lastGlobalNum' => 0
         ];
         $remark = [];
@@ -145,7 +150,7 @@ class SignInSystemJsonRpc extends JsonRpc
         //获取加倍卡
         $multipleCard = SignInSystemBasic::signInEveryDayMultiple($userId);
         if($multipleCard > 0){
-            $result['multiple'] = $result['multiple'] + $multipleCard;
+            $result['multiple_card'] = $multipleCard;
         }
 
         // 发送现金
@@ -170,7 +175,7 @@ class SignInSystemJsonRpc extends JsonRpc
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
 
-            $amount = bcmul($award['size'], $result['multiple'], 2);
+            $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
             $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, 'checkIn');
 
             $remark['addMoneyRes'] = $result;
