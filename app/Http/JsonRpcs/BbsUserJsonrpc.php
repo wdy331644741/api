@@ -99,11 +99,7 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $user
             );
         } else {
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => '上传头像失败'
-            );
+            throw OmgException(OmgException::DATA_ERROR);
 
         }
 
@@ -211,7 +207,7 @@ class BbsUserJsonRpc extends JsonRpc {
             );
         }
         //拉黑限制
-        $bbsUserInfo = self::getBbsUserInfo($$this->userId);
+        $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         if($bbsUserInfo->isblack==1){
             return array(
                 'code' => -1,
@@ -272,7 +268,7 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $validator->errors()->first()
             );
         }
-        $bbsUserInfo = self::getBbsUserInfo($this->userId);
+        $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         if($bbsUserInfo->isblack==1){
             return array(
                 'code' => -1,
