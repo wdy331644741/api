@@ -23,6 +23,7 @@ use App\Service\SendAward;
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;
+    private $bbsUserInfo;
     private $achieveUserImgOrNameKey = '';
     private $bbsDayTaskSumAwardKey = '';
     private $bbsAchieveTaskSumAwardKey = '';
@@ -47,6 +48,7 @@ class BbsUserJsonRpc extends JsonRpc {
         global $userId;
         $this->userId = $userId;
         $this->userInfo = Func::getUserBasicInfo($userId);
+        $this->bbsUserInfo = self::getBbsUserInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
         $this->achieveUserImgOrNameKey = 'achieveUserImgOrName';
@@ -119,13 +121,13 @@ class BbsUserJsonRpc extends JsonRpc {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         $validator = Validator::make(get_object_vars($param), [
-            'nickname'=>'required',
+            'nickname'=>'required|max:8',
         ]);
         if($validator->fails()){
             return array(
                 'code' => -1,
                 'message' => 'fail',
-                'data' => " 昵称不能为空"
+                'data' => " 昵称不能为空或太长"
             );
         }
         $user = User::where(['user_id' => $this->userId])->first();
@@ -144,26 +146,27 @@ class BbsUserJsonRpc extends JsonRpc {
             } else {
                 $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
                 if (!$users) {
-                    $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
-                    if ($res) {
-                        //成就任务redis setbit  key achieveUserImgOrName  offset user_id
-                        Redis::setBit($this->achieveUserImgOrNameKey, $this->userId, 1);
-                        $userInfo = array(
-                            'user_id' => $this->userId,
-                            'nickName' => $param->nickname,
-                        );
-                        return array(
-                            'code' => 0,
-                            'message' => 'success',
-                            'data' => $userInfo
-                        );
-                    } else {
-                        return array(
-                            'code' => -1,
-                            'message' => 'fail',
-                            'data' => '昵称重复'
-                        );
-                    }
+                     User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
+
+                      //成就任务redis setbit  key achieveUserImgOrName  offset user_id
+                     Redis::setBit($this->achieveUserImgOrNameKey, $this->userId, 1);
+                     $userInfo = array(
+                         'user_id' => $this->userId,
+                         'nickName' => $param->nickname,
+                     );
+                     return array(
+                         'code' => 0,
+                         'message' => 'success',
+                         'data' => $userInfo
+                     );
+
+
+                }else{
+                    return array(
+                        'code' => -1,
+                        'message' => 'fail',
+                        'data' => '昵称重复'
+                    );
                 }
             }
         }
@@ -200,14 +203,23 @@ class BbsUserJsonRpc extends JsonRpc {
             );
         }
         //发帖等级限制
+
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
         if($this->userInfo['level']<= $publishLimit['val']){
             return array(
                 'code' => -1,
                 'message' => 'fail',
-                'data' => $publishLimit['remark']
+                'data' => "您没有操作权限"
             );
         }
+        //拉黑限制
+        if($this->bbsUserInfo->isblack==1){
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => "您没有操作权限"
+            );
+        };
 
         $thread = new Thread();
         $thread->user_id = $this->userId;
@@ -261,6 +273,13 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $validator->errors()->first()
             );
         }
+        if($this->bbsUserInfo->isblack==1){
+            return array(
+                'code' => -1,
+                'message' => 'fail',
+                'data' => "您没有操作权限"
+            );
+        };
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
@@ -498,7 +517,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function queryBbsUserTask($param){
-
+        $this->userId = 123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -587,6 +606,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveCommentFiftyTask['icon'] = "https://php1.wanglibao.com/images/bbs/icon_post.png";
         //上传头像及修改昵称  achieveUpdateImgOrName
         $achieveUpdateImgOrName = Redis::getBit($this->achieveUserImgOrNameKey,$this->userId);
+        //数据库再次确认
+
         $achieveUpdateImgOrNameCount = Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
         $achieveUpdateImgOrNameTask['description'] = "上传头像及修改昵称";
         $achieveUpdateImgOrNameTask['taskType'] = "achieveUpdateImgOrName";
