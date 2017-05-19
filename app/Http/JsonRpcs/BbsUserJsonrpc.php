@@ -513,7 +513,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function queryBbsUserTask($param){
-        $this->userId = 123;
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
