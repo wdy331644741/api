@@ -79,12 +79,16 @@ class OmgException extends BasicException
     const CONDITION_NOT_ENOUGH = 4315;
     const ACTIVITY_IS_END = 4316;
     const ALREADY_EXIST = 4317;
+
+
     const INVITE_USER_NOT_EXIST = 4318;
 
-    const NICKNAME_ERROR = 4318;
-    const NICKNAME_REPEAT = 4319;
-    const RIGHT_ERROR = 4320;
-    const NICKNAME_IS_NULL = 4321;
+    const NICKNAME_ERROR = 4319;
+    const NICKNAME_REPEAT = 4320;
+    const RIGHT_ERROR = 4321;
+
+    const NICKNAME_IS_NULL = 4322;
+
 
     protected static $errorArray = array(
         //接口调用错误
