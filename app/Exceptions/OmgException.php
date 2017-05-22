@@ -79,9 +79,11 @@ class OmgException extends BasicException
     const CONDITION_NOT_ENOUGH = 4315;
     const ACTIVITY_IS_END = 4316;
     const ALREADY_EXIST = 4317;
+
     const NICKNAME_ERROR = 4318;
     const NICKNAME_REPEAT = 4319;
     const RIGHT_ERROR = 4320;
+    const NICKNAME_IS_NULL = 4321;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -146,9 +148,10 @@ class OmgException extends BasicException
         self::CONDITION_NOT_ENOUGH => "条件不足",
         self::ACTIVITY_IS_END => "活动已结束",
         self::ALREADY_EXIST => "数据已存在",
-        self::NICKNAME_ERROR=>"昵称不能为空或太长",
+        self::NICKNAME_ERROR=>"昵称太长",
         self::NICKNAME_REPEAT=>"昵称重复",
         self::RIGHT_ERROR=>"您没有操作权限",
+        self::NICKNAME_IS_NULL=>"昵称不能为空",
     );
 
     public function __construct($code, $data = array())
