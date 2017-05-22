@@ -44,13 +44,15 @@ class BbsThreadJsonRpc extends JsonRpc {
             return $page;
         });
         //自定义分页  查找本周2条view最多的帖子  剔除 管理员发的置顶贴
-        //剔除置顶页
+        //剔除置顶页 最多一条
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
 
         $topThread = Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
              ->where('created_At','>',$mondayTime)
+            ->orderByRaw('created_at DESC')
+            ->limit(1)
             ->get()
             ->toArray();
 
@@ -314,6 +316,7 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         $res = Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->where('created_At','>',$mondayTime)
+            ->limit(1)
             ->with('user')
             ->with("commentAndVerify")
             ->orderByRaw('created_at DESC')
