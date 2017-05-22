@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\JsonRpcs;
+use App\Exceptions\OmgException;
 use App\Models\Bbs\Pm;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
@@ -34,11 +35,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         ]);
 
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
         }
         $typeId = $params->id;
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
@@ -46,48 +43,60 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        //自定义分页  查找本周2条view最多的帖子  剔除 管理员发的置顶贴
+        //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
+
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
 
-        $hotThread = $thread->where(['isverify'=>1,'type_id'=>$typeId])
+        $hotThread = $thread->whereNotIn('id', function($query) use($typeId){
+            $query->select('id')
+                ->from('bbs_threads')
+                ->where(['istop'=>1,'type_id'=>$typeId]);
+
+        })
+
+
+        ->where(['isverify'=>1,'type_id'=>$typeId])
                              ->orWhere(function($query)use($typeId,$userId){
                                  $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
                 })
-            ->where('created_At','>',$mondayTime)
+
             ->with('user')
             ->with("commentAndVerify")
-            ->whereNotIn('id', function($query) use($typeId){
-                $query->select('id')
-                    ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId]);
-            })
+
+            ->where('created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
-            ->limit(2)
-            ->orderByRaw('created_at DESC')
+            ->limit(1)
+            ->orderByRaw('updated_at DESC')
+
             ->get()
             ->toArray();
 
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
-        $res = $thread
-            ->Where(function($query)use($typeId,$userId){
-            $query->where(['user_id'=>$userId,"type_id"=>$typeId])
-                ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
+
+        $res = $thread->whereNotIn('id', function($query) use($typeId,$hotThreadId){
+            $query->select('id')
+                ->from('bbs_threads')
+                ->where(['istop'=>1,'type_id'=>$typeId])
+                ->orwhereIn('id',$hotThreadId);
         })
+
+
+            ->where(['isverify'=>1,'type_id'=>$typeId])
+            ->orWhere(function($query)use($typeId,$userId){
+                $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+            })
+
             ->with('user')
             ->with("commentAndVerify")
-            ->whereNotIn('id', function($query) use($typeId){
-                $query->select('id')
-                    ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId]);
-            })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
+
         if(empty($hotThread)){
 
             foreach ($res['data'] as $key => $value){
@@ -123,25 +132,29 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $offset = ($page-1)*$pageNum-count($hotThreadId);
                 $step =$pageNum;
             }
-            $result = $thread
-                ->Where(function($query)use($typeId,$userId){
-                    $query->where(['user_id'=>$userId,"type_id"=>$typeId])
-                          ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
-                })
-                ->whereNotIn('id',$hotThreadId)
-                ->whereNotIn('id', function($query) use($typeId){
+
+            $result = $thread->whereNotIn('id', function($query) use($typeId,$hotThreadId){
                     $query->select('id')
                         ->from('bbs_threads')
-                        ->where(['istop'=>1,'type_id'=>$typeId]);
+                        ->where(['istop'=>1,'type_id'=>$typeId])
+                        ->orwhereIn('id',$hotThreadId);
                 })
 
-                ->with('user')
+
+                    ->where(['isverify'=>1,'type_id'=>$typeId])
+                    ->orWhere(function($query)use($typeId,$userId){
+                        $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                    })
+
+
+                    ->with('user')
                 ->with('commentAndVerify')
-                ->orderByRaw('created_at DESC')
+                ->orderByRaw('updated_at DESC')
                 ->offset($offset)
                 ->limit($step)
                 ->get()
                 ->toArray();
+
             if($page == 1){
                 $data['list'] = array_merge($hotThread,$result);
             }else{
@@ -220,12 +233,19 @@ class BbsThreadJsonRpc extends JsonRpc {
             if (!empty($params->fromPm)) {
                 Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
             }
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $thread_info,
+            );
+        }else{
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => "帖子不存在",
+            );
         }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $thread_info,
-        );
+
 
     }
     /**
@@ -253,6 +273,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         });
         $res =Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('user')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         return array(

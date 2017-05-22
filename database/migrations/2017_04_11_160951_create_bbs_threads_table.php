@@ -20,8 +20,8 @@ class CreateBbsThreadsTable extends Migration
             $table->integer('type_id');
             $table->string('title')->nullable()->delault(NULL);
             $table->text('content')->nullable()->default(NULL);
-            $table->tinyInteger('views')->default(0)->comment('浏览量');
-            $table->tinyInteger('comment_num')->default(0)->comment('帖子评论数');
+            $table->integer('views')->default(0)->comment('浏览量');
+            $table->integer('comment_num')->default(0)->comment('帖子评论数');
             $table->tinyInteger('istop')->default(0)->commnet('是否置顶 0（默认）：否 1：是');
             $table->tinyInteger('isgreat')->default(0)->comment('是否加精 0（默认）:否  1：是');
             $table->tinyInteger('ishot')->default(0)->comment('是否最热');

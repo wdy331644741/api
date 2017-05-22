@@ -32,15 +32,15 @@ class BbsUserJsonRpc extends JsonRpc {
     private $bbsDayCommentFiveTaskFinsh = 5;
     private $bbsAchieveThreadTenTaskFinsh = 10;
     private $bbsAchieveCommentFiftyTaskFinsh = 50;
-    private $bbsDayThreadOneTaskFinshAward = 200;
-    private $bbsDayThreadFiveTaskFinshAward = 500;
-    private $bbsDayCommentOneTaskFinshAward = 100;
-    private $bbsDayCommentFiveTaskFinshAward = 300;
-    private $bbsDayAllTaskFinshAward = 800;
+    private $bbsDayThreadOneTaskFinshAward = 800;
+    private $bbsDayThreadFiveTaskFinshAward = 2500;
+    private $bbsDayCommentOneTaskFinshAward = 500;
+    private $bbsDayCommentFiveTaskFinshAward = 1500;
+    private $bbsDayAllTaskFinshAward = 1000;
     private $bbsAchieveThreadTenTaskFinshAward = 5000;
     private $bbsAchieveCommentFiftyTaskFinshAward = 5000;
     private $bbsAchieveImgOrNameTaskFinshAward = 500;
-    private $bbsSumAward = 200+500+100+300+800+5000+5000+500;
+    private $bbsSumAward = 800+2500+500+1500+1000+5000+5000+500;
 
     public function __construct()
     {
@@ -99,11 +99,7 @@ class BbsUserJsonRpc extends JsonRpc {
                 'data' => $user
             );
         } else {
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => '上传头像失败'
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
 
         }
 
@@ -118,15 +114,14 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        if(empty($param->nickname)){
+            throw new OmgException(OmgException::NICKNAME_IS_NULL);
+        }
         $validator = Validator::make(get_object_vars($param), [
-            'nickname'=>'required',
+            'nickname'=>'required|max:8',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => " 昵称不能为空"
-            );
+            throw new OmgException(OmgException::NICKNAME_ERROR);
         }
         $user = User::where(['user_id' => $this->userId])->first();
 
@@ -144,26 +139,23 @@ class BbsUserJsonRpc extends JsonRpc {
             } else {
                 $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
                 if (!$users) {
-                    $res = User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
-                    if ($res) {
-                        //成就任务redis setbit  key achieveUserImgOrName  offset user_id
-                        Redis::setBit($this->achieveUserImgOrNameKey, $this->userId, 1);
-                        $userInfo = array(
-                            'user_id' => $this->userId,
-                            'nickName' => $param->nickname,
-                        );
-                        return array(
-                            'code' => 0,
-                            'message' => 'success',
-                            'data' => $userInfo
-                        );
-                    } else {
-                        return array(
-                            'code' => -1,
-                            'message' => 'fail',
-                            'data' => '昵称重复'
-                        );
-                    }
+                     User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
+
+                      //成就任务redis setbit  key achieveUserImgOrName  offset user_id
+                     Redis::setBit($this->achieveUserImgOrNameKey, $this->userId, 1);
+                     $userInfo = array(
+                         'user_id' => $this->userId,
+                         'nickName' => $param->nickname,
+                     );
+                     return array(
+                         'code' => 0,
+                         'message' => 'success',
+                         'data' => $userInfo
+                     );
+
+
+                }else{
+                   throw new OmgException(OmgException::NICKNAME_REPEAT);
                 }
             }
         }
@@ -193,21 +185,19 @@ class BbsUserJsonRpc extends JsonRpc {
             'content'=>'required|max:500',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
         }
         //发帖等级限制
+
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
         if($this->userInfo['level']<= $publishLimit['val']){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $publishLimit['remark']
-            );
+            throw new OmgException(OmgException::RIGHT_ERROR);
         }
+        //拉黑限制
+        $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+        if($bbsUserInfo->isblack==1){
+            throw new OmgException(OmgException::RIGHT_ERROR);
+        };
 
         $thread = new Thread();
         $thread->user_id = $this->userId;
@@ -218,18 +208,15 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->isverify = Config::get('bbsConfig')['threadVerify']?0:1;
         $thread->verify_time = date('Y-m-d H:i:s');
         $thread->save();
+        $message = Config::get('bbsConfig')['threadVerify']?"帖子发布成功,已提交后台审核 ":"帖子发布成功";
         if($thread->id){
             return array(
                 'code' => 0,
-                'message' => 'success',
+                'message' => $message,
                 'data' => Thread::where(['id'=>$thread->id])->first()
             );
         }else{
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => 'Database Error'
-            );
+            throw new OmgException(OmgException::API_ILLEGAL);
         }
 
     }
@@ -255,43 +242,30 @@ class BbsUserJsonRpc extends JsonRpc {
             'content'=>'required',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
         }
+        $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+        if($bbsUserInfo->isblack==1){
+            throw new OmgException(OmgException::RIGHT_ERROR);
+        };
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
         $comment->content = $params->content;
         $comment->isverify = Config::get('bbsConfig')['commentVerify']?0:1;
         $comment->save();
+        $message = Config::get('bbsConfig')['commentVerify']?"评论发布成功,已提交后台审核 ":"评论发布成功";
         if($comment->id){
             return array(
                 'code' => 0,
-                'message' => 'success',
+                'message' => $message,
                 'data' => $comment::where(['id'=>$comment->id])->first()
             );
         }else{
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => 'Database Error'
-            );
+            throw new OmgException(OmgException::API_ILLEGAL);
         }
 
 
-    }
-    private function commentUserPm($pmUserId,$from_user_id,$tid,$cid,$content=""){
-        $pms = new Pm();
-        $pms->user_id = $pmUserId;
-        $pms->from_user_id = $from_user_id;
-        $pms->tid = $tid;
-        $pms->cid = $cid;
-        $pms->content = $content;
-        $pms->isread = 0;
-        $pms->save();
     }
     /**
      *  获取用户发表的帖子 分页
@@ -497,7 +471,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function queryBbsUserTask($param){
-        
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -512,7 +485,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskOne['taskType'] = "dayThreadOne";
         $dayThreadTaskOne['task'] = "day";
         $dayThreadTaskOne['taskMark'] = "dayThread";
-        $dayThreadTaskOne['award'] = "奖励".$this->bbsDayCommentOneTaskFinshAward."体验金";
+        $dayThreadTaskOne['award'] = "奖励".$this->bbsDayThreadOneTaskFinshAward."体验金";
         $dayThreadTaskOne['current'] = $threadCount;
         $dayThreadTaskOne['finish'] =$this->bbsDayThreadOneTaskFinsh;
         $dayThreadTaskOne['isAward'] = $dayThreadTargetOne;
@@ -579,13 +552,15 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveCommentFiftyTask['taskType'] = "achieveCommentFifty";
         $achieveCommentFiftyTask['task'] = "achieve";
         $achieveCommentFiftyTask['taskMark'] = "achieveComment";
-        $achieveCommentFiftyTask['award'] = "奖励.".$this->bbsAchieveCommentFiftyTaskFinshAward."体验金";
+        $achieveCommentFiftyTask['award'] = "奖励".$this->bbsAchieveCommentFiftyTaskFinshAward."体验金";
         $achieveCommentFiftyTask['current'] = $achieveCommentCount;
         $achieveCommentFiftyTask['finish'] =$this->bbsAchieveCommentFiftyTaskFinsh;
         $achieveCommentFiftyTask['isAward'] = $achieveCommentFiftyCount;
         $achieveCommentFiftyTask['icon'] = "https://php1.wanglibao.com/images/bbs/icon_post.png";
         //上传头像及修改昵称  achieveUpdateImgOrName
         $achieveUpdateImgOrName = Redis::getBit($this->achieveUserImgOrNameKey,$this->userId);
+        //数据库再次确认
+
         $achieveUpdateImgOrNameCount = Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
         $achieveUpdateImgOrNameTask['description'] = "上传头像及修改昵称";
         $achieveUpdateImgOrNameTask['taskType'] = "achieveUpdateImgOrName";
@@ -656,15 +631,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                 break;
              case "dayThreadFive":
@@ -693,15 +665,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              case "dayCommentOne":
@@ -730,15 +699,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              case "dayCommentFive":
@@ -767,15 +733,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              case "dayAllTask":
@@ -807,15 +770,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              case "achieveThreadTen":
@@ -843,15 +803,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              case "achieveCommentFifty":
@@ -880,15 +837,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              case "achieveUpdateImgOrName":
@@ -917,15 +871,12 @@ class BbsUserJsonRpc extends JsonRpc {
                      $task->save();
                      return array(
                          'code' => 0,
-                         'message' => 'success',
+                         'message' => '领取成功',
                          'data' => $sendData[0]
                      );
                  }else{
                      //失败
-                     return array(
-                         'code' => -1,
-                         'message' => isset($sendData['msg']) ? $sendData['msg'] : ""
-                     );
+                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
                  }
                  break;
              default:

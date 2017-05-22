@@ -136,7 +136,7 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $user_id = Thread::find($request->id)->value('user_id');
+        $user_id = Thread::where('id',$request->id)->value('user_id');
         Thread::destroy($request->id);
         $pm = new Pm();
         $pm->user_id = $user_id;
