@@ -82,13 +82,12 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new TreasureJsonRpc());
         $jsonRpcServer->addService(new PoBaiYiJsonRpc());
         $jsonRpcServer->addService(new AmountShareJsonRpc());
+        $jsonRpcServer->addService(new FiveOneEightJsonRpc());
+        $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
         $jsonRpcServer->addService(new BbsUserJsonRpc());
         $jsonRpcServer->addService(new BbsThreadJsonRpc());
         $jsonRpcServer->addService(new BbsThreadSectionJsonRpc());
         $jsonRpcServer->addService(new BbsCommentJsonrpc());
-        $jsonRpcServer->addService(new FiveOneEightJsonRpc());
-        $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
-
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
