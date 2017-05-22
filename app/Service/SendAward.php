@@ -1344,7 +1344,7 @@ class SendAward
         }
 
     }
-    //用户积分
+    //用户现金
     static public function cash($info){
         //添加info里添加日志需要的参数
         $info['award_type'] = 7;
