@@ -95,7 +95,7 @@ class DiyIncreasesBasic
         $awards['effective_time_day'] = 7;
         $awards['investment_threshold'] = 0;
         $awards['product_id'] = '';
-        $awards['project_type'] = 1;
+        $awards['project_type'] = 0;
         $awards['project_duration_type'] = 1;
         $awards['platform_type'] = 0;
         $awards['mail'] = "恭喜您在'".$awards['source_name']."'活动中获得了'".$awards['name']."'奖励。";

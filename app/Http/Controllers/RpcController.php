@@ -38,8 +38,8 @@ use App\Http\JsonRpcs\NvshenyueJsonRpc;
 use App\Http\JsonRpcs\TzyxjJsonRpc;
 use App\Http\JsonRpcs\TreasureJsonRpc;
 use App\Http\JsonRpcs\PoBaiYiJsonRpc;
-use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
 use App\Http\JsonRpcs\FiveOneEightJsonRpc;
+use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
 
 class RpcController extends Controller
 {
@@ -85,9 +85,10 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new BbsUserJsonRpc());
         $jsonRpcServer->addService(new BbsThreadJsonRpc());
         $jsonRpcServer->addService(new BbsThreadSectionJsonRpc());
-        $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
         $jsonRpcServer->addService(new BbsCommentJsonrpc());
         $jsonRpcServer->addService(new FiveOneEightJsonRpc());
+        $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
+
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
