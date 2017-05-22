@@ -285,6 +285,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         });
         $res =Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
             ->with('user')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         return array(
@@ -315,6 +316,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->where('created_At','>',$mondayTime)
             ->with('user')
             ->with("commentAndVerify")
+            ->orderByRaw('created_at DESC')
             ->get()
             ->toArray();
 
