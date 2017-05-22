@@ -43,29 +43,17 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        //自定义分页  查找本周2条view最多的帖子  剔除 管理员发的置顶贴
-        //剔除置顶页 最多一条
+        //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
+
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
 
-        $topThread = Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
-             ->where('created_At','>',$mondayTime)
-            ->orderByRaw('created_at DESC')
-            ->limit(1)
-            ->get()
-            ->toArray();
-
-        $topThreadId = [];
-        foreach ($topThread as $key=>$value){
-            $topThreadId[] = isset($value['id'])?$value['id']:"";
-        }
-
-        $hotThread = $thread->whereNotIn('id', function($query) use($typeId,$topThreadId){
+        $hotThread = $thread->whereNotIn('id', function($query) use($typeId){
             $query->select('id')
                 ->from('bbs_threads')
-                ->where(['istop'=>1,'type_id'=>$typeId])
-                ->orwhereIn('id',$topThreadId);
+                ->where(['istop'=>1,'type_id'=>$typeId]);
+
         })
 
 
@@ -74,14 +62,13 @@ class BbsThreadJsonRpc extends JsonRpc {
                                  $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
                 })
 
-
             ->with('user')
             ->with("commentAndVerify")
 
             ->where('created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
-            ->limit(2)
+            ->limit(1)
             ->orderByRaw('updated_at DESC')
 
             ->get()
@@ -91,11 +78,11 @@ class BbsThreadJsonRpc extends JsonRpc {
             $hotThreadId[] = $value['id'];
         }
 
-        $res = $thread->whereNotIn('id', function($query) use($typeId,$topThreadId){
+        $res = $thread->whereNotIn('id', function($query) use($typeId,$hotThreadId){
             $query->select('id')
                 ->from('bbs_threads')
                 ->where(['istop'=>1,'type_id'=>$typeId])
-                ->orwhereIn('id',$topThreadId);
+                ->orwhereIn('id',$hotThreadId);
         })
 
 
@@ -140,17 +127,16 @@ class BbsThreadJsonRpc extends JsonRpc {
         }else{
             if($page ==1){
                 $offset = 0;
-                $step =$pageNum-count($hotThreadId)-count($topThreadId);
+                $step =$pageNum-count($hotThreadId);
             }else{
-                $offset = ($page-1)*$pageNum-count($hotThreadId)-count($topThreadId);
+                $offset = ($page-1)*$pageNum-count($hotThreadId);
                 $step =$pageNum;
             }
 
-            $result = $thread->whereNotIn('id', function($query) use($typeId,$topThreadId,$hotThreadId){
+            $result = $thread->whereNotIn('id', function($query) use($typeId,$hotThreadId){
                     $query->select('id')
                         ->from('bbs_threads')
                         ->where(['istop'=>1,'type_id'=>$typeId])
-                        ->orwhereIn('id',$topThreadId)
                         ->orwhereIn('id',$hotThreadId);
                 })
 
@@ -295,52 +281,6 @@ class BbsThreadJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $res
         );
-    }
-    /**
-     *
-     *
-     * 获取普通用户置顶帖子列表
-     *
-     * @JsonRpcMethod
-     */
-    public function getBbsThreadUserTopList($params){
-        $validator = Validator::make(get_object_vars($params), [
-            'id'=>'required|exists:bbs_thread_sections,id',
-        ]);
-
-        if($validator->fails()){
-            throw new OmgException(OmgException::DATA_ERROR);
-        }
-
-        $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
-
-        $res = Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
-            ->where('created_At','>',$mondayTime)
-            ->limit(1)
-            ->with('user')
-            ->with("commentAndVerify")
-            ->orderByRaw('created_at DESC')
-            ->get()
-            ->toArray();
-
-        foreach ($res as $key => $value){
-            $res[$key]['comments']=[];
-            foreach ($value['comment_and_verify'] as $k =>$v) {
-                $res[$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
-                $res[$key]['comments'][$k] = $res[$key]['comment_and_verify'][$k];
-                if($k >=1){
-                    break;
-                }
-            }
-            unset($res[$key]['comment_and_verify']);
-
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $res
-        );
-
     }
 
 
