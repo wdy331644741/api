@@ -35,6 +35,8 @@ use App\Http\JsonRpcs\NvshenyueJsonRpc;
 use App\Http\JsonRpcs\TzyxjJsonRpc;
 use App\Http\JsonRpcs\TreasureJsonRpc;
 use App\Http\JsonRpcs\PoBaiYiJsonRpc;
+use App\Http\JsonRpcs\FiveOneEightJsonRpc;
+use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
 
 class RpcController extends Controller
 {
@@ -77,6 +79,8 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new TreasureJsonRpc());
         $jsonRpcServer->addService(new PoBaiYiJsonRpc());
         $jsonRpcServer->addService(new AmountShareJsonRpc());
+        $jsonRpcServer->addService(new FiveOneEightJsonRpc());
+        $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
         $jsonRpcServer->addService(new SignInSystemJsonRpc());
 
         $jsonRpcServer->processingRequests();

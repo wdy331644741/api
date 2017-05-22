@@ -209,6 +209,23 @@ class SendAward
                 }
                 break;
             /** 签到系统活动 end */
+            /** DIY加息券活动 start */
+            //绑卡
+            case 'diy_increases_bind_bank_card':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $fromUserId = Func::getUserBasicInfo($triggerData['user_id']);
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$fromUserId['from_user_id'],'注册并绑卡',1);
+                }
+                break;
+            //投资
+            case 'diy_increases_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    //这里的$num为投资金额
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$triggerData['from_user_id'],'投资',$num);
+                }
+                break;
+            /** DIY加息券活动 end */
             /** 网贷天眼首投送积分 start */
             case 'wdty_investment_first':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
@@ -884,7 +901,7 @@ class SendAward
         $info['uuid'] = null;
         $info['status'] = 0;
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
