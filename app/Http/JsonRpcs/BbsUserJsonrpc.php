@@ -205,10 +205,11 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->isverify = Config::get('bbsConfig')['threadVerify']?0:1;
         $thread->verify_time = date('Y-m-d H:i:s');
         $thread->save();
+        $message = Config::get('bbsConfig')['threadVerify']?"帖子发布成功,已提交后台审核 ":"帖子发布成功";
         if($thread->id){
             return array(
                 'code' => 0,
-                'message' => 'success',
+                'message' => $message,
                 'data' => Thread::where(['id'=>$thread->id])->first()
             );
         }else{
@@ -250,10 +251,11 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->content = $params->content;
         $comment->isverify = Config::get('bbsConfig')['commentVerify']?0:1;
         $comment->save();
+        $message = Config::get('bbsConfig')['commentVerify']?"评论发布成功,已提交后台审核 ":"评论发布成功";
         if($comment->id){
             return array(
                 'code' => 0,
-                'message' => 'success',
+                'message' => $message,
                 'data' => $comment::where(['id'=>$comment->id])->first()
             );
         }else{
