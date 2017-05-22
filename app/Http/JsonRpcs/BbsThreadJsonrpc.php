@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\JsonRpcs;
+use App\Exceptions\OmgException;
 use App\Models\Bbs\Pm;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
@@ -34,11 +35,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         ]);
 
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
         }
         $typeId = $params->id;
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
@@ -47,47 +44,70 @@ class BbsThreadJsonRpc extends JsonRpc {
             return $page;
         });
         //自定义分页  查找本周2条view最多的帖子  剔除 管理员发的置顶贴
+        //剔除置顶页
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
 
-        $hotThread = $thread->where(['isverify'=>1,'type_id'=>$typeId])
+        $topThread = Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
+             ->where('created_At','>',$mondayTime)
+            ->get()
+            ->toArray();
+
+        $topThreadId = [];
+        foreach ($topThread as $key=>$value){
+            $topThreadId[] = isset($value['id'])?$value['id']:"";
+        }
+
+        $hotThread = $thread->whereNotIn('id', function($query) use($typeId,$topThreadId){
+            $query->select('id')
+                ->from('bbs_threads')
+                ->where(['istop'=>1,'type_id'=>$typeId])
+                ->orwhereIn('id',$topThreadId);
+        })
+
+
+        ->where(['isverify'=>1,'type_id'=>$typeId])
                              ->orWhere(function($query)use($typeId,$userId){
                                  $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
                 })
-            ->where('created_At','>',$mondayTime)
+
+
             ->with('user')
             ->with("commentAndVerify")
-            ->whereNotIn('id', function($query) use($typeId){
-                $query->select('id')
-                    ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId]);
-            })
+
+            ->where('created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
             ->limit(2)
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('updated_at DESC')
+
             ->get()
             ->toArray();
 
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
-        $res = $thread
-            ->Where(function($query)use($typeId,$userId){
-            $query->where(['user_id'=>$userId,"type_id"=>$typeId])
-                ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
+
+        $res = $thread->whereNotIn('id', function($query) use($typeId,$topThreadId){
+            $query->select('id')
+                ->from('bbs_threads')
+                ->where(['istop'=>1,'type_id'=>$typeId])
+                ->orwhereIn('id',$topThreadId);
         })
+
+
+            ->where(['isverify'=>1,'type_id'=>$typeId])
+            ->orWhere(function($query)use($typeId,$userId){
+                $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+            })
+
             ->with('user')
             ->with("commentAndVerify")
-            ->whereNotIn('id', function($query) use($typeId){
-                $query->select('id')
-                    ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId]);
-            })
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
+
         if(empty($hotThread)){
 
             foreach ($res['data'] as $key => $value){
@@ -118,30 +138,35 @@ class BbsThreadJsonRpc extends JsonRpc {
         }else{
             if($page ==1){
                 $offset = 0;
-                $step =$pageNum-count($hotThreadId);
+                $step =$pageNum-count($hotThreadId)-count($topThreadId);
             }else{
-                $offset = ($page-1)*$pageNum-count($hotThreadId);
+                $offset = ($page-1)*$pageNum-count($hotThreadId)-count($topThreadId);
                 $step =$pageNum;
             }
-            $result = $thread
-                ->Where(function($query)use($typeId,$userId){
-                    $query->where(['user_id'=>$userId,"type_id"=>$typeId])
-                          ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
-                })
-                ->whereNotIn('id',$hotThreadId)
-                ->whereNotIn('id', function($query) use($typeId){
+
+            $result = $thread->whereNotIn('id', function($query) use($typeId,$topThreadId,$hotThreadId){
                     $query->select('id')
                         ->from('bbs_threads')
-                        ->where(['istop'=>1,'type_id'=>$typeId]);
+                        ->where(['istop'=>1,'type_id'=>$typeId])
+                        ->orwhereIn('id',$topThreadId)
+                        ->orwhereIn('id',$hotThreadId);
                 })
 
-                ->with('user')
+
+                    ->where(['isverify'=>1,'type_id'=>$typeId])
+                    ->orWhere(function($query)use($typeId,$userId){
+                        $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                    })
+
+
+                    ->with('user')
                 ->with('commentAndVerify')
-                ->orderByRaw('created_at DESC')
+                ->orderByRaw('updated_at DESC')
                 ->offset($offset)
                 ->limit($step)
                 ->get()
                 ->toArray();
+
             if($page == 1){
                 $data['list'] = array_merge($hotThread,$result);
             }else{
@@ -267,6 +292,50 @@ class BbsThreadJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $res
         );
+    }
+    /**
+     *
+     *
+     * 获取普通用户置顶帖子列表
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsThreadUserTopList($params){
+        $validator = Validator::make(get_object_vars($params), [
+            'id'=>'required|exists:bbs_thread_sections,id',
+        ]);
+
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+
+        $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
+
+        $res = Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
+            ->where('created_At','>',$mondayTime)
+            ->with('user')
+            ->with("commentAndVerify")
+            ->get()
+            ->toArray();
+
+        foreach ($res as $key => $value){
+            $res[$key]['comments']=[];
+            foreach ($value['comment_and_verify'] as $k =>$v) {
+                $res[$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
+                $res[$key]['comments'][$k] = $res[$key]['comment_and_verify'][$k];
+                if($k >=1){
+                    break;
+                }
+            }
+            unset($res[$key]['comment_and_verify']);
+
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        );
+
     }
 
 
