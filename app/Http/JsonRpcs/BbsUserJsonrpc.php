@@ -32,15 +32,15 @@ class BbsUserJsonRpc extends JsonRpc {
     private $bbsDayCommentFiveTaskFinsh = 5;
     private $bbsAchieveThreadTenTaskFinsh = 10;
     private $bbsAchieveCommentFiftyTaskFinsh = 50;
-    private $bbsDayThreadOneTaskFinshAward = 200;
-    private $bbsDayThreadFiveTaskFinshAward = 500;
-    private $bbsDayCommentOneTaskFinshAward = 100;
-    private $bbsDayCommentFiveTaskFinshAward = 300;
-    private $bbsDayAllTaskFinshAward = 800;
+    private $bbsDayThreadOneTaskFinshAward = 800;
+    private $bbsDayThreadFiveTaskFinshAward = 2500;
+    private $bbsDayCommentOneTaskFinshAward = 500;
+    private $bbsDayCommentFiveTaskFinshAward = 1500;
+    private $bbsDayAllTaskFinshAward = 1000;
     private $bbsAchieveThreadTenTaskFinshAward = 5000;
     private $bbsAchieveCommentFiftyTaskFinshAward = 5000;
     private $bbsAchieveImgOrNameTaskFinshAward = 500;
-    private $bbsSumAward = 200+500+100+300+800+5000+5000+500;
+    private $bbsSumAward = 800+2500+500+1500+1000+5000+5000+500;
 
     public function __construct()
     {
@@ -113,6 +113,9 @@ class BbsUserJsonRpc extends JsonRpc {
     public function updateBbsUserNickname($param){
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        if(empty($param->nickname)){
+            throw new OmgException(OmgException::NICKNAME_IS_NULL);
         }
         $validator = Validator::make(get_object_vars($param), [
             'nickname'=>'required|max:8',
@@ -468,7 +471,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function queryBbsUserTask($param){
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -483,7 +485,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskOne['taskType'] = "dayThreadOne";
         $dayThreadTaskOne['task'] = "day";
         $dayThreadTaskOne['taskMark'] = "dayThread";
-        $dayThreadTaskOne['award'] = "奖励".$this->bbsDayCommentOneTaskFinshAward."体验金";
+        $dayThreadTaskOne['award'] = "奖励".$this->bbsDayThreadOneTaskFinshAward."体验金";
         $dayThreadTaskOne['current'] = $threadCount;
         $dayThreadTaskOne['finish'] =$this->bbsDayThreadOneTaskFinsh;
         $dayThreadTaskOne['isAward'] = $dayThreadTargetOne;
@@ -550,7 +552,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveCommentFiftyTask['taskType'] = "achieveCommentFifty";
         $achieveCommentFiftyTask['task'] = "achieve";
         $achieveCommentFiftyTask['taskMark'] = "achieveComment";
-        $achieveCommentFiftyTask['award'] = "奖励.".$this->bbsAchieveCommentFiftyTaskFinshAward."体验金";
+        $achieveCommentFiftyTask['award'] = "奖励".$this->bbsAchieveCommentFiftyTaskFinshAward."体验金";
         $achieveCommentFiftyTask['current'] = $achieveCommentCount;
         $achieveCommentFiftyTask['finish'] =$this->bbsAchieveCommentFiftyTaskFinsh;
         $achieveCommentFiftyTask['isAward'] = $achieveCommentFiftyCount;
