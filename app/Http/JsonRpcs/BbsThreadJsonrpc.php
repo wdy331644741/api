@@ -73,7 +73,7 @@ class BbsThreadJsonRpc extends JsonRpc {
 
             ->get()
             ->toArray();
-
+        $hotThreadId =[];
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
