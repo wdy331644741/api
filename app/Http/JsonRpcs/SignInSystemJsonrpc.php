@@ -176,7 +176,7 @@ class SignInSystemJsonRpc extends JsonRpc
             ]);
 
             $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, 'checkIn');
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, 'shake');
 
             $remark['addMoneyRes'] = $result;
             // 成功
