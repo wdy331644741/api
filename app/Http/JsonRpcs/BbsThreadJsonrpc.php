@@ -211,11 +211,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             'id'=>'required|exists:bbs_threads,id',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
 
         }
 
@@ -244,11 +240,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 'data' => $thread_info,
             );
         }else{
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => "帖子不存在",
-            );
+                throw new OmgException(OmgException::DATA_ERROR);
         }
 
 
@@ -265,11 +257,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             'id'=>'required|exists:bbs_thread_sections,id',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+                throw new OmgException(OmgException::DATA_ERROR);
         }
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
