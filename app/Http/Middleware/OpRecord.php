@@ -21,12 +21,12 @@ class OpRecord
         global $userId;
         Record::create([
             'user_id' => $userId || 0,
-            'method' => $request->method(),
-            'host' => $request->getHttpHost(),
-            'path' => $request->path(),
-            'ip' => $request->getClientIp(),
+            'method' => $request->method() || '',
+            'host' => $request->getHttpHost() || '',
+            'path' => $request->path() || '',
+            'ip' => $request->getClientIp() || '',
             'user_agent' => $request->header('User-Agent'),
-            'query' => $request->getQueryString(),
+            'query' => $request->getQueryString() || '',
             'post' => json_encode($_POST, JSON_UNESCAPED_UNICODE),
         ]);
         return $next($request);
