@@ -727,7 +727,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      Redis::INCRBY($this->bbsDayTaskSumAwardKey,$this->bbsDayCommentFiveTaskFinshAward);
                      $task = new Task();
                      $task->user_id = $this->userId;
-                     $task->task_type = 'dayThreadFive';
+                     $task->task_type = 'dayCommentFive';
                      $task->award = $this->bbsDayCommentFiveTaskFinshAward;
                      $task->award_time = date("Y-m-d H:i:s",time());
                      $task->save();
@@ -797,7 +797,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      //信息入库
                      $task = new Task();
                      $task->user_id = $this->userId;
-                     $task->task_type = 'achieveThreadTen';
+                     $task->task_type = 'dayCommentFive';
                      $task->award = $this->bbsAchieveThreadTenTaskFinshAward;
                      $task->award_time = date("Y-m-d H:i:s",time());
                      $task->save();
