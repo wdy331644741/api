@@ -797,7 +797,7 @@ class BbsUserJsonRpc extends JsonRpc {
                      //信息入库
                      $task = new Task();
                      $task->user_id = $this->userId;
-                     $task->task_type = 'dayCommentFive';
+                     $task->task_type = 'achieveThreadTen';
                      $task->award = $this->bbsAchieveThreadTenTaskFinshAward;
                      $task->award_time = date("Y-m-d H:i:s",time());
                      $task->save();
@@ -818,7 +818,7 @@ class BbsUserJsonRpc extends JsonRpc {
                  if($achieveCommentFiftyTask){
                      throw new OmgException(OmgException::MALL_IS_HAS);
                  }
-                 $achieveCommentFiftyTaskCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
+                 $achieveCommentFiftyTaskCount = Comment::where(['isverify'=>1,'user_id'=>$this->userId])->count();
                  if($achieveCommentFiftyTaskCount < $this->bbsAchieveCommentFiftyTaskFinsh){
                      throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
                  }
