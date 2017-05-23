@@ -73,22 +73,24 @@ class BbsThreadJsonRpc extends JsonRpc {
 
             ->get()
             ->toArray();
-
+        $hotThreadId =[];
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
 
-        $res = $thread->whereNotIn('id', function($query) use($typeId,$hotThreadId){
-            $query->select('id')
-                ->from('bbs_threads')
-                ->where(['istop'=>1,'type_id'=>$typeId])
-                ->orwhereIn('id',$hotThreadId);
-        })
+        $res = $thread
 
-
-            ->where(['isverify'=>1,'type_id'=>$typeId])
-            ->orWhere(function($query)use($typeId,$userId){
-                $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+            ->where(function($query)use($typeId,$userId) {
+                $query->where(['isverify'=>1,'type_id'=>$typeId])
+                    ->orWhere(function($query)use($typeId,$userId){
+                        $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                    });
+            })
+            ->whereNotIn('id', function($query) use($typeId,$hotThreadId){
+                $query->select('id')
+                    ->from('bbs_threads')
+                    ->where(['istop'=>1,'type_id'=>$typeId])
+                    ->orwhereIn('id',$hotThreadId);
             })
 
             ->with('user')
@@ -133,7 +135,15 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $step =$pageNum;
             }
 
-            $result = $thread->whereNotIn('id', function($query) use($typeId,$hotThreadId){
+            $result = $thread
+
+                ->where(function($query)use($typeId,$userId) {
+                    $query->where(['isverify'=>1,'type_id'=>$typeId])
+                        ->orWhere(function($query)use($typeId,$userId){
+                            $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                        });
+                })
+                ->whereNotIn('id', function($query) use($typeId,$hotThreadId){
                     $query->select('id')
                         ->from('bbs_threads')
                         ->where(['istop'=>1,'type_id'=>$typeId])
@@ -141,13 +151,8 @@ class BbsThreadJsonRpc extends JsonRpc {
                 })
 
 
-                    ->where(['isverify'=>1,'type_id'=>$typeId])
-                    ->orWhere(function($query)use($typeId,$userId){
-                        $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
-                    })
 
-
-                    ->with('user')
+                ->with('user')
                 ->with('commentAndVerify')
                 ->orderByRaw('updated_at DESC')
                 ->offset($offset)
