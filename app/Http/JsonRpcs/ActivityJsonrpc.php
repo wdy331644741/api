@@ -342,13 +342,11 @@ class ActivityJsonRpc extends JsonRpc {
             $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
 
             // 今天已签到
-            /*
             if($lastUpdateDate == date('Y-m-d', time())) {
                 $isSignIn = true;
                 $continue = $signIn['number'] ?  $signIn['number'] : 0;
                 $award['name'] = $signIn['string'];
             }
-            */
 
             // 昨天已签到
             if($lastUpdateDate == date('Y-m-d', time() - 3600*24)) {
