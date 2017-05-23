@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\JsonRpcs;
+use App\Exceptions\OmgException;
 use App\Models\Bbs\Pm;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
@@ -34,11 +35,7 @@ class BbsCommentJsonrpc extends JsonRpc {
        ]);
 
        if($validator->fails()){
-           return array(
-               'code' => -1,
-               'message' => 'fail',
-               'data' => $validator->errors()->first()
-           );
+           throw new OmgException(OmgException::DATA_ERROR);
        }
        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
        $page = isset($params->page) ? $params->page : 1;
@@ -51,7 +48,7 @@ class BbsCommentJsonrpc extends JsonRpc {
                    $query->where(['user_id'=>$userId,"tid"=>$tid]);
                })
            ->with('users')
-           ->orderByRaw('created_at DESC')
+           ->orderByRaw('created_at')
            ->paginate($pageNum)
            ->toArray();
 
