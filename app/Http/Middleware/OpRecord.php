@@ -19,6 +19,12 @@ class OpRecord
     public function handle($request, Closure $next)
     {
         global $userId;
+
+        // 过滤账号信息信息
+        $post = $_POST;
+        if(isset($post['password'])) {
+            $post['password']  = '******';
+        }
         Record::create([
             'user_id' => $userId || 0,
             'method' => $request->method() || '',
@@ -27,7 +33,7 @@ class OpRecord
             'ip' => $request->getClientIp() || '',
             'user_agent' => $request->header('User-Agent'),
             'query' => $request->getQueryString() || '',
-            'post' => json_encode($_POST, JSON_UNESCAPED_UNICODE),
+            'post' => json_encode($post, JSON_UNESCAPED_UNICODE),
         ]);
         return $next($request);
     }
