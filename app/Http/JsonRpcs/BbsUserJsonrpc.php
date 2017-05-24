@@ -111,18 +111,21 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function updateBbsUserNickname($param){
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         if(empty($param->nickname)){
             throw new OmgException(OmgException::NICKNAME_IS_NULL);
         }
+
         $validator = Validator::make(get_object_vars($param), [
-            'nickname'=>'required|max:8',
+            'nickname'=>'required|max:10',
         ]);
         if($validator->fails()){
             throw new OmgException(OmgException::NICKNAME_ERROR);
         }
+
         $user = User::where(['user_id' => $this->userId])->first();
 
         if($user) {
@@ -435,7 +438,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $User->user_id = $this->userInfo['id'];
             $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
             $User->phone = $this->userInfo['phone'];
-            $User->nickname ='用户'.$this->userInfo['id'];
+            $User->nickname ='wl'.$this->userInfo['id'];
             $User->isblack = 0;
             $User->isadmin = 0;
             $User->save();
