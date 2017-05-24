@@ -7,9 +7,51 @@ use Illuminate\Http\Request;
 use Validator;
 
 trait BasicDatatables{
-    public function getDtList()
+    public function getDtList(Request $request)
     {
         $items = $this->model->select($this->fileds);
+        // 只显示删除
+        if ($request->has('onlyTrashed')) {
+            $items->onlyTrashed()->orderBy('id', 'desc');
+        }
+        // 定制化搜索
+        if ($request->has('customSearch')) {
+            $customSearch = $request->get('customSearch');
+            switch ($customSearch['pattern']) {
+                case 'like':
+                    $items->where($customSearch['name'], 'like', "%{$customSearch['value']}%");
+                    break;
+                case 'equal':
+                case '=':
+                    $items->where($customSearch['name'], '=', $customSearch['value']);
+                    break;
+                case '<=':
+                    $items->where($customSearch['name'], '<=', $customSearch['value']);
+                    break;
+                case '>=':
+                    $items->where($customSearch['name'], '>=', $customSearch['value']);
+                    break;
+                case '!=':
+                    $items->where($customSearch['name'], '!=', $customSearch['value']);
+                    break;
+                case '<':
+                    $items->where($customSearch['name'], '<', $customSearch['value']);
+                    break;
+                case '>':
+                    $items->where($customSearch['name'], '>', $customSearch['value']);
+                    break;
+                default :
+                    break;
+            }
+        }
+        // 关联
+        if ($request->has('withs')) {
+            $withs = $request->get('withs');
+            foreach ($withs as $key => $with) {
+                $items->with($with);
+            }
+        }
+        /* */
         $res = Datatables::of($items)->make();
         return $this->outputJson(0, $res->getData());
     }
@@ -17,7 +59,7 @@ trait BasicDatatables{
     public function postDtDelete(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:channels,id',
+            'id' => 'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));

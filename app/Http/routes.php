@@ -25,6 +25,15 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
 
+    //社区相关
+    Route::controller('bbs/thread','Bbs\ThreadController');
+    Route::controller('bbs/section','Bbs\ThreadSectionController');
+    Route::controller('bbs/user','Bbs\UserController');
+    Route::controller('bbs/global','Bbs\GlobalController');
+    Route::controller('bbs/replay','Bbs\ReplayController');
+    Route::controller('bbs/comment','Bbs\CommentController');
+    Route::controller('bbs/pm','Bbs\PmController');
+
     // 测试控制器
     Route::controller('test','TestController');
     // 模板控制

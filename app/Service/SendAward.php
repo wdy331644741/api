@@ -115,7 +115,7 @@ class SendAward
         }
         //获取该主动触发活动信息
         $where = array();
-        $where['alias_name'] = $aliasName;
+        $where['alias_name'] = trim($aliasName);
         $where['trigger_type'] = 0;
         $where['enable'] = 1;
         $list = Activity::where(
