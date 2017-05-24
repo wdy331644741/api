@@ -744,8 +744,8 @@ class BbsUserJsonRpc extends JsonRpc {
              case "dayAllTask":
                  //是否领过奖
                  $alisa = "task_everyday_all";
-                 $dayAlltask =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayAllTask','user_id'=> $this->userId])->count();
-                 if($dayAlltask){
+                 $dayAllTask =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayAllTask','user_id'=> $this->userId])->count();
+                 if($dayAllTask){
                      throw new OmgException(OmgException::MALL_IS_HAS);
                  }
                  $threadOneCount = Task::where('created_at','>',$nowTime)->where(['task_type'=>'dayThreadOne','user_id'=>$this->userId])->count();
@@ -793,6 +793,7 @@ class BbsUserJsonRpc extends JsonRpc {
                  $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
                  //
                  if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
+                     Redis::INCRBY($this->bbsAchieveTaskSumAwardKey,$this->bbsAchieveThreadTenTaskFinshAward);
                      //成功
                      //信息入库
                      $task = new Task();

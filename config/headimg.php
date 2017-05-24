@@ -1,22 +1,22 @@
 <?php
 return [
     'admin'=>[
-        1=>'https://php1.wanglibao.com/images/bbs/avatar1.png',
-        2=>'https://php1.wanglibao.com/images/bbs/avatar2.png',
-        3=>'https://php1.wanglibao.com/images/bbs/avatar3.png',
-        4=>'https://php1.wanglibao.com/images/bbs/avatar4.png',
-        5=>'https://php1.wanglibao.com/images/bbs/avatar5.png',
-        6=>'https://php1.wanglibao.com/images/bbs/avatar6.png'
+        1=>env('APP_URL').'/images/bbs/avatar1.png',
+        2=>env('APP_URL').'/images/bbs/avatar2.png',
+        3=>env('APP_URL').'/images/bbs/avatar3.png',
+        4=>env('APP_URL').'/images/bbs/avatar4.png',
+        5=>env('APP_URL').'/images/bbs/avatar5.png',
+        6=>env('APP_URL').'/images/bbs/avatar6.png'
     ],
     'user'=>[
-        1=>'https://php1.wanglibao.com/images/bbs/avatar1.png',
-        2=>'https://php1.wanglibao.com/images/bbs/avatar2.png',
-        3=>'https://php1.wanglibao.com/images/bbs/avatar3.png',
-        4=>'https://php1.wanglibao.com/images/bbs/avatar4.png',
-        5=>'https://php1.wanglibao.com/images/bbs/avatar5.png',
-        6=>'https://php1.wanglibao.com/images/bbs/avatar6.png',
-        7=>'https://php1.wanglibao.com/images/bbs/avatar7.png',
-        8=>'https://php1.wanglibao.com/images/bbs/avatar8.png',
-        9=>'https://php1.wanglibao.com/images/bbs/avatar9.png'
+        1=>env('APP_URL').'/images/bbs/avatar1.png',
+        2=>env('APP_URL').'/images/bbs/avatar2.png',
+        3=>env('APP_URL').'/images/bbs/avatar3.png',
+        4=>env('APP_URL').'/images/bbs/avatar4.png',
+        5=>env('APP_URL').'/images/bbs/avatar5.png',
+        6=>env('APP_URL').'/images/bbs/avatar6.png',
+        7=>env('APP_URL').'/images/bbs/avatar7.png',
+        8=>env('APP_URL').'/images/bbs/avatar8.png',
+        9=>env('APP_URL').'/images/bbs/avatar9.png'
     ]
 ];
