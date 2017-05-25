@@ -437,10 +437,17 @@ class BbsUserJsonRpc extends JsonRpc {
             $User->user_id = $this->userInfo['id'];
             $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
             $User->phone = $this->userInfo['phone'];
-            $User->nickname ='wl'.$this->userInfo['id'];
             $User->isblack = 0;
             $User->isadmin = 0;
             $User->save();
+            $res = $User::where(['nickname' => 'wl' . $User->id])->first();
+            if($res){
+                $randomArray = range ("a","z");
+                $random = rand(0,25);
+                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id .$randomArray["$random"]]);
+            }else {
+                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id]);
+            }
             $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
             $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
             $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
@@ -492,7 +499,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskOne['current'] = $threadCount;
         $dayThreadTaskOne['finish'] =$this->bbsDayThreadOneTaskFinsh;
         $dayThreadTaskOne['isAward'] = $dayThreadTargetOne;
-        $dayThreadTaskOne['icon'] = "https://php1.wanglibao.com/images/bbs/icon_comment.png";
+        $dayThreadTaskOne['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
         $dayThreadTaskFive['description'] = "发行五次主题贴";
         $dayThreadTaskFive['taskType'] = "dayThreadFive";
         $dayThreadTaskFive['task'] = "day";
@@ -501,7 +508,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskFive['current'] = $threadCount;
         $dayThreadTaskFive['finish'] =$this->bbsDayThreadFiveTaskFinsh;
         $dayThreadTaskFive['isAward'] = $dayThreadTargetFive;
-        $dayThreadTaskFive['icon'] = "https://php1.wanglibao.com/images/bbs/icon_comment.png";
+        $dayThreadTaskFive['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
         //每日任务：评论 1次 dayCommentOne  5次 dayCommentFive
         $commentCount = Comment::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
         //是否领过奖
@@ -515,7 +522,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayCommentTaskOne['current'] = $commentCount;
         $dayCommentTaskOne['finish'] =$this->bbsDayCommentOneTaskFinsh;
         $dayCommentTaskOne['isAward'] = $dayCommentTargetOne;
-        $dayCommentTaskOne['icon'] = "https://php1.wanglibao.com/images/bbs/icon_comment.png";
+        $dayCommentTaskOne['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
         $dayCommentTaskFive['description'] = "发行五次评论";
         $dayCommentTaskFive['taskType'] = "dayCommentFive";
         $dayCommentTaskFive['task'] = "day";
@@ -524,7 +531,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayCommentTaskFive['current'] = $commentCount;
         $dayCommentTaskFive['finish'] =$this->bbsDayCommentFiveTaskFinsh;
         $dayCommentTaskFive['isAward'] = $dayCommentTargetFive;
-        $dayCommentTaskFive['icon'] = "https://php1.wanglibao.com/images/bbs/icon_comment.png";
+        $dayCommentTaskFive['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
         //完成所有每日任务
         $dayAllTaskCount = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayAllTask','user_id'=> $this->userId])->count();
         $dayAllTask['description'] = "完成所有每日任务";
@@ -535,7 +542,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayAllTask['current'] = $dayThreadTargetOne+$dayThreadTargetFive+$dayCommentTargetOne+$dayCommentTargetFive;
         $dayAllTask['finish'] =4;
         $dayAllTask['isAward'] = $dayAllTaskCount;
-        $dayAllTask['icon'] = "https://php1.wanglibao.com/images/bbs/icon_comment.png";
+        $dayAllTask['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
         //成就任务 发布10主题帖 achieveThreadTen
         $achieveThreadCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
         $achieveThreadTenCount = Task::where(['task_type'=>'achieveThreadTen','user_id'=> $this->userId])->count();
@@ -547,7 +554,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveThreadTenTask['current'] = $achieveThreadCount;
         $achieveThreadTenTask['finish'] =$this->bbsAchieveThreadTenTaskFinsh;
         $achieveThreadTenTask['isAward'] = $achieveThreadTenCount;
-        $achieveThreadTenTask['icon'] = "https://php1.wanglibao.com/images/bbs/icon_post.png";
+        $achieveThreadTenTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
         //评论50 achieveCommentFifty
         $achieveCommentCount = Comment::where(['isverify'=>1,'user_id'=>$this->userId])->count();
         $achieveCommentFiftyCount = Task::where(['task_type'=>'achieveCommentFifty','user_id'=> $this->userId])->count();
@@ -559,7 +566,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveCommentFiftyTask['current'] = $achieveCommentCount;
         $achieveCommentFiftyTask['finish'] =$this->bbsAchieveCommentFiftyTaskFinsh;
         $achieveCommentFiftyTask['isAward'] = $achieveCommentFiftyCount;
-        $achieveCommentFiftyTask['icon'] = "https://php1.wanglibao.com/images/bbs/icon_post.png";
+        $achieveCommentFiftyTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
         //上传头像及修改昵称  achieveUpdateImgOrName
         $achieveUpdateImgOrName = Redis::getBit($this->achieveUserImgOrNameKey,$this->userId);
         //数据库再次确认
@@ -573,7 +580,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveUpdateImgOrNameTask['current'] = $achieveUpdateImgOrName;
         $achieveUpdateImgOrNameTask['finish'] =1;
         $achieveUpdateImgOrNameTask['isAward'] = $achieveUpdateImgOrNameCount;
-        $achieveUpdateImgOrNameTask['icon'] = "https://php1.wanglibao.com/images/bbs/icon_post.png";
+        $achieveUpdateImgOrNameTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
         $res = [
             [
                 "title"=>"每日任务",
