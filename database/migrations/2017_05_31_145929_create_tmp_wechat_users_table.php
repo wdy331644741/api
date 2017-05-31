@@ -23,6 +23,7 @@ class CreateTmpWechatUsersTable extends Migration
             $table->string('headimgurl')->nullable()->default(NULL);
             $table->tinyInteger('iswin')->default(0)->comment("是否中奖：1：是，0：否(默认)");
             $table->tinyInteger('isdefault')->default(0)->comment("是否内定：1：是，0：否(默认)");
+            $table->tinyInteger('is_signin')->default(0)->comment("是否签到：1：是，0：否(默认)");
             $table->timestamps();
         });
     }
