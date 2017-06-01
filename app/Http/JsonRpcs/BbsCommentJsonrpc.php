@@ -13,7 +13,7 @@ use Validator;
 
 
 
-class BbsCommentJsonrpc extends JsonRpc {
+class BbsCommentJsonRpc extends JsonRpc {
     private $userId;
     public  function __construct()
     {
