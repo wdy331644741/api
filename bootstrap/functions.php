@@ -276,3 +276,22 @@ if(!function_exists('msectime')){
         return (float)sprintf('%.0f', (floatval($tmp1) + floatval($tmp2)) * 1000);
     }
 }
+
+
+if(!function_exists('convertUrlQuery')){
+    //拼接url后边参数
+    function convertUrlQuery($url){
+        $check = strpos($url, '?');
+        if($check !== false) {
+            if(substr($url, $check+1) == '') {
+                $new_url = $url;
+            } else {
+                $new_url = $url.'&';
+            }
+        } else {
+            $new_url = $url.'?';
+        }
+        return $new_url;
+    }
+}
+
