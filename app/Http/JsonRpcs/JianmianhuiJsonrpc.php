@@ -127,7 +127,7 @@ class JianmianhuiJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getAwardJianmianhuiUser($params){
-        $userAwardInfo = TmpWechatUser::where(["iswin"=>1])->get();
+        $userAwardInfo = TmpWechatUser::select('id','nick_name','headimgurl','iswin','is_signin')->where(["iswin"=>1])->get();
         return [
             'code' => 0,
             'message' => 'success',
