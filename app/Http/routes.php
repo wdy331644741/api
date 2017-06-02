@@ -58,8 +58,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
-    //临时活动控制器
-    Route::controller('tmp', 'TmpController');
+
 });
 
 // 对外接口
@@ -67,6 +66,8 @@ Route::group(['middleware' => 'web'], function() {
     Route::post('rpc', 'RpcController@postIndex');  //对外rpc接口
     Route::post('rpc/index', 'RpcController@postIndex');  //对外rpc接口
     Route::controller('open', 'OpenController'); //微信相关
+    //临时活动控制器
+    Route::controller('tmp', 'TmpController');
 });
 
 //图片地址转调
