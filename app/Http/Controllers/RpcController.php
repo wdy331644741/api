@@ -8,6 +8,7 @@ use App\Http\JsonRpcs\BbsCommentJsonrpc;
 use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
+use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Http\JsonRpcs\SignInSystemJsonRpc;
 use App\Models\AppUpdateConfig;
@@ -41,6 +42,7 @@ use App\Http\JsonRpcs\TreasureJsonRpc;
 use App\Http\JsonRpcs\PoBaiYiJsonRpc;
 use App\Http\JsonRpcs\FiveOneEightJsonRpc;
 use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
+
 
 class RpcController extends Controller
 {
@@ -87,9 +89,10 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
         $jsonRpcServer->addService(new BbsUserJsonRpc());
         $jsonRpcServer->addService(new BbsThreadJsonRpc());
-        $jsonRpcServer->addService(new BbsThreadSectionJsonRpc());
         $jsonRpcServer->addService(new BbsCommentJsonrpc());
         $jsonRpcServer->addService(new SignInSystemJsonRpc());
+        $jsonRpcServer->addService(new BbsCommentJsonRpc());
+        $jsonRpcServer->addService(new JianmianhuiJsonRpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
