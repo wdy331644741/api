@@ -22,6 +22,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('channel', 'ChannelController');
     Route::controller('cms/content','Cms\ContentController');
     Route::controller('cms/idiom','Cms\IdiomController');
+    Route::controller('cms/welcome','Cms\WelcomeController');
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
 
