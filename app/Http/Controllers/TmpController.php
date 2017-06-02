@@ -9,6 +9,7 @@ use App\Http\Requests;
 use App\Models\TmpWechatUser;
 use Lib\Weixin;
 use Lib\Session;
+use App\Service\GlobalAttributes;
 
 class TmpController extends Controller
 {
@@ -49,15 +50,16 @@ class TmpController extends Controller
             return redirect(convertUrlQuery($userinfo_callback).'wlerrcode=40002');//获取access_token失败
         }
         $this->_openid = $data['openid'];
-        if (isset($this->_openid)) {
+        if ($this->_openid) {
+            $encode = urlencode(authcode($this->_openid,'ENCODE'));
             $userData = TmpWechatUser::where('openid', $this->_openid)->first();
             if (!$userData) {
                 $userData = $weixin->get_web_user_info($data['access_token'], $data['openid']);
                 if (!$userData) {
-                    return redirect(convertUrlQuery($userinfo_callback).'id='.$this->_openid.'&wlerrcode=40003');//拉取用户信息失败
+                    return redirect(convertUrlQuery($userinfo_callback).'id='.$encode.'&wlerrcode=40003');//拉取用户信息失败
                 }
                 $wxModel = new TmpWechatUser();
-                $winStr = 'ovewut6VpqDz6ux4nJg2cKx0srh0|ovewut_dzK2K52b-PeB_fYZDeI0Y|ovewut1Gx8sNQLhXAzEHyCSiBUes';//Func::getUserBasicInfo();
+                $winStr = GlobalAttributes::getText('hd_jianmianhui');
                 if(strpos($winStr,$this->_openid) !== false){
                     $wxModel->isdefault = 1;
                 }
@@ -70,10 +72,11 @@ class TmpController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
-                return redirect(convertUrlQuery($userinfo_callback).'id='.$this->_openid);
+                return redirect(convertUrlQuery($userinfo_callback).'id='.$encode);
             }
+            return redirect(convertUrlQuery($userinfo_callback).'id='.$encode.'&wlerrcode=40004');//已经获取过用户信息
         }
 
-        return redirect(convertUrlQuery($userinfo_callback).'id='.$this->_openid.'&wlerrcode=40005');//已经获取过用户信息
+        return redirect(convertUrlQuery($userinfo_callback).'wlerrcode=40005');//获取openid失败
     }
 }
