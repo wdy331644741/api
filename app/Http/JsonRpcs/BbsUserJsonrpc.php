@@ -438,10 +438,17 @@ class BbsUserJsonRpc extends JsonRpc {
             $User->user_id = $this->userInfo['id'];
             $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
             $User->phone = $this->userInfo['phone'];
-            $User->nickname ='wl'.$this->userInfo['id'];
             $User->isblack = 0;
             $User->isadmin = 0;
             $User->save();
+            $res = $User::where(['nickname' => 'wl' . $User->id])->first();
+            if($res){
+                $randomArray = range ("a","z");
+                $random = rand(0,25);
+                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id .$randomArray["$random"]]);
+            }else {
+                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id]);
+            }
             $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
             $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
             $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
