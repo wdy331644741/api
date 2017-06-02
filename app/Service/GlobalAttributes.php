@@ -91,14 +91,13 @@ class GlobalAttributes
         return $attribute->save();
     }
 
-    static public function getText($uid, $key, $default = '') {
-        if(empty($uid) || empty($key)) {
+    static public function getText($key, $default = '') {
+        if(empty($key)) {
             return false;
         }
-        $res = GlobalAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        $res = GlobalAttribute::where(array('key' => $key))->first();
         if(!$res) {
             $attribute = new GlobalAttribute();
-            $attribute->user_id  = $uid;
             $attribute->key = $key;
             $attribute->text = $default;
             $attribute->save();
