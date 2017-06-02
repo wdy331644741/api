@@ -18,8 +18,10 @@ class JianmianhuiJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getJianmianhuiUserInfo($params){
-
-        $openid = authcode($params->openid,'DECODE');
+        if(empty($params->id)){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $openid = authcode($params->id,'DECODE');
 
         $validator = Validator::make(["openid"=>$openid], [
             'openid'=>'required|exists:tmp_wecaht_users,openid',
