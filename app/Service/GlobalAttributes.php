@@ -97,7 +97,12 @@ class GlobalAttributes
         }
         $res = GlobalAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
         if(!$res) {
-            return '';
+            $attribute = new GlobalAttribute();
+            $attribute->user_id  = $uid;
+            $attribute->key = $key;
+            $attribute->text = $default;
+            $attribute->save();
+            return $default;
         }
 
         return $res['text'] || '';
