@@ -17,6 +17,10 @@ Route::group(['middleware' => 'internal'], function() {
 
 // admin接口
 Route::group(['middleware' => 'admin'], function(){
+    Route::controller('userattr', 'UserAttrController');
+    Route::controller('globalattr', 'GlobalAttrController');
+    Route::controller('jianmianhui', 'JianmianhuiController');
+
     Route::controller('activity', 'ActivityController');
     Route::controller('account', 'AccountController');
     Route::controller('channel', 'ChannelController');
