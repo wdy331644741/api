@@ -18,8 +18,10 @@ class JianmianhuiJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getJianmianhuiUserInfo($params){
-
-        $openid = authcode($params->openid,'DECODE');
+        if(empty($params->id)){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $openid = authcode($params->id,'DECODE');
 
         $validator = Validator::make(["openid"=>$openid], [
             'openid'=>'required|exists:tmp_wecaht_users,openid',
@@ -95,24 +97,8 @@ class JianmianhuiJsonRpc extends JsonRpc {
              }
          }else{
             //默认用户抽取完成
-             $IsAward = TmpWechatUser::select('id','nick_name','headimgurl','iswin','is_signin')->where(["isdefault"=>"0","iswin"=>0,"is_signin"=>1])->get()->toArray();
-             if($IsAward){
-                $awardUserKey = array_rand($IsAward);
-                $res = TmpWechatUser::where(["id"=>$IsAward["$awardUserKey"]["id"]])->update(["iswin"=>1]);
-                 if($res){
-                     //success
-                     $IsAward["$awardUserKey"]["iswin"] = 1;
-                     return [
-                         'code' => 0,
-                         'message' => 'success',
-                         'data' => $IsAward["$awardUserKey"],
-                     ];
-                 }else{
-                     throw new OmgException(OmgException::DATABASE_ERROR);
-                 }
-             }else{
-                 throw new OmgException(OmgException::NO_DATA);
-             }
+             throw new OmgException(OmgException::NO_DATA);
+
          }
 
 
@@ -125,7 +111,7 @@ class JianmianhuiJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getAwardJianmianhuiUser($params){
-        $userAwardInfo = TmpWechatUser::where(["iswin"=>1])->get();
+        $userAwardInfo = TmpWechatUser::select('id','nick_name','headimgurl','iswin','is_signin')->where(["iswin"=>1])->get();
         return [
             'code' => 0,
             'message' => 'success',

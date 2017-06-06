@@ -51,7 +51,7 @@ class TmpController extends Controller
         }
         $this->_openid = $data['openid'];
         if ($this->_openid) {
-            $encode = authcode($this->_openid,'ENCODE');
+            $encode = urlencode(authcode($this->_openid,'ENCODE'));
             $userData = TmpWechatUser::where('openid', $this->_openid)->first();
             if (!$userData) {
                 $userData = $weixin->get_web_user_info($data['access_token'], $data['openid']);
