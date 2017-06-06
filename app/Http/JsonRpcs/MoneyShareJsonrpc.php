@@ -279,6 +279,14 @@ class MoneyShareJsonRpc extends JsonRpc {
         if($param['user_id'] <= 0 || $param['money'] <= 0 || $param['recordId'] <= 0){
             return false;
         }
+        //判断红包分享数据是否添加过
+        $where = array();
+        $where['record_id'] = $param['recordId'];
+        $res = MoneyShare::where($where)->first();
+        if(isset($res->id) && $res->id > 0){
+            //添加过就直接返回该数据
+            return array('id'=>$res->id,'result'=>$res);
+        }
         //祝福语
         $data['blessing'] = "";
         //用户ID

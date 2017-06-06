@@ -97,24 +97,8 @@ class JianmianhuiJsonRpc extends JsonRpc {
              }
          }else{
             //默认用户抽取完成
-             $IsAward = TmpWechatUser::select('id','nick_name','headimgurl','iswin','is_signin')->where(["isdefault"=>"0","iswin"=>0,"is_signin"=>1])->get()->toArray();
-             if($IsAward){
-                $awardUserKey = array_rand($IsAward);
-                $res = TmpWechatUser::where(["id"=>$IsAward["$awardUserKey"]["id"]])->update(["iswin"=>1]);
-                 if($res){
-                     //success
-                     $IsAward["$awardUserKey"]["iswin"] = 1;
-                     return [
-                         'code' => 0,
-                         'message' => 'success',
-                         'data' => $IsAward["$awardUserKey"],
-                     ];
-                 }else{
-                     throw new OmgException(OmgException::DATABASE_ERROR);
-                 }
-             }else{
-                 throw new OmgException(OmgException::NO_DATA);
-             }
+             throw new OmgException(OmgException::NO_DATA);
+
          }
 
 
