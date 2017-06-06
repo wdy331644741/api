@@ -104,7 +104,7 @@ class GlobalAttributes
             return $default;
         }
 
-        return $res['text'] || '';
+        return $res['text'] ? $res['text'] : '';
     }
 
     // 按json格式获取text字段
