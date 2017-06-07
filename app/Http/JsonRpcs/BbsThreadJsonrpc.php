@@ -49,27 +49,31 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         $thread = new Thread(['userId'=>$userId]);
 
-        $hotThread = $thread->whereNotIn('id', function($query) use($typeId){
+        $hotThread = $thread->whereNotIn('bbs_threads.id', function($query) use($typeId){
             $query->select('id')
                 ->from('bbs_threads')
-                ->where(['istop'=>1,'type_id'=>$typeId]);
+                ->where(['bbs_threads.istop'=>1,'bbs_threads.type_id'=>$typeId]);
 
         })
 
 
-        ->where(['isverify'=>1,'type_id'=>$typeId])
+        ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
                              ->orWhere(function($query)use($typeId,$userId){
-                                 $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                                 $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
                 })
 
-            ->with('user')
+            ->join("bbs_users",function($join){
+                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
+
+            })
+            ->with("user")
             ->with("commentAndVerify")
 
-            ->where('created_At','>',$mondayTime)
+            ->where('bbs_threads.created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
             ->limit(1)
-            ->orderByRaw('updated_at DESC')
+            ->orderByRaw('bbs_threads.updated_at DESC')
 
             ->get()
             ->toArray();
@@ -81,21 +85,24 @@ class BbsThreadJsonRpc extends JsonRpc {
         $res = $thread
 
             ->where(function($query)use($typeId,$userId) {
-                $query->where(['isverify'=>1,'type_id'=>$typeId])
+                $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
                     ->orWhere(function($query)use($typeId,$userId){
-                        $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                        $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
                     });
             })
-            ->whereNotIn('id', function($query) use($typeId,$hotThreadId){
+            ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
                 $query->select('id')
                     ->from('bbs_threads')
                     ->where(['istop'=>1,'type_id'=>$typeId])
                     ->orwhereIn('id',$hotThreadId);
             })
+            ->join("bbs_users",function($join){
+                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
 
+            })
             ->with('user')
             ->with("commentAndVerify")
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('bbs_threads.created_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -138,23 +145,24 @@ class BbsThreadJsonRpc extends JsonRpc {
             $result = $thread
 
                 ->where(function($query)use($typeId,$userId) {
-                    $query->where(['isverify'=>1,'type_id'=>$typeId])
+                    $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
                         ->orWhere(function($query)use($typeId,$userId){
-                            $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                            $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
                         });
                 })
-                ->whereNotIn('id', function($query) use($typeId,$hotThreadId){
+                ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
                     $query->select('id')
                         ->from('bbs_threads')
                         ->where(['istop'=>1,'type_id'=>$typeId])
                         ->orwhereIn('id',$hotThreadId);
                 })
+                ->join("bbs_users",function($join){
+                    $join->on("bbs_users.user_id","=","bbs_threads.user_id");
 
-
-
+                })
                 ->with('user')
                 ->with('commentAndVerify')
-                ->orderByRaw('updated_at DESC')
+                ->orderByRaw('bbs_threads.updated_at DESC')
                 ->offset($offset)
                 ->limit($step)
                 ->get()
