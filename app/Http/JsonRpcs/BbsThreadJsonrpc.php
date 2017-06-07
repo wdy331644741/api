@@ -92,13 +92,13 @@ class BbsThreadJsonRpc extends JsonRpc {
                     });
             })
             ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
-                $query->select('bbs_threads.id')
+                $query->select('id')
                     ->from('bbs_threads')
-                    ->where(['bbs_threads.istop'=>1,'bbs_threads.type_id'=>$typeId])
+                    ->where(['istop'=>1,'type_id'=>$typeId])
                     ->orwhereIn('bbs_threads.id',$hotThreadId);
             })
             ->Join("bbs_users",function($join){
-                $join->on("bbs_threads.user_id","=","bbs_users.user_id");
+                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
 
             })
             ->with('user')
