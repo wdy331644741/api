@@ -6,9 +6,31 @@ use Lib\JsonRpcClient;
 use Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\WechatUser;
+use App\Models\JsonRpc;
+use App\Models\Admin;
 
 class Func
 {
+    public static function checkAdmin() {
+        $jsonRpc = new JsonRpc();
+        $res = $jsonRpc->account()->profile();
+        var_dump($res);
+
+        if(isset($res['error'])){
+            return false;
+        }
+
+        $response['error_code']  = $res['result']['code'];
+        $data = isset($res['result']['data']) ? $res['result']['data'] : [];
+
+        $mobile = $data['phone'];
+        $admin = Admin::where('mobile', $mobile)->with('privilege')->first();
+        if($admin) {
+            return true;
+        }
+        return false;
+    }
+
     public static function GroupSearch(Request $request,$model_name){
         $data = array();
         $order_str = '';
