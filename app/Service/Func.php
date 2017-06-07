@@ -14,7 +14,6 @@ class Func
     public static function checkAdmin() {
         $jsonRpc = new JsonRpc();
         $res = $jsonRpc->account()->profile();
-        var_dump($res);
 
         if(isset($res['error'])){
             return false;
