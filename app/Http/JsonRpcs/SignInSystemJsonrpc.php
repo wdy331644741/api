@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\SignInSystem;
+use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
@@ -45,7 +46,7 @@ class SignInSystemJsonRpc extends JsonRpc
         global $userId;
 
         $config = Config::get('signinsystem');
-        $user = ['invested' => false, 'login' => false, 'multiple' => 1, 'multiple_card' => 0];
+        $user = ['invested' => false, 'login' => false, 'multiple' => 1, 'multiple_card' => 0,'user_end_time' => 0];
         $game = ['available' => false, 'awardNum' => 0, 'nextSeconds' => 0];
         $awardList = $this->getAwardList();
 
@@ -67,6 +68,10 @@ class SignInSystemJsonRpc extends JsonRpc
             if($multipleCard > 0){
                 $result['multiple_card'] = $multipleCard;
             }
+            //获取用户摇一摇结束时间
+            $userAtt = UserAttribute::where(['user_id'=> $userId,'key' => $config['trade_alias_name']])->first();
+            $times = isset($userAtt->number) ? $userAtt->number - time() : 0;
+            $user['user_end_time'] = $times <= 0 ? 0 : $times;
         }
 
 
