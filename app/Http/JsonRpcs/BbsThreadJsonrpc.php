@@ -49,7 +49,7 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         $thread = new Thread(['userId'=>$userId]);
 
-        $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title")
+        $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
             ->whereNotIn('bbs_threads.id', function($query) use($typeId){
             $query->select('id')
                 ->from('bbs_threads')
@@ -81,7 +81,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             $hotThreadId[] = $value['id'];
         }
 
-        $res = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title")
+        $res = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
             ->where(function($query)use($typeId,$userId) {
                 $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
                     ->orWhere(function($query)use($typeId,$userId){
@@ -141,7 +141,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $step =$pageNum;
             }
 
-            $result = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title")
+            $result = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
 
                 ->where(function($query)use($typeId,$userId) {
                     $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])

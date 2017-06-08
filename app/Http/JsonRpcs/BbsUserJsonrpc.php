@@ -50,9 +50,6 @@ class BbsUserJsonRpc extends JsonRpc {
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
         $this->achieveUserImgOrNameKey = 'achieveUserImgOrName';
-
-
-
     }
 
     /**
