@@ -55,11 +55,12 @@ class BbsThreadJsonRpc extends JsonRpc {
                 ->from('bbs_threads')
                 ->where(['bbs_threads.istop'=>1,'bbs_threads.type_id'=>$typeId]);
 
-        })
-        ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
-                             ->orWhere(function($query)use($typeId,$userId){
-                                 $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
-                })
+            })
+            ->where('bbs_threads.created_at','>',$mondayTime)
+            ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
+            ->orWhere(function($query)use($typeId,$userId){
+                $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
+            })
 
             ->join("bbs_users",function($join){
                 $join->on("bbs_users.user_id","=","bbs_threads.user_id");
@@ -68,15 +69,12 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->with("user")
             ->with("commentAndVerify")
 
-            ->where('bbs_threads.created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
             ->limit(1)
             ->orderByRaw('bbs_threads.updated_at DESC')
             ->get()
             ->toArray();
-
-        $hotThreadId =[];
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
