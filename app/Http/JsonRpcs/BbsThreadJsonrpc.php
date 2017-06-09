@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\JsonRpcs;
+use App\Exceptions\OmgException;
 use App\Models\Bbs\Pm;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
@@ -34,11 +35,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         ]);
 
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
         }
         $typeId = $params->id;
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
@@ -46,48 +43,68 @@ class BbsThreadJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        //自定义分页  查找本周2条view最多的帖子  剔除 管理员发的置顶贴
+        //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
+
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
 
-        $hotThread = $thread->where(['isverify'=>1,'type_id'=>$typeId])
+        $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
+            ->whereNotIn('bbs_threads.id', function($query) use($typeId){
+            $query->select('id')
+                ->from('bbs_threads')
+                ->where(['bbs_threads.istop'=>1,'bbs_threads.type_id'=>$typeId]);
+
+        })
+        ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
                              ->orWhere(function($query)use($typeId,$userId){
-                                 $query->where(['user_id'=>$userId,"type_id"=>$typeId]);
+                                 $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
                 })
-            ->where('created_At','>',$mondayTime)
-            ->with('user')
-            ->with("commentAndVerify")
-            ->whereNotIn('id', function($query) use($typeId){
-                $query->select('id')
-                    ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId]);
+
+            ->join("bbs_users",function($join){
+                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
+
             })
+            ->with("user")
+            ->with("commentAndVerify")
+
+            ->where('bbs_threads.created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
-            ->limit(2)
-            ->orderByRaw('created_at DESC')
+            ->limit(1)
+            ->orderByRaw('bbs_threads.updated_at DESC')
             ->get()
             ->toArray();
 
+        $hotThreadId =[];
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
-        $res = $thread
-            ->Where(function($query)use($typeId,$userId){
-            $query->where(['user_id'=>$userId,"type_id"=>$typeId])
-                ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
-        })
-            ->with('user')
-            ->with("commentAndVerify")
-            ->whereNotIn('id', function($query) use($typeId){
+
+        $res = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
+            ->where(function($query)use($typeId,$userId) {
+                $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
+                    ->orWhere(function($query)use($typeId,$userId){
+                        $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
+                    });
+            })
+            ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
                 $query->select('id')
                     ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId]);
+                    ->where(['istop'=>1,'type_id'=>$typeId])
+                    ->orwhereIn('bbs_threads.id',$hotThreadId);
             })
-            ->orderByRaw('created_at DESC')
+            ->Join("bbs_users",function($join){
+                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
+
+            })
+            ->with('user')
+            ->with("commentAndVerify")
+            ->orderByRaw('bbs_threads.created_at DESC')
+
             ->paginate($pageNum)
             ->toArray();
+
         if(empty($hotThread)){
 
             foreach ($res['data'] as $key => $value){
@@ -95,7 +112,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 foreach ($value['comment_and_verify'] as $k =>$v) {
                     $res['data'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
-                    if($k >3){
+                    if($k >=1){
                         break;
                     }
                 }
@@ -123,37 +140,46 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $offset = ($page-1)*$pageNum-count($hotThreadId);
                 $step =$pageNum;
             }
-            $result = $thread
-                ->Where(function($query)use($typeId,$userId){
-                    $query->where(['user_id'=>$userId,"type_id"=>$typeId])
-                          ->orwhere(['isverify'=>1,"type_id"=>$typeId]);
+
+            $result = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
+
+                ->where(function($query)use($typeId,$userId) {
+                    $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
+                        ->orWhere(function($query)use($typeId,$userId){
+                            $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
+                        });
                 })
-                ->whereNotIn('id',$hotThreadId)
-                ->whereNotIn('id', function($query) use($typeId){
+                ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
                     $query->select('id')
                         ->from('bbs_threads')
-                        ->where(['istop'=>1,'type_id'=>$typeId]);
+                        ->where(['istop'=>1,'type_id'=>$typeId])
+                        ->orwhereIn('id',$hotThreadId);
                 })
+                ->join("bbs_users",function($join){
+                    $join->on("bbs_users.user_id","=","bbs_threads.user_id");
 
+                })
                 ->with('user')
                 ->with('commentAndVerify')
-                ->orderByRaw('created_at DESC')
+                ->orderByRaw('bbs_threads.updated_at DESC')
                 ->offset($offset)
                 ->limit($step)
                 ->get()
                 ->toArray();
+
             if($page == 1){
                 $data['list'] = array_merge($hotThread,$result);
             }else{
                 $data['list'] = $result;
             }
+            
             foreach ($data['list'] as $key => $value){
                 $data['list'][$key]['comments']=[];
                 foreach ($value['comment_and_verify'] as $k =>$v) {
 
                     $data['list'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
                     $data['list'][$key]['comments'][$k] = $data['list'][$key]['comment_and_verify'][$k];
-                    if($k>3){
+                    if($k>=1){
                         break;
                     }
 
@@ -193,17 +219,14 @@ class BbsThreadJsonRpc extends JsonRpc {
             'id'=>'required|exists:bbs_threads,id',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
 
         }
 
         $thread =  new Thread(['userId'=>$userId]);
         $id = $params->id;
-        $thread_info =  $thread->where(['isverify'=>1,'id'=>$id])
+        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title")
+            ->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
                })
@@ -220,12 +243,15 @@ class BbsThreadJsonRpc extends JsonRpc {
             if (!empty($params->fromPm)) {
                 Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
             }
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $thread_info,
+            );
+        }else{
+                throw new OmgException(OmgException::DATA_ERROR);
         }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $thread_info,
-        );
+
 
     }
     /**
@@ -240,19 +266,17 @@ class BbsThreadJsonRpc extends JsonRpc {
             'id'=>'required|exists:bbs_thread_sections,id',
         ]);
         if($validator->fails()){
-            return array(
-                'code' => -1,
-                'message' => 'fail',
-                'data' => $validator->errors()->first()
-            );
+            throw new OmgException(OmgException::DATA_ERROR);
         }
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
-            ->with('user')
+        $res =Thread::select("id","cover","title","type_id","url")
+            ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
+            //->with('user')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         return array(
