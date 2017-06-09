@@ -109,6 +109,8 @@ class BbsUserJsonRpc extends JsonRpc {
      */
     public function updateBbsUserNickname($param){
         //审核名称  禁用 网利
+        $param->nickname = trim(str_replace(" ","",$param->nickname));
+
         preg_match('/(网利)/', $param->nickname, $matches);
         if($matches){
             throw new OmgException(OmgException::NAME_IS_ALIVE);
