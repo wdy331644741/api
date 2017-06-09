@@ -48,7 +48,7 @@ class BbsThreadJsonRpc extends JsonRpc {
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
-
+        $hotThreadId = [];
         $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
             ->whereNotIn('bbs_threads.id', function($query) use($typeId){
             $query->select('id')
