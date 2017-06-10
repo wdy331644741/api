@@ -72,9 +72,9 @@ class RedeemCodeJsonRpc extends JsonRpc {
                     $status = SendAward::increases($info);
                 }elseif($list['award_type'] == 2){
                     $status = SendAward::redMoney($info);
-                }elseif($list['award_type'] == 3){
+                }elseif($list['award_type'] == 2){
                     $status = SendAward::redMaxMoney($info);
-                }elseif($list['award_type'] == 4){
+                }elseif($list['award_type'] == 3){
                     $status = SendAward::experience($info);
                 }
                 if(!$status){
