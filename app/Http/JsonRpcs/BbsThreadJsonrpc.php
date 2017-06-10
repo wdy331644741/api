@@ -48,18 +48,19 @@ class BbsThreadJsonRpc extends JsonRpc {
         $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
 
         $thread = new Thread(['userId'=>$userId]);
-
-        $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
+        $hotThreadId = [];
+        $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at","bbs_threads.updated_at")
             ->whereNotIn('bbs_threads.id', function($query) use($typeId){
             $query->select('id')
                 ->from('bbs_threads')
                 ->where(['bbs_threads.istop'=>1,'bbs_threads.type_id'=>$typeId]);
 
-        })
-        ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
-                             ->orWhere(function($query)use($typeId,$userId){
-                                 $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
-                })
+            })
+            ->where('bbs_threads.created_at','>',$mondayTime)
+            ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
+            ->orWhere(function($query)use($typeId,$userId){
+                $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
+            })
 
             ->join("bbs_users",function($join){
                 $join->on("bbs_users.user_id","=","bbs_threads.user_id");
@@ -68,20 +69,17 @@ class BbsThreadJsonRpc extends JsonRpc {
             ->with("user")
             ->with("commentAndVerify")
 
-            ->where('bbs_threads.created_At','>',$mondayTime)
             ->orderByRaw('views DESC')
             ->offset(0)
             ->limit(1)
             ->orderByRaw('bbs_threads.updated_at DESC')
             ->get()
             ->toArray();
-
-        $hotThreadId =[];
         foreach ($hotThread as $key=>$value){
             $hotThreadId[] = $value['id'];
         }
 
-        $res = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
+        $res = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at","bbs_threads.updated_at")
             ->where(function($query)use($typeId,$userId) {
                 $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
                     ->orWhere(function($query)use($typeId,$userId){
@@ -100,7 +98,7 @@ class BbsThreadJsonRpc extends JsonRpc {
             })
             ->with('user')
             ->with("commentAndVerify")
-            ->orderByRaw('bbs_threads.created_at DESC')
+            ->orderByRaw('bbs_threads.updated_at DESC')
 
             ->paginate($pageNum)
             ->toArray();
@@ -141,7 +139,7 @@ class BbsThreadJsonRpc extends JsonRpc {
                 $step =$pageNum;
             }
 
-            $result = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at")
+            $result = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at","bbs_threads.updated_at")
 
                 ->where(function($query)use($typeId,$userId) {
                     $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
