@@ -177,6 +177,9 @@ class ThreadController extends Controller
             $putData['isverify'] = $request->isverify;
             $putData['verify_time'] = $verify_time;
             $thread = Thread::find($request->id);
+            if($thread->isverify){
+                return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+            }
             $pm = new Pm();
             $pm->user_id = $thread->user_id;
             $pm->from_user_id = 0;
