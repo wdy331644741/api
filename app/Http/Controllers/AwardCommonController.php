@@ -507,7 +507,7 @@ class AwardCommonController extends Controller{
         //金额
         $data['money'] = $request->money;
         //金额类型
-        $data['type'] = $request->name;
+        $data['type'] = $request->type;
         //短信模板
         $data['message'] = $request->message;
         //站内信模板
