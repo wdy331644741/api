@@ -302,7 +302,6 @@ class SignInSystemJsonRpc extends JsonRpc
             }
 
             if($startTimestamps < $now && $now < $endTimestamps) {
-                echo 111;exit;
                 $item['startTimestamps'] = $startTimestamps;
                 $item['endTimestamps'] = $endTimestamps;
                 return $item;
