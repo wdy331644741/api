@@ -15,29 +15,6 @@ use Config, Request, Cache;
 class SignInSystemJsonRpc extends JsonRpc
 {
     /**
-     * 获取摇一摇奖品数量
-     *
-     * @JsonRpcMethod
-     */
-    public function signInSystemAwardNum() {
-        $number = Cache::remember('sign_in_system_temp_used_num', 0.05, function(){
-            $config = Config::get('signinsystem');
-            if(!ActivityService::isExistByAlias($config['alias_name'])) {
-                return 0;
-            }
-            $item = $this->selectList($config['lists']);
-            return $this->getLastGlobalNum($item);
-        });
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => [
-                'number' => $number,
-            ],
-        ];
-    }
-
-    /**
      * 查询当前状态
      *
      * @JsonRpcMethod
@@ -66,7 +43,7 @@ class SignInSystemJsonRpc extends JsonRpc
             //获取加倍卡
             $multipleCard = SignInSystemBasic::signInEveryDayMultiple($userId);
             if($multipleCard > 0){
-                $result['multiple_card'] = $multipleCard;
+                $user['multiple_card'] = $multipleCard;
             }
             //获取用户摇一摇结束时间
             $userAtt = UserAttribute::where(['user_id'=> $userId,'key' => $config['trade_alias_name']])->first();
