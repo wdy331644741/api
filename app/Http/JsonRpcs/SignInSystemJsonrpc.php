@@ -211,6 +211,11 @@ class SignInSystemJsonRpc extends JsonRpc
      * @return float|int
      */
     private function getLastGlobalNum($item) {
+        // 活动开始一段时间后强制结束
+        if(time() - $item['startTimestamps'] > $item['times']) {
+            return 0;
+        }
+
         $globalKey = Config::get('signinsystem.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
         $awardNumberMultiple = Config::get('signinsystem.award_number_multiple');
         $usedGlobalNumber = Cache::get($globalKey, 0);
@@ -297,6 +302,7 @@ class SignInSystemJsonRpc extends JsonRpc
             }
 
             if($startTimestamps < $now && $now < $endTimestamps) {
+                echo 111;exit;
                 $item['startTimestamps'] = $startTimestamps;
                 $item['endTimestamps'] = $endTimestamps;
                 return $item;
