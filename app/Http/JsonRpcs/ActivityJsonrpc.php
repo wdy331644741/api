@@ -285,12 +285,14 @@ class ActivityJsonRpc extends JsonRpc {
             if($extraLastUpdateDate == date('Y-m-d', time())) {
                 $isAward = true;
                 $awardName = $extra['string'];
+                $awardType = 0;
             }
         }
 
         if(!$isAward) {
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $awardName = $awards[0]['award_name'];
+            $awardType = $awards[0]['type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
 
@@ -300,6 +302,7 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => array(
                 'isAward' => $isAward,
                 'awards' => [$awardName],
+                'type' => $awardType,
             ),
         );
 
