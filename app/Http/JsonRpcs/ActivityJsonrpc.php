@@ -293,7 +293,7 @@ class ActivityJsonRpc extends JsonRpc {
         if(!$isAward) {
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $awardName = $awards[0]['award_name'];
-            $awardType = $awards[0]['type'];
+            $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
 
