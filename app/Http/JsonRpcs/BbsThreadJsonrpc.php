@@ -225,7 +225,7 @@ class BbsThreadJsonRpc extends JsonRpc {
 
         $thread =  new Thread(['userId'=>$userId]);
         $id = $params->id;
-        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title")
+        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title","bbs_threads.created_at")
             ->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
