@@ -88,9 +88,7 @@ class SendAward
 
         //拼接状态
         if(!empty($additional_status)){
-            if(!empty($status)) {
-                $status[] = $additional_status;
-            }
+            $status[] = $additional_status;
             if(isset($invite_status['awards']) && !empty($invite_status['awards'])) {
                 $invite_status['awards'][] = $additional_status;
             }
@@ -192,6 +190,37 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** DIY加息券活动 start */
+            //绑卡
+            case 'diy_increases_bind_bank_card':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $fromUserId = Func::getUserBasicInfo($triggerData['user_id']);
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$fromUserId['from_user_id'],'注册并绑卡',1);
+                }
+                break;
+            //投资
+            case 'diy_increases_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    //这里的$num为投资金额
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$triggerData['from_user_id'],'投资',$num);
+                }
+                break;
+            /** DIY加息券活动 end */
+            /** 网贷天眼首投送积分 start */
+            case 'wdty_investment_first':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    self::_wdtyIsSendAward($triggerData);
+                }
+                break;
+            /** 网贷天眼首投送积分 end */
+            /** 现金分享 start */
+            case 'amount_share_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $return['amount_share_status'] = AmountShareBasic::amountShareCreate($triggerData);
+                }
+                break;
+            /** 现金分享 end */
             /** 破百亿 start **/
             case 'pobaiyi':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
@@ -738,10 +767,43 @@ class SendAward
         $activity = Activity::where('id', $activityId)->with('award_invite')->first();
         $awardInvite = $activity['award_invite'];
         $res = [];
+        //判断用户是否超过邀请发奖次数200
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit'){
+            $status = self::inviteNumLimit($userId);
+            if($status === false){
+                return [];
+            }
+        }
+
         foreach($awardInvite as $award) {
             $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] ,'',0,0,$triggerData);
         }
         return $res;
+    }
+    /**
+     * @需要提出去
+     * @param $userID ，$award_type,$award_id
+     *
+     */
+    static function inviteNumLimit($userId){
+        if($userId < 0){
+            return false;
+        }
+        $num = Attributes::increment($userId,'invite_send_award_limit',1);
+        $limit = Config::get("activity.invite_send_award_limit");
+        if($num == $limit+1){
+            $message = "系统检测到您可能正通过技术手段获取体验金奖励，故不继续发放邀请注册体验金，其他邀请奖励不受影响，如有疑问请联系客服，感谢您对网利宝的支持！";
+            //发送站内信
+            SendMessage::Mail($userId,$message,[]);
+            //发送短信
+            SendMessage::Message($userId,$message,[]);
+            return false;
+        }
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
     }
     /**
      * @需要提出去
@@ -817,7 +879,7 @@ class SendAward
         $info['uuid'] = null;
         $info['status'] = 0;
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
@@ -1537,5 +1599,45 @@ class SendAward
             $yearMoney = ceil(($amount*$time)/12);
         }
         return $yearMoney;
+    }
+
+    /**
+     * 网贷天眼首投送积分活动是否发奖
+     * @param $triggerData
+     * @return bool
+     */
+    static function _wdtyIsSendAward($triggerData){
+        $wdtyConfig = config::get("wdty");
+        if(empty($wdtyConfig)){
+            return false;
+        }
+        $money = isset($triggerData['Investment_amount']) ? $triggerData['Investment_amount'] : 0;
+        if($money < 1000){
+            return false;
+        }
+        //判断是否超过
+        $globalKey = $wdtyConfig['alias_name']."_".date("Ymd");
+        $totalIntegral = GlobalAttributes::getItem($globalKey);
+        if(isset($totalIntegral['number']) && $totalIntegral['number']>= $wdtyConfig['max_integral']){
+            return false;
+        }
+        $integral = 0;
+        foreach($wdtyConfig['integral_list'] as $key => $item){
+            if($money >= $item['min'] && $money <= $item['max']){
+                $integral = $key;
+            }
+        }
+        if($integral <= 0){
+            return false;
+        }
+        //发奖
+        $status = self::ActiveSendAward($triggerData['user_id'],'wdty_'.$integral);
+        //如果发奖成功才累加
+        if($status[0]['status'] === true){
+            //累加
+            GlobalAttributes::increment($globalKey,$integral);
+            return true;
+        }
+        return true;
     }
 }

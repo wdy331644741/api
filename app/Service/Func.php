@@ -6,9 +6,30 @@ use Lib\JsonRpcClient;
 use Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\WechatUser;
+use App\Models\JsonRpc;
+use App\Models\Admin;
 
 class Func
 {
+    public static function checkAdmin() {
+        $jsonRpc = new JsonRpc();
+        $res = $jsonRpc->account()->profile();
+
+        if(isset($res['error'])){
+            return false;
+        }
+
+        $response['error_code']  = $res['result']['code'];
+        $data = isset($res['result']['data']) ? $res['result']['data'] : [];
+
+        $mobile = $data['phone'];
+        $admin = Admin::where('mobile', $mobile)->with('privilege')->first();
+        if($admin) {
+            return true;
+        }
+        return false;
+    }
+
     public static function GroupSearch(Request $request,$model_name){
         $data = array();
         $order_str = '';
@@ -206,5 +227,18 @@ class Func
             "type" => $type,
             "sign" => hash('sha256', $userId.env('INSIDE_SECRET')),
         ));
+    }
+
+    //生成Guid
+    static function create_guid()
+    {
+        $charid = strtoupper(md5(uniqid(mt_rand(), true)));
+        $hyphen = chr(45); // "-"
+        $uuid = substr($charid, 0, 8) . $hyphen
+            . substr($charid, 8, 4) . $hyphen
+            . substr($charid, 12, 4) . $hyphen
+            . substr($charid, 16, 4) . $hyphen
+            . substr($charid, 20, 12);
+        return $uuid;
     }
 }
