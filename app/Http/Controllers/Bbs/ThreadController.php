@@ -205,14 +205,14 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         foreach ($request->id as $val){
-            $verify_time = date('Y-m-d H:i:s');
-            $putData['isverify'] = 1;
-            $putData['verify_time'] = $verify_time;
             $thread = Thread::find($val);
             if(in_array($thread->isverify,[1,2])){
                 $error[$val] = 10010;
                 continue;
             }
+            $verify_time = date('Y-m-d H:i:s');
+            $putData['isverify'] = 1;
+            $putData['verify_time'] = $verify_time;
             $pm = new Pm();
             $pm->user_id = $thread->user_id;
             $pm->from_user_id = 0;

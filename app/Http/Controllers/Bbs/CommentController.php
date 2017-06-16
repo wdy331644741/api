@@ -41,6 +41,9 @@ class CommentController extends Controller
         $thread = Thread::find($comment->tid);
         $user_id = null;
         if($thread != null){
+            if(in_array($thread->isverify,[0,2])){
+                return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
+            }
             $user_id = $thread->user_id;
             $pm = new Pm();
             $pm->user_id = $user_id;
@@ -59,7 +62,6 @@ class CommentController extends Controller
         $res = Comment::find($request->id)->update($putData);
         if($res){
             return $this->outputJson(0);
-            $thread->increment('comment_num');
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
@@ -94,5 +96,55 @@ class CommentController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
 
+    }
+
+
+    //批量审核
+    public function postBatchPass(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        foreach ($request->id as $val){
+            $comment = Comment::find($val);
+            if(in_array($comment->isverify,[1,2])){
+                $error[$val] = 10010;
+                continue;
+            }
+            $thread = Thread::find($comment->tid);
+            $user_id = null;
+            if($thread != null){
+                if(in_array($thread->isverify,[0,2])){
+                    $error[$val] = 10012;
+                    continue;
+                }
+                $user_id = $thread->user_id;
+                $pm = new Pm();
+                $pm->user_id = $user_id;
+                $pm->from_user_id = $comment->user_id;
+                $pm->tid = $comment->tid;
+                $pm->cid = 0;
+                $pm->type = 3;
+                $pm->content = $comment->content;
+                $pm->save();
+                Thread::where('id',$comment->tid)->increment('comment_num');
+            }
+            $putData = [
+                'isverify'=>1,
+                'verify_time'=>date('Y-m-d H:i:s')
+            ];
+            $res = Comment::find($val)->update($putData);
+            if(!$res){
+                $error[$val] = 10002;
+                continue;
+            }
+        }
+        if(empty($error)){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
+        }
     }
 }
