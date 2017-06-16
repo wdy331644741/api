@@ -13,7 +13,7 @@ class AddCommentIdToBbsPmsTable extends Migration
     public function up()
     {
         Schema::table('bbs_pms', function (Blueprint $table) {
-            $table->integer('comment_id')->nullable->default(NULL)->comment('评论id');
+            $table->integer('comment_id')->nullable()->default(NULL)->comment('评论id');
         });
     }
 
