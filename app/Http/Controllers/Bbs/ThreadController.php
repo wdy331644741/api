@@ -32,12 +32,12 @@ class ThreadController extends Controller
     }
 
     //帖子为审核列表
-    public function getList($isverify=0){
-        if(!in_array($isverify,[0,1])){
-            $res = Thread::onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
+    public function getList($sid,$isverify=0){
+        if(!in_array($isverify,[0,1,2])){
+            $res = Thread::where('type_id',$sid)->onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
             return $this->outputJson(0,$res);
         }
-        $res = Thread::where('isverify',$isverify)->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
+        $res = Thread::where(['type_id'=>$sid,'isverify'=>$isverify])->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
         return $this->outputJson(0,$res);
     }
 
@@ -127,8 +127,8 @@ class ThreadController extends Controller
         }
     }
 
-    //删除帖子（审核失败）
-    public function postDel(Request $request){
+    //审核失败
+    public function postPassFail(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id',
             'cid'=>'required|exists:bbs_replay_configs,id'
@@ -137,7 +137,7 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $user_id = Thread::where('id',$request->id)->value('user_id');
-        Thread::destroy($request->id);
+        Thread::where('id',$request->id)->update(['isverify'=>2]);
         $pm = new Pm();
         $pm->user_id = $user_id;
         $pm->from_user_id = 0;
@@ -193,6 +193,42 @@ class ThreadController extends Controller
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //批量通过审核
+    public function postBatchPass(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        foreach ($request->id as $val){
+            $verify_time = date('Y-m-d H:i:s');
+            $putData['isverify'] = 1;
+            $putData['verify_time'] = $verify_time;
+            $thread = Thread::find($val);
+            if(in_array($thread->isverify,[1,2])){
+                $error[$val] = 10010;
+                continue;
+            }
+            $pm = new Pm();
+            $pm->user_id = $thread->user_id;
+            $pm->from_user_id = 0;
+            $pm->tid = $val;
+            $pm->type = 1;
+            $pm->save();
+            $res = Thread::where('id',$request->id)->update($putData);
+            if(!$res){
+                $error[$val] = 10002;
+                continue;
+            }
+        }
+        if(empty($error)){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
         }
     }
 }
