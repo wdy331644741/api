@@ -41,8 +41,8 @@ class CommentController extends Controller
         $thread = Thread::find($comment->tid);
         $user_id = null;
         if($thread != null){
-            if(in_array($thread->isverify,[0,2])){
-                return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
+            if(in_array($thread->isverify,[1,2])){
+                return $this->outputJson(10010,array('error_msg'=>'	Repeat Actions'));
             }
             $user_id = $thread->user_id;
             $pm = new Pm();

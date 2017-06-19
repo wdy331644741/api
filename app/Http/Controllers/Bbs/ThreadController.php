@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bbs\Thread;
 use App\Http\Traits\BasicDatatables;
 use App\Models\Bbs\Pm;
+use PhpParser\Comment;
 use Validator;
 
 class ThreadController extends Controller
@@ -178,7 +179,7 @@ class ThreadController extends Controller
             $putData['isverify'] = $request->isverify;
             $putData['verify_time'] = $verify_time;
             $thread = Thread::find($request->id);
-            if($thread->isverify){
+            if(in_array($thread->isverify,[1,2])){
                 return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
             }
             $pm = new Pm();
@@ -230,5 +231,35 @@ class ThreadController extends Controller
         }else{
             return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
         }
+    }
+
+    //后台回复帖子
+    public function postAdminReply(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+            'content'=>'required',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+
+        $res = Thread::where('id',$request->id)->first();
+        if(in_array($res->isverify,[0,2])){
+            return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
+        }
+        $verify_time = date('Y-m-d H:i:s');
+        $comment = new Comment();
+        $comment->user_id = 0;
+        $comment->tid = $request->id;
+        $comment->content = $request->content;
+        $comment->isverify = 1;
+        $comment->verify_time = $verify_time;
+        $comment->save();
+        if($comment->id){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+
     }
 }
