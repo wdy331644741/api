@@ -64,7 +64,6 @@ class ContentJsonRpc extends JsonRpc {
         }
         $where = array(
             'id' => intval($params->id),
-            'release' => 1,
         ); 
         $data = Notice::select('id','title','content','release','release_at','platform')->where($where)->first();
         return array(
