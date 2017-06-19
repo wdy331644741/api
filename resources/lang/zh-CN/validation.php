@@ -220,7 +220,9 @@ return [
         'photo_min'             => '小图片地址',
         'total_quantity'        => '总数量',
         'groups'                => '分组',
-        'total_num'             => '总次数'
+        'total_num'             => '总次数',
+        'money'                 => '金额',
+        'type'                  => '类型'
     ],
 
 ];

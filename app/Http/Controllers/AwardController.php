@@ -36,6 +36,7 @@ class AwardController extends AwardCommonController
                 '4' => '_integral',//用户积分
                 '5' => '_objects',//实物
                 '6' => '_couponAdd',//优惠券
+                '7' => '_cashAdd',//现金
             ]
         ];
     }

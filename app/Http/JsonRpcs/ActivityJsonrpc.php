@@ -5,6 +5,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\Activity;
 use App\Models\ActivityJoin;
+use App\Models\AwardCash;
 use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
@@ -28,6 +29,7 @@ use Cache;
 use App\Service\ActivityService;
 use Lib\McQueue;
 use App\Service\GlobalAttributes;
+use App\Service\SignInSystemBasic;
 class ActivityJsonRpc extends JsonRpc {
 
 
@@ -284,12 +286,14 @@ class ActivityJsonRpc extends JsonRpc {
             if($extraLastUpdateDate == date('Y-m-d', time())) {
                 $isAward = true;
                 $awardName = $extra['string'];
+                $awardType = 0;
             }
         }
 
         if(!$isAward) {
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $awardName = $awards[0]['award_name'];
+            $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
 
@@ -299,6 +303,7 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => array(
                 'isAward' => $isAward,
                 'awards' => [$awardName],
+                'type' => $awardType,
             ),
         );
 
@@ -324,7 +329,10 @@ class ActivityJsonRpc extends JsonRpc {
         $last = $days[count($days)-1]; //最后的天数
         $isSignIn = false; //是否签到过
         $continue = 1; //连续签到天数
-        $awardName = ''; //奖励
+        $award = [
+            'name' => '',
+            'type' => 0,
+        ];
 
         $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
         if(!$activity) {
@@ -341,32 +349,21 @@ class ActivityJsonRpc extends JsonRpc {
             if($lastUpdateDate == date('Y-m-d', time())) {
                 $isSignIn = true;
                 $continue = $signIn['number'] ?  $signIn['number'] : 0;
-                $awardName = $signIn['string'];
+                $award['name'] = $signIn['string'];
             }
 
             // 昨天已签到
             if($lastUpdateDate == date('Y-m-d', time() - 3600*24)) {
-                // 发奖
-                $awards = SendAward::ActiveSendAward($userId, $aliasName);
-
-
-                if(!isset($awards[0]['award_name'])) {
-                    throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-                }
-                $awardName = $awards[0]['award_name'];
-                $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
+                $award = $this->signSendAward($userId);
+                $continue = Attributes::increment($userId, $aliasName, 1, $award['name'], json_encode($award));
             }
         }
 
         //未签到或非连续签到
-        if(empty($awardName)) {
+        if(empty($award['name'])) {
             $continue = 1;
-            $awards = SendAward::ActiveSendAward($userId, $aliasName);
-            if(!isset($awards[0]['award_name'])) {
-                throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-            }
-            $awardName = $awards[0]['award_name'];
-            Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
+            $award = $this->signSendAward($userId);
+            Attributes::setItem($userId, $aliasName, $continue, $award['name'], json_encode($award));
         }
 
         // 送积分 & 发消息
@@ -409,10 +406,38 @@ class ActivityJsonRpc extends JsonRpc {
                 'end' => $end,
                 'extra' => $extra,
                 'shared' => $shared,
-                'award' => [$awardName],
+                'award' => [$award['name']],
+                'type' => $award['type'],
                 'last' => $last,
             ),
         );
+    }
+
+    //签到发奖
+    private function signSendAward($userId) {
+        $aliasName = 'signin';
+        $interval = strtotime(date('Y-m-d 20:00:00')) - time();
+        $rand = rand(1, 2);
+
+        $award = [
+            'name' => '谢谢参与',
+            'type' => 0,
+        ];
+        if($interval < 0 || $rand === 1) {
+            $awards = SendAward::ActiveSendAward($userId, $aliasName);
+            if(!isset($awards[0]['award_name'])) {
+                throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+            }
+            $award['name'] = $awards[0]['award_name'];
+            $award['type'] = $awards[0]['award_type'];
+            return $award;
+        }
+
+        $multiple = rand(1,2)/10;
+        SignInSystemBasic::signInEveryDayMultiple($userId, $multiple);
+        $award['name'] = "${multiple}倍摇一摇翻倍特权";
+        $award['type'] = 8;
+        return $award;
     }
 
     // 获取额外奖励领取记录
@@ -574,7 +599,7 @@ class ActivityJsonRpc extends JsonRpc {
      * @return Award1|Award2|Award3|Award4|Award5|Coupon|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -587,6 +612,8 @@ class ActivityJsonRpc extends JsonRpc {
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }
