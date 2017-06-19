@@ -79,10 +79,12 @@ class JianmianhuiJsonRpc extends JsonRpc {
      */
      public  function getJianmianhuiUseAward($params){
          //后台设置优先获奖用户
+         /*
          $profile = Func::checkAdmin();
          if(!$profile){
              throw new OmgException(OmgException::NO_DATA);
          }
+         */
          $IsAwardDefault = TmpWechatUser::select('id','nick_name','headimgurl','iswin','is_signin')->where(["isdefault"=>"1","iswin"=>0])->get()->toArray();
          if($IsAwardDefault){
              //获取默认抽奖用户

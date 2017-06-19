@@ -97,6 +97,10 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new SignInSystemJsonRpc());
         $jsonRpcServer->addService(new BbsCommentJsonRpc());
         $jsonRpcServer->addService(new JianmianhuiJsonRpc());
+        $jsonRpcServer->addService(new BbsThreadSectionJsonRpc());
+        $jsonRpcServer->addService(new BbsCommentJsonRpc());
+        $jsonRpcServer->addService(new JianmianhuiJsonRpc());
+        $jsonRpcServer->addService(new SignInSystemJsonRpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
