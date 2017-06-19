@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\SignInSystem;
+use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
@@ -14,29 +15,6 @@ use Config, Request, Cache;
 class SignInSystemJsonRpc extends JsonRpc
 {
     /**
-     * 获取摇一摇奖品数量
-     *
-     * @JsonRpcMethod
-     */
-    public function signInSystemAwardNum() {
-        $number = Cache::remember('sign_in_system_temp_used_num', 0.05, function(){
-            $config = Config::get('signinsystem');
-            if(!ActivityService::isExistByAlias($config['alias_name'])) {
-                return 0;
-            }
-            $item = $this->selectList($config['lists']);
-            return $this->getLastGlobalNum($item);
-        });
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => [
-                'number' => $number,
-            ],
-        ];
-    }
-
-    /**
      * 查询当前状态
      *
      * @JsonRpcMethod
@@ -45,7 +23,7 @@ class SignInSystemJsonRpc extends JsonRpc
         global $userId;
 
         $config = Config::get('signinsystem');
-        $user = ['invested' => false, 'login' => false, 'multiple' => 1, 'multiple_card' => 0];
+        $user = ['invested' => false, 'login' => false, 'multiple' => 1, 'multiple_card' => 0,'user_end_time' => 0];
         $game = ['available' => false, 'awardNum' => 0, 'nextSeconds' => 0];
         $awardList = $this->getAwardList();
 
@@ -65,8 +43,12 @@ class SignInSystemJsonRpc extends JsonRpc
             //获取加倍卡
             $multipleCard = SignInSystemBasic::signInEveryDayMultiple($userId);
             if($multipleCard > 0){
-                $result['multiple_card'] = $multipleCard;
+                $user['multiple_card'] = $multipleCard;
             }
+            //获取用户摇一摇结束时间
+            $userAtt = UserAttribute::where(['user_id'=> $userId,'key' => $config['trade_alias_name']])->first();
+            $times = isset($userAtt->number) ? $userAtt->number - time() : 0;
+            $user['user_end_time'] = $times <= 0 ? 0 : $times;
         }
 
 
@@ -229,6 +211,11 @@ class SignInSystemJsonRpc extends JsonRpc
      * @return float|int
      */
     private function getLastGlobalNum($item) {
+        // 活动开始一段时间后强制结束
+        if(time() - $item['startTimestamps'] > $item['times']) {
+            return 0;
+        }
+
         $globalKey = Config::get('signinsystem.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
         $awardNumberMultiple = Config::get('signinsystem.award_number_multiple');
         $usedGlobalNumber = Cache::get($globalKey, 0);

@@ -14,6 +14,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
+use App\Models\AwardCash;
 use App\Models\Coupon;
 use App\Models\CouponCode;
 use Lib\JsonRpcClient;
@@ -364,7 +365,7 @@ class SendAwardBatch
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     static function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -377,6 +378,8 @@ class SendAwardBatch
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }

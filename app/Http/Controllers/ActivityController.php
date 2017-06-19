@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityJoin;
 use App\Models\AwardBatch;
+use App\Models\AwardCash;
 use App\Models\SendRewardLog;
 use App\Service\Func;
 use Illuminate\Http\Request;
@@ -970,7 +971,7 @@ class ActivityController extends Controller
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -983,6 +984,8 @@ class ActivityController extends Controller
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }

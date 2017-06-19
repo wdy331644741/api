@@ -5,6 +5,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\Activity;
 use App\Models\ActivityJoin;
+use App\Models\AwardCash;
 use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
@@ -285,12 +286,14 @@ class ActivityJsonRpc extends JsonRpc {
             if($extraLastUpdateDate == date('Y-m-d', time())) {
                 $isAward = true;
                 $awardName = $extra['string'];
+                $awardType = 0;
             }
         }
 
         if(!$isAward) {
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $awardName = $awards[0]['award_name'];
+            $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
 
@@ -300,6 +303,7 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => array(
                 'isAward' => $isAward,
                 'awards' => [$awardName],
+                'type' => $awardType,
             ),
         );
 
@@ -595,7 +599,7 @@ class ActivityJsonRpc extends JsonRpc {
      * @return Award1|Award2|Award3|Award4|Award5|Coupon|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -608,6 +612,8 @@ class ActivityJsonRpc extends JsonRpc {
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }
