@@ -14,6 +14,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
+use App\Models\AwardCash;
 use App\Models\Coupon;
 use App\Models\CouponCode;
 use Lib\JsonRpcClient;
@@ -208,6 +209,24 @@ class SendAward
                 break;
             /** 七月大转盘活动 end */
 
+            /** 签到系统活动 start */
+            //投资就给该用户添加48小时摇红包时间
+            case 'sign_in_system_threshold':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $config = Config::get('signinsystem');
+                    $expiredTime = time() + 3600 * $config['expired_hour'];
+                    Attributes::setItem($triggerData['user_id'],"sign_in_system_threshold",$expiredTime);
+                }
+                break;
+            //投资给邀请人增加倍数
+            case 'sign_in_system_invite_first':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'sign_in_system_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
+            /** 签到系统活动 end */
             /** DIY加息券活动 start */
             //绑卡
             case 'diy_increases_bind_bank_card':
@@ -888,6 +907,9 @@ class SendAward
         } elseif ($award_type == 6) {
             //优惠券
             return self::coupon($info);
+        } elseif ($award_type == 7) {
+            //现金
+            return self::cash($info);
         }
     }
     //加息券
@@ -1340,13 +1362,54 @@ class SendAward
         }
 
     }
+    //用户现金
+    static public function cash($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 7;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
+            'user_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
+            'source_name' => 'required|min:2|max:255',
+            'money' => 'required|numeric|min:0.01',
+            'type' => 'required|min:1|max:64',
+        ]);
+        if($validator->fails()){
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        $uuid = self::create_guid();
+        //发送接口
+        $result = Func::incrementAvailable($info['user_id'],$info['id'],$uuid,$info['money'],$info['type']);
+        //发送消息&存储到日志
+        if (isset($result['result']['code']) && $result['result']['code'] == 0) {//成功
+            //发送消息&存储日志
+            $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+            $info['status'] = 1;
+            $info['uuid'] = $uuid;
+            $info['remark'] = json_encode($arr);
+            self::sendMessage($info);
+            return $arr;
+        }else{//失败
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result);
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+    }
     /**
      * 获取表对象
      * @param $awardType
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     static function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -1359,6 +1422,8 @@ class SendAward
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }
