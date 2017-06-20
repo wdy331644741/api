@@ -50,9 +50,6 @@ class BbsUserJsonRpc extends JsonRpc {
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
         $this->achieveUserImgOrNameKey = 'achieveUserImgOrName';
-
-
-
     }
 
     /**
@@ -111,14 +108,19 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function updateBbsUserNickname($param){
+        //审核名称  禁用 网利
+        $param->nickname = trim(str_replace(" ","",$param->nickname));
 
+        preg_match('/(网利)/', $param->nickname, $matches);
+        if($matches){
+            throw new OmgException(OmgException::NAME_IS_ALIVE);
+        }
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         if(empty($param->nickname)){
             throw new OmgException(OmgException::NICKNAME_IS_NULL);
         }
-
         $validator = Validator::make(get_object_vars($param), [
             'nickname'=>'required|max:10',
         ]);
@@ -501,7 +503,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadTaskOne['finish'] =$this->bbsDayThreadOneTaskFinsh;
         $dayThreadTaskOne['isAward'] = $dayThreadTargetOne;
         $dayThreadTaskOne['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        $dayThreadTaskFive['description'] = "发行五次主题贴";
+        $dayThreadTaskFive['description'] = "发布五次主题贴";
         $dayThreadTaskFive['taskType'] = "dayThreadFive";
         $dayThreadTaskFive['task'] = "day";
         $dayThreadTaskFive['taskMark'] = "dayThread";
@@ -524,7 +526,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayCommentTaskOne['finish'] =$this->bbsDayCommentOneTaskFinsh;
         $dayCommentTaskOne['isAward'] = $dayCommentTargetOne;
         $dayCommentTaskOne['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        $dayCommentTaskFive['description'] = "发行五次评论";
+        $dayCommentTaskFive['description'] = "发布五次评论";
         $dayCommentTaskFive['taskType'] = "dayCommentFive";
         $dayCommentTaskFive['task'] = "day";
         $dayCommentTaskFive['taskMark'] = "dayComment";
