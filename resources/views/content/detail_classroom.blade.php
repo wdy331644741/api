@@ -19,7 +19,7 @@
 <body>
 <div id="sheader"></div>
 <div class="container">
-    <div class="about_sidebar clearfix">
+    {{--<div class="about_sidebar clearfix">
         <div class="about_sidebar_div">
             <a href="/theme/about/" class="about_sidebar_a">关于我们</a>
             <a href="{!! action('ContentController@getList',['type'=>'report']) !!}" class="about_sidebar_a">媒体报道</a>
@@ -28,11 +28,11 @@
             <a href="{!! action('ContentController@getList',['type'=>'classroom']) !!}" class="about_sidebar_a active">网贷课堂</a>
             <a href="/theme/runreports/" class="">运营报告</a>
         </div>
-    </div>
+    </div>--}}
     <div class='section'>
-        <div class="page_nav">
+        {{--<div class="page_nav">
             <a href="{!! action('ContentController@getList',['type'=>'classroom']) !!}" target="_blank">理财课堂</a>&gt;课程详情
-        </div>
+        </div>--}}
         <div class='media_box detail_box clearfix'>
             <div class='announcement_detail clearfix'>
                 <h3>{!! $title !!}</h3>
