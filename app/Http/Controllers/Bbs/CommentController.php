@@ -91,6 +91,7 @@ class CommentController extends Controller
             $pm->from_user_id = 0;
             $pm->tid = $comment->tid;
             $pm->cid = $request->cid;
+            $pm->comment_id = $request->id;
             $pm->type = 4;
             $reply = ReplyConfig::find($request->cid);
             $pm->content = $reply->description;
