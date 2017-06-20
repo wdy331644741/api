@@ -38,9 +38,15 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $comment = Comment::find($request->id);
+        if(in_array($comment->isverify,[1,2])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
         $thread = Thread::find($comment->tid);
         $user_id = null;
         if($thread != null){
+            if(in_array($thread->isverify,[0,2])){
+                return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
+            }
             $user_id = $thread->user_id;
             $pm = new Pm();
             $pm->user_id = $user_id;
@@ -76,6 +82,9 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $comment = Comment::find($request->id);
+        if(in_array($comment->isverify,[1,2])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
         if($comment != null){
             $pm = new Pm();
             $pm->user_id = $comment->user_id;
