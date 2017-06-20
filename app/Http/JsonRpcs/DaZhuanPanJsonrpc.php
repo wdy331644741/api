@@ -5,9 +5,9 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\DaZhuanPan;
 use App\Service\Attributes;
-use App\Service\GlobalAttributes;
 use App\Service\ActivityService;
 use App\Service\Func;
+use App\Service\GlobalAttributes;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\DazhuanpanBatch;
 
@@ -84,7 +84,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         // 循环获取奖品
         $awardArr = [];
         for($i = 1;$i <= $num; $i++){
-            $awardArr[] = $this->getAward( $config);
+            $awardArr[] = $this->getAward($config);
         }
         //放入队列
         $this->dispatch(new DazhuanpanBatch($userId,$config,$awardArr));
@@ -94,6 +94,8 @@ class DaZhuanPanJsonRpc extends JsonRpc
             unset($item['weight']);
             $item['created_at'] = date("Y-m-d H:i:s");
         }
+        //减少用户抽奖次数
+        $this->reduceUserNum($userId,$config,count($awardArr));
         return [
             'code' => 0,
             'message' => 'success',
@@ -102,7 +104,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
     }
 
     /**
-     * 获取奖品列表
+     * 获取我的奖品列表
      *
      * @JsonRpcMethod
      */
@@ -145,6 +147,11 @@ class DaZhuanPanJsonRpc extends JsonRpc
                     $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                 }
             }
+            //获取随机加入的奖品
+            $joinData = $this->joinData();
+            if(!empty($joinData)){
+                $data[] = $joinData;
+            }
             return $data;
         });
 
@@ -155,14 +162,93 @@ class DaZhuanPanJsonRpc extends JsonRpc
         ];
     }
 
+    //获取奖品
+    private function getAward($config) {
+        $awardList = $config['awards'];
+        // 获取权重总值
+        $weight = 0;
+        foreach($awardList as $award) {
+            $weight += $award['weight'];
+        }
+
+        $target = rand(1, $weight);
+        foreach($awardList as $award) {
+            $target = $target - $award['weight'];
+            if($target <= 0) {
+                $globalKey = $config['alias_name'] . '_' . $award['alias_name'] . '_' . date('Ymd');
+                $usedNumber = GlobalAttributes::incrementByDay($globalKey);
+                // 奖品送完
+                if($usedNumber > $award['num']) {
+                    return false;
+                }
+                return $award;
+            }
+        }
+        return false;
+    }
+
     //获取用户的剩余次数
     private function getUserNum($userId,$config){
         $loginNum = Attributes::getNumberByDay($userId, $config['drew_daily_key']);
         if($loginNum <= 0){
             $loginNum = $config['draw_number'];
+        }else{
+            $loginNum = 0;
         }
         $userNum = Attributes::getNumber($userId, $config['drew_user_key']);
         return $loginNum + $userNum;
     }
+
+    //减少用户次数
+    private function reduceUserNum($userId,$config,$num){
+        if($num <= 0){
+            return false;
+        }
+        $loginNum = Attributes::getNumberByDay($userId, $config['drew_daily_key']);
+        if($loginNum <= 0){
+            //将每日的免费次数改成已使用
+            Attributes::incrementByDay($userId, $config['drew_daily_key']);
+            $num -= $num;
+        }
+        if($num <= 0){
+            return false;
+        }
+        //奖总共的抽奖次数累加
+        Attributes::increment($userId, $config['drew_total_key'],$num);
+        //减少用户抽奖次数
+        Attributes::decrement($userId,$config['drew_user_key'],$num);
+        return true;
+    }
+
+    //获取每5天加入的奖品和每2天加入的奖品
+    private function joinData(){
+        $config = Config::get('dazhuanpan');
+        //获取活动开始时间&计算活动开始的天数
+        $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
+        $activityDay = isset($activityInfo->start_at) ? strtotime($activityInfo->start_at) : strtotime('2017-07-03 00:00:00');
+        $nowDay = strtotime(date("Y-m-d"));
+        $diffDay = ($nowDay - $activityDay) / (60 * 60 * 24);
+
+        if($diffDay > 0){
+            $twoDay = $diffDay%2;
+            $fiveDay = $diffDay%5;
+            if($twoDay == 0){
+                return [
+                    'user_id' => 13888888888,
+                    'award_name' => 'Apple MacBookPro 13英寸（i5/8G/256G）',
+                    'phone' => '138******88'
+                ];
+            }
+            if($fiveDay == 0){
+                return [
+                    'user_id' => 18888888888,
+                    'award_name' => '普吉岛10日游',
+                    'phone' => '188******88'
+                ];
+            }
+        }
+        return [];
+    }
+
 }
 

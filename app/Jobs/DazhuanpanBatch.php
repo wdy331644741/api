@@ -34,11 +34,7 @@ class DazhuanpanBatch extends Job implements ShouldQueue
      */
     public function handle()
     {
-
-        //
-        Attributes::incrementByDay($this->userId, $this->config['drew_daily_key']);
-        Attributes::increment($this->userId, $this->config['drew_total_key']);
-        //发奖
+        //循环发奖
         foreach($this->awards as $item){
             DazhuanpanService::sendAward($this->userId, $item);
         }
