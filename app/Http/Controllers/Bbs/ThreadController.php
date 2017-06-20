@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bbs;
 
+use App\Models\Bbs\Comment;
 use App\Models\Bbs\ReplyConfig;
 use Illuminate\Http\Request;
 
@@ -137,6 +138,8 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $user_id = Thread::where('id',$request->id)->value('user_id');
+        Comment::where('tid',$request->id)->delete();
+        Pm::where('tid',$request->id)->delete();
         Thread::destroy($request->id);
         $pm = new Pm();
         $pm->user_id = $user_id;
