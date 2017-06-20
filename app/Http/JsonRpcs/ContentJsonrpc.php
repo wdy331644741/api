@@ -64,7 +64,6 @@ class ContentJsonRpc extends JsonRpc {
         }
         $where = array(
             'id' => intval($params->id),
-            'release' => 1,
         ); 
         $data = Notice::select('id','title','content','release','release_at','platform')->where($where)->first();
         return array(
@@ -128,7 +127,6 @@ class ContentJsonRpc extends JsonRpc {
         if (empty($params->alias_name)) {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
-        $noContentArr = ['trends', 'report'];
         $type_id = ContentType::where('alias_name',$params->alias_name)->value('id');
         $page = isset($params->page) ? $params->page : 1;
         $where = array('type_id'=>$type_id,'release'=>1);
@@ -136,16 +134,24 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        if(in_array($params->alias_name, $noContentArr)) {
-            $data = Content::selectRaw("`id`, `cover`, `title`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum);
-        }else{
-            $data = Content::selectRaw("`id`, `cover`, `title`, `content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum);
+        $data = Content::selectRaw("`id`, `cover`, `title`,`content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
+        if(empty($data['data'])){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => null
+            );
         }
-
+        $newData = array();
+        foreach ($data['data'] as $val){
+            $val['content'] = mb_substr(strip_tags($val['content']),0,130,'utf-8')."...";
+            $newData[] = $val;
+        }
+        $data['data'] = $newData;
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $data
+            'data' =>$data
         );
     }
 

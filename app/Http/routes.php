@@ -17,11 +17,16 @@ Route::group(['middleware' => 'internal'], function() {
 
 // admin接口
 Route::group(['middleware' => 'admin'], function(){
+    Route::controller('userattr', 'UserAttrController');
+    Route::controller('globalattr', 'GlobalAttrController');
+    Route::controller('jianmianhui', 'JianmianhuiController');
+
     Route::controller('activity', 'ActivityController');
     Route::controller('account', 'AccountController');
     Route::controller('channel', 'ChannelController');
     Route::controller('cms/content','Cms\ContentController');
     Route::controller('cms/idiom','Cms\IdiomController');
+    Route::controller('cms/welcome','Cms\WelcomeController');
     Route::controller('app','AppUpdateConfigController');
     Route::controller('notice','Cms\NoticeController');
 
@@ -58,6 +63,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
+
 });
 
 // 对外接口
@@ -65,6 +71,8 @@ Route::group(['middleware' => 'web'], function() {
     Route::post('rpc', 'RpcController@postIndex');  //对外rpc接口
     Route::post('rpc/index', 'RpcController@postIndex');  //对外rpc接口
     Route::controller('open', 'OpenController'); //微信相关
+    //临时活动控制器
+    Route::controller('tmp', 'TmpController');
 });
 
 //图片地址转调

@@ -34,6 +34,7 @@ class Kernel extends HttpKernel
         'admin' => [
             \App\Http\Middleware\Session::class,
             \App\Http\Middleware\Permission::class,
+            \App\Http\Middleware\OpRecord::class,
         ],
         'internal' => [
             \App\Http\Middleware\CheckInternal::class,
