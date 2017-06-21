@@ -142,7 +142,7 @@ class ThreadController extends Controller
         }
         Thread::destroy($request->id);
         $pm = new Pm();
-        $pm->user_id = $$thread->user_id;
+        $pm->user_id = $thread->user_id;
         $pm->from_user_id = 0;
         $pm->tid = $request->id;
         $pm->cid = $request->cid;
