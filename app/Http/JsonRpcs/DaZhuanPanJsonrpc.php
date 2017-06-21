@@ -11,7 +11,7 @@ use App\Service\GlobalAttributes;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\DazhuanpanBatch;
 
-use Config, Request, Cache;
+use Config, Request, Cache,DB;
 
 class DaZhuanPanJsonRpc extends JsonRpc
 {
@@ -80,6 +80,8 @@ class DaZhuanPanJsonRpc extends JsonRpc
         if($num > $number){
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
+        //事务开始
+        DB::beginTransaction();
 
         // 循环获取奖品
         $awardArr = [];
@@ -99,6 +101,9 @@ class DaZhuanPanJsonRpc extends JsonRpc
         }
         //减少用户抽奖次数
         $this->reduceUserNum($userId,$config,count($awardArr));
+
+        //事务提交结束
+        DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
