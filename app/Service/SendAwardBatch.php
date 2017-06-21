@@ -80,8 +80,7 @@ class SendAwardBatch
             }
         } elseif ($award_type == 3) {
             //体验金
-            return '暂无';
-//            return self::experience($info);
+            return self::experience($info);
         } elseif ($award_type == 4) {
             //用户积分
             return '暂无';
@@ -353,6 +352,83 @@ class SendAwardBatch
                 //记录错误日志
                 $result['result']['fail'] = isset($result['result']['fail']) ? $result['result']['fail'] : $result;
                 $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result['result']['fail'],'url'=>$url);
+                $info['remark'] = json_encode($err);
+                self::addLog($info);
+                return $err;
+            }
+        }
+    }
+    //体验金
+    static function experience($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 3;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'id' => 'required|integer|min:0',
+            'user_id' => 'required|min:1',
+            'source_id' => 'required|integer|min:0',
+            'name' => 'required|min:2|max:255',
+            'source_name' => 'required|min:2|max:255',
+            'experience_amount_money' => 'required|integer|min:1',
+            'effective_time_type' => 'required|integer|min:1',
+        ]);
+        $validator->sometimes('effective_time_day', 'required|integer', function($input) {
+            return $input->effective_time_type == 1;
+        });
+        $validator->sometimes(array('effective_time_start','effective_time_end'), 'required|date', function($input) {
+            return $input->effective_time_type == 2;
+        });
+        if($validator->fails()){
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        $data = array();
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        $uuid = self::create_guid();
+        //体验金
+        $data['user_id'] = $info['user_id'];
+        //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+        if(isset($info['child_user_id'])){
+            $data['child_user_id'] = $info['child_user_id'];
+        }
+        $data['uuid'] = $uuid;
+        $data['source_id'] = $info['source_id'];
+        $data['name'] = $info['name'];
+        //体验金额
+        $data['amount'] = $info['experience_amount_money'];
+        if ($info['effective_time_type'] == 1) {
+            $data['effective_start'] = date("Y-m-d H:i:s");
+            $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+" . $info['effective_time_day'] . " days"));
+        } elseif ($info['effective_time_type'] == 2) {
+            $data['effective_start'] = $info['effective_time_start'];
+            $data['effective_end'] = $info['effective_time_end'];
+        }
+        $data['source_name'] = $info['source_name'];
+        $data['platform'] = $info['platform_type'];
+        $data['limit_desc'] = $info['limit_desc'];
+        $data['trigger'] = $info['trigger'];
+        $data['remark'] = '';
+        if (!empty($data) && !empty($url)) {
+            //发送接口
+            $result = $client->experience($data);
+            //发送消息&存储到日志
+            if (isset($result['result']) && $result['result']) {//成功
+                //发送消息&存储日志
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
+                $info['status'] = 1;
+                $info['uuid'] = $uuid;
+                $info['remark'] = json_encode($arr);
+                self::sendMessage($info);
+                return $arr;
+            }else{//失败
+                //记录错误日志
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
