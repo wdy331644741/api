@@ -75,16 +75,20 @@ class DaZhuanPanJsonRpc extends JsonRpc
 
         $number = $this->getUserNum($userId,$config);
         if($number <= 0) {
-            throw new OmgException(OmgException::NUMBER_IS_NULL);
+            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
         if($num > $number){
-            throw new OmgException(OmgException::NUMBER_IS_NULL);
+            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
 
         // 循环获取奖品
         $awardArr = [];
         for($i = 1;$i <= $num; $i++){
-            $awardArr[] = $this->getAward($config);
+            $award = $this->getAward($config);
+            if($award == false){
+                throw new OmgException(OmgException::NUMBER_IS_NULL);
+            }
+            $awardArr[] = $award;
         }
         //放入队列
         $this->dispatch(new DazhuanpanBatch($userId,$config,$awardArr));
@@ -92,7 +96,6 @@ class DaZhuanPanJsonRpc extends JsonRpc
         foreach($awardArr  as &$item){
             unset($item['num']);
             unset($item['weight']);
-            $item['created_at'] = date("Y-m-d H:i:s");
         }
         //减少用户抽奖次数
         $this->reduceUserNum($userId,$config,count($awardArr));
@@ -119,7 +122,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = DaZhuanPan::select('user_id', 'award_name')->where('type', '!=', 'empty')->where('user_id',$userId)->orderBy('id', 'desc')->take($num)->get();
+        $data = DaZhuanPan::select('user_id', 'award_name', 'created_at')->where('type', '!=', 'empty')->where('user_id',$userId)->orderBy('id', 'desc')->take($num)->get();
         foreach ($data as &$item){
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);

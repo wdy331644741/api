@@ -20,6 +20,7 @@ class DazhuanpanService
             DaZhuanPan::create([
                 'user_id' => $userId,
                 'award_name' => 'empty',
+                'alias_name' => $award['alias_name'],
                 'uuid' => '',
                 'ip' => Request::getClientIp(),
                 'user_agent' => Request::header('User-Agent'),
@@ -36,6 +37,7 @@ class DazhuanpanService
             $res = DaZhuanPan::create([
                 'user_id' => $userId,
                 'award_name' => $award['name'],
+                'alias_name' => $award['alias_name'],
                 'uuid' => $uuid,
                 'ip' => Request::getClientIp(),
                 'user_agent' => Request::header('User-Agent'),
@@ -69,6 +71,7 @@ class DazhuanpanService
                 DaZhuanPan::create([
                     'user_id' => $userId,
                     'award_name' => $award['name'],
+                    'alias_name' => $award['alias_name'],
                     'uuid' => '',
                     'ip' => Request::getClientIp(),
                     'user_agent' => Request::header('User-Agent'),
@@ -81,6 +84,7 @@ class DazhuanpanService
                 DaZhuanPan::create([
                     'user_id' => $userId,
                     'award_name' => $award['name'],
+                    'alias_name' => $award['alias_name'],
                     'uuid' => '',
                     'ip' => Request::getClientIp(),
                     'user_agent' => Request::header('User-Agent'),
@@ -96,6 +100,7 @@ class DazhuanpanService
             DaZhuanPan::create([
                 'user_id' => $userId,
                 'award_name' => $award['name'],
+                'alias_name' => $award['alias_name'],
                 'uuid' => '',
                 'ip' => Request::getClientIp(),
                 'user_agent' => Request::header('User-Agent'),
