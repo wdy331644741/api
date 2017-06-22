@@ -105,6 +105,24 @@ class CommentController extends Controller
 
     }
 
+    //删除评论
+    public function postDel(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+
+        $tid = Comment::where('id',$request->id)->value('tid');
+        Thread::where('id',$tid)->decrement('comment_num');
+        $res = Comment::destroy($request->id);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
 
     //批量审核
     public function postBatchPass(Request $request){

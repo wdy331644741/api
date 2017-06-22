@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bbs;
 
+use App\Models\Bbs\Comment;
 use App\Models\Bbs\ReplyConfig;
 use Illuminate\Http\Request;
 
@@ -11,7 +12,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Bbs\Thread;
 use App\Http\Traits\BasicDatatables;
 use App\Models\Bbs\Pm;
-use PhpParser\Comment;
 use Validator;
 
 class ThreadController extends Controller
@@ -121,6 +121,22 @@ class ThreadController extends Controller
             $putData['content'] = $request->content;
         }
         $res = Thread::where('id',$request->id)->update($putData);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //删除帖子
+    public function postDel(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = Thread::destroy($request->id);
         if($res){
             return $this->outputJson(0);
         }else{
