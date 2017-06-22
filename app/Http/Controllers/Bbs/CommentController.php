@@ -116,7 +116,7 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         switch ($request->isverify){
-            case  1:
+            case  1:M, 
                 return $this->_checkSuccess($request->id);
                 break;
             case  2:
