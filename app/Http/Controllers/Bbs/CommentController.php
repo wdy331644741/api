@@ -108,7 +108,7 @@ class CommentController extends Controller
     //删除评论
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:bbs_threads,id',
+            'id'=>'required|exists:bbs_comments,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
