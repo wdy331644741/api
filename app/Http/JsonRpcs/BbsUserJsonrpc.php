@@ -47,7 +47,7 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-        $this->userId =123;
+
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -220,14 +220,14 @@ class BbsUserJsonRpc extends JsonRpc {
                     $verifyMessage = '发贴成功';
                     break;
                 case 1 ://有嫌疑
-                    $verifyResult = 2;
+                    $verifyResult = 0;
                     $verifyMessage = '您的发贴已提交审核';
                     break;
                 case 2 ://审核未通过
                    throw new OmgException(OmgException::THREAD_ERROR);
             }
         }else{
-            $verifyResult= 2;
+            $verifyResult= 0;
             $verifyMessage = '您的发贴已提交审核';
         }
 
@@ -239,7 +239,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->istop =  0;
         $thread->isverify = $verifyResult;
         $thread->verify_time = date('Y-m-d H:i:s');
-        if($verifyResult ==2){
+        if($verifyResult ==0){
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $thread->save();
@@ -290,7 +290,6 @@ class BbsUserJsonRpc extends JsonRpc {
         );
         $netCheck = new NetEastCheckService($inParam);
         $res = $netCheck->textCheck();
-
         if($res['code'] =='200'){
             switch ($res['result']['action']){
                 case 0 ://审核通过
@@ -298,24 +297,22 @@ class BbsUserJsonRpc extends JsonRpc {
                     $verifyMessage = '评论成功';
                     break;
                 case 1 ://有嫌疑
-                    $verifyResult = 2;
+                    $verifyResult = 0;
                     $verifyMessage = '您的评论已提交审核';
                     break;
                 case 2 ://审核未通过
                     throw new OmgException(OmgException::COMMENT_ERROR);
             }
         }else{
-            $verifyResult= 2;
+            $verifyResult= 0;
             $verifyMessage = '您的评论已提交审核';
         }
-
-
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
         $comment->content = $params->content;
         $comment->isverify = $verifyResult;
-        if($verifyResult ==2){
+        if($verifyResult ==0){
             $comment->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $comment->save();
