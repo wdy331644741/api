@@ -109,14 +109,14 @@ class CommentController extends Controller
     //审核状态修改
     public function postVerifyPut(Request $request){
         $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:bbs_threads,id',
+            'id'=>'required|exists:bbs_comments,id',
             'isverify'=>'required|in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         switch ($request->isverify){
-            case  1:
+            case  1:M, 
                 return $this->_checkSuccess($request->id);
                 break;
             case  2:
