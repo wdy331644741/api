@@ -104,4 +104,107 @@ class CommentController extends Controller
         }
 
     }
+
+
+    //审核状态修改
+    public function postVerifyPut(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+            'isverify'=>'required|in:0,1,2'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        switch ($request->isverify){
+            case  0:
+                return $this->_check($request->id);
+                break;
+            case  1:
+                return $this->_checkSuccess($request->id);
+                break;
+            case  2:
+                return $this->_checkFail($request->id);
+                break;
+        }
+    }
+
+    //拒绝审核
+    private function _checkFail($id){
+        if(empty($id)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $comment = Comment::find($id);
+        if(in_array($comment->isverify,[2])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $res = Thread::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
+        /*if($comment != null){
+            $pm = new Pm();
+            $pm->user_id = $comment->user_id;
+            $pm->from_user_id = 0;
+            $pm->tid = $comment->tid;
+            $pm->cid = $request->cid;
+            $pm->comment_id = $request->id;
+            $pm->type = 4;
+            $reply = ReplyConfig::find($request->cid);
+            $pm->content = $reply->description;
+            $pm->save();
+        }*/
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //审核通过
+    private function _checkSuccess($id){
+        if(empty($id)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $comment = Comment::find($id);
+        if(in_array($comment->isverify,[1])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $res = Thread::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
+        /*$thread = Thread::find($comment->tid);
+        $user_id = null;
+        if($thread != null){
+            if(in_array($thread->isverify,[0,2])){
+                return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
+            }
+            $user_id = $thread->user_id;
+            $pm = new Pm();
+            $pm->user_id = $user_id;
+            $pm->from_user_id = $comment->user_id;
+            $pm->tid = $comment->tid;
+            $pm->cid = 0;
+            $pm->type = 3;
+            $pm->content = $comment->content;
+            $pm->save();
+            Thread::where('id',$comment->tid)->increment('comment_num');
+        }*/
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //to未审核
+    private function _check($id){
+        if(empty($id)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $thread = Thread::find($id);
+        if(in_array($thread->isverify,[0])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $res = Thread::where('id',$id)->update(['isverify'=>0]);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
 }

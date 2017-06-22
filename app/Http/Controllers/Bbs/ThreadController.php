@@ -127,64 +127,7 @@ class ThreadController extends Controller
         }
     }
 
-    //拒绝审核
-    public function postDel(Request $request){
-        $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:bbs_threads,id',
-            'cid'=>'required|exists:bbs_replay_configs,id'
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
-        }
-        $thread = Thread::find($request->id);
-        if(in_array($thread->isverify,[1])){
-            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
-        }
-        Thread::where('id',$request->id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
-        $pm = new Pm();
-        $pm->user_id = $thread->user_id;
-        $pm->from_user_id = 0;
-        $pm->tid = $request->id;
-        $pm->cid = $request->cid;
-        $pm->type = 2;
-        $reply = ReplyConfig::find($request->cid);
-        $pm->content = $reply->description;
-        $pm->save();
-        if($pm->id){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-    //已审核->已拒绝
-    public function postPassToFail(Request $request){
-        $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:bbs_threads,id'
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
-        }
-        $thread = Thread::find($request->id);
-        if(in_array($thread->isverify,[2])){
-            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
-        }
-        $pm = new Pm();
-        $pm->user_id = $thread->user_id;
-        $pm->from_user_id = 0;
-        $pm->tid = $request->id;
-        $pm->type = 1;
-        $pm->save();
-
-        $res = Thread::where('id',$request->id)->update(['isverify'=>2]);
-        if($res){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-    //审核，加精，置顶，最热
+    //加精，置顶，最热
     public function postToogleStatus(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id'
@@ -202,22 +145,96 @@ class ThreadController extends Controller
         if(isset($request->ishot)){
             $putData['ishot'] = $request->ishot;
         }
-        if(isset($request->isverify)){
-            $verify_time = date('Y-m-d H:i:s');
-            $putData['isverify'] = $request->isverify;
-            $putData['verify_time'] = $verify_time;
-            $thread = Thread::find($request->id);
-            if(in_array($thread->isverify,[1,2])){
-                return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
-            }
-            $pm = new Pm();
-            $pm->user_id = $thread->user_id;
-            $pm->from_user_id = 0;
-            $pm->tid = $request->id;
-            $pm->type = 1;
-            $pm->save();
-        }
         $res = Thread::where('id',$request->id)->update($putData);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //审核状态修改
+    public function postVerifyPut(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+            'isverify'=>'required|in:0,1,2'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        switch ($request->isverify){
+            case  0:
+                return $this->_check($request->id);
+                break;
+            case  1:
+                return $this->_checkSuccess($request->id);
+                break;
+            case  2:
+                return $this->_checkFail($request->id);
+                break;
+        }
+    }
+
+    //拒绝审核
+    private function _checkFail($id){
+        if(empty($id)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $thread = Thread::find($id);
+        if(in_array($thread->isverify,[2])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $res = Thread::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
+        /*$pm = new Pm();
+        $pm->user_id = $thread->user_id;
+        $pm->from_user_id = 0;
+        $pm->tid = $id;
+        $pm->type = 2;
+        $reply = ReplyConfig::find($request->cid);
+        $pm->content = $reply->description;
+        $pm->save();*/
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //审核通过
+    private function _checkSuccess($id){
+        if(empty($id)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $thread = Thread::find($id);
+        if(in_array($thread->isverify,[1])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $res = Thread::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
+        /*$pm = new Pm();
+        $pm->user_id = $thread->user_id;
+        $pm->from_user_id = 0;
+        $pm->tid = $id;
+        $pm->type = 2;
+        $reply = ReplyConfig::find($request->cid);
+        $pm->content = $reply->description;
+        $pm->save();*/
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //to未审核
+    private function _check($id){
+        if(empty($id)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $thread = Thread::find($id);
+        if(in_array($thread->isverify,[0])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $res = Thread::where('id',$id)->update(['isverify'=>0]);
         if($res){
             return $this->outputJson(0);
         }else{
