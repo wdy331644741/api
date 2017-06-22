@@ -38,7 +38,7 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $comment = Comment::find($request->id);
-        if(in_array($comment->isverify,[1,2])){
+        if(in_array($comment->isverify,[1])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
         $thread = Thread::find($comment->tid);
@@ -81,7 +81,7 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $comment = Comment::find($request->id);
-        if(in_array($comment->isverify,[1,2])){
+        if(in_array($comment->isverify,[2])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
         if($comment != null){
