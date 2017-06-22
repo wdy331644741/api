@@ -191,6 +191,24 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 七月大转盘活动 start */
+            //投资
+            case 'dazhuanpan_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",3);
+                    }
+                }
+                break;
+            //邀请人投资
+            case 'dazhuanpan_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"dazhuanpan_drew_user",1);
+                }
+                break;
+            /** 七月大转盘活动 end */
+
             /** 签到系统活动 start */
             //投资就给该用户添加48小时摇红包时间
             case 'sign_in_system_threshold':
