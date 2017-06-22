@@ -81,6 +81,7 @@ class OmgException extends BasicException
     const ALREADY_EXIST = 4317;
 
 
+
     const INVITE_USER_NOT_EXIST = 4318;
 
     const NICKNAME_ERROR = 4319;
@@ -88,6 +89,10 @@ class OmgException extends BasicException
     const RIGHT_ERROR = 4321;
 
     const NICKNAME_IS_NULL = 4322;
+
+    const THREAD_ERROR = 4323;
+    const COMMENT_ERROR = 4324;
+
 
 
     protected static $errorArray = array(
@@ -158,6 +163,8 @@ class OmgException extends BasicException
         self::NICKNAME_REPEAT=>"昵称重复",
         self::RIGHT_ERROR=>"您没有操作权限",
         self::NICKNAME_IS_NULL=>"昵称不能为空",
+        self::THREAD_ERROR =>"抱歉，发贴失败，因含有敏感词等",
+        self::COMMENT_ERROR=>"抱歉，评论失败，因含有敏感词等",
     );
 
     public function __construct($code, $data = array())
