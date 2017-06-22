@@ -81,12 +81,16 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $comment = Comment::find($request->id);
+        if(in_array($comment->isverify,[1,2])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
         if($comment != null){
             $pm = new Pm();
             $pm->user_id = $comment->user_id;
             $pm->from_user_id = 0;
             $pm->tid = $comment->tid;
             $pm->cid = $request->cid;
+            $pm->comment_id = $request->id;
             $pm->type = 4;
             $reply = ReplyConfig::find($request->cid);
             $pm->content = $reply->description;

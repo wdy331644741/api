@@ -6,6 +6,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
+use App\Models\AwardCash;
 use App\Models\Coupon;
 use Validator;
 use App\Jobs\FileImport;
@@ -488,6 +489,58 @@ class AwardCommonController extends Controller{
         }
     }
     /**
+     * 现金奖励
+     * @param $request
+     * @return bool
+     */
+    function _cashAdd($request,$award_id,$award_type){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:1|max:64',
+            'money' => 'required|numeric|min:0.01',
+            'type' => 'required|min:1|max:64',
+        ]);
+        if($validator->fails()){
+            return array('code'=>404,'error_msg'=>$validator->errors()->first());
+        }
+        //名称
+        $data['name'] = isset($request->name) ? trim($request->name) : '';
+        //金额
+        $data['money'] = $request->money;
+        //金额类型
+        $data['type'] = $request->type;
+        //短信模板
+        $data['message'] = $request->message;
+        //站内信模板
+        $data['mail'] = $request->mail;
+        //判断是添加还是修改
+        if($award_id != 0 && $award_type != 0){
+            //查询该信息是否存在
+            $params['award_id'] = $award_id;
+            $params['award_type'] = $award_type;
+            $limit = 1;
+            $isExist = $this->_getAwardList($params,$limit);
+            //修改时间
+            $data['updated_at'] = date("Y-m-d H:i:s");
+            if($isExist){
+                $status = AwardCash::where('id',$award_id)->update($data);
+                if($status){
+                    return array('code'=>200,'error_msg'=>'修改成功');
+                }else{
+                    return array('code'=>500,'error_msg'=>'修改失败');
+                }
+            }else{
+                return array('code'=>500,'error_msg'=>'该奖品不存在');
+            }
+        }else {
+            //添加时间
+            $data['created_at'] = date("Y-m-d H:i:s");
+            //修改时间
+            $data['updated_at'] = date("Y-m-d H:i:s");
+            $id = AwardCash::insertGetId($data);
+            return array('code' => 200, 'insert_id' => $id);
+        }
+    }
+    /**
      * 验证必填项
      * @param $request
      * @param $field
@@ -541,7 +594,7 @@ class AwardCommonController extends Controller{
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -554,6 +607,8 @@ class AwardCommonController extends Controller{
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }
