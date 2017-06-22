@@ -163,9 +163,6 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         switch ($request->isverify){
-            case  0:
-                return $this->_check($request->id);
-                break;
             case  1:
                 return $this->_checkSuccess($request->id);
                 break;
@@ -218,23 +215,6 @@ class ThreadController extends Controller
         $reply = ReplyConfig::find($request->cid);
         $pm->content = $reply->description;
         $pm->save();*/
-        if($res){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-    //to未审核
-    private function _check($id){
-        if(empty($id)){
-            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
-        }
-        $thread = Thread::find($id);
-        if(in_array($thread->isverify,[0])){
-            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
-        }
-        $res = Thread::where('id',$id)->update(['isverify'=>0]);
         if($res){
             return $this->outputJson(0);
         }else{

@@ -116,9 +116,6 @@ class CommentController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         switch ($request->isverify){
-            case  0:
-                return $this->_check($request->id);
-                break;
             case  1:
                 return $this->_checkSuccess($request->id);
                 break;
@@ -137,7 +134,10 @@ class CommentController extends Controller
         if(in_array($comment->isverify,[2])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
-        $res = Thread::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
+        if($comment->isverify == 1){
+            Thread::where('id',$comment->tid)->decrement('comment_num');
+        }
+        $res = Comment::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
         /*if($comment != null){
             $pm = new Pm();
             $pm->user_id = $comment->user_id;
@@ -166,7 +166,8 @@ class CommentController extends Controller
         if(in_array($comment->isverify,[1])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
-        $res = Thread::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
+        Thread::where('id',$comment->tid)->increment('comment_num');
+        $res = Comment::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
         /*$thread = Thread::find($comment->tid);
         $user_id = null;
         if($thread != null){
@@ -184,23 +185,6 @@ class CommentController extends Controller
             $pm->save();
             Thread::where('id',$comment->tid)->increment('comment_num');
         }*/
-        if($res){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-    //to未审核
-    private function _check($id){
-        if(empty($id)){
-            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
-        }
-        $thread = Thread::find($id);
-        if(in_array($thread->isverify,[0])){
-            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
-        }
-        $res = Thread::where('id',$id)->update(['isverify'=>0]);
         if($res){
             return $this->outputJson(0);
         }else{
