@@ -6,14 +6,6 @@ use Lib\Curl;
 
 class NetEastCheckService
 {
-    const NETEASE_KEY = '9e3ce496a575d530a73d82ade58d9614';
-    const NETEASE_SECRET = '30651e878135ea74aba9b85f7ee810be';
-
-    const TEXT_CHECK = 'https://api.aq.163.com/v3/text/check';
-    const TEXT_BUSINESSID = 'ff308460bb83ff78fc3fe0ad24faa2e1';
-
-    const IMG_CHECK='https://api.aq.163.com/v3/image/check';
-    const IMG_BUSINESSID = 'cdc52d1661b50a99c8cc48e168a5d962';
 
     const VERSION = 'v3';
     const API_TIMEOUT=20;
@@ -38,8 +30,8 @@ class NetEastCheckService
      * */
     public  function textCheck()
     {
-        $this->params["secretId"] = self::NETEASE_KEY;
-        $this->params["businessId"] = self::TEXT_BUSINESSID;
+        $this->params["secretId"] = env('NETEASE_KEY');
+        $this->params["businessId"] = env('TEXT_BUSINESSID');
         $this->params["version"] = self::VERSION;
         $this->params["timestamp"] = sprintf("%d", round(microtime(true)*1000));// time in milliseconds
         $this->params["nonce"] = sprintf("%d", rand()); // random int
@@ -55,7 +47,7 @@ class NetEastCheckService
         $this->toUtf8();
         $this->params['signature']  = self::genSignature();
 
-        return $res = self::sendCheck(self::TEXT_CHECK);
+        return $res = self::sendCheck(env('TEXT_CHECK'));
     }
     public  function imgCheck()
     {
@@ -70,7 +62,7 @@ class NetEastCheckService
         $this->toUtf8();
         $this->params['signature']  = self::genSignature();
 
-        return $res = self::sendCheck(self::IMG_CHECK);
+        return $res = self::sendCheck(env('IMG_CHECK'));
 
 
     }
@@ -84,7 +76,7 @@ class NetEastCheckService
                 $buff .=$value;
             }
         }
-        $buff .= self::NETEASE_SECRET;
+        $buff .= env('NETEASE_SECRET');
 
         return md5(mb_convert_encoding($buff, "utf8", "auto"));
 

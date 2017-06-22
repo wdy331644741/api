@@ -127,7 +127,7 @@ class ThreadController extends Controller
         }
     }
 
-    //删除帖子（审核失败）
+    //拒绝审核
     public function postDel(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id',
@@ -137,7 +137,7 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $thread = Thread::find($request->id);
-        if(in_array($thread->isverify,[1,2])){
+        if(in_array($thread->isverify,[1])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
         Thread::where('id',$request->id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
@@ -157,6 +157,32 @@ class ThreadController extends Controller
         }
     }
 
+    //已审核->已拒绝
+    public function postPassToFail(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $thread = Thread::find($request->id);
+        if(in_array($thread->isverify,[2])){
+            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
+        }
+        $pm = new Pm();
+        $pm->user_id = $thread->user_id;
+        $pm->from_user_id = 0;
+        $pm->tid = $request->id;
+        $pm->type = 1;
+        $pm->save();
+
+        $res = Thread::where('id',$request->id)->update(['isverify'=>2]);
+        if($res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
 
     //审核，加精，置顶，最热
     public function postToogleStatus(Request $request){
