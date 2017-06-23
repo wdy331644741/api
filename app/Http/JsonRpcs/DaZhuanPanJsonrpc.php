@@ -62,9 +62,9 @@ class DaZhuanPanJsonRpc extends JsonRpc
                 }
             }
             if(!empty($startTime) && !empty($endTime)){
-                if(time() < $startTime){
+                if(time() > $startTime){
                     //活动正在进行
-                    $result['available'] = 0;
+                    $result['available'] = 1;
                 }
                 if(time() > $endTime){
                     $result['available'] = 2;
