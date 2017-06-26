@@ -17,6 +17,7 @@ use App\Models\Bbs\GlobalConfig;
 use Illuminate\Support\Facades\Redis;
 use App\Service\SendAward;
 use App\Service\NetEastCheckService;
+use App\Service\Attributes;
 
 
 
@@ -47,7 +48,6 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -187,11 +187,17 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        $threadNum = Attributes::getNumberByDay($this->userId,"bbs_user_thread_nums");
+
+        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
+            throw new OmgException(OmgException::THREAD_LIMIT);
+        }
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
             'title'=>'required',
             'content'=>'required|max:500',
         ]);
+
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
@@ -243,6 +249,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $thread->save();
+        Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
         $message = $verifyMessage;
         if($thread->id){
             return array(
@@ -271,6 +278,11 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $commentNum = Attributes::getNumberByDay($this->userId,"bbs_user_comment_nums");
+
+        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
+            throw new OmgException(OmgException::COMMENT_LIMIT);
         }
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
@@ -316,6 +328,8 @@ class BbsUserJsonRpc extends JsonRpc {
             $comment->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $comment->save();
+        Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
+
         $message = $verifyMessage;
 
         if($comment->id){
