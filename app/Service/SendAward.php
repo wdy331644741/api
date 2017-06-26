@@ -192,6 +192,13 @@ class SendAward
 
         switch ($activityInfo['alias_name']) {
             /** 七月大转盘活动 start */
+            //签到
+            case 'dazhuanpan_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",1);
+                }
+                break;
             //投资
             case 'dazhuanpan_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){

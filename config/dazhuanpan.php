@@ -2,7 +2,6 @@
 return [
     'alias_name' => 'dazhuanpan',
     'draw_number' => 1,
-    'drew_daily_key' => 'dazhuanpan_drew_daily',//注册次数key
     'drew_user_key' => 'dazhuanpan_drew_user',//用户剩余次数key
     'drew_total_key' => 'dazhuanpan_drew_total',//总共领取次数key
     'awards' => [

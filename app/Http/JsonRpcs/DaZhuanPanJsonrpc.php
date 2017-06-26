@@ -239,14 +239,11 @@ class DaZhuanPanJsonRpc extends JsonRpc
 
     //获取用户的剩余次数
     private function getUserNum($userId,$config){
-        $loginNum = Attributes::getNumberByDay($userId, $config['drew_daily_key']);
-        if($loginNum <= 0){
-            $loginNum = $config['draw_number'];
-        }else{
-            $loginNum = 0;
-        }
         $userNum = Attributes::getNumber($userId, $config['drew_user_key']);
-        return $loginNum + $userNum;
+        if($userNum > 0){
+            return $userNum;
+        }
+        return 0;
     }
 
     //减少用户次数
@@ -256,17 +253,6 @@ class DaZhuanPanJsonRpc extends JsonRpc
         }
         //将总共的抽奖次数累加
         Attributes::increment($userId,$config['drew_total_key'],$num);
-
-        //获取每次免费次数是否有
-        $loginNum = Attributes::getNumberByDay($userId, $config['drew_daily_key']);
-        if($loginNum <= 0){
-            //将每日的免费次数改成已使用
-            Attributes::incrementByDay($userId, $config['drew_daily_key']);
-            $num -= $num;
-        }
-        if($num <= 0){
-            return false;
-        }
         //减少用户抽奖次数
         Attributes::decrement($userId,$config['drew_user_key'],$num);
         return true;
