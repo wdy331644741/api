@@ -99,8 +99,8 @@ class DaZhuanPanJsonRpc extends JsonRpc
         }
         //获取抽奖次数
         $num = isset($params->num) ? $params->num : 0;
-        if($num <= 0){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
+        if($num != 1 && $num != 10){
+            throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $config = Config::get('dazhuanpan');
         // 活动是否存在
@@ -191,7 +191,11 @@ class DaZhuanPanJsonRpc extends JsonRpc
             //获取随机加入的奖品
             $joinData = $this->joinData();
             if(!empty($joinData)){
-                $data[] = $joinData;
+                $newData[0] = $joinData;
+                for($i=1;$i<=count($data);$i++){
+                    $newData[$i] = $data[$i-1];
+                }
+                $data = $newData;
             }
             return $data;
         });
