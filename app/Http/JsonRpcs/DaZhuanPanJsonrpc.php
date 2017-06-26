@@ -160,7 +160,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = DaZhuanPan::select('user_id', 'award_name', 'created_at')->where('type', '!=', 'empty')->where('user_id',$userId)->orderBy('id', 'desc')->take($num)->get();
+        $data = DaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')->where('type', '!=', 'empty')->where('user_id',$userId)->orderBy('id', 'desc')->take($num)->get();
         foreach ($data as &$item){
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
