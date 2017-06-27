@@ -128,24 +128,6 @@ class ThreadController extends Controller
         }
     }
 
-
-    //删除帖子
-    public function postDel(Request $request){
-        $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:bbs_threads,id',
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
-        }
-        $res = Thread::destroy($request->id);
-        if($res){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-
     //加精，置顶，最热
     public function postToogleStatus(Request $request){
         $validator = Validator::make($request->all(), [
@@ -200,21 +182,6 @@ class ThreadController extends Controller
         if(in_array($thread->isverify,[2])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
-        if(isset($request->isverify)) {
-            $verify_time = date('Y-m-d H:i:s');
-            $putData['isverify'] = $request->isverify;
-            $putData['verify_time'] = $verify_time;
-            $thread = Thread::find($request->id);
-            if (in_array($thread->isverify, [1])) {
-                return $this->outputJson(10010, array('error_msg' => 'Repeat Actions'));
-            }
-            $pm = new Pm();
-            $pm->user_id = $thread->user_id;
-            $pm->from_user_id = 0;
-            $pm->tid = $request->id;
-            $pm->type = 1;
-            $pm->save();
-        }
         $res = Thread::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
         /*$pm = new Pm();
         $pm->user_id = $thread->user_id;
@@ -256,68 +223,6 @@ class ThreadController extends Controller
         }
     }
 
-    //已审核->已拒绝
-    public function postPassToFail(Request $request){
-        $validator = Validator::make($request->all(), [
-            'id'=>'required|exists:bbs_threads,id'
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
-        }
-        $thread = Thread::find($request->id);
-        if(in_array($thread->isverify,[2])){
-            return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
-        }
-        $pm = new Pm();
-        $pm->user_id = $thread->user_id;
-        $pm->from_user_id = 0;
-        $pm->tid = $request->id;
-        $pm->type = 1;
-        $pm->save();
-
-        $res = Thread::where('id',$request->id)->update(['isverify'=>2]);
-        if($res){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
-        }
-    }
-
-    //批量通过审核
-    public function postBatchPass(Request $request){
-        $validator = Validator::make($request->all(), [
-            'id'=>'required'
-        ]);
-        if($validator->fails()){
-            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
-        }
-        foreach ($request->id as $val){
-            $thread = Thread::find($val);
-            if(in_array($thread->isverify,[1,2])){
-                $error[$val] = 10010;
-                continue;
-            }
-            $verify_time = date('Y-m-d H:i:s');
-            $putData['isverify'] = 1;
-            $putData['verify_time'] = $verify_time;
-            $pm = new Pm();
-            $pm->user_id = $thread->user_id;
-            $pm->from_user_id = 0;
-            $pm->tid = $val;
-            $pm->type = 1;
-            $pm->save();
-            $res = Thread::where('id',$request->id)->update($putData);
-            if(!$res){
-                $error[$val] = 10002;
-                continue;
-            }
-        }
-        if(empty($error)){
-            return $this->outputJson(0);
-        }else{
-            return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
-        }
-    }
 
     //后台回复帖子
     public function postAdminReply(Request $request){
