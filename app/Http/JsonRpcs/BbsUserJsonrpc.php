@@ -284,22 +284,25 @@ class BbsUserJsonRpc extends JsonRpc {
         if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
             throw new OmgException(OmgException::COMMENT_LIMIT);
         }
+
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
             'content'=>'required',
         ]);
+
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
         $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         if($bbsUserInfo->isblack==1){
             throw new OmgException(OmgException::RIGHT_ERROR);
-        };
+        };//
         $inParam = array(
             'dataId'=>time(),//设置为时间戳
             'content' => $params->content,
 
         );
+
         $netCheck = new NetEastCheckService($inParam);
         $res = $netCheck->textCheck();
         if($res['code'] =='200'){
@@ -319,6 +322,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $verifyResult= 0;
             $verifyMessage = '您的评论已提交审核';
         }
+
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
@@ -328,6 +332,11 @@ class BbsUserJsonRpc extends JsonRpc {
             $comment->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $comment->save();
+
+        if($verifyResult ==1){
+
+            Thread::where(['id'=>$params->id])->increment('comment_num');
+        }
         Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
 
         $message = $verifyMessage;
