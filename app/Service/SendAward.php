@@ -204,7 +204,11 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
                     //判断是否是6个月以上标
                     if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
-                        Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",3);
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount > 1000){
+                            $num = intval($amount/1000)*3;
+                            Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",$num);
+                        }
                     }
                 }
                 break;
