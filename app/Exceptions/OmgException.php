@@ -84,6 +84,10 @@ class OmgException extends BasicException
     const NICKNAME_REPEAT = 4319;
     const RIGHT_ERROR = 4320;
     const NICKNAME_IS_NULL = 4321;
+    const THREAD_ERROR = 4322;
+    const COMMENT_ERROR = 4323;
+    const THREAD_LIMIT = 4324;
+    const COMMENT_LIMIT = 4325;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -152,6 +156,10 @@ class OmgException extends BasicException
         self::NICKNAME_REPEAT=>"昵称重复",
         self::RIGHT_ERROR=>"您没有操作权限",
         self::NICKNAME_IS_NULL=>"昵称不能为空",
+        self::THREAD_ERROR =>"抱歉，发贴失败，因含有敏感词等",
+        self::COMMENT_ERROR=>"抱歉，评论失败，因含有敏感词等",
+        self::THREAD_LIMIT=>"今日发贴已达上限，明天再来吧！",
+        self::COMMENT_LIMIT=>"今日评论已达上限，明天再来吧！",
     );
 
     public function __construct($code, $data = array())

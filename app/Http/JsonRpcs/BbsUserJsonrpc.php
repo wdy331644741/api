@@ -16,6 +16,8 @@ use App\Service\Func;
 use App\Models\Bbs\GlobalConfig;
 use Illuminate\Support\Facades\Redis;
 use App\Service\SendAward;
+use App\Service\NetEastCheckService;
+use App\Service\Attributes;
 
 
 
@@ -173,6 +175,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
+
         $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
         if($threadTimeLimit){
             throw new OmgException(OmgException::API_BUSY);
@@ -184,11 +187,17 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        $threadNum = Attributes::getNumberByDay($this->userId,"bbs_user_thread_nums");
+
+        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
+            throw new OmgException(OmgException::THREAD_LIMIT);
+        }
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
             'title'=>'required',
             'content'=>'required|max:500',
         ]);
+
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
@@ -203,6 +212,30 @@ class BbsUserJsonRpc extends JsonRpc {
         if($bbsUserInfo->isblack==1){
             throw new OmgException(OmgException::RIGHT_ERROR);
         };
+        $inParam = array(
+            'dataId'=>time(),//设置为时间戳
+            'content' => $params->content.$params->title,
+
+        );
+        $netCheck = new NetEastCheckService($inParam);
+        $res = $netCheck->textCheck();
+        if($res['code'] =='200'){
+            switch ($res['result']['action']){
+                case 0 ://审核通过
+                    $verifyResult = 1;
+                    $verifyMessage = '发贴成功';
+                    break;
+                case 1 ://有嫌疑
+                    $verifyResult = 0;
+                    $verifyMessage = '您的发贴已提交审核';
+                    break;
+                case 2 ://审核未通过
+                   throw new OmgException(OmgException::THREAD_ERROR);
+            }
+        }else{
+            $verifyResult= 0;
+            $verifyMessage = '您的发贴已提交审核';
+        }
 
         $thread = new Thread();
         $thread->user_id = $this->userId;
@@ -210,10 +243,14 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->title = isset($params->title) ? $params->title : NULL;
         $thread->content = $params->content;
         $thread->istop =  0;
-        $thread->isverify = Config::get('bbsConfig')['threadVerify']?0:1;
+        $thread->isverify = $verifyResult;
         $thread->verify_time = date('Y-m-d H:i:s');
+        if($verifyResult ==0){
+            $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
+        }
         $thread->save();
-        $message = Config::get('bbsConfig')['threadVerify']?"帖子发布成功,已提交后台审核 ":"帖子发布成功";
+        Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
+        $message = $verifyMessage;
         if($thread->id){
             return array(
                 'code' => 0,
@@ -242,24 +279,68 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        $commentNum = Attributes::getNumberByDay($this->userId,"bbs_user_comment_nums");
+
+        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
+            throw new OmgException(OmgException::COMMENT_LIMIT);
+        }
+
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
             'content'=>'required',
         ]);
+
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
         $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         if($bbsUserInfo->isblack==1){
             throw new OmgException(OmgException::RIGHT_ERROR);
-        };
+        };//
+        $inParam = array(
+            'dataId'=>time(),//设置为时间戳
+            'content' => $params->content,
+
+        );
+
+        $netCheck = new NetEastCheckService($inParam);
+        $res = $netCheck->textCheck();
+        if($res['code'] =='200'){
+            switch ($res['result']['action']){
+                case 0 ://审核通过
+                    $verifyResult = 1;
+                    $verifyMessage = '评论成功';
+                    break;
+                case 1 ://有嫌疑
+                    $verifyResult = 0;
+                    $verifyMessage = '您的评论已提交审核';
+                    break;
+                case 2 ://审核未通过
+                    throw new OmgException(OmgException::COMMENT_ERROR);
+            }
+        }else{
+            $verifyResult= 0;
+            $verifyMessage = '您的评论已提交审核';
+        }
+
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
         $comment->content = $params->content;
-        $comment->isverify = Config::get('bbsConfig')['commentVerify']?0:1;
+        $comment->isverify = $verifyResult;
+        if($verifyResult ==0){
+            $comment->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
+        }
         $comment->save();
-        $message = Config::get('bbsConfig')['commentVerify']?"评论发布成功,已提交后台审核 ":"评论发布成功";
+
+        if($verifyResult ==1){
+
+            Thread::where(['id'=>$params->id])->increment('comment_num');
+        }
+        Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
+
+        $message = $verifyMessage;
+
         if($comment->id){
             return array(
                 'code' => 0,
