@@ -205,7 +205,7 @@ class SendAward
                     //判断是否是6个月以上标
                     if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
                         $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                        if($amount > 1000){
+                        if($amount >= 1000){
                             $num = intval($amount/1000)*3;
                             Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",$num);
                         }
