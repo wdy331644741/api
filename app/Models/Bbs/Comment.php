@@ -14,4 +14,8 @@ class Comment extends Model
         return $this->hasOne('App\Models\Bbs\User','user_id','user_id');
     }
 
+    public function thread() {
+        return $this->belongsTo('App\Models\Bbs\Thread', 'tid', 'id');
+    }
+
 }
