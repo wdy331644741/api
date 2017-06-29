@@ -12,6 +12,7 @@ use App\Service\Func;
 use App\Service\GlobalAttributes;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\DazhuanpanBatch;
+use Illuminate\Pagination\Paginator;
 
 use Config, Request, Cache,DB;
 
@@ -152,26 +153,42 @@ class DaZhuanPanJsonRpc extends JsonRpc
     public function dazhuanpanMyList($params) {
         global $userId;
 
-        $num = isset($params->num) ? $params->num : 0;
+        $num = isset($params->num) ? $params->num : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         if($num <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        if($page <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = DaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')->where('type', '!=', 'empty')->where('user_id',$userId)->orderBy('id', 'desc')->take($num)->get();
+        $data = DaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')
+            ->where('type', '!=', 'empty')
+            ->where('user_id',$userId)
+            ->orderBy('id', 'desc')->paginate($num)->toArray();
         foreach ($data as &$item){
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
         }
-
+        $rData['total'] = $data['total'];
+        $rData['per_page'] = $data['per_page'];
+        $rData['current_page'] = $data['current_page'];
+        $rData['last_page'] = $data['last_page'];
+        $rData['from'] = $data['from'];
+        $rData['to'] = $data['to'];
+        $rData['list'] = $data['data'];
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $data,
+            'data' => $rData,
         ];
     }
     /**

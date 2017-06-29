@@ -4,6 +4,6 @@ return [
     'commentVerify'=>true,
     'threadPublishTimeLimit' => 2000,
     'commentPublishTimeLimit' => 2000,
-    'threadPublishMax'=>2,
-    'commentPublishMax'=>5,
+    'threadPublishMax'=>20,
+    'commentPublishMax'=>50,
 ];
