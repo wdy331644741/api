@@ -284,7 +284,9 @@ class BbsThreadJsonRpc extends JsonRpc
 
         $thread =  new Thread(['userId'=>$userId]);
         $id = $params->id;
-        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title","bbs_threads.created_at")
+
+        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title","created_at","updated_at")
+
             ->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
@@ -332,7 +334,7 @@ class BbsThreadJsonRpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::select("id","cover","title","type_id","url")
+        $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
             //->with('user')
             ->orderByRaw('created_at DESC')
