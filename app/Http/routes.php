@@ -73,6 +73,7 @@ Route::group(['middleware' => 'web'], function() {
     Route::controller('open', 'OpenController'); //微信相关
     //临时活动控制器
     Route::controller('tmp', 'TmpController');
+    Route::post('upload/img','bbs\UploadController@postImg');
 });
 
 //图片地址转调
@@ -89,3 +90,4 @@ Route::controller('media', 'MediaController');
 Route::get('content/help','ContentController@getHelp');
 Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
 Route::get('content/{type?}/{page?}','ContentController@getList');
+//上传文件
