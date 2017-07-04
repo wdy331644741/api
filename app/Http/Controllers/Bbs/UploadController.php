@@ -30,14 +30,15 @@ class UploadController extends Controller
             try{
                 $res  = $ossClient->uploadFile($bucket, $object, $_FILES['file']['tmp_name']);
                 $picArrays = [
-                    [   "name"=>"http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg",
+                    [   "name"=>$res['info']['url'],
                         "type"=>1,
-                        "data"=>"http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg"
+                        "data"=>$res["info"]["url"]
                     ]
                 ];
                 $inParamImg = array(
                     "images"=>json_encode($picArrays),
                 );
+                //dd($picArrays);
                 $imgCheck = new NetEastCheckService($inParamImg);
                 $checkRes = $imgCheck->imgCheck();
                 $maxLevel =-1;
