@@ -278,8 +278,6 @@ class AmountShareJsonRpc extends JsonRpc
                     throw new OmgException(OmgException::API_FAILED);
                 }
                 $result['money'] = $isFinish->total_money;
-                //修改为本人领取完状态
-                HdAmountShare::where('id',$isFinish->id)->update(['award_status'=>1]);
                 //添加记录
                 HdAmountShareInfo::insertGetId([
                     'user_id' => $userId,
@@ -292,6 +290,9 @@ class AmountShareJsonRpc extends JsonRpc
                     'created_at' => date("Y-m-d H:i:s"),
                     'updated_at' => date("Y-m-d H:i:s")
                 ]);
+                //修改为本人领取完状态
+                HdAmountShare::where('id',$isFinish->id)->update(['award_status'=>1]);
+
                 DB::commit();
                 return array(
                     'code' => 0,
