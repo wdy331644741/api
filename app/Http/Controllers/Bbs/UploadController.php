@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\bbs;
 
+use App\Exceptions\OmgException;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use OSS\OssClient;
 use OSS\Core\OssException;
+use App\Service\NetEastCheckService;
 
 class UploadController extends Controller
 {
@@ -27,15 +29,43 @@ class UploadController extends Controller
 
             try{
                 $res  = $ossClient->uploadFile($bucket, $object, $_FILES['file']['tmp_name']);
-                dd($res);
+                $picArrays = [
+                    [   "name"=>"http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg",
+                        "type"=>1,
+                        "data"=>"http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg"
+                    ]
+                ];
+                $inParamImg = array(
+                    "images"=>json_encode($picArrays),
+                );
+                $imgCheck = new NetEastCheckService($inParamImg);
+                $checkRes = $imgCheck->imgCheck();
+                $maxLevel =-1;
+                foreach ($checkRes['result'] as $k=>$v){
+                    foreach($v["labels"] as $index=>$label){
+                        echo "label:{$label["label"]}, level={$label["level"]}, rate={$label["rate"]}\n";
+                        $maxLevel=$label["level"]>$maxLevel?$label["level"]:$maxLevel;
+                    }
+                }
+                if($maxLevel ==0 ||$maxLevel==1){
+                    return [
+                        "code"=>0,
+                        "success"=>"success",
+                        "data"=>[
+                            "level"=>$maxLevel,
+                            "picUrl"=>$res["info"]["url"],
+                        ]
+                    ];
+                }
+                if($maxLevel ==2){
+                    throw  new OmgException(OmgException::UPLOAD_IMG_ERROR);
+                }
             } catch(OssException $e) {
-                printf(__FUNCTION__ . ": FAILED\n");
-                printf($e->getMessage() . "\n");
-                return;
+                throw new OmgException(OmgException::UPLOAD_IMG_ERROR);
             }
-            print(__FUNCTION__ . ": OK" . "\n");
+
         } catch (OssException $e) {
-            print $e->getMessage();
+            throw new OmgException(OmgException::UPLOAD_IMG_ERROR);
         }
 
 

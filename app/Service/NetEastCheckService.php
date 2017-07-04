@@ -54,8 +54,8 @@ class NetEastCheckService
     }
     public  function imgCheck()
     {
-        $this->params["secretId"] = self::NETEASE_KEY;
-        $this->params["businessId"] = self::IMG_BUSINESSID;
+        $this->params["secretId"] = env('NETEASE_KEY');
+        $this->params["businessId"] = env('IMG_BUSINESSID');
         $this->params["version"] = self::VERSION;
         $this->params["timestamp"] = sprintf("%d", round(microtime(true)*1000));// time in milliseconds
         $this->params["nonce"] = sprintf("%d", rand()); // random int
@@ -102,7 +102,7 @@ class NetEastCheckService
 
         }
         $responseBody = json_decode($response->getBody(),true);
-        dd($responseBody);
+
         if($responseBody === FALSE){
             //校验失败
             return array("code"=>500, "msg"=>"error");

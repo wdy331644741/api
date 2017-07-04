@@ -88,6 +88,7 @@ class OmgException extends BasicException
     const COMMENT_ERROR = 4323;
     const THREAD_LIMIT = 4324;
     const COMMENT_LIMIT = 4325;
+    const UPLOAD_IMG_ERROR = 4326;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -160,6 +161,7 @@ class OmgException extends BasicException
         self::COMMENT_ERROR=>"抱歉，评论失败，因含有敏感词等",
         self::THREAD_LIMIT=>"今日发贴已达上限，明天再来吧！",
         self::COMMENT_LIMIT=>"今日评论已达上限，明天再来吧！",
+        self::UPLOAD_IMG_ERROR=>"上传文件失败",
     );
 
     public function __construct($code, $data = array())

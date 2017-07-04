@@ -7,6 +7,7 @@ use App\Http\JsonRpcs\AmountShareJsonRpc;
 use App\Http\JsonRpcs\BbsCommentJsonrpc;
 use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
+use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
@@ -93,7 +94,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new BbsCommentJsonRpc());
         $jsonRpcServer->addService(new JianmianhuiJsonRpc());
         $jsonRpcServer->addService(new SignInSystemJsonRpc());
-
+        $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }

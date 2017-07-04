@@ -185,25 +185,38 @@ class BbsUserJsonRpc extends JsonRpc {
         //发帖等级限制
 
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
-//        if($this->userInfo['level']<= $publishLimit['val']){
-//            throw new OmgException(OmgException::RIGHT_ERROR);
-//        }
         //拉黑限制
         $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         if($bbsUserInfo->isblack==1){
             throw new OmgException(OmgException::RIGHT_ERROR);
         };
-        $inParam = array(
+        $inParamText = array(
             'dataId'=>time(),//设置为时间戳
             'content' => $params->content.$params->title,
 
         );
-        $netCheck = new NetEastCheckService($inParam);
+        $netCheck = new NetEastCheckService($inParamText);
         $res = $netCheck->textCheck();
+
+        if($params->pic){
+            foreach ($params->pic as $key=> $value){
+                $picArrays[$key]['name'] = "http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg";
+                $picArrays[$key]['type'] = 1;
+                $picArrays[$key]['data'] = $value;
+            }
+
+        }
+
+        $inParamImg = array(
+            "images"=>json_encode($picArrays),
+        );
+        $imgCheck = new NetEastCheckService($inParamImg);
+        $res = $imgCheck->imgCheck();
+        dd($res);
         if($res['code'] =='200'){
             switch ($res['result']['action']){
                 case 0 ://审核通过
-                    $verifyResult = 1;
+                    $verifyTextResult = 1;
                     $verifyMessage = '发贴成功';
                     break;
                 case 1 ://有嫌疑
