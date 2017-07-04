@@ -26,6 +26,7 @@ class CreateTableHdAmountShare20170703 extends Migration
             $table->integer('receive_num',false,true)->nullable()->default(0)->comment("领取个数");
             $table->decimal('min',10,2)->default(0)->comment("最小值");
             $table->decimal('max',10,2)->default(0)->comment("最大值");
+            $table->integer('week',false,true)->default(0)->comment("第几周首次领取");
             $table->timestamp('start_time')->nullable()->default(NULL)->comment("开始时间");
             $table->timestamp('end_time')->nullable()->default(NULL)->comment("结束时间");
             $table->text('uri')->default('')->comment("分享的uri");
@@ -37,6 +38,7 @@ class CreateTableHdAmountShare20170703 extends Migration
             $table->index('identify');
             $table->index('status');
             $table->index('award_status');
+            $table->index('week');
         });
         Schema::table('hd_amount_share', function (Blueprint $table) {
             $table->softDeletes();

@@ -2,12 +2,10 @@
 
 namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
-use App\Models\UserAttribute;
 use App\Service\ActivityService;
 use App\Service\AmountShareBasic;
 use App\Models\HdAmountShare;
 use App\Models\HdAmountShareInfo;
-use App\Service\Attributes;
 use App\Service\Func;
 use DB, Request;
 
@@ -100,14 +98,13 @@ class AmountShareJsonRpc extends JsonRpc
      */
     public function amountShareTopList($params)
     {
-        $num = isset($params->num) && !empty($params->num) ? $params->num : 5;
-        $list = HdAmountShare::
-            where('use_money',">",0)
+        $num = isset($params->num) && !empty($params->num) ? $params->num : 3;
+        $thisWeek = date("W");
+        $list = HdAmountShare::where('week',$thisWeek)
             ->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))
             ->groupBy("user_id")
             ->orderByRaw("money desc,max_id asc")
-            ->take($num)
-            ->get();
+            ->take($num)->get()->toArray();
         foreach ($list as &$item) {
             if (!empty($item)) {
                 $phone = Func::getUserPhone($item['user_id']);
@@ -119,6 +116,7 @@ class AmountShareJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $list
         );
+
     }
 
     /**
@@ -198,7 +196,7 @@ class AmountShareJsonRpc extends JsonRpc
                 $result['isGot'] = 2;
             }
         }
-        // 发体现金
+        // 发送现金
         if ($result['isLogin'] && !$result['isGot']) {
             $money = AmountShareBasic::getRandomMoney($remain * 100, $remainNum, $mallInfo->min * 100, $mallInfo->max);
             $money = $money / 100;
@@ -223,6 +221,10 @@ class AmountShareJsonRpc extends JsonRpc
                 'updated_at' => date("Y-m-d H:i:s")
             ]);
             $result['amount'] = $money;
+            //判断首次领取就更新当前周数
+            if(isset($mallInfo->week) && $mallInfo->week == 0){
+                HdAmountShare::where('id',$mallInfo->id)->update(['week'=>date("W")]);
+            }
             //判断分享的是否领取完
             if(!empty($mallInfo->id) && $mallInfo->total_num  === $mallInfo->receive_num){
                 //修改为领取完状态
@@ -319,5 +321,4 @@ class AmountShareJsonRpc extends JsonRpc
         }
         return $data;
     }
-
 }
