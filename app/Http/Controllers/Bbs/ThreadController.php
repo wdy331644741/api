@@ -254,7 +254,7 @@ class ThreadController extends Controller
 
     }
 
-    //批量审核
+    //批量审帖
     public function postBatchPass(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required',
@@ -263,34 +263,27 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         foreach ($request->id as $val){
-            $comment = Comment::find($val);
-            if(in_array($comment->isverify,[1,2])){
+            $thread = Thread::find($val);
+            if(in_array($thread->isverify,[1])){
                 $error[$val] = 10010;
                 continue;
             }
-            $thread = Thread::find($comment->tid);
-            $user_id = null;
+
             if($thread != null){
-                if(in_array($thread->isverify,[0,2])){
-                    $error[$val] = 10012;
-                    continue;
-                }
                 $user_id = $thread->user_id;
                 $pm = new Pm();
                 $pm->user_id = $user_id;
-                $pm->from_user_id = $comment->user_id;
-                $pm->tid = $comment->tid;
-                $pm->cid = 0;
+                $pm->from_user_id = 0;
+                $pm->tid = $val;
+                $pm->msg_type = 1;
                 $pm->type = 3;
-                $pm->content = $comment->content;
                 $pm->save();
-                Thread::where('id',$comment->tid)->increment('comment_num');
             }
             $putData = [
                 'isverify'=>1,
                 'verify_time'=>date('Y-m-d H:i:s')
             ];
-            $res = Comment::find($val)->update($putData);
+            $res = Thread::find($val)->update($putData);
             if(!$res){
                 $error[$val] = 10002;
                 continue;
@@ -312,31 +305,21 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         foreach ($request->id as $val){
-            $comment = Comment::find($val);
-            if(in_array($comment->isverify,[2])){
+            $thread = Thread::find($val);
+            if(in_array($thread->isverify,[2])){
                 $error[$val] = 10010;
                 continue;
             }
-            $thread = Thread::find($comment->tid);
             $user_id = null;
             if($thread != null){
-                if(in_array($thread->isverify,[0,2])){
-                    $error[$val] = 10012;
-                    continue;
-                }
                 $user_id = $thread->user_id;
                 $pm = new Pm();
                 $pm->user_id = $user_id;
-                $pm->from_user_id = $comment->user_id;
-                $pm->tid = $comment->tid;
+                $pm->from_user_id = 0;
+                $pm->tid = $val;
                 $pm->msg_type = 1;
                 $pm->type = 3;
-                $pm->content = $comment->content;
                 $pm->save();
-                if(in_array($comment->isverify,[1])){
-                    Thread::where('id',$comment->tid)->decrement('comment_num');
-                }
-
             }
             $putData = [
                 'isverify'=>2,
