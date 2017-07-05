@@ -50,7 +50,7 @@ class BbsThreadJsonRpc extends JsonRpc
         //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
 
         $thread = new Thread(['userId' => $userId]);
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
 
             ->Where(function ($query) use ($typeId, $userId) {
@@ -59,9 +59,12 @@ class BbsThreadJsonRpc extends JsonRpc
             })
 
             ->with('user')
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
+
         return array(
             'code' => 0,
             'message' => 'success',
@@ -100,7 +103,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $monthTime = date("Y-m-d", strtotime("-1 month"));
 
         $thread = new Thread(['userId' => $userId]);
-        $hotThread = $thread->select("id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $hotThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->selectRaw('(views+comment_num) as order_field')
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
@@ -109,6 +112,8 @@ class BbsThreadJsonRpc extends JsonRpc
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
             ->with("user")
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('order_field DESC')
             ->limit(1)
             ->get()
@@ -116,7 +121,7 @@ class BbsThreadJsonRpc extends JsonRpc
         foreach ($hotThread as $key => $value) {
             $hotThreadId[] = $value['id'];
         }
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -125,6 +130,8 @@ class BbsThreadJsonRpc extends JsonRpc
             })
             ->whereNotIn('id', $hotThreadId)
             ->with('user')
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -164,7 +171,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $monthTime = date("Y-m-d", strtotime("-1 month"));
 
         $thread = new Thread(['userId' => $userId]);
-        $greatThread = $thread->select("id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $greatThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->selectRaw('(views+comment_num) as order_field')
             ->where(['isgreat' => 0])
             ->where('created_at', '>', $monthTime)
@@ -173,6 +180,8 @@ class BbsThreadJsonRpc extends JsonRpc
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
             ->with("user")
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('order_field DESC')
             ->limit(1)
             ->get()
@@ -180,7 +189,7 @@ class BbsThreadJsonRpc extends JsonRpc
         foreach ($greatThread as $key => $value) {
             $greatThread[] = $value['id'];
         }
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -189,6 +198,8 @@ class BbsThreadJsonRpc extends JsonRpc
             })
             ->whereNotIn('id', $greatThread)
             ->with('user')
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -204,7 +215,7 @@ class BbsThreadJsonRpc extends JsonRpc
 
     /**
      *
-     *获取精华帖子的详情
+     *获取最新帖子的详情
      * @
      *
      * @JsonRpcMethod
@@ -219,7 +230,7 @@ class BbsThreadJsonRpc extends JsonRpc
             throw new OmgException(OmgException::DATA_ERROR);
         }
         $typeId = $params->id;
-        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 3;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
@@ -229,7 +240,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $monthTime = date("Y-m-d", strtotime("-1 month"));
 
         $thread = new Thread(['userId' => $userId]);
-        $greatThread = $thread->select("id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $greatThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->selectRaw('(views+comment_num) as order_field')
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -237,6 +248,8 @@ class BbsThreadJsonRpc extends JsonRpc
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
             ->with("user")
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('order_field DESC')
             ->limit(1)
             ->get()
@@ -244,7 +257,7 @@ class BbsThreadJsonRpc extends JsonRpc
         foreach ($greatThread as $key => $value) {
             $greatThread[] = $value['id'];
         }
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title", "created_at", "updated_at")
+        $res = $thread->$thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -253,6 +266,8 @@ class BbsThreadJsonRpc extends JsonRpc
             })
             ->whereNotIn('id', $greatThread)
             ->with('user')
+            ->with('collection')
+            ->with('zan')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -285,13 +300,15 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread =  new Thread(['userId'=>$userId]);
         $id = $params->id;
 
-        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title","created_at","updated_at")
+        $thread_info =  $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
 
             ->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
                })
             ->with('user')
+            ->with('collection')
+            ->with('zan')
             ->with('commentAndVerify')
             ->first();
 
@@ -299,7 +316,7 @@ class BbsThreadJsonRpc extends JsonRpc
             $thread_info->comments = $thread_info->commentAndVerify;
             unset($thread_info->commentAndVerify);
             //view +1
-            Thread::where(['id' => $params->id])->update(['views' => $thread_info->views + 1]);
+            Thread::where(['id' => $params->id])->increment('views');
             //dd($thread_info);
             if (!empty($params->fromPm)) {
                 Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
