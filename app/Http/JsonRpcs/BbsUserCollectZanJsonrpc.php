@@ -8,7 +8,7 @@ use Validator;
 use App\Exceptions\OmgException;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
-use App\Models\Bbs\ThreadCollect;
+use App\Models\Bbs\ThreadCollection;
 use App\Models\Bbs\ThreadZan;
 use App\Models\Bbs\CommentZan;
 
@@ -43,7 +43,9 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = ThreadCollect::updateOrCreate(["status"=>0],["user_id"=>$this->userId,"tid"=>$params->id]);
+
+       $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>0]);
+       //dd($res);
        if($res){
            Thread::where(["id"=>$params->id])->increment("collection_num");
            return array(
@@ -73,9 +75,9 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
         if ($validator->fails()) {
             throw new OmgException(OmgException::DATA_ERROR);
         }
-        $res = ThreadCollect::updateOrCreate(["status"=>1],["user_id"=>$this->userId,"tid"=>$params->id]);
+        $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>1]);
         if($res){
-            Thread::where(["id"=>$params->id])->decrement("collection_num");
+             Thread::where(["id"=>$params->id])->decrement("collection_num");
             return array(
                 'code'=>0,
                 'message'=>'success',
@@ -103,10 +105,14 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = ThreadZan::updateOrCreate(["status"=>0],["user_id"=>$this->userId,"tid"=>$params->id]);
+       $res = ThreadZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>0]);
        if($res){
            Thread::where(["id"=>$params->id])->increment("zan_num");
-
+           return array(
+               'code'=>0,
+               'message'=>'success',
+               'data'=>$res,
+           );
        }else{
            throw new OmgException(OmgException::API_FAILED);
        }
@@ -130,7 +136,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = ThreadZan::updateOrCreate(["status"=>1],["user_id"=>$this->userId,"tid"=>$params->id]);
+       $res = ThreadZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>1]);
        if($res){
            Thread::where(["id"=>$params->id])->decrement("zan_num");
            return array(
@@ -160,7 +166,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = CommentZan::updateOrCreate(["status"=>0],["user_id"=>$this->userId,"tid"=>$params->id]);
+       $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>0]);
        if($res){
            Comment::where(["id"=>$params->id])->increment("zan_num");
            return array(
@@ -191,7 +197,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = CommentZan::updateOrCreate(["status"=>1],["user_id"=>$this->userId,"tid"=>$params->id]);
+       $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>1]);
        if($res){
            Comment::where(["id"=>$params->id])->decrement("zan_num");
            return array(

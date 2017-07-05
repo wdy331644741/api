@@ -2,13 +2,16 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
+use function GuzzleHttp\Promise\queue;
 use Lib\Curl;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class NetEastCheckService
 {
 
     const VERSION = 'v3';
-    const API_TIMEOUT=20;
+    const API_TIMEOUT=2;
     private $params = [];
     private $inParams=[];
     public function __construct($param)
@@ -51,8 +54,8 @@ class NetEastCheckService
     }
     public  function imgCheck()
     {
-        $this->params["secretId"] = self::NETEASE_KEY;
-        $this->params["businessId"] = self::IMG_BUSINESSID;
+        $this->params["secretId"] = env('NETEASE_KEY');
+        $this->params["businessId"] = env('IMG_BUSINESSID');
         $this->params["version"] = self::VERSION;
         $this->params["timestamp"] = sprintf("%d", round(microtime(true)*1000));// time in milliseconds
         $this->params["nonce"] = sprintf("%d", rand()); // random int
@@ -82,26 +85,31 @@ class NetEastCheckService
 
     }
     private function sendCheck($checkUrl){
-        $options = array(
-            'http' => array(
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method'  => 'POST',
-                'timeout' => self::API_TIMEOUT, // read timeout in seconds
-                'content' => http_build_query($this->params),
-            ),
-        );
-        $context  = stream_context_create($options);
-        $result = file_get_contents($checkUrl, false, $context);
 
-        if($result === FALSE){
+        $client = new Client(['timeout'=>self::API_TIMEOUT]);
+        try {
+            $response = $client->request('POST', $checkUrl, [
+                'form_params' =>
+                    $this->params,
+
+            ]);
+        }catch (RequestException $e){
+
+            return [
+                "code"=>500,
+                "msg"=>$e->getRequest()
+            ];
+
+        }
+        $responseBody = json_decode($response->getBody(),true);
+
+        if($responseBody === FALSE){
             //校验失败
-            return array("code"=>500, "msg"=>"file_get_contents failed.");
+            return array("code"=>500, "msg"=>"error");
         }else{
 
-            return json_decode($result, true);
+            return $responseBody;
         }
-
-
 
     }
 

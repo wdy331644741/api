@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Redis;
 use App\Service\SendAward;
 use App\Service\NetEastCheckService;
 use App\Service\Attributes;
+use App\Service\BbsSendAwardService;
 
 
 
@@ -48,6 +49,7 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
+        $this->userId =1111;
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -59,38 +61,24 @@ class BbsUserJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function updateBbsUserHeadimg($param){
+    public function updateBbsUserHeadimg($params){
 
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
-
-        if(!isset(Config::get('headimg')['user'][$param->head_img])){
+        if(empty($params->headImg)){
             throw new OmgException(OmgException::DATA_ERROR);
         }
 
-        $headImg = Config::get('headimg')['user'][$param->head_img];
-        $user = User::where(['user_id' => $this->userId])->first();
-        if($user){
-            //更新
-            $res = User::where(['user_id' => $this->userId])->update(['head_img'=>$headImg]);
-        }else{
-            //新建用户
-            $newUser = new User();
-            $newUser->user_id = $this->userId;
-            $newUser->head_img = $headImg;
-            $newUser->phone = $this->userInfo['phone'];
-            $newUser->nickname = $this->userInfo['username'];
-            $newUser->isblack = 0;
-            $newUser->isadmin = 0;
-            $res = $newUser->save();
-        }
+        //更新
+        $res = User::where(['user_id' => $this->userId])->update(['head_img'=>$params->headImg]);
+
         if ($res) {
-            //成就任务redis setbit  key achieveUserImgOrName  offset user_id
-            Redis::setBit($this->achieveUserImgOrNameKey,$this->userId,1);
+            $bbsAward = new BbsSendAwardService($this->userId);
+            $bbsAward->updateImgOrName();
             $user = array(
                 'user_id' => $this->userId,
-                'head_img' => $headImg,
+                'head_img' => $params->headImg,
             );
             return array(
                 'code' => 0,
@@ -130,44 +118,32 @@ class BbsUserJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NICKNAME_ERROR);
         }
 
-        $user = User::where(['user_id' => $this->userId])->first();
 
-        if($user) {
-            if ($user->nickname == $param->nickname) {
-                $userInfo = array(
-                    'user_id' => $this->userId,
-                    'nickName' => $param->nickname,
-                );
-                return array(
-                    'code' => 0,
-                    'message' => 'success',
-                    'data' => $userInfo
-                );
-            } else {
-                $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
-                if (!$users) {
-                     User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
+        $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
 
-                      //成就任务redis setbit  key achieveUserImgOrName  offset user_id
-                     Redis::setBit($this->achieveUserImgOrNameKey, $this->userId, 1);
-                     $userInfo = array(
-                         'user_id' => $this->userId,
-                         'nickName' => $param->nickname,
-                     );
-                     return array(
-                         'code' => 0,
-                         'message' => 'success',
-                         'data' => $userInfo
-                     );
+        if (!$users) {
+            User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
+
+            $bbsAward = new BbsSendAwardService($this->userId);
+            $bbsAward->updateImgOrName();
+            $userInfo = array(
+                'user_id' => $this->userId,
+                'nickName' => $param->nickname,
+            );
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $userInfo
+            );
 
 
-                }else{
-                   throw new OmgException(OmgException::NICKNAME_REPEAT);
-                }
-            }
+        }else{
+            throw new OmgException(OmgException::NICKNAME_REPEAT);
         }
-
     }
+
+
+
 
     /**
      *  用户发布帖子
@@ -177,6 +153,7 @@ class BbsUserJsonRpc extends JsonRpc {
     public  function BbsPublishThread($params){
 
         $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
+        //
         if($threadTimeLimit){
             throw new OmgException(OmgException::API_BUSY);
         }else{
@@ -184,14 +161,18 @@ class BbsUserJsonRpc extends JsonRpc {
             $timeLimit = Config::get('bbsConfig')['threadPublishTimeLimit'];
             Redis::PEXPIRE('threadTimeLimit_'.$this->userId,$timeLimit);
         }
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        //发帖数量限制
+
         $threadNum = Attributes::getNumberByDay($this->userId,"bbs_user_thread_nums");
 
         if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
             throw new OmgException(OmgException::THREAD_LIMIT);
         }
+
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
             'title'=>'required',
@@ -204,25 +185,38 @@ class BbsUserJsonRpc extends JsonRpc {
         //发帖等级限制
 
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
-        if($this->userInfo['level']<= $publishLimit['val']){
-            throw new OmgException(OmgException::RIGHT_ERROR);
-        }
         //拉黑限制
         $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         if($bbsUserInfo->isblack==1){
             throw new OmgException(OmgException::RIGHT_ERROR);
         };
-        $inParam = array(
+        $inParamText = array(
             'dataId'=>time(),//设置为时间戳
             'content' => $params->content.$params->title,
 
         );
-        $netCheck = new NetEastCheckService($inParam);
+        $netCheck = new NetEastCheckService($inParamText);
         $res = $netCheck->textCheck();
+
+        if($params->pic){
+            foreach ($params->pic as $key=> $value){
+                $picArrays[$key]['name'] = "http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg";
+                $picArrays[$key]['type'] = 1;
+                $picArrays[$key]['data'] = $value;
+            }
+
+        }
+
+        $inParamImg = array(
+            "images"=>json_encode($picArrays),
+        );
+        $imgCheck = new NetEastCheckService($inParamImg);
+        $res = $imgCheck->imgCheck();
+        dd($res);
         if($res['code'] =='200'){
             switch ($res['result']['action']){
                 case 0 ://审核通过
-                    $verifyResult = 1;
+                    $verifyTextResult = 1;
                     $verifyMessage = '发贴成功';
                     break;
                 case 1 ://有嫌疑
@@ -245,12 +239,20 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->istop =  0;
         $thread->isverify = $verifyResult;
         $thread->verify_time = date('Y-m-d H:i:s');
+
         if($verifyResult ==0){
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $thread->save();
+        if($verifyResult ==1){
+            $bbsAward = new BbsSendAwardService($this->userId);
+            $bbsAward->threadAward();
+        }
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
+
         $message = $verifyMessage;
+
+
         if($thread->id){
             return array(
                 'code' => 0,
@@ -336,6 +338,8 @@ class BbsUserJsonRpc extends JsonRpc {
         if($verifyResult ==1){
 
             Thread::where(['id'=>$params->id])->increment('comment_num');
+            $bbsAward = new BbsSendAwardService($this->userId);
+            $bbsAward->commentAward();
         }
         Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
 
@@ -651,7 +655,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveCommentFiftyTask['isAward'] = $achieveCommentFiftyCount;
         $achieveCommentFiftyTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
         //上传头像及修改昵称  achieveUpdateImgOrName
-        $achieveUpdateImgOrName = Redis::getBit($this->achieveUserImgOrNameKey,$this->userId);
+
         //数据库再次确认
 
         $achieveUpdateImgOrNameCount = Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
@@ -660,7 +664,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveUpdateImgOrNameTask['task'] = "achieve";
         $achieveUpdateImgOrNameTask['taskMark'] = "achieveCommon";
         $achieveUpdateImgOrNameTask['award'] = "奖励".$this->bbsAchieveImgOrNameTaskFinshAward."体验金";
-        $achieveUpdateImgOrNameTask['current'] = $achieveUpdateImgOrName;
+        $achieveUpdateImgOrNameTask['current'] = $achieveUpdateImgOrNameCount;
         $achieveUpdateImgOrNameTask['finish'] =1;
         $achieveUpdateImgOrNameTask['isAward'] = $achieveUpdateImgOrNameCount;
         $achieveUpdateImgOrNameTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";

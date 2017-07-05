@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bbs;
 
+use App\Models\Bbs\Comment;
 use App\Models\Bbs\ReplyConfig;
 use Illuminate\Http\Request;
 
@@ -32,12 +33,12 @@ class ThreadController extends Controller
     }
 
     //帖子为审核列表
-    public function getList($isverify=0){
-        if(!in_array($isverify,[0,1])){
-            $res = Thread::onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
+    public function getList($sid,$isverify=0){
+        if(!in_array($isverify,[0,1,2])){
+            $res = Thread::where('type_id',$sid)->onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
             return $this->outputJson(0,$res);
         }
-        $res = Thread::where('isverify',$isverify)->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
+        $res = Thread::where(['type_id'=>$sid,'isverify'=>$isverify])->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
         return $this->outputJson(0,$res);
     }
 
@@ -220,5 +221,36 @@ class ThreadController extends Controller
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
+    }
+
+
+    //后台回复帖子
+    public function postAdminReply(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required|exists:bbs_threads,id',
+            'content'=>'required',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+
+        $res = Thread::where('id',$request->id)->first();
+        if(in_array($res->isverify,[0,2])){
+            return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
+        }
+        $verify_time = date('Y-m-d H:i:s');
+        $comment = new Comment();
+        $comment->user_id = 0;
+        $comment->tid = $request->id;
+        $comment->content = $request->content;
+        $comment->isverify = 1;
+        $comment->verify_time = $verify_time;
+        $comment->save();
+        if($comment->id){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+
     }
 }

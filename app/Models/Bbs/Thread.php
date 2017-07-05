@@ -26,6 +26,7 @@ class Thread extends Model
         if(isset($attributes['userId'])) {
             $this->userId = $attributes['userId'];
         }
+
     }
 
     public function user(){
@@ -43,5 +44,14 @@ class Thread extends Model
 
         $userId = $this->userId;
         return $this->hasMany('App\Models\Bbs\Comment','tid','id')->where(['isverify'=>1])->orwhere(function($query)use($userId){$query->where(['user_id'=>$userId]);});
+    }
+    public function collection(){
+        $userId = $this->userId;
+        $res = $this->hasOne('App\Models\Bbs\ThreadCollection','tid','id')->where(['status'=>0,'user_id'=>$userId])->count();
+         dd($res);
+    }
+    public function zan(){
+        $userId = $this->userId;
+        return $this->hasOne('App\Models\Bbs\ThreadZan','tid','id')->where(['status'=>0,'user_id'=>$userId]);
     }
 }
