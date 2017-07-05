@@ -325,7 +325,7 @@ class ThreadController extends Controller
                 'isverify'=>2,
                 'verify_time'=>date('Y-m-d H:i:s')
             ];
-            $res = Comment::find($val)->update($putData);
+            $res = Thread::find($val)->update($putData);
             if(!$res){
                 $error[$val] = 10002;
                 continue;

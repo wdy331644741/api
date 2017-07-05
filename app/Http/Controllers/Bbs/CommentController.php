@@ -201,14 +201,14 @@ class CommentController extends Controller
         }
         foreach ($request->id as $val){
             $comment = Comment::find($val);
-            if(in_array($comment->isverify,[1,2])){
+            if(in_array($comment->isverify,[1])){
                 $error[$val] = 10010;
                 continue;
             }
             $thread = Thread::find($comment->tid);
             $user_id = null;
             if($thread != null){
-                if(in_array($thread->isverify,[0,2])){
+                if(in_array($thread->isverify,[2])){
                     $error[$val] = 10012;
                     continue;
                 }
@@ -257,7 +257,7 @@ class CommentController extends Controller
             $thread = Thread::find($comment->tid);
             $user_id = null;
             if($thread != null){
-                if(in_array($thread->isverify,[0,2])){
+                if(in_array($thread->isverify,[2])){
                     $error[$val] = 10012;
                     continue;
                 }
