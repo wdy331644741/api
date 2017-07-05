@@ -71,7 +71,7 @@ class AmountShareJsonRpc extends JsonRpc
                             $multiple = 0.0001;
                         }elseif($item['period'] == 3){
                             $multiple = 0.0002;
-                        }elseif($item['period'] == 6){
+                        }elseif($item['period'] >= 6){
                             $multiple = 0.0003;
                         }else{
                             $multiple = 0;
