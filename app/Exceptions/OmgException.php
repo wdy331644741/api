@@ -84,6 +84,7 @@ class OmgException extends BasicException
 
 
 
+
     const INVITE_USER_NOT_EXIST = 4318;
 
     const NICKNAME_ERROR = 4319;
@@ -96,6 +97,7 @@ class OmgException extends BasicException
     const COMMENT_ERROR = 4324;
     const THREAD_LIMIT = 4325;
     const COMMENT_LIMIT = 4326;
+
 
 
 
@@ -173,7 +175,7 @@ class OmgException extends BasicException
         self::COMMENT_ERROR=>"抱歉，评论失败，因含有敏感词等",
         self::THREAD_LIMIT=>"今日发贴已达上限，明天再来吧！",
         self::COMMENT_LIMIT=>"今日评论已达上限，明天再来吧！",
-        self::UPLOAD_IMG_ERROR=>"上传文件失败",
+        
     );
 
     public function __construct($code, $data = array())
