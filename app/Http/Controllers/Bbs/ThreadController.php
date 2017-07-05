@@ -253,4 +253,88 @@ class ThreadController extends Controller
         }
 
     }
+
+    //批量审帖
+    public function postBatchPass(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        foreach ($request->id as $val){
+            $thread = Thread::find($val);
+            if(in_array($thread->isverify,[1])){
+                $error[$val] = 10010;
+                continue;
+            }
+
+            if($thread != null){
+                $user_id = $thread->user_id;
+                $pm = new Pm();
+                $pm->user_id = $user_id;
+                $pm->from_user_id = 0;
+                $pm->tid = $val;
+                $pm->msg_type = 1;
+                $pm->type = 3;
+                $pm->save();
+            }
+            $putData = [
+                'isverify'=>1,
+                'verify_time'=>date('Y-m-d H:i:s')
+            ];
+            $res = Thread::find($val)->update($putData);
+            if(!$res){
+                $error[$val] = 10002;
+                continue;
+            }
+        }
+        if(empty($error)){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
+        }
+    }
+
+    //批量拒绝评论
+    public function postBatchFail(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id'=>'required',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        foreach ($request->id as $val){
+            $thread = Thread::find($val);
+            if(in_array($thread->isverify,[2])){
+                $error[$val] = 10010;
+                continue;
+            }
+            $user_id = null;
+            if($thread != null){
+                $user_id = $thread->user_id;
+                $pm = new Pm();
+                $pm->user_id = $user_id;
+                $pm->from_user_id = 0;
+                $pm->tid = $val;
+                $pm->msg_type = 1;
+                $pm->type = 3;
+                $pm->save();
+            }
+            $putData = [
+                'isverify'=>2,
+                'verify_time'=>date('Y-m-d H:i:s')
+            ];
+            $res = Comment::find($val)->update($putData);
+            if(!$res){
+                $error[$val] = 10002;
+                continue;
+            }
+        }
+        if(empty($error)){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
+        }
+    }
 }
