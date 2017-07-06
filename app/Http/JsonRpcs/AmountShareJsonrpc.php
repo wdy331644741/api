@@ -45,11 +45,11 @@ class AmountShareJsonRpc extends JsonRpc
             }
         }
         //总排名列表
-        $totalList = HdAmountShare::where('use_money',">",0)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
+        $totalList = HdAmountShare::where('week',">",0)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
 
         if (!empty($list)) {
             //自己的分享领取完金额
-            $myTotalMoneyList = HdAmountShare::where('use_money',">",0)->where('user_id',$userId)->get()->toArray();
+            $myTotalMoneyList = HdAmountShare::where('week',">",0)->where('user_id',$userId)->get()->toArray();
             if(!empty($myTotalMoneyList)){
                 //自己的排名
                 $top = 0;
