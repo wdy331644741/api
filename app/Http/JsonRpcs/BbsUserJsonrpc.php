@@ -19,6 +19,7 @@ use App\Service\SendAward;
 use App\Service\NetEastCheckService;
 use App\Service\Attributes;
 use App\Service\BbsSendAwardService;
+use App\Models\Bbs\CommentReply;
 
 
 
@@ -354,8 +355,32 @@ class BbsUserJsonRpc extends JsonRpc {
         }else{
             throw new OmgException(OmgException::API_ILLEGAL);
         }
+    }
+    /**
+     *  用户发表评论
+     *  仅支持一级评论
+     * @JsonRpcMethod
+     */
+    public function BbsPublishReply($params){
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+            'comment_id'=>'required|exists:bbs_comments,id',
+            'to_id'=>'required|exists:bbs_users,id',
 
-
+        ]);
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $comReply = new CommentReply();
+        $comReply->comment_id = $params->comment_id;
+        $comReply->from_id = $this->userId;
+        $comReply->to_id = $params->to_id;
+        $comReply->content = $params->content;
+        $comReply->reply_type = "comment";
+        $comReply->is_verify =1;
+        $res = $comReply->save();
     }
     /**
      *  获取用户发表的帖子 分页
