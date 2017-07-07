@@ -115,7 +115,7 @@ class AmountShareBasic
         return array('id'=>$id,'result'=>$data);
     }
     static function getAmountShareURI($identify){
-        $callbackURI = urlencode(env("APP_URL")."/active/reward/receive.html?k=".$identify);
+        $callbackURI = urlencode(env("APP_URL")."/active/luck/receive.html?k=".$identify);
         return env("MONEY_SHARE_WECHAT_URL").$callbackURI;
     }
 
