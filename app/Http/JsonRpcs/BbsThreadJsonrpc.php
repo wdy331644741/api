@@ -70,10 +70,7 @@ class BbsThreadJsonRpc extends JsonRpc
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>[
-                //'topList'=>$topList,
-                'data'=>$res,
-            ],
+            'data' =>$res
         ];
 
     }
@@ -145,10 +142,7 @@ class BbsThreadJsonRpc extends JsonRpc
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>[
-                //'topList'=>$topList,
-                'data'=>$res,
-            ],
+            'data' =>$res
         ];
 
 
@@ -217,10 +211,7 @@ class BbsThreadJsonRpc extends JsonRpc
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>[
-                //'topList'=>$topList,
-                'data'=>$res,
-            ],
+            'data' =>$res
         ];
 
 
@@ -289,10 +280,7 @@ class BbsThreadJsonRpc extends JsonRpc
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>[
-                //'topList'=>$topList,
-                'data'=>$res,
-            ],
+            'data' =>$res
         ];
 
 
