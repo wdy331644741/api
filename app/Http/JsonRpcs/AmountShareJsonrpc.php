@@ -24,8 +24,11 @@ class AmountShareJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $result = ['my_top' => 0, 'my_total_money' => 0, 'my_new_user_money' => 0, 'my_list' => [], 'my_expire_list' => []];
+        $result = ['my_top' => 0, 'my_total_money' => 0, 'my_new_user_money' => 0, 'level' => 1, 'my_list' => [], 'my_expire_list' => []];
 
+        //获取vip等级
+        $userInfo = Func::getUserBasicInfo($userId,true);
+        $result['level'] = isset($userInfo['level']) && $userInfo['level'] > 1 ? $userInfo['level'] : 1;
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
         if($num == 0){
@@ -36,6 +39,22 @@ class AmountShareJsonRpc extends JsonRpc
         //失效列表
         foreach($list as $item){
             if(isset($item['id']) && !empty($item['id'])){
+                //我的新用户领取金额
+                $myNewUserCount = HdAmountShareInfo::where('main_id',$item['id'])->where('is_new',1)->count();
+                if($item['period'] == 1){
+                    $multiple = 0.0001;
+                }elseif($item['period'] == 3){
+                    $multiple = 0.0002;
+                }elseif($item['period'] >= 6){
+                    $multiple = 0.0003;
+                }else{
+                    $multiple = 0;
+                }
+                $item['new_user_money'] = 0;
+                if($item['status'] == 1){
+                    $item['new_user_money'] = $item['investment_amount'] * $multiple * $myNewUserCount;
+                }
+                //判断是否过期
                 $endTime = strtotime($item['end_time']);
                 if(time() > $endTime || $item['award_status'] == 1){
                     $result['my_expire_list'][] = $item;
@@ -56,27 +75,6 @@ class AmountShareJsonRpc extends JsonRpc
                 foreach($totalList as $key => $item){
                     if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
                         $top = $key + 1;
-                    }
-                }
-
-                foreach($myTotalMoneyList as $item){
-                    if(isset($item['total_money']) && !empty($item['total_money'])){
-                        //自己的分享领取完金额
-                        $result['my_total_money'] += $item['total_money'];
-                    }
-                    if(isset($item['id']) && !empty($item['id'])){
-                        //我的新用户领取金额
-                        $myNewUserCount = HdAmountShareInfo::where('main_id',$item['id'])->where('is_new',1)->count();
-                        if($item['period'] == 1){
-                            $multiple = 0.0001;
-                        }elseif($item['period'] == 3){
-                            $multiple = 0.0002;
-                        }elseif($item['period'] >= 6){
-                            $multiple = 0.0003;
-                        }else{
-                            $multiple = 0;
-                        }
-                        $result['my_new_user_money'] += $item['investment_amount'] * $multiple * $myNewUserCount;
                     }
                 }
                 //我的排名
