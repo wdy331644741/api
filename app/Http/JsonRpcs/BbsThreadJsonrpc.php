@@ -34,6 +34,7 @@ class BbsThreadJsonRpc extends JsonRpc
     public  function getBbsThreadAllList($params){
 
         $userId = $this->userId;
+
         $validator = Validator::make(get_object_vars($params), [
             'id' => 'required|exists:bbs_thread_sections,id',
         ]);
@@ -50,7 +51,7 @@ class BbsThreadJsonRpc extends JsonRpc
         //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
 
         $thread = new Thread(['userId' => $userId]);
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at","isverify")
             ->where(['istop' => 0])
 
             ->Where(function ($query) use ($typeId, $userId) {
@@ -65,11 +66,15 @@ class BbsThreadJsonRpc extends JsonRpc
             ->paginate($pageNum)
             ->toArray();
 
-        return array(
+        //$topList = $this->getBbsThreadTopList($params);
+        return [
             'code' => 0,
             'message' => 'success',
-            'data' => $res,
-        );
+            'data' =>[
+                //'topList'=>$topList,
+                'data'=>$res,
+            ],
+        ];
 
     }
 
@@ -136,11 +141,15 @@ class BbsThreadJsonRpc extends JsonRpc
             ->paginate($pageNum)
             ->toArray();
         $res['data'] = array_merge($hotThread, $res['data']);
-        return array(
+        //$topList = $this->getBbsThreadTopList($params);
+        return [
             'code' => 0,
             'message' => 'success',
-            'data' => $res,
-        );
+            'data' =>[
+                //'topList'=>$topList,
+                'data'=>$res,
+            ],
+        ];
 
 
     }
@@ -204,11 +213,15 @@ class BbsThreadJsonRpc extends JsonRpc
             ->paginate($pageNum)
             ->toArray();
         $res['data'] = array_merge($greatThread, $res['data']);
-        return array(
+        //$topList = $this->getBbsThreadTopList($params);
+        return [
             'code' => 0,
             'message' => 'success',
-            'data' => $res,
-        );
+            'data' =>[
+                //'topList'=>$topList,
+                'data'=>$res,
+            ],
+        ];
 
 
     }
@@ -257,7 +270,7 @@ class BbsThreadJsonRpc extends JsonRpc
         foreach ($greatThread as $key => $value) {
             $greatThread[] = $value['id'];
         }
-        $res = $thread->$thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -272,11 +285,15 @@ class BbsThreadJsonRpc extends JsonRpc
             ->paginate($pageNum)
             ->toArray();
         $res['data'] = array_merge($greatThread, $res['data']);
-        return array(
+        //$topList = $this->getBbsThreadTopList($params);
+        return [
             'code' => 0,
             'message' => 'success',
-            'data' => $res,
-        );
+            'data' =>[
+                //'topList'=>$topList,
+                'data'=>$res,
+            ],
+        ];
 
 
     }
@@ -362,6 +379,7 @@ class BbsThreadJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $res
         );
+
     }
 
 

@@ -33,7 +33,6 @@ class BbsCommentJsonRpc extends JsonRpc {
      */
    public  function getBbsCommentList($params){
        $userId = $this->userId;
-        $userId =123;
        $validator = Validator::make(get_object_vars($params), [
            'id'=>'required|exists:bbs_threads,id',
        ]);

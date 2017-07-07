@@ -526,7 +526,7 @@ class BbsUserJsonRpc extends JsonRpc {
     }
     /**
      *  获取用户信息 分页
-     *
+     *   收到的赞  收到的评论  被收藏数
      * @JsonRpcMethod
      */
     public function getBbsUserInfo($param){
@@ -535,11 +535,8 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         //has Userinfo
+        //$userComment = Comment::where(["is_verify"])->
         if($BbsUserInfo){
-            $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
-            $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
-            $restAward = $this->bbsSumAward -$dayUserAward-$achieveUserAward;
-            $BbsUserInfo['restAward'] = $restAward;
             return array(
                 'code'=>0,
                 'message'=>'success',
@@ -561,11 +558,13 @@ class BbsUserJsonRpc extends JsonRpc {
             }else {
                 $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id]);
             }
-            $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
-            $dayUserAward = Redis::GET($this->bbsDayTaskSumAwardKey);
-            $achieveUserAward = Redis::GET($this->bbsAchieveTaskSumAwardKey);
-            $restAward = $this->bbsSumAward -$dayUserAward-$achieveUserAward;
-            $BbsUserInfo['restAward'] = $restAward;
+            //发送官方欢迎通知
+            $Pm = new Pm();
+            $Pm->user_id = $this->userInfo['id'];
+            $Pm->content = "欢迎来到网利社区";
+            $Pm->type = 1;
+            $Pm->msg_type= 1;
+            $User->save();
             return array(
                 'code'=>0,
                 'message'=>'success',
