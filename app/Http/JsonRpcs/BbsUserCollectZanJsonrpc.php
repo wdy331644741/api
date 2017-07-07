@@ -38,13 +38,14 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
         }
        $validator = Validator::make(get_object_vars($params), [
            'id' => 'required|exists:bbs_threads,id',
+
        ]);
 
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-
-       $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>0]);
+       $threadInfo = Thread::where(["id"=>$params->id])->first();
+       $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id,"t_user_id"=>$threadInfo['user_id']],["status"=>0]);
        //dd($res);
        if($res){
            Thread::where(["id"=>$params->id])->increment("collection_num");
@@ -105,7 +106,8 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = ThreadZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>0]);
+       $threadInfo = Thread::where(["id"=>$params->id])->first();
+       $res = ThreadZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id,"t_user_id"=>$threadInfo['user_id']],["status"=>0]);
        if($res){
            Thread::where(["id"=>$params->id])->increment("zan_num");
            return array(
@@ -166,7 +168,8 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>0]);
+       $commentInfo = Comment::where(["id"=>$params->id]);
+       $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"cid"=>$params->id,"c_user_id"=>$commentInfo["user_id"]],["status"=>0]);
        if($res){
            Comment::where(["id"=>$params->id])->increment("zan_num");
            return array(
@@ -197,7 +200,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>1]);
+       $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"cid"=>$params->id],["status"=>1]);
        if($res){
            Comment::where(["id"=>$params->id])->decrement("zan_num");
            return array(
