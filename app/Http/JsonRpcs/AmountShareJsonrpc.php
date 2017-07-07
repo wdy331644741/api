@@ -24,7 +24,7 @@ class AmountShareJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $result = ['my_top' => 0, 'my_total_money' => 0, 'my_new_user_money' => 0, 'level' => 1, 'my_list' => [], 'my_expire_list' => []];
+        $result = ['my_top' => 0, 'my_total_money' => 0, 'level' => 1, 'my_list' => [], 'my_expire_list' => []];
 
         //获取vip等级
         $userInfo = Func::getUserBasicInfo($userId,true);
