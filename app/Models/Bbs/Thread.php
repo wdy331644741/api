@@ -47,8 +47,8 @@ class Thread extends Model
     }
     public function collection(){
         $userId = $this->userId;
-        $res = $this->hasOne('App\Models\Bbs\ThreadCollection','tid','id')->where(['status'=>0,'user_id'=>$userId])->count();
-         dd($res);
+        return  $this->hasOne('App\Models\Bbs\ThreadCollection','tid','id')->where(['status'=>0,'user_id'=>$userId]);
+
     }
     public function zan(){
         $userId = $this->userId;

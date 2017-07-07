@@ -46,11 +46,14 @@ class BbsCommentJsonRpc extends JsonRpc {
            return $page;
        });
        $tid = $params->id;
-       $data = Comment::where(['tid'=>$tid,"isverify"=>1])
+       $comment = new Comment(["userId"=>$userId]);
+       $data = $comment->where(['tid'=>$tid,"isverify"=>1])
                ->orWhere(function($query)use($userId,$tid){
                    $query->where(['user_id'=>$userId,"tid"=>$tid]);
                })
            ->with('users')
+           ->with('zan')
+           ->with('reply')
            ->orderByRaw('created_at')
            ->paginate($pageNum)
            ->toArray();

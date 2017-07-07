@@ -183,14 +183,15 @@ class ThreadController extends Controller
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
         $res = Thread::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
-        /*$pm = new Pm();
-        $pm->user_id = $thread->user_id;
-        $pm->from_user_id = 0;
-        $pm->tid = $id;
-        $pm->type = 2;
-        $reply = ReplyConfig::find($request->cid);
-        $pm->content = $reply->description;
-        $pm->save();*/
+        if($thread != null){
+            $pm = new Pm();
+            $pm->user_id = $thread->user_id;
+            $pm->from_user_id = 0;
+            $pm->tid = $id;
+            $pm->msg_type = 1;
+            $pm->type = 2;
+            $pm->save();
+        }
         if($res){
             return $this->outputJson(0);
         }else{
@@ -208,14 +209,6 @@ class ThreadController extends Controller
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
         $res = Thread::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
-        /*$pm = new Pm();
-        $pm->user_id = $thread->user_id;
-        $pm->from_user_id = 0;
-        $pm->tid = $id;
-        $pm->type = 2;
-        $reply = ReplyConfig::find($request->cid);
-        $pm->content = $reply->description;
-        $pm->save();*/
         if($res){
             return $this->outputJson(0);
         }else{
@@ -318,14 +311,14 @@ class ThreadController extends Controller
                 $pm->from_user_id = 0;
                 $pm->tid = $val;
                 $pm->msg_type = 1;
-                $pm->type = 3;
+                $pm->type = 2;
                 $pm->save();
             }
             $putData = [
                 'isverify'=>2,
                 'verify_time'=>date('Y-m-d H:i:s')
             ];
-            $res = Comment::find($val)->update($putData);
+            $res = Thread::find($val)->update($putData);
             if(!$res){
                 $error[$val] = 10002;
                 continue;

@@ -15,12 +15,31 @@ class Comment extends Model
 
     protected $dates = ['deleted_at'];
 
+    public  function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        if(isset($attributes['userId'])) {
+            $this->userId = $attributes['userId'];
+        }
+
+    }
+
     public function users(){
         return $this->hasOne('App\Models\Bbs\User','user_id','user_id');
     }
 
     public function thread() {
-        return $this->belongsTo('App\Models\Bbs\Thread', 'tid', 'id');
+        return $this->belongsTo('App\Models\Bbs\Thread', 'id', 'tid');
+    }
+
+    public function zan(){
+        $userId = $this->userId;
+        return $this->hasOne('App\Models\Bbs\CommentZan','cid','id')->where(['status'=>0,'user_id'=>$userId]);
+    }
+    public function reply(){
+        $userId = $this->userId;
+        return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1])->orwhere(function($query)use($userId){$query->where(['from_id'=>$userId]);})->with('user');
+
     }
 
 }
