@@ -29,7 +29,7 @@ class CommentController extends Controller
     }
 
 
-    //审核评论
+    /*//审核评论
     public function postCheck(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_comments,id',
@@ -103,7 +103,7 @@ class CommentController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
 
-    }
+    }*/
 
     //审核状态修改
     public function postVerifyPut(Request $request){
@@ -133,22 +133,25 @@ class CommentController extends Controller
         if(in_array($comment->isverify,[2])){
             return $this->outputJson(10010,array('error_msg'=>'Repeat Actions'));
         }
+        $thread = Thread::where('id',$comment->tid)->first();
         if($comment->isverify == 1){
-            Thread::where('id',$comment->tid)->decrement('comment_num');
+            $thread->decrement('comment_num');
+        }
+
+        if(in_array($thread->isverify,[2])){
+            return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
         }
         $res = Comment::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
-        /*if($comment != null){
+        if($comment != null){
             $pm = new Pm();
-            $pm->user_id = $comment->user_id;
+            $pm->user_id = $thread->user_id;
             $pm->from_user_id = 0;
             $pm->tid = $comment->tid;
-            $pm->cid = $request->cid;
-            $pm->comment_id = $request->id;
-            $pm->type = 4;
-            $reply = ReplyConfig::find($request->cid);
-            $pm->content = $reply->description;
+            $pm->msg_type = 1;
+            $pm->type = 3;
+            //$pm->content = $comment->content;
             $pm->save();
-        }*/
+        }
         if($res){
             return $this->outputJson(0);
         }else{
@@ -167,23 +170,6 @@ class CommentController extends Controller
         }
         Thread::where('id',$comment->tid)->increment('comment_num');
         $res = Comment::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
-        /*$thread = Thread::find($comment->tid);
-        $user_id = null;
-        if($thread != null){
-            if(in_array($thread->isverify,[0,2])){
-                return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
-            }
-            $user_id = $thread->user_id;
-            $pm = new Pm();
-            $pm->user_id = $user_id;
-            $pm->from_user_id = $comment->user_id;
-            $pm->tid = $comment->tid;
-            $pm->cid = 0;
-            $pm->type = 3;
-            $pm->content = $comment->content;
-            $pm->save();
-            Thread::where('id',$comment->tid)->increment('comment_num');
-        }*/
         if($res){
             return $this->outputJson(0);
         }else{
@@ -207,7 +193,7 @@ class CommentController extends Controller
             }
             $thread = Thread::find($comment->tid);
             $user_id = null;
-            if($thread != null){
+            /*if($thread != null){
                 if(in_array($thread->isverify,[2])){
                     $error[$val] = 10012;
                     continue;
@@ -222,7 +208,7 @@ class CommentController extends Controller
                 $pm->content = $comment->content;
                 $pm->save();
                 Thread::where('id',$comment->tid)->increment('comment_num');
-            }
+            }*/
             $putData = [
                 'isverify'=>1,
                 'verify_time'=>date('Y-m-d H:i:s')
@@ -264,11 +250,11 @@ class CommentController extends Controller
                 $user_id = $thread->user_id;
                 $pm = new Pm();
                 $pm->user_id = $user_id;
-                $pm->from_user_id = $comment->user_id;
+                $pm->from_user_id = 0;
                 $pm->tid = $comment->tid;
                 $pm->msg_type = 1;
                 $pm->type = 3;
-                $pm->content = $comment->content;
+                //$pm->content = $comment->content;
                 $pm->save();
                 if(in_array($comment->isverify,[1])){
                     Thread::where('id',$comment->tid)->decrement('comment_num');
