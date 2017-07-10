@@ -54,7 +54,6 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-        $this->userId =123;
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -538,12 +537,15 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+
         $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         //用户发帖被点赞数目
         $userThreadZanNum = ThreadZan::where(["t_user_id"=>$this->userId,"status"=>0])->count();
         //用户评论被点赞数目
         $userCommentZanNum = CommentZan::where(["c_user_id"=>$this->userId,"status"=>0])->count();
         //用户被评论数数目
+
+
         $BbsUserInfo['userZanNum'] = $userCommentZanNum+$userThreadZanNum;
         $BbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
             ->leftJoin('bbs_threads', 'tid', '=', 'bbs_threads.id')
