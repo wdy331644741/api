@@ -12,7 +12,6 @@ class AddTUserIdToBbsCommentZansTable extends Migration
      */
     public function up()
     {
-        //
         Schema::table('bbs_comment_zans', function (Blueprint $table) {
 
             $table->Integer('c_user_id')->comment("回复用户id");
@@ -27,7 +26,6 @@ class AddTUserIdToBbsCommentZansTable extends Migration
      */
     public function down()
     {
-        //
         Schema::table('bbs_comment_zans', function (Blueprint $table) {
             $table->dropColumn(["c_user_id"]);
 

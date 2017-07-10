@@ -12,7 +12,6 @@ class AddTUserIdToBbsThreadZansTable extends Migration
      */
     public function up()
     {
-        //
         Schema::table('bbs_thread_zans', function (Blueprint $table) {
 
             $table->Integer('t_user_id')->comment("帖子用户id");
@@ -27,7 +26,6 @@ class AddTUserIdToBbsThreadZansTable extends Migration
      */
     public function down()
     {
-        //
         Schema::table('bbs_thread_zans', function (Blueprint $table) {
             $table->dropColumn(["t_user_id"]);
 
