@@ -5,8 +5,7 @@ return [
     'drew_user_key' => 'dazhuanpan_drew_user',//用户剩余次数key
     'drew_total_key' => 'dazhuanpan_drew_total',//总共领取次数key
     'awards' => [
-        ['name' => '谢谢参与', 'alias_name' => 'empty', 'type' => 'empty', 'num' => 10000000, 'weight' => 3000],
-        ['name' => '100元投资红包', 'alias_name' => 'hongbao100', 'type' => 'activity', 'num' => 10000000, 'weight' => 2000],
+        ['name' => '100元投资红包', 'alias_name' => 'hongbao100', 'type' => 'activity', 'num' => 10000000, 'weight' => 5000],
         ['name' => '0.1元现金', 'alias_name' => 'xianjin0.1', 'type' => 'rmb', 'size' => 0.1, 'num' => 4000, 'weight' => 2000],
         ['name' => '0.5元现金', 'alias_name' => 'xianjin0.5', 'type' => 'rmb', 'size' => 0.5, 'num' => 500, 'weight' => 1000],
         ['name' => '0.8元现金', 'alias_name' => 'xianjin0.8', 'type' => 'rmb', 'size' => 0.8, 'num' => 300, 'weight' => 800],
