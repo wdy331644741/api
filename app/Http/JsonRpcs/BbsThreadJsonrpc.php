@@ -120,6 +120,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->limit(1)
             ->get()
             ->toArray();
+        $hotThreadId =[];
         foreach ($hotThread as $key => $value) {
             $hotThreadId[] = $value['id'];
         }
@@ -189,8 +190,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->limit(1)
             ->get()
             ->toArray();
+        $greatThreadId = [];
         foreach ($greatThread as $key => $value) {
-            $greatThread[] = $value['id'];
+            $greatThreadId[] = $value['id'];
         }
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
@@ -199,7 +201,7 @@ class BbsThreadJsonRpc extends JsonRpc
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->whereNotIn('id', $greatThread)
+            ->whereNotIn('id', $greatThreadId)
             ->with('user')
             ->with('collection')
             ->with('zan')
@@ -244,7 +246,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $monthTime = date("Y-m-d", strtotime("-1 month"));
 
         $thread = new Thread(['userId' => $userId]);
-        $greatThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
+        $lastThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->selectRaw('(views+comment_num) as order_field')
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -258,8 +260,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->limit(1)
             ->get()
             ->toArray();
-        foreach ($greatThread as $key => $value) {
-            $greatThread[] = $value['id'];
+        $lastThreadId =[];
+        foreach ($lastThread as $key => $value) {
+            $lastThreadId[] = $value['id'];
         }
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","isofficial","collection_num","zan_num", "created_at", "updated_at")
             ->where(['istop' => 0])
@@ -268,14 +271,14 @@ class BbsThreadJsonRpc extends JsonRpc
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->whereNotIn('id', $greatThread)
+            ->whereNotIn('id', $lastThreadId)
             ->with('user')
             ->with('collection')
             ->with('zan')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($greatThread, $res['data']);
+        $res['data'] = array_merge($lastThread, $res['data']);
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
