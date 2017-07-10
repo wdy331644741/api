@@ -222,6 +222,7 @@ class AmountShareJsonRpc extends JsonRpc
             //判断首次领取就更新当前周数
             if(isset($mallInfo->week) && $mallInfo->week == 0){
                 HdAmountShare::where('id',$mallInfo->id)->update(['week'=>date("W")]);
+                HdAmountShare::where('id',$mallInfo->id)->update(['day'=>date("Y-m-d")]);
             }
             //判断分享的是否领取完
             if(!empty($mallInfo->id) && $mallInfo->total_num  === $mallInfo->receive_num){
