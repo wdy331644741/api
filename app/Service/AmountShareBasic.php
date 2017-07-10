@@ -110,12 +110,14 @@ class AmountShareBasic
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
         //生成的uri
-        $data['uri'] = self::getAmountShareURI($data['identify']);
+        $inviteCode = Func::getUserBasicInfo($param['user_id'],true);
+        $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
+        $data['uri'] = self::getAmountShareURI($data['identify'],$inviteCode);
         $id = HdAmountShare::insertGetId($data);
         return array('id'=>$id,'result'=>$data);
     }
-    static function getAmountShareURI($identify){
-        $callbackURI = urlencode(env("APP_URL")."/active/luck/receive.html?k=".$identify);
+    static function getAmountShareURI($identify,$inviteCode){
+        $callbackURI = urlencode(env("APP_URL")."/active/luck/receive.html?k=".$identify."&invite_code=".$inviteCode);
         return env("MONEY_SHARE_WECHAT_URL").$callbackURI;
     }
 

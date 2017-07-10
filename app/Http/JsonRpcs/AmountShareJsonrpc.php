@@ -77,6 +77,12 @@ class AmountShareJsonRpc extends JsonRpc
                         $top = $key + 1;
                     }
                 }
+                foreach($myTotalMoneyList as $item){
+                    if(isset($item['total_money']) && !empty($item['total_money'])){
+                        //自己的分享领取完金额
+                        $result['my_total_money'] += $item['total_money'];
+                    }
+                }
                 //我的排名
                 $result['my_top'] = $top;
             }
