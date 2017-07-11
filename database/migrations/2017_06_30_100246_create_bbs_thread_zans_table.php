@@ -12,7 +12,6 @@ class CreateBbsThreadZansTable extends Migration
      */
     public function up()
     {
-        //
         Schema::create('bbs_thread_zans', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id')->index();
@@ -29,7 +28,6 @@ class CreateBbsThreadZansTable extends Migration
      */
     public function down()
     {
-        //
         Schema::drop('bbs_thread_zans');
     }
 }

@@ -340,8 +340,17 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment->save();
 
         if($verifyResult ==1){
-
+            //增加帖子评论数目
             Thread::where(['id'=>$params->id])->increment('comment_num');
+            //发送消息
+            $pm = new Pm();
+            $pm->user_id = Thread::where(['id'=>$params->id])->first()->id;
+            $pm->from_user_id = $this->userId;
+            $pm->tid = $params->id;
+            $pm->content = "回复了你的评论";
+            $pm->type = 4;
+            $pm->msg_type = 2;
+            $pm->save();
             $bbsAward = new BbsSendAwardService($this->userId);
             $bbsAward->commentAward();
         }
@@ -464,12 +473,19 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        $validator = Validator::make(get_object_vars($params), [
+            'type'=>'required',
+
+        ]);
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res = Pm::where(['user_id'=>$this->userId])
+        $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type,'isread'=>0])
             ->with('fromUsers','threads','comments')
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)

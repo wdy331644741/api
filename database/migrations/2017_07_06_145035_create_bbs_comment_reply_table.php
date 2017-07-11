@@ -12,7 +12,6 @@ class CreateBbsCommentReplyTable extends Migration
      */
     public function up()
     {
-        //
         Schema::create('bbs_comment_reply', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('comment_id')->index()->comment('根评论id');
@@ -32,7 +31,6 @@ class CreateBbsCommentReplyTable extends Migration
      */
     public function down()
     {
-        //
         Schema::drop('bbs_comment_reply');
     }
 }

@@ -12,11 +12,8 @@ class AddStatusToBbsThreadsTable extends Migration
      */
     public function up()
     {
-        //
         Schema::table('bbs_thread_collections', function (Blueprint $table) {
-
             $table->Integer('status')->default(0);
-
         });
 
     }
@@ -28,7 +25,6 @@ class AddStatusToBbsThreadsTable extends Migration
      */
     public function down()
     {
-        //
         Schema::table('bbs_thread_collections', function (Blueprint $table) {
             $table->dropColumn(["status"]);
 
