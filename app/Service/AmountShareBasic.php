@@ -21,7 +21,7 @@ class AmountShareBasic
         $multiple = 0;
         if(isset($triggerData['user_id']) && isset($triggerData['Investment_amount']) && isset($triggerData['scatter_type']) && isset($triggerData['period'])){
             //新手标不生成红包
-            if(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] = 1){
+            if(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1){
                 return 'not create';
             }
             if(($triggerData['scatter_type'] == 1 && $triggerData['period'] == 30) || ($triggerData['scatter_type'] == 2 && $triggerData['period'] == 1)){
