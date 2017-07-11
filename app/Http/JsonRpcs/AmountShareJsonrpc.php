@@ -227,7 +227,7 @@ class AmountShareJsonRpc extends JsonRpc
         DB::commit();
 
         //获奖记录
-        $recentList = HdAmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+        $recentList = HdAmountShareInfo::where('main_id', $mallInfo['id'])->where('is_new',"!=", 2)->orderBy('id', 'desc')->take($num)->get();
         $result['recentList'] = self::_formatData($recentList);
 
         return array(
