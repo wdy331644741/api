@@ -11,6 +11,7 @@ use App\Models\Bbs\Comment;
 use App\Models\Bbs\ThreadCollection;
 use App\Models\Bbs\ThreadZan;
 use App\Models\Bbs\CommentZan;
+use App\Models\Bbs\Pm;
 
 
 
@@ -21,7 +22,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-        $this->userId =123;
+
 
     }
 
@@ -49,6 +50,14 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        //dd($res);
        if($res){
            Thread::where(["id"=>$params->id])->increment("collection_num");
+           $pm = new Pm();
+           $pm->user_id = $threadInfo['user_id'];
+           $pm->from_user_id = $this->userId;
+           $pm->tid = $threadInfo['id'];
+           $pm->content = "收藏了你的帖子";
+           $pm->type = 1;
+           $pm->msg_type = 2;
+           $pm->save();
            return array(
                'code'=>0,
                'message'=>'success',
@@ -110,6 +119,14 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        $res = ThreadZan::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id,"t_user_id"=>$threadInfo['user_id']],["status"=>0]);
        if($res){
            Thread::where(["id"=>$params->id])->increment("zan_num");
+           $pm = new Pm();
+           $pm->user_id = $threadInfo['user_id'];
+           $pm->from_user_id = $this->userId;
+           $pm->tid = $threadInfo['id'];
+           $pm->content = "赞了你的帖子";
+           $pm->type = 2;
+           $pm->msg_type = 2;
+           $pm->save();
            return array(
                'code'=>0,
                'message'=>'success',
@@ -172,6 +189,14 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"cid"=>$params->id,"c_user_id"=>$commentInfo["user_id"]],["status"=>0]);
        if($res){
            Comment::where(["id"=>$params->id])->increment("zan_num");
+           $pm = new Pm();
+           $pm->user_id = $commentInfo['user_id'];
+           $pm->from_user_id = $this->userId;
+           $pm->cid = $commentInfo['id'];
+           $pm->content = "赞了你的评论";
+           $pm->type = 2;
+           $pm->msg_type = 2;
+           $pm->save();
            return array(
                'code'=>0,
                'message'=>'success',
