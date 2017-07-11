@@ -2,6 +2,7 @@
 namespace App\Service;
 use App\Models\HdAmountShare;
 use App\Models\Activity;
+use App\Models\HdAmountShareInfo;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
@@ -186,5 +187,23 @@ class AmountShareBasic
             }
         }
         return 0;
+    }
+    //获取新用户应该注册应该获取的金额
+    static function getNewUserMoney($mallInfo){
+        $myNewUserCount = HdAmountShareInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
+        if($mallInfo['period'] == 1){
+            $multiple = 0.0001;
+        }elseif($mallInfo['period'] == 3){
+            $multiple = 0.0002;
+        }elseif($mallInfo['period'] >= 6){
+            $multiple = 0.0003;
+        }else{
+            $multiple = 0;
+        }
+        $money = 0;
+        if($mallInfo['status'] == 1){
+            $money = $mallInfo['investment_amount'] * $multiple * $myNewUserCount;
+        }
+        return $money;
     }
 }

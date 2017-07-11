@@ -40,20 +40,7 @@ class AmountShareJsonRpc extends JsonRpc
         foreach($list as $item){
             if(isset($item['id']) && !empty($item['id'])){
                 //我的新用户领取金额
-                $myNewUserCount = HdAmountShareInfo::where('main_id',$item['id'])->where('is_new',1)->count();
-                if($item['period'] == 1){
-                    $multiple = 0.0001;
-                }elseif($item['period'] == 3){
-                    $multiple = 0.0002;
-                }elseif($item['period'] >= 6){
-                    $multiple = 0.0003;
-                }else{
-                    $multiple = 0;
-                }
-                $item['new_user_money'] = 0;
-                if($item['status'] == 1){
-                    $item['new_user_money'] = $item['investment_amount'] * $multiple * $myNewUserCount;
-                }
+                $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
                 //判断是否过期
                 $endTime = strtotime($item['end_time']);
                 if(time() > $endTime || $item['award_status'] == 1){
@@ -276,20 +263,22 @@ class AmountShareJsonRpc extends JsonRpc
                 ->where('main_id',$isFinish->id)
                 ->where('is_new',1)->first();
             if(!empty($newList) && isset($newList['money']) && $newList['money'] > 0){
+                //获取应得金额
+                $sendMoney = AmountShareBasic::getNewUserMoney($isFinish);
                 //发奖
                 $uuid = Func::create_guid();
-                $res = Func::incrementAvailable($userId, $isFinish->id, $uuid, $newList['money'], 'cash_bonus');
+                $res = Func::incrementAvailable($userId, $isFinish->id, $uuid, $sendMoney, 'cash_bonus');
                 if (!isset($res['result']['code'])) {
                     throw new OmgException(OmgException::API_FAILED);
                 }
-                $result['money'] = $isFinish->total_money;
+                $result['money'] = $sendMoney;
                 //添加记录
                 HdAmountShareInfo::insertGetId([
                     'user_id' => $userId,
                     'main_id' => $id,
                     'uuid' => $uuid,
                     'is_new' => 2,//2为最后领取的金额
-                    'money' => $newList['money'],
+                    'money' => $sendMoney,
                     'remark' => json_encode($res, JSON_UNESCAPED_UNICODE),
                     'status' => 1,
                     'created_at' => date("Y-m-d H:i:s"),
