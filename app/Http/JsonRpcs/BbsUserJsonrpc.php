@@ -54,6 +54,7 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
+        $this->userId = 123;
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -199,40 +200,79 @@ class BbsUserJsonRpc extends JsonRpc {
             'content' => $params->content.$params->title,
 
         );
-        $netCheck = new NetEastCheckService($inParamText);
-        $res = $netCheck->textCheck();
 
-        if($params->pic){
+        $resTextCode = 1;
+        $resImgCode = 1;
+        $netCheck = new NetEastCheckService($inParamText);
+        $resText = $netCheck->textCheck();
+        //dd($resText);
+        if($resText['code'] =='200'){
+            switch ($resText['result']['action']){
+                case 0 ://审核通过
+                    $resTextCode = 1;
+
+                    break;
+                case 1 ://有嫌疑
+                    $resTextCode = 0;
+                    $resLabel = $resText["result"]["labels"];
+                    break;
+                case 2 ://审核未通过
+                    throw new OmgException(OmgException::THREAD_ERROR);
+            }
+        }else{
+            $resTextCode= 0;
+
+        }
+        if(isset($params->pic)){
             foreach ($params->pic as $key=> $value){
-                $picArrays[$key]['name'] = "http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg";
+                $picArrays[$key]['name'] = $value;
                 $picArrays[$key]['type'] = 1;
                 $picArrays[$key]['data'] = $value;
             }
+            $inParamImg = array(
+                "images"=>json_encode($picArrays),
+            );
+            //dd($inParamImg);
+            $imgCheck = new NetEastCheckService($inParamImg);
+            $resImg = $imgCheck->imgCheck();
 
-        }
+            if($resImg['code'] =='200'){
 
-        $inParamImg = array(
-            "images"=>json_encode($picArrays),
-        );
-        $imgCheck = new NetEastCheckService($inParamImg);
-        $res = $imgCheck->imgCheck();
-        dd($res);
-        if($res['code'] =='200'){
-            switch ($res['result']['action']){
-                case 0 ://审核通过
-                    $verifyTextResult = 1;
-                    $verifyMessage = '发贴成功';
-                    break;
-                case 1 ://有嫌疑
-                    $verifyResult = 0;
-                    $verifyMessage = '您的发贴已提交审核';
-                    break;
-                case 2 ://审核未通过
-                   throw new OmgException(OmgException::THREAD_ERROR);
+                $result = $resImg["result"];
+                    // var_dump($array);
+                foreach($result as $index => $image_ret){
+
+                    $maxLevel=-1;
+                    foreach($image_ret["labels"] as $index=>$label){
+                        $maxLevel=$label["level"]>$maxLevel?$label["level"]:$maxLevel;
+                    }
+                    if($maxLevel==0){
+                        $resImgCode = 1;
+                    }else if($maxLevel==1){
+                        $resImgCode = 0;
+
+                    }else if($maxLevel==2){
+                        throw new OmgException(OmgException::THREAD_ERROR);
+                    }
+
+                }
+            }else{
+                $resImgCode= 0;
             }
-        }else{
-            $verifyResult= 0;
-            $verifyMessage = '您的发贴已提交审核';
+        }
+        $resMaxCode = $resImgCode+$resTextCode;
+        switch ($resMaxCode){
+            case 0 ://审核全部未通过通过
+                $verifyResult = 0;
+                $verifyMessage = '您的发贴已提交审核';
+                break;
+            case 1 ://有嫌疑
+                $verifyResult = 0;
+                $verifyMessage = '您的发贴已提交审核';
+                break;
+            case 2 ://审核未通过
+                $verifyResult = 1;
+                $verifyMessage = '发贴成功';
         }
 
         $thread = new Thread();
@@ -242,9 +282,11 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->content = $params->content;
         $thread->istop =  0;
         $thread->isverify = $verifyResult;
+
+        $thread->cover =  isset($params->pic)?json_encode($params->pic):"";
         $thread->verify_time = date('Y-m-d H:i:s');
 
-        if($verifyResult ==0){
+        if($verifyResult ==0 ){
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
         $thread->save();
@@ -255,7 +297,6 @@ class BbsUserJsonRpc extends JsonRpc {
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
 
         $message = $verifyMessage;
-
 
         if($thread->id){
             return array(
