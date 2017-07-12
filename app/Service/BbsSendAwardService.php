@@ -12,7 +12,7 @@ use App\Models\Bbs\Comment;
 
 class BbsSendAwardService
 {
-     static private $userId;
+     private $userId;
 
      public function __construct($userId)
      {

@@ -25,8 +25,9 @@ class UploadController extends Controller
 
     public function postImg(Request $request)
     {
+        
         global $user_id;
-        $user_id=123;
+
         $accessKeyId = "LTAILfIWiFf9WNJI";
         $accessKeySecret = "MU4lPUAVuYSczy2Z8fkmmdLxoWUFOz";
         $endpoint = "oss-cn-qingdao.aliyuncs.com";
