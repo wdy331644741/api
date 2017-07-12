@@ -223,8 +223,8 @@ class BbsUserJsonRpc extends JsonRpc {
             $resTextCode= 0;
 
         }
-        if(isset($params->pic)){
-            foreach ($params->pic as $key=> $value){
+        if(isset($params->imgs)){
+            foreach ($params->imgs as $key=> $value){
                 $picArrays[$key]['name'] = $value;
                 $picArrays[$key]['type'] = 1;
                 $picArrays[$key]['data'] = $value;
@@ -283,7 +283,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->istop =  0;
         $thread->isverify = $verifyResult;
 
-        $thread->cover =  isset($params->pic)?json_encode($params->pic):"";
+        $thread->cover =  isset($params->imgs)?json_encode($params->imgs):"";
         $thread->verify_time = date('Y-m-d H:i:s');
 
         if($verifyResult ==0 ){
@@ -552,7 +552,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function delBbsUserAllPm($params){
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -1083,6 +1082,7 @@ class BbsUserJsonRpc extends JsonRpc {
          }
 
      }
+
 
 }
 
