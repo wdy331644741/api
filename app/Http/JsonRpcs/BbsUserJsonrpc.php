@@ -53,7 +53,6 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-        $this->userId =123;
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -232,7 +231,8 @@ class BbsUserJsonRpc extends JsonRpc {
             $resTextCode= 0;
 
         }
-        if(isset($params->imgs)){
+        $picArrays=[];
+        if(!empty($params->imgs)){
             foreach ($params->imgs as $key=> $value){
                 $picArrays[$key]['name'] = $value;
                 $picArrays[$key]['type'] = 1;
