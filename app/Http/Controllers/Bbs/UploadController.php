@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use OSS\OssClient;
 use OSS\Core\OssException;
 use App\Service\NetEastCheckService;
+use App\Service\AliyunOSSService;
 
 
 
@@ -38,15 +39,20 @@ class UploadController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->outputJson(10001,array('error_msg'=>'图片格式错误'));
+            return $this->outputJson([
+                "jsonrpc" => 2.0,
+                "error" => [
+                    "code" => -3402,
+                    "message" => "图片格式错误"
+                ],
+                "id" => 1
+            ]);
         }
-        try {
-            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
-            $object = $user_id.time().".".$request->file('img')->getClientOriginalExtension();
-
             try{
                 //上传初始图片
-                $res = $ossClient->uploadFile($bucket,$object,$request->file('img')->getRealPath());
+                $aliyunOssClient = new AliyunOSSService();
+                $object = $user_id.time().".".$request->file('img')->getClientOriginalExtension();
+                $res = $aliyunOssClient->uploadFile($object,$request->file('img')->getRealPath());
 
                 $imgManager = new ImageManager();
 
@@ -58,7 +64,8 @@ class UploadController extends Controller
                         //保存到本地
                         ->save(dirname(app_path()) . "/storage/images/" . $object);
                     //上传处理掉的图片 覆盖掉之前的原始图片
-                    $res = $ossClient->uploadFile($bucket, $object, dirname(app_path()) . "/storage/images/" . $object);
+                    $res = $aliyunOssClient->uploadFile($object, dirname(app_path()) . "/storage/images/" . $object);
+                    //$res = $aliyunOssclient->uploadFile($bucket, $object, dirname(app_path()) . "/storage/images/" . $object);
                     //删除掉本地存储的图片
                     Storage::disk("bbsImg")->delete($object);
                 }
@@ -92,16 +99,25 @@ class UploadController extends Controller
                     ];
                 }
                 if($maxLevel ==2){
-                    return $this->outputJson(10001,array('error_msg'=>'图片保存失败'));
+                     return $this->outputJson([
+                        "jsonrpc" => 2.0,
+                        "error" => [
+                            "code" => -3402,
+                            "message" => "图片保存失败"
+                        ],
+                        "id" => 1
+                    ]);
                 }
             } catch(OssException $e) {
-                return $this->outputJson(10001,array('error_msg'=>'图片保存失败'));
+                return $this->outputJson([
+                    "jsonrpc" => 2.0,
+                    "error" => [
+                        "code" => -3402,
+                        "message" => "图片保存失败"
+                    ],
+                    "id" => 1
+                ]);
             }
-
-        } catch (OssException $e) {
-            return $this->outputJson(10001,array('error_msg'=>'图片保存失败'));
-        }
-
 
     }
 }

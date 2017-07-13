@@ -69,6 +69,27 @@ class NetEastCheckService
 
 
     }
+    public function userCheck()
+    {
+        $this->params["secretId"] = env('NETEASE_KEY');
+        $this->params["businessId"] = env('USER_BUSINESSID');
+        $this->params["version"] = self::VERSION;
+        $this->params["timestamp"] = sprintf("%d", round(microtime(true)*1000));// time in milliseconds
+        $this->params["nonce"] = sprintf("%d", rand()); // random int
+        $this->params['dataId'] = $this->inParams['dataId'];//设置为时间戳
+        $this->params['content'] = $this->inParams['content'];
+        $this->params['dataType'] = isset($this->inParams['dataType'])?$this->inParams['dataType']:"";
+        $this->params['ip'] = isset($this->inParams['ip'])?$this->inParams['ip']:"";
+        $this->params['account'] = isset($this->inParams['account'])?$this->inParams['account']:"";
+        $this->params['deviceType'] = isset($this->inParams['deviceType'])?$this->inParams['deviceType']:"";
+        $this->params['deviceId'] = isset($this->inParams['deviceId'])?$this->inParams['deviceId']:"";
+        $this->params['callback'] = isset($this->inParams['callback'])?$this->inParams['callback']:"";
+        $this->params['publishTime'] = isset($this->inParams['publishTime'])?$this->inParams['publishTime']:"";
+        $this->toUtf8();
+        $this->params['signature']  = self::genSignature();
+
+        return $res = self::sendCheck(env('USER_CHECK'));
+    }
     private  function genSignature()
     {
         ksort($this->params);
