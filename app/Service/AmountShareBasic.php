@@ -1,7 +1,8 @@
 <?php
 namespace App\Service;
-use App\Models\AmountShare;
+use App\Models\HdAmountShare;
 use App\Models\Activity;
+use App\Models\HdAmountShareInfo;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
@@ -16,20 +17,22 @@ class AmountShareBasic
      *
      */
     static function amountShareCreate($triggerData) {
+        $level = $triggerData['level'] <= 1 ? 1 : $triggerData['level'];
         $multiple = 0;
         if(isset($triggerData['user_id']) && isset($triggerData['Investment_amount']) && isset($triggerData['scatter_type']) && isset($triggerData['period'])){
-            $countKey = '';
+            //新手标不生成红包
+            if(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1){
+                return 'not create';
+            }
             if(($triggerData['scatter_type'] == 1 && $triggerData['period'] == 30) || ($triggerData['scatter_type'] == 2 && $triggerData['period'] == 1)){
-                $multiple = 0.001;
-                $countKey = "amount_share_1";
+                $multiple = 0.0005;
+                $triggerData['period'] = 1;
             }
             if($triggerData['scatter_type'] == 2 && $triggerData['period'] == 3){
-                $multiple = 0.002;
-                $countKey = "amount_share_3";
+                $multiple = 0.001;
             }
             if($triggerData['scatter_type'] == 2 && $triggerData['period'] >= 6){
-                $multiple = 0.003;
-                $countKey = "amount_share_6";
+                $multiple = 0.0015;
             }
             if($triggerData['user_id'] <= 0 || $triggerData['Investment_amount'] < 100 || $multiple == 0){
                 return 'params error';
@@ -39,13 +42,10 @@ class AmountShareBasic
         }
 
         //生成的现金红包金额
-        $amountShare = $triggerData['Investment_amount']*$multiple;
+        $amountShare = $triggerData['Investment_amount']*$multiple*$level;
         if($amountShare < 0.1){
            return 'amount error';
         }
-
-        //统计各个标的的参与人数
-        Attributes::increment($triggerData['user_id'],$countKey,1);
 
         //根据别名查询该活动是否开启
         $where['alias_name'] = "amount_share";
@@ -69,7 +69,10 @@ class AmountShareBasic
         $param['money'] = $amountShare;
         $param['total_num'] = 10;
         $param['min'] = 0.01;
+        $param['investment_amount'] = $triggerData['Investment_amount'];
+        $param['period'] = $triggerData['period'];
         $param['multiple'] = $multiple;
+        $param['level'] = $level;
         return self::addAmountShare($param);
     }
     /**
@@ -95,8 +98,14 @@ class AmountShareBasic
         $data['max'] = 0;
         //红包标示
         $data['identify'] = "amount_share_".Func::randomStr(15);
+        //投资金额
+        $data['investment_amount'] = $param['investment_amount'];
+        //标期
+        $data['period'] = $param['period'];
         //红包倍数
         $data['multiple'] = $param['multiple'];
+        //用户vip等级
+        $data['level'] = $param['level'];
         //开始时间
         $data['start_time'] = date("Y-m-d H:i:s");
         //结束时间
@@ -106,12 +115,14 @@ class AmountShareBasic
         //修改时间
         $data['updated_at'] = date("Y-m-d H:i:s");
         //生成的uri
-        $data['uri'] = self::getAmountShareURI($data['identify']);
-        $id = AmountShare::insertGetId($data);
+        $inviteCode = Func::getUserBasicInfo($param['user_id'],true);
+        $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
+        $data['uri'] = self::getAmountShareURI($data['identify'],$inviteCode);
+        $id = HdAmountShare::insertGetId($data);
         return array('id'=>$id,'result'=>$data);
     }
-    static function getAmountShareURI($identify){
-        $callbackURI = urlencode(env("APP_URL")."/active/reward/receive.html?k=".$identify);
+    static function getAmountShareURI($identify,$inviteCode){
+        $callbackURI = urlencode(env("APP_URL")."/active/luck/receive.html?k=".$identify."&invite_code=".$inviteCode);
         return env("MONEY_SHARE_WECHAT_URL").$callbackURI;
     }
 
@@ -150,4 +161,53 @@ class AmountShareBasic
         }
     }
 
+    /**
+     * 是否是活动期间的新用户
+     * @param $userId
+     */
+    static function isActivityNewUser($userId,$fromUserId,$activityInfo){
+        //获取活动时间
+        $startTime = 0;
+        $endTime = 0;
+        if(!empty($activityInfo->start_at)){
+            $startTime = strtotime($activityInfo->start_at);
+        }
+        if(!empty($activityInfo->end_at)){
+            $endTime = strtotime($activityInfo->end_at);
+        }
+        if($startTime <= 0 || $endTime <= 0){
+            return 0;
+        }
+        //获取用户注册时间
+        $userInfo = Func::getUserBasicInfo($userId,true);
+        $registerTime = isset($userInfo['create_time']) && !empty($userInfo['create_time']) ? strtotime($userInfo['create_time']) : 0;
+        $thisFromUserId = isset($userInfo['from_user_id']) && !empty($userInfo['from_user_id']) ? intval($userInfo['from_user_id']) : 0;
+        if($thisFromUserId == $fromUserId){
+            if($registerTime <= 0){
+                return 0;
+            }
+            if($registerTime >= $startTime && $registerTime <= $endTime){
+                return 1;
+            }
+        }
+        return 0;
+    }
+    //获取新用户应该注册应该获取的金额
+    static function getNewUserMoney($mallInfo){
+        $myNewUserCount = HdAmountShareInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
+        if($mallInfo['period'] == 1){
+            $multiple = 0.0001;
+        }elseif($mallInfo['period'] == 3){
+            $multiple = 0.0002;
+        }elseif($mallInfo['period'] >= 6){
+            $multiple = 0.0003;
+        }else{
+            $multiple = 0;
+        }
+        $money = 0;
+        if($mallInfo['status'] == 1){
+            $money = $mallInfo['investment_amount'] * $multiple * $myNewUserCount;
+        }
+        return $money;
+    }
 }
