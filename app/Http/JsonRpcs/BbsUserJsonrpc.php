@@ -23,7 +23,6 @@ use App\Service\NetEastCheckService;
 use App\Service\Attributes;
 use App\Service\BbsSendAwardService;
 use App\Models\Bbs\CommentReply;
-use App\Models\Bbs\ThreadZanl;
 
 
 
@@ -54,7 +53,7 @@ class BbsUserJsonRpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-        $this->userId = 123;
+        $this->userId =123;
         $this->userInfo = Func::getUserBasicInfo($userId);
         $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
         $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
@@ -122,7 +121,17 @@ class BbsUserJsonRpc extends JsonRpc {
         if($validator->fails()){
             throw new OmgException(OmgException::NICKNAME_ERROR);
         }
+        $inParamText = array(
+            'dataId'=>time(),//设置为时间戳
+            'content' => $param->nickname,
 
+        );
+        $netCheck = new NetEastCheckService($inParamText);
+        $res = $netCheck->userCheck();
+
+        if($res['result']['code']!=0){
+            throw new OmgException(OmgException::NICKNAME_ERROR);
+        }
 
         $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
 
@@ -600,7 +609,6 @@ class BbsUserJsonRpc extends JsonRpc {
         //用户评论被点赞数目
         $userCommentZanNum = CommentZan::where(["c_user_id"=>$this->userId,"status"=>0])->count();
         //用户被评论数数目
-
 
         $BbsUserInfo['userZanNum'] = $userCommentZanNum+$userThreadZanNum;
         $BbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
