@@ -348,12 +348,12 @@ class BbsThreadJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getBbsThreadTopList($params){
-        $validator = Validator::make(get_object_vars($params), [
-            'id'=>'required|exists:bbs_thread_sections,id',
-        ]);
-        if($validator->fails()){
-            throw new OmgException(OmgException::DATA_ERROR);
-        }
+//        $validator = Validator::make(get_object_vars($params), [
+//            'id'=>'required|exists:bbs_thread_sections,id',
+//        ]);
+//        if($validator->fails()){
+//            throw new OmgException(OmgException::DATA_ERROR);
+//        }
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
