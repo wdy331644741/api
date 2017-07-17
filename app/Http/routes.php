@@ -38,6 +38,7 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('bbs/replay','Bbs\ReplayController');
     Route::controller('bbs/comment','Bbs\CommentController');
     Route::controller('bbs/pm','Bbs\PmController');
+    Route::controller('bbs/task','Bbs\TaskController');
 
     // 测试控制器
     Route::controller('test','TestController');
