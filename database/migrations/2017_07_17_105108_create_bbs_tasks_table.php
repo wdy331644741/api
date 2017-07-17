@@ -22,6 +22,7 @@ class CreateBbsTasksTable extends Migration
             $table->tinyInteger('trigger_type')->comment('触发节点');//comment //thread //commentZan //threadZan //threadCollections
             $table->tinyInteger('award_type')->comment('奖励类型');//1 体验金
             $table->integer('award')->comment('奖励数量');//奖励数量
+            $table->tinyInteger('frequency')->default(0)->comment('发将频次，0:不限，1：仅一次，2：一天一次');
             $table->tinyInteger('enable')->default(0)->comment("启用 0 未启用 1 启用");
             $table->string('remark')->nullable()->default(NULL);
             $table->timestamps();
