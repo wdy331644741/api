@@ -29,13 +29,8 @@ class UploadController extends Controller
         
         global $user_id;
 
-        $accessKeyId = "LTAILfIWiFf9WNJI";
-        $accessKeySecret = "MU4lPUAVuYSczy2Z8fkmmdLxoWUFOz";
-        $endpoint = "oss-cn-qingdao.aliyuncs.com";
-        $bucket = "wangli-test";
-
         $validator = Validator::make($request->all(), [
-            'img' => 'required|mimes:png,jpg',
+            'img' => 'required|mimes:png,jpg,jpeg',
         ]);
 
         if ($validator->fails()) {
@@ -78,35 +73,45 @@ class UploadController extends Controller
                 $inParamImg = array(
                     "images"=>json_encode($picArrays),
                 );
-
                 $imgCheck = new NetEastCheckService($inParamImg);
                 $checkRes = $imgCheck->imgCheck();
-                $maxLevel =-1;
-                foreach ($checkRes['result'] as $k=>$v){
-                    foreach($v["labels"] as $index=>$label){
+                if($checkRes['code'] == 200) {
+                    $maxLevel = -1;
+                    foreach ($checkRes['result'] as $k => $v) {
+                        foreach ($v["labels"] as $index => $label) {
 
-                        $maxLevel=$label["level"]>$maxLevel?$label["level"]:$maxLevel;
+                            $maxLevel = $label["level"] > $maxLevel ? $label["level"] : $maxLevel;
+                        }
                     }
-                }
-                if($maxLevel ==0 ||$maxLevel==1){
+                    if ($maxLevel == 0 || $maxLevel == 1) {
+                        return [
+                            "code" => 0,
+                            "success" => "success",
+                            "data" => [
+                                "level" => $maxLevel,
+                                "picUrl" => $res["info"]["url"],
+                            ]
+                        ];
+                    }
+                    if ($maxLevel == 2) {
+                        return $this->outputJson([
+                            "jsonrpc" => 2.0,
+                            "error" => [
+                                "code" => -3402,
+                                "message" => "图片保存失败"
+                            ],
+                            "id" => 1
+                        ]);
+                    }
+                }else{
                     return [
-                        "code"=>0,
-                        "success"=>"success",
-                        "data"=>[
-                            "level"=>$maxLevel,
-                            "picUrl"=>$res["info"]["url"],
+                        "code" => 0,
+                        "success" => "success",
+                        "data" => [
+                            "level" => 500,
+                            "picUrl" => $res["info"]["url"],
                         ]
                     ];
-                }
-                if($maxLevel ==2){
-                     return $this->outputJson([
-                        "jsonrpc" => 2.0,
-                        "error" => [
-                            "code" => -3402,
-                            "message" => "图片保存失败"
-                        ],
-                        "id" => 1
-                    ]);
                 }
             } catch(OssException $e) {
                 return $this->outputJson([
