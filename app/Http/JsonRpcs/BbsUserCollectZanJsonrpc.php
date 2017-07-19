@@ -23,7 +23,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
         global $userId;
         $this->userId = $userId;
 
-
+        $this->userId =123;
     }
 
     /**
@@ -47,7 +47,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        }
        $threadInfo = Thread::where(["id"=>$params->id])->first();
        $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id,"t_user_id"=>$threadInfo['user_id']],["status"=>0]);
-       //dd($res);
+
        if($res){
            Thread::where(["id"=>$params->id])->increment("collection_num");
            $pm = new Pm();

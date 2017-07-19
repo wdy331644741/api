@@ -2,10 +2,15 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
+use App\Models\Bbs\CommentZan;
+use App\Models\Bbs\ThreadZan;
 use Lib\Curl;
 use App\Models\Bbs\Task;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
+use App\Models\Activity;
+use App\Models\Bbs\Tasks;
+use App\Service\SendAward;
 
 
 
@@ -13,226 +18,274 @@ use App\Models\Bbs\Comment;
 class BbsSendAwardService
 {
      private $userId;
-
-     public function __construct($userId)
+     private $userPid;
+    /*
+     * 触发节点
+     * 发帖触发 publishThread   评论触发 publishComment
+     * 帖子点赞触发 threadZan   评论点赞触发  commentZan
+     * 帖子加精触发  threadGreat
+     * */
+     public function __construct($userId,$userPid = "")
      {
         $this->userId = $userId;
+        $this->userPId = $userPid;
 
-     }
-     /*
-      * 帖子任务
-      * */
-     public function threadAward(){
-
-         $this->threadOneDayAward();//每天发帖一次奖励
-         $this->threadFiveDayAward();//每天发帖五次奖励
-         $this->threadTenAchieveAward();//成就发帖十次奖励
-         $this->dayAward();//审核是否完成每日任务
-
-     }
-     public function commentAward(){
-
-         $this->commentOneDayAward();//每天评论一次奖励
-         $this->commentFiveDayAward();//每天评论五次奖励
-         $this->commentFiftyAchieveAward();//成就评论五十次奖励
-         $this->dayAward();//审核是否完成每日任务
-     }
-
-     public function updateImgOrName(){
-         $this->updateImgOrNameAchieveAward();//成就更新名称或者头像任务
-
-
-     }
-
-
-
-     /*
-      * 每日发帖一次
-      * */
-     private function threadOneDayAward(){
-
-         $alisa = "task_everyday_thread_one";
-         $taskType = "dayThreadOne";
-         $bbsDayThreadOneTaskFinsh = 1;
-         $bbsDayThreadOneTaskFinshAward = 800;
-         $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->where('award_time','>',date("Y-m-d",time()))->count();
-         if(!$sendAward){//未发奖
-             $threadDaySum = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',date("Y-m-d",time()))->count();
-             if($threadDaySum >=$bbsDayThreadOneTaskFinsh){//满足条件
-                 SendAward::ActiveSendAward($this->userId,$alisa);
-                 $task = new Task();
-                 $task->user_id = $this->userId;
-                 $task->task_type = $taskType;
-                 $task->award = $bbsDayThreadOneTaskFinshAward;
-                 $task->award_time = date("Y-m-d H:i:s",time());
-                 $task->save();
-             }
-         }
-
-     }
-     /*
-      *
-      * 每日发帖五次
-      * */
-     private function threadFiveDayAward(){
-         $alisa = "task_everyday_thread_five";
-         $taskType = "dayThreadFive";
-         $bbsDayThreadFiveTaskFinsh = 5;
-         $bbsDayThreadFiveTaskFinshAward = 2500;
-         $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->where('award_time','>',date("Y-m-d",time()))->count();
-         if(!$sendAward){//未发奖
-             $threadDaySum = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',date("Y-m-d",time()))->count();
-             if($threadDaySum >=$bbsDayThreadFiveTaskFinsh){//满足条件
-                 SendAward::ActiveSendAward($this->userId,$alisa);
-                 $task = new Task();
-                 $task->user_id = $this->userId;
-                 $task->task_type = $taskType;
-                 $task->award = $bbsDayThreadFiveTaskFinshAward;
-                 $task->award_time = date("Y-m-d H:i:s",time());
-                 $task->save();
-             }
-         }
-
-     }
-     /*
-      *每日评论一次
-      * */
-     private function commentOneDayAward(){
-         $alisa = "task_everyday_comment_one";
-         $taskType = "dayCommentOne";
-         $bbsDayCommentOneTaskFinsh = 1;
-         $bbsDayCommentOneTaskFinshAward = 500;
-         $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->where('award_time','>',date("Y-m-d",time()))->count();
-         if(!$sendAward){//未发奖
-             $threadDaySum = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',date("Y-m-d",time()))->count();
-             if($threadDaySum >=$bbsDayCommentOneTaskFinsh){//满足条件
-                 SendAward::ActiveSendAward($this->userId,$alisa);
-                 $task = new Task();
-                 $task->user_id = $this->userId;
-                 $task->task_type = $taskType;
-                 $task->award = $bbsDayCommentOneTaskFinshAward;
-                 $task->award_time = date("Y-m-d H:i:s",time());
-                 $task->save();
-             }
-         }
      }
     /*
-     * 每日评论五次
-     *
+     * 发帖触发
      * */
-     private function commentFiveDayAward(){
-         $alisa = "task_everyday_comment_five";
-         $taskType = "dayCommentFive";
-         $bbsDayCommentOneTaskFinsh = 5;
-         $bbsDayCommentOneTaskFinshAward = 1500;
-         $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->where('award_time','>',date("Y-m-d",time()))->count();
-         if(!$sendAward){//未发奖
-             $threadDaySum = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',date("Y-m-d",time()))->count();
-             if($threadDaySum >=$bbsDayCommentOneTaskFinsh){//满足条件
-                 SendAward::ActiveSendAward($this->userId,$alisa);
-                 $task = new Task();
-                 $task->user_id = $this->userId;
-                 $task->task_type = $taskType;
-                 $task->award = $bbsDayCommentOneTaskFinshAward;
-                 $task->award_time = date("Y-m-d H:i:s",time());
-                 $task->save();
-             }
-         }
-
-
-     }
-     /*
-      *
-      * 每日任务总和
-      * */
-     private  function dayAward(){
-
-         $alisa = "task_everyday_all";
-         $taskType = "dayAllTask";
-         $bbsDayAllTaskFinsh = 4;
-         $bbsDayAllTaskFinshAward = 1000;
-         $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->where('award_time','>',date("Y-m-d",time()))->count();
-         if(!$sendAward){//未发奖
-             $countDayTask = Task::where(["user_id"=>$this->userId])->where('award_time','>',date("Y-m-d",time()))->count();
-             if($countDayTask >=$bbsDayAllTaskFinsh){//满足条件
-                 SendAward::ActiveSendAward($this->userId,$alisa);
-                 $task = new Task();
-                 $task->user_id = $this->userId;
-                 $task->task_type = $taskType;
-                 $task->award = $bbsDayAllTaskFinshAward;
-                 $task->award_time = date("Y-m-d H:i:s",time());
-                 $task->save();
-             }
-         }
-     }
+    public function publishThreadAward()
+    {
+        $this->dayPublishThreadTask();
+        $this->publishThreadAward();
+    }
     /*
-     *
-     * 成就任务总计发帖十次
+     * 评论触发
      * */
-    private function threadTenAchieveAward(){
-        $alisa = "task_achieve_thread_ten";
-        $taskType = "achieveThreadTen";
-        $bbsachieveThreadTenTaskFinsh = 10;
-        $bbsachieveThreadTenTaskFinshAward = 5000;
-        $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->count();
-        if(!$sendAward){//未发奖
-            $countDayTask = Task::where(["user_id"=>$this->userId])->count();
-            if($countDayTask >=$bbsachieveThreadTenTaskFinsh){//满足条件
-                SendAward::ActiveSendAward($this->userId,$alisa);
-                $task = new Task();
-                $task->user_id = $this->userId;
-                $task->task_type = $taskType;
-                $task->award = $bbsachieveThreadTenTaskFinshAward;
-                $task->award_time = date("Y-m-d H:i:s",time());
-                $task->save();
+    public function publishCommentAward()
+    {
+        $this->publishCommentAward();
+
+
+    }
+    /*
+     * 帖子点赞触发
+     * */
+    public  function threadZanAward()
+    {
+        $this->zanThreadPTask();
+        $this->zanThreadTask();
+    }
+    /*
+     * 评论点赞触发
+     * */
+    public  function commentZanAward()
+    {
+        $this->zanCommentTask();
+    }
+    /*
+     * 帖子加精触发
+     * */
+    public  function threadGreatAward()
+    {
+        $this->greatThreadTask();
+
+    }
+    /*
+     *每天发帖任务
+     * */
+    private function dayPublishThreadTask()
+    {
+
+        $dayPublishThreadInfo = Tasks::where(["remark"=>"dayPublishThread"])->get()->toArray();
+        if($dayPublishThreadInfo) {
+            $nowTime = date("Y:m:d",time());
+            $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',$nowTime)->count();
+            foreach ($dayPublishThreadInfo as $value) {
+                //审核是否已经发过奖
+                $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['task_type']])->where('award_time','>',$nowTime)->count();
+                //未发过奖
+                if(!$res){
+                    //审核发奖条件
+                    if($userDayThreadCount >= $value['number']){
+                        //发奖
+                        $this->organizeDataAndSend($value,$this->userId);
+
+                    }
+
+                }else{
+
+                }
+
+
             }
+        }else{
+            return false;
         }
 
     }
+
     /*
-     * 成就任务总计发评论五十次
+     *成就发帖任务
      * */
-    private function commentFiftyAchieveAward(){
-        $alisa = "task_achieve_comment_fifty";
-        $taskType = "achieveCommentFifty";
-        $bbsachieveCommentFiftyTaskFinsh = 50;
-        $bbsachieveCommentFiftyTaskFinshAward = 5000;
-        $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->count();
-        if(!$sendAward){//未发奖
-            $countDayTask = Task::where(["user_id"=>$this->userId])->count();
-            if($countDayTask >=$bbsachieveCommentFiftyTaskFinsh){//满足条件
-                SendAward::ActiveSendAward($this->userId,$alisa);
-                $task = new Task();
-                $task->user_id = $this->userId;
-                $task->task_type = $taskType;
-                $task->award = $bbsachieveCommentFiftyTaskFinshAward;
-                $task->award_time = date("Y-m-d H:i:s",time());
-                $task->save();
+    private function publishThreadTask()
+    {
+
+        $dayPublishThreadInfo = Tasks::where(["remark"=>"achievePublishThread"])->get()->toArray();
+        if($dayPublishThreadInfo) {
+
+            $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->count();
+            foreach ($dayPublishThreadInfo as $value) {
+                //审核是否已经发过奖
+                $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['task_type']])->count();
+                //未发过奖
+                if(!$res){
+                    //审核发奖条件
+                    if($userDayThreadCount >= $value['number']){
+                        //发奖
+                        $this->organizeDataAndSend($value,$this->userId);
+                    }
+
+                }else{
+
+                }
+
+
             }
+        }else{
+            return false;
         }
 
     }
-
     /*
-     * 成就任务 修改昵称或者头像
      *
+     * 成就帖子点赞任务
+     * **/
+    private  function zanThreadTask()
+    {
+        $achievePublishThreadInfo = Tasks::where(["remark"=>"achieveZanThread"])->get()->toArray();
+        if($achievePublishThreadInfo) {
+            //点击者 处理点赞任务
+            $userDayThreadCount = ThreadZan::where(["t_user_id"=>$this->userPid,"status"=>0])->count();
+            foreach ($achievePublishThreadInfo as $value) {
+                //审核是否已经发过奖
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_type']])->count();
+                //未发过奖
+                if (!$res) {
+                    //审核发奖条件
+                    if ($userDayThreadCount >= $value['number']) {
+                        //发奖
+                        $this->organizeDataAndSend($value,$this->userPid);
+                    }
+
+                } else {
+
+                }
+
+
+            }
+        }else{
+            return false;
+        }
+
+
+
+    }
+    /*
+     *
+     * 成就评论点赞任务
      * */
-    private function updateImgOrNameAchieveAward(){
-        $alisa = "task_achieve_imgOrName";
-        $taskType = "achieveUpdateImgOrName";
-        $bbsDayAllTaskFinsh = 1;
-        $achieveUpdateImgOrNameTaskFinshAward = 500;
-        $sendAward = Task::where(["user_id"=>$this->userId,"task_type"=>$taskType])->count();
-        if(!$sendAward){//未发奖
-            SendAward::ActiveSendAward($this->userId,$alisa);
-            $task = new Task();
-            $task->user_id = $this->userId;
-            $task->task_type = $taskType;
-            $task->award = $achieveUpdateImgOrNameTaskFinshAward;
-            $task->award_time = date("Y-m-d H:i:s",time());
-            $task->save();
+    private  function zanCommentTask()
+    {
+        $achieveZanCommentInfo = Tasks::where(["remark"=>"achieveZanComment"])->get()->toArray();
+        if($achieveZanCommentInfo) {
+            //点击者 处理点赞任务
+            $userZanCommentCount = CommentZan::where(["c_user_id"=>$this->userPid,"status"=>0])->count();
+            foreach ($achieveZanCommentInfo as $value) {
+                //审核是否已经发过奖
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_type']])->count();
+                //未发过奖
+                if (!$res) {
+                    //审核发奖条件
+                    if ($userZanCommentCount >= $value['number']) {
+                        //发奖
+                        $this->organizeDataAndSend($value,$this->userPid);
+                    }
+
+                } else {
+                    return false;
+                }
+
+
+            }
+        }else{
+            return false;
         }
 
 
     }
+    /*
+     *
+     * 成就主题被加精任务
+     * */
+    private  function greatThreadTask()
+    {
+        $achieveGreatCommentInfo = Tasks::where(["remark"=>"achieveGreatComment"])->get()->toArray();
+        if($achieveGreatCommentInfo) {
+            //点击者 处理点赞任务
+            $userGreatThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
+            foreach ($achieveGreatCommentInfo as $value) {
+                //审核是否已经发过奖
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_type']])->count();
+                //未发过奖
+                if (!$res) {
+                    //审核发奖条件
+                    if ($userGreatThreadCount >= $value['number']) {
+                        //发奖
+                        $this->organizeDataAndSend($value,$this->userId);
+                    }
+
+                } else {
+
+                }
+
+
+            }
+        }else{
+            return false;
+        }
+
+    }
+    /*
+     * 主题贴点赞者触发奖励
+     * */
+    private function zanThreadPTask()
+    {
+        $achieveZanThreadPInfo = Tasks::where(["remark"=>"achieveZanThreadP"])->get()->toArray();
+        if($achieveZanThreadPInfo) {
+            //点击者 处理点赞任务
+            $userZanThreadCount = ThreadZan::where(["user_id"=>$this->userId,"status"=>1])->count();
+            foreach ($achieveZanThreadPInfo as $value) {
+                //审核是否已经发过奖
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_type']])->count();
+                //未发过奖
+                if (!$res) {
+                    //审核发奖条件
+                    if ($userZanThreadCount >= $value['number']) {
+                        //发奖
+                        $this->organizeDataAndSend($value,$this->userId);
+                    }
+
+                } else {
+
+                }
+
+
+            }
+        }else{
+            return false;
+        }
+
+    }
+    /*
+     *
+     * 拼装接口数据
+     * **/
+    private function organizeDataAndSend($params,$awardUserId){
+        $awards['id'] = 0;
+        $awards['user_id'] = $awardUserId;
+        $awards['source_id'] = $params['id'];
+        $awards['name'] = $params['award'].'元体验金';
+        $awards['source_name'] = $params['name'];
+        $awards['experience_amount_money'] = $params['award'];
+        $awards['effective_time_type'] = 1;
+        $awards['effective_time_day'] = $params['exp_day'];
+        $awards['platform_type'] = 0;
+        $awards['limit_desc'] = '';
+        $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+        $return = SendAward::experience($awards);
+
+    }
+
+
 }

@@ -11,7 +11,7 @@ class NetEastCheckService
 {
 
     const VERSION = 'v3';
-    const API_TIMEOUT=2;
+    const API_TIMEOUT=10;
     private $params = [];
     private $inParams=[];
     public function __construct($param)
@@ -117,8 +117,8 @@ class NetEastCheckService
         }catch (RequestException $e){
 
             return [
-                "code"=>500,
-                "msg"=>$e->getRequest()
+                "code"=>$e->getCode(),
+                "msg"=>$e->getMessage()
             ];
 
         }
