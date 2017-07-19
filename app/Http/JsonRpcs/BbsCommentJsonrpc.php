@@ -82,9 +82,10 @@ class BbsCommentJsonRpc extends JsonRpc {
        if($validator->fails()){
            throw new OmgException(OmgException::DATA_ERROR);
        }
+       $commentInfo = Comment::where(["id"=>$params->id])->first();
        $res = Comment::where(["id"=>$params->id,"user_id"=>$this->userId])->delete();
        if($res){
-           Comment::where(["id"=>$params->id,"user_id"=>$this->userId])->decrement('comment_num');
+           Thread::where(["id"=>$commentInfo['tid']])->decrement('comment_num');
            return [
                'code'=>0,
                'message'=>'success',
