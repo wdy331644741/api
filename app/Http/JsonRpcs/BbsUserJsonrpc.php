@@ -167,7 +167,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
-
+        $this->userId =123;
         $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
         //
         if($threadTimeLimit){
@@ -216,7 +216,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $resImgCode = 1;
         $netCheck = new NetEastCheckService($inParamText);
         $resText = $netCheck->textCheck();
-        //dd($resText);
+
         if($resText['code'] =='200'){
             switch ($resText['result']['action']){
                 case 0 ://审核通过
@@ -303,8 +303,8 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $thread->save();
         if($verifyResult ==1){
-            $bbsAward = new BbsSendAwardService($this->userId);
-            $bbsAward->threadAward();
+            //$bbsAward = new BbsSendAwardService($this->userId);
+            //$bbsAward->publishThreadAward();
         }
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
 
@@ -404,8 +404,8 @@ class BbsUserJsonRpc extends JsonRpc {
             $pm->type = 4;
             $pm->msg_type = 2;
             $pm->save();
-            $bbsAward = new BbsSendAwardService($this->userId);
-            $bbsAward->commentAward();
+            //$bbsAward = new BbsSendAwardService($this->userId);
+            //$bbsAward->commentAward();
         }
         Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
 
@@ -606,35 +606,20 @@ class BbsUserJsonRpc extends JsonRpc {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
 
-        $BbsUserInfo = User::where(['user_id'=>$this->userId])->first();
-        //用户发帖被点赞数目
-        $userThreadZanNum = ThreadZan::where(["t_user_id"=>$this->userId,"status"=>0])->count();
-        //用户评论被点赞数目
-        $userCommentZanNum = CommentZan::where(["c_user_id"=>$this->userId,"status"=>0])->count();
-        //用户被评论数数目
+        $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
 
-        $BbsUserInfo['userZanNum'] = $userCommentZanNum+$userThreadZanNum;
-        $BbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
-            ->leftJoin('bbs_threads', 'tid', '=', 'bbs_threads.id')
-            ->where(["bbs_threads.user_id"=>$this->userId,"bbs_threads.isverify"=>1])
-            ->count();
-        //用户被收藏数目
-        $BbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
-
-        if($BbsUserInfo){
-            return array(
-                'code'=>0,
-                'message'=>'success',
-                'data'=>$BbsUserInfo
-            );
-        }else{
+        //没有信息去拉取信息
+        if(!$bbsUserInfo){
             $User = new User();
+
             $User->user_id = $this->userInfo['id'];
             $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
             $User->phone = $this->userInfo['phone'];
             $User->isblack = 0;
             $User->isadmin = 0;
             $User->save();
+
+
             $res = $User::where(['nickname' => 'wl' . $User->id])->first();
             if($res){
                 $randomArray = range ("a","z");
@@ -649,13 +634,28 @@ class BbsUserJsonRpc extends JsonRpc {
             $Pm->content = "欢迎来到网利社区";
             $Pm->type = 1;
             $Pm->msg_type= 1;
-            $User->save();
-            return array(
-                'code'=>0,
-                'message'=>'success',
-                'data'=>$BbsUserInfo
-            );
+            $Pm->save();
+            $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
         }
+        //用户发帖被点赞数目
+        $userThreadZanNum = ThreadZan::where(["t_user_id"=>$this->userId,"status"=>0])->count();
+        //用户评论被点赞数目
+        $userCommentZanNum = CommentZan::where(["c_user_id"=>$this->userId,"status"=>0])->count();
+        //用户被评论数数目
+
+        $bbsUserInfo['userZanNum'] = $userCommentZanNum+$userThreadZanNum;
+        $bbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
+            ->leftJoin('bbs_threads', 'tid', '=', 'bbs_threads.id')
+            ->where(["bbs_threads.user_id"=>$this->userId,"bbs_threads.isverify"=>1])
+            ->count();
+        //用户被收藏数目
+        $bbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
+        return [
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$bbsUserInfo
+        ];
+
 
     }
     /**
