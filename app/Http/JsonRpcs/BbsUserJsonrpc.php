@@ -66,14 +66,17 @@ class BbsUserJsonRpc extends JsonRpc {
      */
     public function updateBbsUserHeadimg($params){
 
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+
         if(empty($params->headImg)){
             throw new OmgException(OmgException::DATA_ERROR);
         }
 
         //更新
+
         $res = User::where(['user_id' => $this->userId])->update(['head_img'=>$params->headImg]);
 
         if ($res) {
@@ -271,7 +274,7 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $resMaxCode = $resImgCode+$resTextCode;
         switch ($resMaxCode){
-            case 0 ://审核全部未通过通过
+            case 0 ://有嫌疑
                 $verifyResult = 0;
                 $verifyMessage = '您的发贴已提交审核';
                 break;

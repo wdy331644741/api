@@ -64,6 +64,32 @@ class BbsCommentJsonRpc extends JsonRpc {
            'data'=>$data,
        );
    }
+    /**
+     *
+     *
+     * 删除帖子
+     *
+     *
+     * @JsonRpcMethod
+     */
+   public  function delBbsComment($params){
+       $validator = Validator::make(get_object_vars($params), [
+           'id'=>'required|exists:bbs_comments,id',
+       ]);
+       if($validator->fails()){
+           throw new OmgException(OmgException::DATA_ERROR);
+       }
+       $res = Comment::where(["id"=>$params->id,"user_id"=>$this->userId])->delete();
+       if($res){
+           return [
+               'code'=>0,
+               'message'=>'success',
+               'data'=>$res,
+           ];
+       }else{
+           throw new OmgException(OmgException::DATA_ERROR);
+       }
+   }
 
 
 
