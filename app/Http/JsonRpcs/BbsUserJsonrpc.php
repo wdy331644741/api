@@ -167,7 +167,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
-        $this->userId =123;
+        
         $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
         //
         if($threadTimeLimit){
