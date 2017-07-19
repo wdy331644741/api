@@ -185,7 +185,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $commentInfo = Comment::where(["id"=>$params->id]);
+       $commentInfo = Comment::where(["id"=>$params->id])->first();
        $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"cid"=>$params->id,"c_user_id"=>$commentInfo["user_id"]],["status"=>0]);
        if($res){
            Comment::where(["id"=>$params->id])->increment("zan_num");

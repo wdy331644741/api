@@ -37,14 +37,14 @@ class BbsSendAwardService
     public function publishThreadAward()
     {
         $this->dayPublishThreadTask();
-        $this->publishThreadAward();
+        $this->publishThreadTask();
     }
     /*
      * 评论触发
      * */
     public function publishCommentAward()
     {
-        $this->publishCommentAward();
+        //$this->publishComme();
 
 
     }
