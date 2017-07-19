@@ -23,7 +23,6 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
         global $userId;
         $this->userId = $userId;
 
-        $this->userId =123;
     }
 
     /**

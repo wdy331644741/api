@@ -36,6 +36,7 @@ class BbsSendAwardService
      * */
     public function publishThreadAward()
     {
+        
         $this->dayPublishThreadTask();
         $this->publishThreadTask();
     }
@@ -77,10 +78,11 @@ class BbsSendAwardService
     private function dayPublishThreadTask()
     {
 
-        $dayPublishThreadInfo = Tasks::where(["remark"=>"dayPublishThread"])->get()->toArray();
+        $dayPublishThreadInfo = Tasks::where(["task_type"=>"dayPublishThread"])->get()->toArray();
         if($dayPublishThreadInfo) {
             $nowTime = date("Y:m:d",time());
             $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',$nowTime)->count();
+            dd($userDayThreadCount);
             foreach ($dayPublishThreadInfo as $value) {
                 //审核是否已经发过奖
                 $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['task_type']])->where('award_time','>',$nowTime)->count();
@@ -111,7 +113,7 @@ class BbsSendAwardService
     private function publishThreadTask()
     {
 
-        $dayPublishThreadInfo = Tasks::where(["remark"=>"achievePublishThread"])->get()->toArray();
+        $dayPublishThreadInfo = Tasks::where(["task_type"=>"achievePublishThread"])->get()->toArray();
         if($dayPublishThreadInfo) {
 
             $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->count();
@@ -143,7 +145,7 @@ class BbsSendAwardService
      * **/
     private  function zanThreadTask()
     {
-        $achievePublishThreadInfo = Tasks::where(["remark"=>"achieveZanThread"])->get()->toArray();
+        $achievePublishThreadInfo = Tasks::where(["task_type"=>"achieveZanThread"])->get()->toArray();
         if($achievePublishThreadInfo) {
             //点击者 处理点赞任务
             $userDayThreadCount = ThreadZan::where(["t_user_id"=>$this->userPid,"status"=>0])->count();
@@ -177,7 +179,7 @@ class BbsSendAwardService
      * */
     private  function zanCommentTask()
     {
-        $achieveZanCommentInfo = Tasks::where(["remark"=>"achieveZanComment"])->get()->toArray();
+        $achieveZanCommentInfo = Tasks::where(["task_type"=>"achieveZanComment"])->get()->toArray();
         if($achieveZanCommentInfo) {
             //点击者 处理点赞任务
             $userZanCommentCount = CommentZan::where(["c_user_id"=>$this->userPid,"status"=>0])->count();
@@ -210,7 +212,7 @@ class BbsSendAwardService
      * */
     private  function greatThreadTask()
     {
-        $achieveGreatCommentInfo = Tasks::where(["remark"=>"achieveGreatComment"])->get()->toArray();
+        $achieveGreatCommentInfo = Tasks::where(["task_type"=>"achieveGreatComment"])->get()->toArray();
         if($achieveGreatCommentInfo) {
             //点击者 处理点赞任务
             $userGreatThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
@@ -241,7 +243,7 @@ class BbsSendAwardService
      * */
     private function zanThreadPTask()
     {
-        $achieveZanThreadPInfo = Tasks::where(["remark"=>"achieveZanThreadP"])->get()->toArray();
+        $achieveZanThreadPInfo = Tasks::where(["task_type"=>"achieveZanThreadP"])->get()->toArray();
         if($achieveZanThreadPInfo) {
             //点击者 处理点赞任务
             $userZanThreadCount = ThreadZan::where(["user_id"=>$this->userId,"status"=>1])->count();
@@ -282,8 +284,18 @@ class BbsSendAwardService
         $awards['effective_time_day'] = $params['exp_day'];
         $awards['platform_type'] = 0;
         $awards['limit_desc'] = '';
+        $awards['trigger'] = "";
         $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
-        $return = SendAward::experience($awards);
+
+        $res = SendAward::experience($awards);
+        //记录发奖数据
+        dd($res);
+        $task = new Task();
+        $task->user_id = $awardUserId;
+        $task->task_type = $params['task_type'];
+        $task->award = $params['award'];
+        $task->award_time = date("Y-m-d H:i:s",time());
+        $task->save();
 
     }
 

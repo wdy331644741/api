@@ -84,6 +84,7 @@ class BbsCommentJsonRpc extends JsonRpc {
        }
        $res = Comment::where(["id"=>$params->id,"user_id"=>$this->userId])->delete();
        if($res){
+           Comment::where(["id"=>$params->id,"user_id"=>$this->userId])->decrement('comment_num');
            return [
                'code'=>0,
                'message'=>'success',
