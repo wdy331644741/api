@@ -73,6 +73,9 @@ class BbsCommentJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
    public  function delBbsComment($params){
+       if (empty($this->userId)) {
+           throw  new OmgException(OmgException::NO_LOGIN);
+       }
        $validator = Validator::make(get_object_vars($params), [
            'id'=>'required|exists:bbs_comments,id',
        ]);
