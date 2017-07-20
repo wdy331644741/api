@@ -405,7 +405,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $pm->msg_type = 2;
             $pm->save();
             //$bbsAward = new BbsSendAwardService($this->userId);
-            //$bbsAward->commentAward();
+            //$bbsAward->publishThreadAward();
         }
         Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
 
