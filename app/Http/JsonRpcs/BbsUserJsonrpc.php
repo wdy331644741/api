@@ -80,8 +80,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $res = User::where(['user_id' => $this->userId])->update(['head_img'=>$params->headImg]);
 
         if ($res) {
-            $bbsAward = new BbsSendAwardService($this->userId);
-            $bbsAward->updateImgOrName();
+
             $user = array(
                 'user_id' => $this->userId,
                 'head_img' => $params->headImg,
@@ -185,9 +184,9 @@ class BbsUserJsonRpc extends JsonRpc {
 
         $threadNum = Attributes::getNumberByDay($this->userId,"bbs_user_thread_nums");
 
-        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
-            throw new OmgException(OmgException::THREAD_LIMIT);
-        }
+//        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
+//            throw new OmgException(OmgException::THREAD_LIMIT);
+//        }
 
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
@@ -303,8 +302,8 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $thread->save();
         if($verifyResult ==1){
-            //$bbsAward = new BbsSendAwardService($this->userId);
-            //$bbsAward->publishThreadAward();
+            $bbsAward = new BbsSendAwardService($this->userId);
+            $bbsAward->publishThreadAward();
         }
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
 
@@ -340,9 +339,9 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $commentNum = Attributes::getNumberByDay($this->userId,"bbs_user_comment_nums");
 
-        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
-            throw new OmgException(OmgException::COMMENT_LIMIT);
-        }
+//        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
+//            throw new OmgException(OmgException::COMMENT_LIMIT);
+//        }
 
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
