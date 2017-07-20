@@ -3,6 +3,7 @@
 namespace App\Http\JsonRpcs;
 
 
+use App\Service\BbsSendAwardService;
 use Lib\JsonRpcClient;
 use Validator;
 use App\Exceptions\OmgException;
@@ -57,6 +58,8 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->type = 1;
            $pm->msg_type = 2;
            $pm->save();
+           $bbsAward = new BbsSendAwardService($this->userId,$threadInfo['user_id']);
+           $bbsAward->threadZanAward();
            return array(
                'code'=>0,
                'message'=>'success',
