@@ -276,6 +276,44 @@ class BannerJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
+    public function getBanner($params) {
+        if(!isset($params->position)) {
+            throw new OmgException(OmgException::VALID_POSITION_FAIL);
+        }
+        $where = array(
+            'can_use' => 1,
+        );
+        $position = $params->position;
+        switch ($position){
+            case 'window':
+                $where['position'] = $position;
+                $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+                    ->orderByRaw('id + sort DESC')->first();
+                break;
+            default :
+                $data = null;
+        }
+        if(!$data) {
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
+    /**
+     * 活动弹窗
+     *
+     * @JsonRpcMethod
+     */
     public function activityPop() {
          $where = array(
             'can_use' => 1,
