@@ -272,7 +272,7 @@ class BannerJsonRpc extends JsonRpc {
     }
 
     /**
-     * 活动弹窗
+     * 获取单个banner图
      *
      * @JsonRpcMethod
      */
