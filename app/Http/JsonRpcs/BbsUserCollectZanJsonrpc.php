@@ -3,6 +3,7 @@
 namespace App\Http\JsonRpcs;
 
 
+use App\Service\BbsSendAwardService;
 use Lib\JsonRpcClient;
 use Validator;
 use App\Exceptions\OmgException;
@@ -22,7 +23,6 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
     {
         global $userId;
         $this->userId = $userId;
-
 
     }
 
@@ -47,7 +47,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        }
        $threadInfo = Thread::where(["id"=>$params->id])->first();
        $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id,"t_user_id"=>$threadInfo['user_id']],["status"=>0]);
-       //dd($res);
+
        if($res){
            Thread::where(["id"=>$params->id])->increment("collection_num");
            $pm = new Pm();
@@ -58,6 +58,8 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->type = 1;
            $pm->msg_type = 2;
            $pm->save();
+           $bbsAward = new BbsSendAwardService($this->userId,$threadInfo['user_id']);
+           $bbsAward->threadZanAward();
            return array(
                'code'=>0,
                'message'=>'success',
@@ -185,7 +187,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $commentInfo = Comment::where(["id"=>$params->id]);
+       $commentInfo = Comment::where(["id"=>$params->id])->first();
        $res = CommentZan::updateOrCreate(["user_id"=>$this->userId,"cid"=>$params->id,"c_user_id"=>$commentInfo["user_id"]],["status"=>0]);
        if($res){
            Comment::where(["id"=>$params->id])->increment("zan_num");

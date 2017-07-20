@@ -45,7 +45,7 @@ class AliyunOSSService
              $ossClient = new OssClient(self::$accessKeyId, self::$accessKeySecret, self::$endPoint);
              return  $ossClient->deleteObject(self::$bucket,$object,$path);
          } catch (OssException $e) {
-    throw new \Exception($e->getMessage(),404);
+            throw new \Exception($e->getMessage(),404);
 }
 
      }
