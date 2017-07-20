@@ -85,7 +85,7 @@ class BbsSendAwardService
 
             foreach ($dayPublishThreadInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['task_mark']])->where('award_time','>',$nowTime)->count();
+                $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['remark']])->where('award_time','>',$nowTime)->count();
                 //未发过奖
                 if(!$res){
                     //审核发奖条件
@@ -119,7 +119,7 @@ class BbsSendAwardService
             $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->count();
             foreach ($dayPublishThreadInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['task_mark']])->count();
+                $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['remark']])->count();
                 //未发过奖
                 if(!$res){
                     //审核发奖条件
@@ -151,7 +151,7 @@ class BbsSendAwardService
             $userDayThreadCount = ThreadZan::where(["t_user_id"=>$this->userPid,"status"=>0])->count();
             foreach ($achievePublishThreadInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_mark']])->count();
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件
@@ -185,7 +185,7 @@ class BbsSendAwardService
             $userZanCommentCount = CommentZan::where(["c_user_id"=>$this->userPid,"status"=>0])->count();
             foreach ($achieveZanCommentInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_mark']])->count();
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件
@@ -218,7 +218,7 @@ class BbsSendAwardService
             $userGreatThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
             foreach ($achieveGreatCommentInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_mark']])->count();
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件
@@ -244,12 +244,14 @@ class BbsSendAwardService
     private function zanThreadPTask()
     {
         $achieveZanThreadPInfo = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
+
         if($achieveZanThreadPInfo) {
             //点击者 处理点赞任务
-            $userZanThreadCount = ThreadZan::where(["user_id"=>$this->userId,"status"=>1])->count();
+            $userZanThreadCount = ThreadZan::where(["user_id"=>$this->userId,"status"=>0])->count();
+
             foreach ($achieveZanThreadPInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['task_mark']])->count();
+                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件
@@ -286,12 +288,11 @@ class BbsSendAwardService
         $awards['limit_desc'] = '';
         $awards['trigger'] = "";
         $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
-
-        $res = SendAward::experience($awards);
+        SendAward::experience($awards);
         //记录发奖数据
         $task = new Task();
         $task->user_id = $awardUserId;
-        $task->task_type = $params['task_mark'];
+        $task->task_type = $params['remark'];
         $task->award = $params['award'];
         $task->award_time = date("Y-m-d H:i:s",time());
         $task->save();
