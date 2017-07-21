@@ -679,6 +679,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * dayPublishThread  achievePublishThread achieveZanThreadP achieveZanThread achieveZanComment achieveGreatThread
      */
     public function queryBbsUserTask($param){
+        $this->userId =123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -730,8 +731,8 @@ class BbsUserJsonRpc extends JsonRpc {
 
         }
         //主题贴加精数量 achieveGreatThread
-        $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
-        $achieveGreatThreadCount = Thread::where(['user_id'=>$this->userId])->count();
+        $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread"])->get()->toArray();
+        $achieveGreatThreadCount = Thread::where(['user_id'=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
         foreach ($achieveGreatThreadTaskInfo as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
             $achieveGreatThreadTaskInfo[$k]['current'] = $achieveGreatThreadCount;
@@ -767,8 +768,12 @@ class BbsUserJsonRpc extends JsonRpc {
                         "description"=>"回复获得点赞",
                     ],
                     [
+                        "achieveZanThread"=>$achieveZanThreadTaskInfo,
+                        "description"=>"主题帖获得点赞",
+                    ],
+                    [
                         "achieveGreatThread"=>$achieveGreatThreadTaskInfo,
-                        "description"=>"主题帖被加精品数量",
+                        "description"=>"主题帖被加精",
                     ],
 
 
