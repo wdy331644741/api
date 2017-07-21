@@ -563,18 +563,21 @@ class BbsUserJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function delBbsUserAllPm($params){
+    public function delBbsUserPm($params){
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         $validator = Validator::make(get_object_vars($params), [
-            'type'=>'required',
+            'ids'=>'required',
 
         ]);
+
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
-        $deleted['num'] = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type,'isread'=>0])->delete();
+
+
+        $deleted['num'] = Pm::where(['user_id'=>$this->userId,'isread'=>0])->whereIn('id',$params->ids)->delete();
         return array(
             'code'=>0,
             'message'=>'success',

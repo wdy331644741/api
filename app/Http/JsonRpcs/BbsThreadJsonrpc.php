@@ -325,7 +325,7 @@ class BbsThreadJsonRpc extends JsonRpc
             unset($thread_info->commentAndVerify);
             //view +1
             Thread::where(['id' => $params->id])->increment('views');
-            //dd($thread_info);
+
             if (!empty($params->fromPm)) {
                 Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
             }
