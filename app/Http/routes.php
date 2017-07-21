@@ -63,7 +63,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
-
+    // 花费&流量
+    Route::controller('feeflow', 'FeeAndFlowController');
 });
 
 // 对外接口
