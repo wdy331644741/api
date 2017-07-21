@@ -75,6 +75,17 @@ class UploadController extends Controller
                 );
                 $imgCheck = new NetEastCheckService($inParamImg);
                 $checkRes = $imgCheck->imgCheck();
+                if($checkRes['code'] == 500){
+                    //访问网易服务出现问题
+                    return $this->outputJson([
+                        "jsonrpc" => 2.0,
+                        "error" => [
+                            "code" => -3402,
+                            "message" => "图片保存失败"
+                        ],
+                        "id" => 1
+                    ]);
+                }
                 if($checkRes['code'] == 200) {
                     $maxLevel = -1;
                     foreach ($checkRes['result'] as $k => $v) {

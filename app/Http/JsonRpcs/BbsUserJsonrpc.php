@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\Bbs\CommentZan;
 use App\Models\Bbs\Task;
+use App\Models\Bbs\Tasks;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
 use App\Models\Bbs\ThreadCollection;
@@ -675,118 +676,105 @@ class BbsUserJsonRpc extends JsonRpc {
      *  查询用户状态
      *
      * @JsonRpcMethod
+     * dayPublishThread  achievePublishThread achieveZanThreadP achieveZanThread achieveZanComment achieveGreatThread
      */
     public function queryBbsUserTask($param){
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
+        //每日发帖任务 dayPublishThread
         $nowTime = date("Y-m-d",time());
-        $threadCount = Thread::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
-        //是否领过奖
-        $dayThreadTargetOne =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayThreadOne','user_id'=> $this->userId])->count();
-        $dayThreadTargetFive = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayThreadFive','user_id'=> $this->userId])->count();
-        //任务类型 每日任务  成就任务
-        //每日任务：主题贴  1次 dayThreadOne  5次 dayThreadFive
-        $dayThreadTaskOne['description'] = "发布一次主题贴";
-        $dayThreadTaskOne['taskType'] = "dayThreadOne";
-        $dayThreadTaskOne['task'] = "day";
-        $dayThreadTaskOne['taskMark'] = "dayThread";
-        $dayThreadTaskOne['award'] = "奖励".$this->bbsDayThreadOneTaskFinshAward."体验金";
-        $dayThreadTaskOne['current'] = $threadCount;
-        $dayThreadTaskOne['finish'] =$this->bbsDayThreadOneTaskFinsh;
-        $dayThreadTaskOne['isAward'] = $dayThreadTargetOne;
-        $dayThreadTaskOne['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        $dayThreadTaskFive['description'] = "发布五次主题贴";
-        $dayThreadTaskFive['taskType'] = "dayThreadFive";
-        $dayThreadTaskFive['task'] = "day";
-        $dayThreadTaskFive['taskMark'] = "dayThread";
-        $dayThreadTaskFive['award'] = "奖励".$this->bbsDayThreadFiveTaskFinshAward."体验金";
-        $dayThreadTaskFive['current'] = $threadCount;
-        $dayThreadTaskFive['finish'] =$this->bbsDayThreadFiveTaskFinsh;
-        $dayThreadTaskFive['isAward'] = $dayThreadTargetFive;
-        $dayThreadTaskFive['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        //每日任务：评论 1次 dayCommentOne  5次 dayCommentFive
-        $commentCount = Comment::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
-        //是否领过奖
-        $dayCommentTargetOne =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayCommentOne','user_id'=> $this->userId])->count();
-        $dayCommentTargetFive = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayCommentFive','user_id'=> $this->userId])->count();
-        $dayCommentTaskOne['description'] = "发布一次评论";
-        $dayCommentTaskOne['taskType'] = "dayCommentOne";
-        $dayCommentTaskOne['task'] = "day";
-        $dayCommentTaskOne['taskMark'] = "dayComment";
-        $dayCommentTaskOne['award'] = "奖励".$this->bbsDayCommentOneTaskFinshAward."体验金";
-        $dayCommentTaskOne['current'] = $commentCount;
-        $dayCommentTaskOne['finish'] =$this->bbsDayCommentOneTaskFinsh;
-        $dayCommentTaskOne['isAward'] = $dayCommentTargetOne;
-        $dayCommentTaskOne['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        $dayCommentTaskFive['description'] = "发布五次评论";
-        $dayCommentTaskFive['taskType'] = "dayCommentFive";
-        $dayCommentTaskFive['task'] = "day";
-        $dayCommentTaskFive['taskMark'] = "dayComment";
-        $dayCommentTaskFive['award'] = "奖励".$this->bbsDayCommentFiveTaskFinshAward."体验金";
-        $dayCommentTaskFive['current'] = $commentCount;
-        $dayCommentTaskFive['finish'] =$this->bbsDayCommentFiveTaskFinsh;
-        $dayCommentTaskFive['isAward'] = $dayCommentTargetFive;
-        $dayCommentTaskFive['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        //完成所有每日任务
-        $dayAllTaskCount = Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayAllTask','user_id'=> $this->userId])->count();
-        $dayAllTask['description'] = "完成所有每日任务";
-        $dayAllTask['taskType'] = "dayAllTask";
-        $dayAllTask['task'] = "day";
-        $dayAllTask['taskMark'] = "dayAll";
-        $dayAllTask['award'] = "奖励".$this->bbsDayAllTaskFinshAward."体验金";
-        $dayAllTask['current'] = $dayThreadTargetOne+$dayThreadTargetFive+$dayCommentTargetOne+$dayCommentTargetFive;
-        $dayAllTask['finish'] =4;
-        $dayAllTask['isAward'] = $dayAllTaskCount;
-        $dayAllTask['icon'] = env('APP_URL')."/images/bbs/icon_comment.png";
-        //成就任务 发布10主题帖 achieveThreadTen
+        $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread"])->get()->toArray();
+        $dayThreadCount = Thread::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
+        foreach ($dayPublishThreadTaskInfo as $k=>$value){
+            $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            $dayPublishThreadTaskInfo[$k]['current'] = $dayThreadCount;
+            $dayPublishThreadTaskInfo[$k]['isaward'] = $res;
+
+        }
+
+        //成就累计发帖  achievePublishThread
+        $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
         $achieveThreadCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
-        $achieveThreadTenCount = Task::where(['task_type'=>'achieveThreadTen','user_id'=> $this->userId])->count();
-        $achieveThreadTenTask['description'] = "累计发布十次主题帖";
-        $achieveThreadTenTask['taskType'] = "achieveThreadTen";
-        $achieveThreadTenTask['task'] = "achieve";
-        $achieveThreadTenTask['taskMark'] = "achieveThread";
-        $achieveThreadTenTask['award'] = "奖励".$this->bbsAchieveThreadTenTaskFinshAward."体验金";
-        $achieveThreadTenTask['current'] = $achieveThreadCount;
-        $achieveThreadTenTask['finish'] =$this->bbsAchieveThreadTenTaskFinsh;
-        $achieveThreadTenTask['isAward'] = $achieveThreadTenCount;
-        $achieveThreadTenTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
-        //评论50 achieveCommentFifty
-        $achieveCommentCount = Comment::where(['isverify'=>1,'user_id'=>$this->userId])->count();
-        $achieveCommentFiftyCount = Task::where(['task_type'=>'achieveCommentFifty','user_id'=> $this->userId])->count();
-        $achieveCommentFiftyTask['description'] = "累计评论达到五十次";
-        $achieveCommentFiftyTask['taskType'] = "achieveCommentFifty";
-        $achieveCommentFiftyTask['task'] = "achieve";
-        $achieveCommentFiftyTask['taskMark'] = "achieveComment";
-        $achieveCommentFiftyTask['award'] = "奖励".$this->bbsAchieveCommentFiftyTaskFinshAward."体验金";
-        $achieveCommentFiftyTask['current'] = $achieveCommentCount;
-        $achieveCommentFiftyTask['finish'] =$this->bbsAchieveCommentFiftyTaskFinsh;
-        $achieveCommentFiftyTask['isAward'] = $achieveCommentFiftyCount;
-        $achieveCommentFiftyTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
-        //上传头像及修改昵称  achieveUpdateImgOrName
+        foreach ($achievePublishThreadTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            $achievePublishThreadTaskInfo[$k]['current'] = $achieveThreadCount;
+            $achievePublishThreadTaskInfo[$k]['isaward'] = $res;
 
-        //数据库再次确认
+        }
+        //成就为他人点赞 achieveZanThreadP
+        $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
+        $achieveZanThreadPCount = ThreadZan::where(['user_id'=>$this->userId])->count();
+        foreach ($achieveZanThreadPTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            $achieveZanThreadPTaskInfo[$k]['current'] = $achieveZanThreadPCount;
+            $achieveZanThreadPTaskInfo[$k]['isaward'] = $res;
 
-        $achieveUpdateImgOrNameCount = Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
-        $achieveUpdateImgOrNameTask['description'] = "上传头像及修改昵称";
-        $achieveUpdateImgOrNameTask['taskType'] = "achieveUpdateImgOrName";
-        $achieveUpdateImgOrNameTask['task'] = "achieve";
-        $achieveUpdateImgOrNameTask['taskMark'] = "achieveCommon";
-        $achieveUpdateImgOrNameTask['award'] = "奖励".$this->bbsAchieveImgOrNameTaskFinshAward."体验金";
-        $achieveUpdateImgOrNameTask['current'] = $achieveUpdateImgOrNameCount;
-        $achieveUpdateImgOrNameTask['finish'] =1;
-        $achieveUpdateImgOrNameTask['isAward'] = $achieveUpdateImgOrNameCount;
-        $achieveUpdateImgOrNameTask['icon'] = env('APP_URL')."/images/bbs/icon_post.png";
+        }
+        //成就回复点赞 achieveZanComment
+        $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment"])->get()->toArray();
+        $achieveZanCommentCount = CommentZan::where(['c_user_id'=>$this->userId])->count();
+        foreach ($achieveZanCommentTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            $achieveZanCommentTaskInfo[$k]['current'] = $achieveZanCommentCount;
+            $achieveZanCommentTaskInfo[$k]['isaward'] = $res;
+
+        }
+        //成就主题贴点赞 achieveZanThread
+        $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
+        $achieveZanThreadCount = ThreadZan::where(['t_user_id'=>$this->userId])->count();
+        foreach ($achieveZanThreadTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            $achieveZanThreadTaskInfo[$k]['current'] = $achieveZanThreadCount;
+            $achieveZanThreadTaskInfo[$k]['isaward'] = $res;
+
+        }
+        //主题贴加精数量 achieveGreatThread
+        $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
+        $achieveGreatThreadCount = Thread::where(['user_id'=>$this->userId])->count();
+        foreach ($achieveGreatThreadTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            $achieveGreatThreadTaskInfo[$k]['current'] = $achieveGreatThreadCount;
+            $achieveGreatThreadTaskInfo[$k]['isaward'] = $res;
+
+        }
         $res = [
             [
                 "title"=>"每日任务",
                 "task"=>"day",
-                "list"=>[$dayThreadTaskOne,$dayThreadTaskFive,$dayCommentTaskOne,$dayCommentTaskFive,$dayAllTask]
+                "list"=>[
+                    [
+                        "dayPublishThread"=>$dayPublishThreadTaskInfo,
+                        "description"=>"每日发帖"
+                    ]
+
+                ]
             ],
             [
                 "title"=>"成就任务",
                 "task"=>"achieve",
-                "list"=>[$achieveThreadTenTask,$achieveCommentFiftyTask,$achieveUpdateImgOrNameTask]
+                "list"=>[
+                    [
+                        "achievePublishThread"=>$achievePublishThreadTaskInfo,
+                        "description"=>"累计发布主题帖",
+                    ],
+                    [
+                        "achieveZanThreadP"=>$achieveZanThreadPTaskInfo,
+                        "description"=>"累计为他人点赞",
+                    ],
+                    [
+                        "achieveZanComment"=>$achieveZanCommentTaskInfo,
+                        "description"=>"回复获得点赞",
+                    ],
+                    [
+                        "achieveGreatThread"=>$achieveGreatThreadTaskInfo,
+                        "description"=>"主题帖被加精品数量",
+                    ],
+
+
+                ]
+
+
             ]
 
         ];
