@@ -58,8 +58,6 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->type = 1;
            $pm->msg_type = 2;
            $pm->save();
-           $bbsAward = new BbsSendAwardService($this->userId,$threadInfo['user_id']);
-           $bbsAward->threadZanAward();
            return array(
                'code'=>0,
                'message'=>'success',
@@ -129,6 +127,8 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->type = 2;
            $pm->msg_type = 2;
            $pm->save();
+           $bbsAward = new BbsSendAwardService($this->userId,$threadInfo['user_id']);
+           $bbsAward->threadZanAward();
            return array(
                'code'=>0,
                'message'=>'success',
@@ -199,6 +199,8 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->type = 2;
            $pm->msg_type = 2;
            $pm->save();
+           $bbsAward = new BbsSendAwardService($this->userId,$commentInfo["user_id"]);
+           $bbsAward->commentZanAward();
            return array(
                'code'=>0,
                'message'=>'success',

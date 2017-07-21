@@ -117,7 +117,7 @@ class NetEastCheckService
         }catch (RequestException $e){
 
             return [
-                "code"=>$e->getCode(),
+                "code"=>500,
                 "msg"=>$e->getMessage()
             ];
 
