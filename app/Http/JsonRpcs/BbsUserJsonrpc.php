@@ -567,13 +567,49 @@ class BbsUserJsonRpc extends JsonRpc {
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
-        $deleted['num'] = Pm::where(['user_id'=>$this->userId])->delete();
+        $validator = Validator::make(get_object_vars($params), [
+            'type'=>'required',
+
+        ]);
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $deleted['num'] = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type,'isread'=>0])->delete();
         return array(
             'code'=>0,
             'message'=>'success',
             'data'=>$deleted,
         );
 
+    }
+    /**
+     *  消息置未已读
+     *
+     * @JsonRpcMethod
+     */
+    public function updatePmStatus($params){
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+            'id'=>'required|exists:bbs_pms,id',
+
+        ]);
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $res = Pm::where(["id"=>$params->id,"user_id"=>$this->userId])->update(["isread"=>1]);
+        if($res){
+            return[
+                'code'=>0,
+                'message'=>'success',
+                'data'=>$res,
+            ];
+
+
+        }else{
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
     }
     /**
      *  获取用户消息条数 分页
