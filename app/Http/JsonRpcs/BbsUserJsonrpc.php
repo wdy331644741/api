@@ -615,7 +615,7 @@ class BbsUserJsonRpc extends JsonRpc {
         }
     }
     /**
-     *  获取用户消息条数 分页
+     *  消息小红点
      *
      * @JsonRpcMethod
      */
@@ -634,6 +634,53 @@ class BbsUserJsonRpc extends JsonRpc {
 
 
     }
+    /**
+     *  任务小红点
+     *
+     * @JsonRpcMethod
+     */
+    public  function getBbsUserCountTask($params)
+    {
+
+
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        //查询每日任务
+        $nowTime = date("Y-m-d",time());
+        $res = Task::where(['user_id'=>$this->userId,'task_type'=>'dayPublishThread1'])->where('award_time','>',$nowTime)->first();
+
+        if($res){
+            $achieveTask = Tasks::where(["group_id"=>2])->get()->toArray();
+
+            foreach ($achieveTask  as $value){
+                $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->first();
+                if(!$res){
+
+                    return [
+                        'code'=>0,
+                        'message'=>'success',
+                        'data'=>1,
+                    ];
+
+                }
+            }
+            return [
+                'code'=>0,
+                'message'=>'success',
+                'data'=>0,
+            ];
+        }else{
+            return [
+                'code'=>0,
+                'message'=>'success',
+                'data'=>1,
+            ];
+        }
+
+
+    }
+
     /**
      *  获取用户信息 分页
      *   收到的赞  收到的评论  被收藏数
@@ -828,8 +875,7 @@ class BbsUserJsonRpc extends JsonRpc {
             'data'=>$res
         );
     }
-
-    /**
+    /*
      *  获取用户发放体验金
      *
      * @JsonRpcMethod

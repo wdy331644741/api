@@ -287,7 +287,7 @@ class BbsSendAwardService
         $awards['platform_type'] = 0;
         $awards['limit_desc'] = '';
         $awards['trigger'] = "";
-        $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+        //$awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
         SendAward::experience($awards);
         //记录发奖数据
         $task = new Task();
@@ -295,6 +295,7 @@ class BbsSendAwardService
         $task->task_type = $params['remark'];
         $task->award = $params['award'];
         $task->award_time = date("Y-m-d H:i:s",time());
+        $task->task_group_id = $params['group_id'];
         $task->save();
 
     }
