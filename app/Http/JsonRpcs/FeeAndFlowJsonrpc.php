@@ -64,13 +64,13 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         //商品id
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
         //运营商类型1移动2联通3电信
-        $type = isset($params->type) && !empty($params->type) ? $params->type : 0;
-        if(strlen($phone) != 11 || $id <= 0 || $type <= 0){
+        $operator_type = isset($params->operator_type) && !empty($params->operator_type) ? $params->operator_type : 0;
+        if(strlen($phone) != 11 || $id <= 0 || $operator_type <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $FeeAndFlowBasic = new FeeAndFlowBasic();
         //获取殴飞相应的面值
-        $values = FeeAndFlowBasic::getValues($id,1,$type);
+        $values = FeeAndFlowBasic::getValues($id,1,$operator_type);
         $perValue = $values['perValue'];
         if($perValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
@@ -91,7 +91,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
             'amount_of' => $perValue,
             'name' => $values['name'],
             'type' => 1,
-            'operator_type' => $type,
+            'operator_type' => $operator_type,
             'created_at'=>date("Y-m-d H:i:s"),
             'updated_at'=>date("Y-m-d H:i:s")
         ]);
@@ -173,13 +173,13 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         //商品ID
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
         //运营商类型1移动2联通3电信
-        $type = isset($params->type) && !empty($params->type) ? $params->type : 0;
-        if(strlen($phone) != 11 || $id <= 0 || $type <= 0){
+        $operator_type = isset($params->operator_type) && !empty($params->operator_type) ? $params->operator_type : 0;
+        if(strlen($phone) != 11 || $id <= 0 || $operator_type <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $FeeAndFlowBasic = new FeeAndFlowBasic();
         //获取殴飞相应的面值
-        $values = FeeAndFlowBasic::getValues($id,2,$type);
+        $values = FeeAndFlowBasic::getValues($id,2,$operator_type);
         $perValue = $values['perValue'];
         if($perValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
@@ -201,7 +201,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
             'amount_of' => $perValue,
             'name' => $values['name'],
             'type' => 2,
-            'operator_type' => $type,
+            'operator_type' => $operator_type,
             'created_at'=>date("Y-m-d H:i:s"),
             'updated_at'=>date("Y-m-d H:i:s")
         ]);
