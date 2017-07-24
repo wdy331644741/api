@@ -295,6 +295,7 @@ class BbsSendAwardService
         $task->task_type = $params['remark'];
         $task->award = $params['award'];
         $task->award_time = date("Y-m-d H:i:s",time());
+        $task->task_group_id = $params['group_id'];
         $task->save();
 
     }
