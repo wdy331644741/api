@@ -650,7 +650,7 @@ class BbsUserJsonRpc extends JsonRpc {
         //查询每日任务
         $nowTime = date("Y-m-d",time());
 
-        $dayTask =  Tasks::where(["group_id"=>2])->get()->toArray();
+        $dayTask =  Tasks::where(["group_id"=>1])->get()->toArray();
         foreach ($dayTask as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->where('created_at','>',$nowTime)->first();
             if(!$res){
