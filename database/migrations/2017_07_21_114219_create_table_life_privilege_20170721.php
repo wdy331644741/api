@@ -21,16 +21,20 @@ class CreateTableLifePrivilege20170721 extends Migration
             $table->decimal('amount_of',10,2)->default(0)->comment("殴飞接口金额（订单金额）");
             $table->string('name')->default(NULL)->comment("商品名");
             $table->tinyInteger('type',false,true)->default(0)->comment("商品类型1话费2流量");
+            $table->tinyInteger('operator_type',false,true)->default(0)->comment("运营商类型1移动2联通3电信");
             $table->tinyInteger('debit_status',false,true)->default(0)->comment("网利宝扣款状态0未扣款 1已扣款");
-            $table->tinyInteger('order_status',false,true)->default(0)->comment("订单状态0未充值 1正在充值 2充值成功 3充值失败");
+            $table->tinyInteger('order_status',false,true)->default(0)->comment("订单状态0未充值 1正在充值 2充值失败 3充值成功");
             $table->text('remark')->default(NULL)->comment("用户扣钱备注");
             $table->text('remark_of')->default(NULL)->comment("殴飞接口备注");
             $table->timestamps();
             //索引
             $table->index('user_id');
             $table->index('phone');
+            $table->index('order_id');
+            $table->index('amount');
             $table->index('name');
             $table->index('type');
+            $table->index('operator_type');
             $table->index('debit_status');
             $table->index('order_status');
 

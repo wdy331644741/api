@@ -90,3 +90,6 @@ Route::controller('media', 'MediaController');
 Route::get('content/help','ContentController@getHelp');
 Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
 Route::get('content/{type?}/{page?}','ContentController@getList');
+
+//充话费和冲流量回调方法
+Route::get("wl/fee_flow_callback",'CallbackController@getFeeAndFlowCallback');

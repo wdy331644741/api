@@ -3,7 +3,6 @@ namespace App\Service;
 use App\Models\LifePrivilegeConfig;
 use Config;
 use GuzzleHttp\Client;
-use OSS\Tests\LifecycleConfigTest;
 
 class FeeAndFlowBasic
 {
@@ -45,32 +44,11 @@ class FeeAndFlowBasic
             return false;
         }
         $feeParams['md5_str'] = $md5Str;
-        $feeParams['ret_url'] = env("APP_URL");
+        $feeParams['ret_url'] = env("APP_URL")."/yunying/wl/fee_flow_callback/?order_id=".$uuid;
         $feeParams['version'] = $config['fee_version'];
         $feeParams['buynum'] = '';
         //请求接口
         $res = $this->_client->post('/onlineorder.do', ['form_params' => $feeParams]);
-        $res = self::xmlToArray($res->getBody());
-        return $res;
-    }
-    /**
-     * 根据手机和面值查询归属信息
-     * @param $phone
-     * @param $perValue
-     * @param $flowValue
-     * @return mixed|\Psr\Http\Message\ResponseInterface
-     */
-    function FeeAttributionInfo($phone,$perValue){
-        //配置文件
-        $config = Config::get("feeandflow.fee");
-        //拼接参数
-        $feeParams['userid'] = env('OFPAY_USER_ID');
-        $feeParams['userpws'] = env('OFPAY_USER_PASS');
-        $feeParams['phoneno'] = $phone;
-        $feeParams['pervalue'] = $perValue;
-        $feeParams['version'] = $config['fee_version'];
-        //请求接口
-        $res = $this->_client->post('/newTelQuery.do', ['form_params' => $feeParams]);
         $res = self::xmlToArray($res->getBody());
         return $res;
     }
@@ -97,23 +75,6 @@ class FeeAndFlowBasic
         return $res;
     }
     /**
-     * 查询手机号当时是否可以充值
-     * @param $phone
-     * @param $perValue
-     * @param $flowValue
-     * @return mixed|\Psr\Http\Message\ResponseInterface
-     */
-    function FeeIsCanRecharge($phone,$price){
-        //拼接参数
-        $feeParams['userid'] = env('OFPAY_USER_ID');
-        $feeParams['phoneno'] = $phone;
-        $feeParams['price'] = $price;
-        //请求接口
-        $res = $this->_client->post('/telcheck.do', ['form_params' => $feeParams]);
-        $res = self::xmlToArray($res->getBody());
-        return $res;
-    }
-    /**
      * 流量发送
      * @param $phone
      * @param $perValue
@@ -135,7 +96,7 @@ class FeeAndFlowBasic
         $flowParams['effectTime'] = $config['flow_effectTime'];
         $flowParams['netType'] = $config['flow_netType'];
         $flowParams['sporderId'] = $uuid;//唯一订单id
-        $flowParams['retUrl'] = env("APP_URL");
+        $flowParams['retUrl'] = env("APP_URL")."/yunying/wl/fee_flow_callback/?order_id=".$uuid;
         $flowParams['version'] = $config['flow_version'];
         //获取验签
         $md5Str = self::makeFlowMd5Str($flowParams);
@@ -330,7 +291,7 @@ class FeeAndFlowBasic
             $alias_name = 'dianxin';
         }
         $configInfo = LifePrivilegeConfig::where(['id'=>$id,'status'=>1])->first();
-        if(!isset($configInfo->id)){
+        if(!isset($configInfo->id) || !isset($config[$alias_name][$configInfo->name])){
             return $res;
         }
         $res['perValue'] = $config[$alias_name][$configInfo->name];

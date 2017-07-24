@@ -3,11 +3,10 @@
 namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\LifePrivilege;
-use App\Models\LifePrivilegeConfig;
 use App\Service\FeeAndFlowBasic;
 use App\Service\Func;
 use App\Service\SendAward;
-use DB;
+use DB,Config;
 
 class FeeAndFlowJsonRpc extends JsonRpc {
     /**
@@ -56,7 +55,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
     public function feeSendToPhone($params)
     {
         global $userId;
-        $userId = 1716707;
+
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -92,16 +91,17 @@ class FeeAndFlowJsonRpc extends JsonRpc {
             'amount_of' => $perValue,
             'name' => $values['name'],
             'type' => 1,
+            'operator_type' => $type,
+            'created_at'=>date("Y-m-d H:i:s"),
+            'updated_at'=>date("Y-m-d H:i:s")
         ]);
         //事务开始
         DB::beginTransaction();
-
         $orderData = LifePrivilege::where('id',$id)->lockForUpdate()->first();
         //判断是否可充值
-        $isCan = $FeeAndFlowBasic->FeeInfo($phone,$perValue);
+        $isCan = $FeeAndFlowBasic->FeeInfo($phone,$values['name']);
         if($isCan['retcode'] != 1){
             LifePrivilege::where('id',$orderData->id)->update([
-                'order_status' => 2,
                 'remark_of' => json_encode($isCan)
             ]);
             //事务提交结束
@@ -116,26 +116,35 @@ class FeeAndFlowJsonRpc extends JsonRpc {
             $config = Config::get("feeandflow");
             $record_id = $config['activity_id']+$orderData->id;
             $uuidActivity = SendAward::create_guid();
-            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$configValue,'');
+            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$configValue,'call_cost_refill');
             $debitStatus = 0;
             if(isset($debitRes['result'])){
                 //扣款成功
                 $debitStatus = 1;
             }
+            $orderStatus = 1;
+            if(isset($res['game_state']) && $res['game_state'] == 9){
+                $orderStatus = 2;
+            }
+
+            //修改订单状态
             LifePrivilege::where('id',$orderData->id)->update([
                 'debit_status' => $debitStatus,
-                'order_status' => 3,
+                'order_status' => $orderStatus,
                 'remark' => json_encode($debitRes),
                 'remark_of' => json_encode($res)
             ]);
             //事务提交结束
             DB::commit();
+            if($orderStatus == 2){
+                throw new OmgException(OmgException::FAILED_RECHARGE_OFPAY);
+            }
             return [
                 'code' => 0,
                 'message' => 'success'
             ];
         }
-        //充流量失败
+        //修改订单状态为充值失败
         LifePrivilege::where('id',$orderData->id)->update([
             'order_status' => 2,
             'remark_of' => json_encode($res)
@@ -155,7 +164,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
     public function flowSendToPhone($params)
     {
         global $userId;
-        $userId = 1716707;
+
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -180,6 +189,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         if($configValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
+
         //唯一订单id(殴飞)
         $uuid = FeeAndFlowBasic::create_guid();
         //生成订单
@@ -191,22 +201,25 @@ class FeeAndFlowJsonRpc extends JsonRpc {
             'amount_of' => $perValue,
             'name' => $values['name'],
             'type' => 2,
+            'operator_type' => $type,
+            'created_at'=>date("Y-m-d H:i:s"),
+            'updated_at'=>date("Y-m-d H:i:s")
         ]);
         //事务开始
         DB::beginTransaction();
-
         $orderData = LifePrivilege::where('id',$id)->lockForUpdate()->first();
+
         //判断是否可充值
         $isCan = $FeeAndFlowBasic->FlowInfo($phone,$perValue,$values['name']);
         if($isCan['retcode'] != 1){
             LifePrivilege::where('id',$orderData->id)->update([
-                'order_status' => 2,
                 'remark_of' => json_encode($isCan)
             ]);
             //事务提交结束
             DB::commit();
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
+
         //发送流量
         $res = $FeeAndFlowBasic->FlowSend($phone,$perValue,$values['name'],$uuid);
         //充流量成功
@@ -215,26 +228,35 @@ class FeeAndFlowJsonRpc extends JsonRpc {
             $config = Config::get("feeandflow");
             $record_id = $config['activity_id']+$orderData->id;
             $uuidActivity = SendAward::create_guid();
-            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$configValue,'');
+            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$configValue,'networks_flow_refill');
             $debitStatus = 0;
             if(isset($debitRes['result'])){
                 //扣款成功
                 $debitStatus = 1;
             }
+            $orderStatus = 1;
+            if(isset($res['game_state']) && $res['game_state'] == 9){
+                $orderStatus = 2;
+            }
+            //修改订单状态
             LifePrivilege::where('id',$orderData->id)->update([
                 'debit_status' => $debitStatus,
-                'order_status' => 3,
+                'order_status' => $orderStatus,
                 'remark' => json_encode($debitRes),
                 'remark_of' => json_encode($res)
             ]);
             //事务提交结束
             DB::commit();
+            if($orderStatus == 2){
+                //如果失败
+                throw new OmgException(OmgException::FAILED_RECHARGE_OFPAY);
+            }
             return [
                 'code' => 0,
                 'message' => 'success'
             ];
         }
-        //充流量失败
+        //修改订单状态为充流量失败
         LifePrivilege::where('id',$orderData->id)->update([
             'order_status' => 2,
             'remark_of' => json_encode($res)
