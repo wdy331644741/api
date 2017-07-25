@@ -97,4 +97,17 @@ trait BasicDatatables{
             return $this->outputJson(10002,array('error_msg'=>"Database Error"));
         }
     }
+
+    public function getDtDetail(Request $request){
+        $validator = Validator::make($request->all(), $this->infoValidates);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $res = $this->model->find($request->id);
+        if($res){
+            return $this->outputJson(0, $res);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
+    }
 }
