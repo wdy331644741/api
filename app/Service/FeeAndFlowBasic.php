@@ -44,7 +44,7 @@ class FeeAndFlowBasic
             return false;
         }
         $feeParams['md5_str'] = $md5Str;
-        $feeParams['ret_url'] = env("APP_URL")."/yunying/wl/fee_flow_callback/?order_id=".$uuid;
+        $feeParams['ret_url'] = env("APP_URL")."/yunying/wl/fee_flow_callback";
         $feeParams['version'] = $config['fee_version'];
         $feeParams['buynum'] = '';
         //请求接口
@@ -96,7 +96,7 @@ class FeeAndFlowBasic
         $flowParams['effectTime'] = $config['flow_effectTime'];
         $flowParams['netType'] = $config['flow_netType'];
         $flowParams['sporderId'] = $uuid;//唯一订单id
-        $flowParams['retUrl'] = env("APP_URL")."/yunying/wl/fee_flow_callback/?order_id=".$uuid;
+        $flowParams['retUrl'] = env("APP_URL")."/yunying/wl/fee_flow_callback";
         $flowParams['version'] = $config['flow_version'];
         //获取验签
         $md5Str = self::makeFlowMd5Str($flowParams);

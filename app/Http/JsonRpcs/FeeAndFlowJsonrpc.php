@@ -122,9 +122,18 @@ class FeeAndFlowJsonRpc extends JsonRpc {
                 //扣款成功
                 $debitStatus = 1;
             }
-            $orderStatus = 1;
+            $orderStatus = 0;
+            if(isset($res['game_state']) && $res['game_state'] == 0){
+                //正在充值
+                $orderStatus = 1;
+            }
             if(isset($res['game_state']) && $res['game_state'] == 9){
+                //失败
                 $orderStatus = 2;
+            }
+            if(isset($res['game_state']) && $res['game_state'] == 1){
+                //成功
+                $orderStatus = 3;
             }
 
             //修改订单状态
@@ -234,9 +243,18 @@ class FeeAndFlowJsonRpc extends JsonRpc {
                 //扣款成功
                 $debitStatus = 1;
             }
-            $orderStatus = 1;
+            $orderStatus = 0;
+            if(isset($res['game_state']) && $res['game_state'] == 0){
+                //正在充值
+                $orderStatus = 1;
+            }
             if(isset($res['game_state']) && $res['game_state'] == 9){
+                //失败
                 $orderStatus = 2;
+            }
+            if(isset($res['game_state']) && $res['game_state'] == 1){
+                //成功
+                $orderStatus = 3;
             }
             //修改订单状态
             LifePrivilege::where('id',$orderData->id)->update([
