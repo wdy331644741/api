@@ -649,35 +649,40 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         //查询每日任务
         $nowTime = date("Y-m-d",time());
-        $res = Task::where(['user_id'=>$this->userId,'task_type'=>'dayPublishThread1'])->where('award_time','>',$nowTime)->first();
 
-        if($res){
-            $achieveTask = Tasks::where(["group_id"=>2])->get()->toArray();
-
-            foreach ($achieveTask  as $value){
-                $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->first();
-                if(!$res){
-
-                    return [
-                        'code'=>0,
-                        'message'=>'success',
-                        'data'=>1,
-                    ];
-
-                }
+        $dayTask =  Tasks::where(["group_id"=>1])->get()->toArray();
+        foreach ($dayTask as $value){
+            $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->where('created_at','>',$nowTime)->first();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1,
+                ];
             }
+        }
+
+
+        $achieveTask = Tasks::where(["group_id"=>2])->get()->toArray();
+
+        foreach ($achieveTask  as $value){
+            $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->first();
+            if(!$res){
+
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1,
+                ];
+
+            }
+        }
             return [
                 'code'=>0,
                 'message'=>'success',
                 'data'=>0,
             ];
-        }else{
-            return [
-                'code'=>0,
-                'message'=>'success',
-                'data'=>1,
-            ];
-        }
+
 
 
     }
