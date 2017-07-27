@@ -229,6 +229,20 @@ class Func
         ));
     }
 
+    /**
+     * 给用户减钱
+     */
+    static function decrementAvailable($userId, $recordId, $uuid, $amount, $type) {
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        return $client->decrementAvailable(array(
+            "user_id" => $userId,
+            "record_id"  => $recordId,
+            "uuid" => $uuid,
+            "amount" => $amount,
+            "type" => $type,
+            "sign" => hash('sha256', $userId.env('INSIDE_SECRET')),
+        ));
+    }
     //生成Guid
     static function create_guid()
     {

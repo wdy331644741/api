@@ -64,7 +64,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
-
+    // 花费&流量
+    Route::controller('feeflow', 'FeeAndFlowController');
 });
 
 // 对外接口
@@ -91,4 +92,10 @@ Route::controller('media', 'MediaController');
 Route::get('content/help','ContentController@getHelp');
 Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
 Route::get('content/{type?}/{page?}','ContentController@getList');
+
 //上传文件
+
+
+//充话费和冲流量回调方法
+Route::post("wl/fee_flow_callback",'CallbackController@postFeeAndFlowCallback');
+
