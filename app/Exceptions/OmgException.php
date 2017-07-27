@@ -25,7 +25,7 @@ class OmgException extends BasicException
     const NO_LOGIN = 4004;
     const FAILED_RECHARGE_OFPAY = 4005;
     const FAILED_AMOUNT_NOT_ENOUGH = 4006;
-    const FAILED_AMOUNT_REDUCE = 4006;
+    const FAILED_AMOUNT_REDUCE = 4007;
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
