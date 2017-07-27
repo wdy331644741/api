@@ -13,6 +13,6 @@ class CommentReply extends Model
 
     public  function user(){
 
-        return $this->hasOne('App\Models\Bbs\User','user_id','from_id')->select("user_id","nickname");
+        return $this->hasOne('App\Models\Bbs\User','user_id','from_id')->select("user_id","nickname","isadmin");
     }
 }
