@@ -393,8 +393,8 @@ class FeeAndFlowBasic
      * @param $id后台配置的商品id
      * @param $type 1是话费2是流量
      */
-    static function getValues($id,$type,$operatorType){
-        $res = ['perValue'=>0,'configValue'=>0,'name'=>''];
+    static function getValues($id,$type){
+        $res = ['perValue'=>0,'configValue'=>0,'name'=>'','operatorType'=>0];
         if($type == 1){
             $typeName = 'fee';
         }
@@ -404,13 +404,15 @@ class FeeAndFlowBasic
         if(empty($typeName)){
             return $res;
         }
+        $configInfo = LifePrivilegeConfig::where(['id'=>$id,'status'=>1])->first();
+        $res['operatorType'] = isset($configInfo->operator_type) ? $configInfo->operator_type : 0;
         //根据商品名获取殴飞面值
         $config = Config::get("feeandflow.".$typeName);
-        if($operatorType == 1){
+        if($res['operatorType'] == 1){
             $alias_name = 'yidong';
-        }elseif($operatorType == 2){
+        }elseif($res['operatorType'] == 2){
             $alias_name = 'liantong';
-        }elseif($operatorType == 3){
+        }elseif($res['operatorType'] == 3){
             $alias_name = 'dianxin';
         }
         $configInfo = LifePrivilegeConfig::where(['id'=>$id,'status'=>1])->first();

@@ -63,16 +63,15 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         $phone = isset($params->phone) && !empty($params->phone) ? $params->phone : 0;
         //商品id
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
-        //运营商类型1移动2联通3电信
-        $operator_type = isset($params->operator_type) && !empty($params->operator_type) ? $params->operator_type : 0;
-        if(strlen($phone) != 11 || $id <= 0 || $operator_type <= 0){
+        if(strlen($phone) != 11 || $id <= 0 ){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         //获取殴飞相应的价格
-        $values = FeeAndFlowBasic::getValues($id,1,$operator_type);
+        $values = FeeAndFlowBasic::getValues($id,1);
+        $operator_type = $values['operatorType'];//运营商类型1移动2联通3电信
         $name = $values['name'];//面值
         $perValue = $values['perValue'];//殴飞价格
-        if($perValue <= 0){
+        if($perValue <= 0 || $operator_type <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         //配置的价格
@@ -135,13 +134,12 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         $phone = isset($params->phone) && !empty($params->phone) ? $params->phone : 0;
         //商品ID
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
-        //运营商类型1移动2联通3电信
-        $operator_type = isset($params->operator_type) && !empty($params->operator_type) ? $params->operator_type : 0;
-        if(strlen($phone) != 11 || $id <= 0 || $operator_type <= 0){
+        if(strlen($phone) != 11 || $id <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         //获取殴飞相应的价格
-        $values = FeeAndFlowBasic::getValues($id,2,$operator_type);
+        $values = FeeAndFlowBasic::getValues($id,2);
+        $operator_type = $values['operatorType'];//运营商类型1移动2联通3电信
         $name = $values['name'];//面值
         $perValue = $values['perValue'];//殴飞对应的价格
         if($perValue <= 0){
