@@ -14,6 +14,7 @@ class CreateBbsGroupTasksTable extends Migration
     {
         Schema::create('bbs_group_tasks', function (Blueprint $table) {
             $table->increments('id');
+            $table->tinyInteger('type_id')->comment('任务类型，1：每日任务，2：成就任务');
             $table->string('name');
             $table->string('alias_name')->nullable()->default(NULL);
             $table->text('tip');
