@@ -1,5 +1,6 @@
 <?php
 namespace App\Service;
+use App\Models\LifePrivilege;
 use App\Models\LifePrivilegeConfig;
 use Config;
 use GuzzleHttp\Client;
@@ -26,6 +27,21 @@ class FeeAndFlowBasic
         }
         return false;
     }
+
+    /**
+     * 判断用户余额是否够用
+     * @param $userId
+     * @param $amount
+     * @return bool
+     */
+    static function AmountIsEnough($userId,$amount){
+        $userInfo = Func::getUserBasicInfo($userId,true);
+        $userAmount = isset($userInfo['avaliable']) ? $userInfo['avaliable'] : 0;
+        if($userAmount >= $amount){
+            return true;
+        }
+        return false;
+    }
     function FeeSend($phone,$cardNum,$uuid){
         //获取配置文件
         $config = Config::get("feeandflow.fee");
@@ -33,7 +49,7 @@ class FeeAndFlowBasic
         $feeParams['userid'] = env('OFPAY_USER_ID');
         $feeParams['userpws'] = env('OFPAY_USER_PASS');
         $feeParams['cardid'] = $config['fee_cardid'];
-        $feeParams['cardnum'] = $cardNum;
+        $feeParams['cardnum'] = intval($cardNum);
         $feeParams['mctype'] = '';
         $feeParams['sporder_id'] = $uuid;//唯一订单id
         $feeParams['sporder_time'] = date("YmdHis");
@@ -66,7 +82,7 @@ class FeeAndFlowBasic
         $feeParams['userid'] = env('OFPAY_USER_ID');
         $feeParams['userpws'] = env('OFPAY_USER_PASS');
         $feeParams['phoneno'] = $phone;
-        $feeParams['pervalue'] = $perValue;
+        $feeParams['pervalue'] = intval($perValue);
         $feeParams['mctype'] = '';
         $feeParams['version'] = $config['fee_version'];
         //请求接口
@@ -89,8 +105,8 @@ class FeeAndFlowBasic
         $flowParams['userid'] = env('OFPAY_USER_ID');
         $flowParams['userpws'] = env('OFPAY_USER_PASS');
         $flowParams['phoneno'] = $phone;
-        $flowParams['perValue'] = $perValue;
-        $flowParams['flowValue'] = $flowValue;
+        $flowParams['perValue'] = intval($perValue);
+        $flowParams['flowValue'] = trim($flowValue);
         $flowParams['range'] = $config['flow_range'];
         $flowParams['effectStartTime'] = $config['flow_effectStartTime'];
         $flowParams['effectTime'] = $config['flow_effectTime'];
@@ -177,6 +193,113 @@ class FeeAndFlowBasic
         return false;
     }
 
+    /**
+     * @param $userId 用户id
+     * @param $phone 手机号
+     * @param $name 面值 10M或者50
+     * @param $perValue 殴飞价格
+     * @param $wlValue 网利配置价格
+     * @param $type 类型 1充话费 2充流量
+     * @param $operator_type 运营商类型1移动2联通3电信
+     * @param int $is_repair 补单类型，0不是补单，1是补单
+     * @param int $old_order_id 原补单id
+     * @return array
+     */
+    function CreateOrders($userId,$phone,$name,$perValue,$wlValue,$type,$operator_type,$is_repair=0,$old_order_id = NULL){
+        //唯一订单id(殴飞)
+        $uuid = FeeAndFlowBasic::create_guid();
+        //生成订单
+        $id = LifePrivilege::insertGetId([
+            'user_id' => $userId,
+            'phone' => $phone,
+            'order_id' => $uuid,
+            'amount' => $wlValue,
+            'amount_of' => $perValue,
+            'name' => $name,
+            'type' => $type,
+            'repair_id' => $old_order_id,
+            'operator_type' => $operator_type,
+            'created_at'=>date("Y-m-d H:i:s"),
+            'updated_at'=>date("Y-m-d H:i:s")
+        ]);
+        //获取订单信息
+        $orderData = LifePrivilege::where('id',$id)->lockForUpdate()->first();
+
+        //先扣款
+        if($type == 1){
+            //充话费扣款type
+            $reduceTypeName = 'call_cost_refill';
+        }elseif($type == 2){
+            $reduceTypeName = 'networks_flow_refill';
+        }else{
+            return ['code' => -2 , 'message' => '扣款失败'];
+        }
+        if($is_repair == 1) {
+            //补单情况--无需扣款
+            $debitStatus = 1;
+            $debitRes = ['补单情况该单已扣款'];
+        }elseif($is_repair == 0){
+            //正常情况--扣款
+            $config = Config::get("feeandflow");
+            $record_id = $config['activity_id']+$orderData->id;
+            $uuidActivity = SendAward::create_guid();
+            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$wlValue,$reduceTypeName);
+            $debitStatus = 0;
+            if(isset($debitRes['result'])){
+                //扣款成功状态
+                $debitStatus = 1;
+            }else{
+                //修改订单状态为未扣款且失败
+                LifePrivilege::where('id',$orderData->id)->update([
+                    'debit_status' => $debitStatus,
+                    'remark' => json_encode($debitRes)
+                ]);
+                return ['code' => -2 , 'message' => '扣款失败'];
+            }
+        }
+
+        if($type == 1) {
+            //充话费
+            $res = $this->FeeSend($phone,$name,$uuid);
+        }elseif($type == 2) {
+            //充流量
+            $res = $this->FlowSend($phone, $perValue, $name, $uuid);
+        }
+        //充值成功
+        if($res['retcode'] == 1){
+            $orderStatus = 0;
+            if(isset($res['game_state']) && $res['game_state'] == 0){
+                //正在充值
+                $orderStatus = 1;
+            }
+            if(isset($res['game_state']) && $res['game_state'] == 9){
+                //失败
+                $orderStatus = 2;
+            }
+            if(isset($res['game_state']) && $res['game_state'] == 1){
+                //成功订单状态
+                $orderStatus = 3;
+            }
+            //修改订单状态
+            LifePrivilege::where('id',$orderData->id)->update([
+                'debit_status' => $debitStatus,
+                'order_status' => $orderStatus,
+                'remark' => json_encode($debitRes),
+                'remark_of' => json_encode($res)
+            ]);
+            if($orderStatus == 2){
+                //如果失败
+                return ['code' => -1 , 'message' => '订单失败'];
+            }
+            return ['code' => 0 , 'message' => '订单成功'];
+        }
+        //修改订单状态为充流量失败
+        LifePrivilege::where('id',$orderData->id)->update([
+            'order_status' => 2,
+            'remark_of' => json_encode($res)
+        ]);
+        return ['code' => -1 , 'message' => '订单失败'];
+    }
     /**
      * 生成guid
      * @return string
@@ -295,7 +418,7 @@ class FeeAndFlowBasic
             return $res;
         }
         $res['perValue'] = $config[$alias_name][$configInfo->name];
-        //获取配置的面值
+        //获取配置的价格
         $res['configValue'] = isset($configInfo->price) && $configInfo->price > 0 ? $configInfo->price : 0;
         $res['name'] = $configInfo->name;
         return $res;

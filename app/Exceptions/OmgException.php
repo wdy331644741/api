@@ -24,6 +24,8 @@ class OmgException extends BasicException
     const API_FAILED = 4003;
     const NO_LOGIN = 4004;
     const FAILED_RECHARGE_OFPAY = 4005;
+    const FAILED_AMOUNT_NOT_ENOUGH = 4006;
+    const FAILED_AMOUNT_REDUCE = 4006;
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
@@ -98,6 +100,8 @@ class OmgException extends BasicException
         self::API_BUSY => "接口调用过于频繁",
         self::API_FAILED => "接口调用失败",
         self::FAILED_RECHARGE_OFPAY=>"充值失败，请联系客服",
+        self::FAILED_AMOUNT_NOT_ENOUGH=>"余额不足",
+        self::FAILED_AMOUNT_REDUCE=>"扣款失败",
 
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",

@@ -68,101 +68,55 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         if(strlen($phone) != 11 || $id <= 0 || $operator_type <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $FeeAndFlowBasic = new FeeAndFlowBasic();
-        //获取殴飞相应的面值
+        //获取殴飞相应的价格
         $values = FeeAndFlowBasic::getValues($id,1,$operator_type);
-        $perValue = $values['perValue'];
+        $name = $values['name'];//面值
+        $perValue = $values['perValue'];//殴飞价格
         if($perValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
-        //配置的面值
-        $configValue = $values['configValue'];
+        //配置的价格
+        $configValue = $values['configValue'];//后台配置的价格
         if($configValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
-        //唯一订单id(殴飞)
-        $uuid = FeeAndFlowBasic::create_guid();
-        //生成订单
-        $id = LifePrivilege::insertGetId([
-            'user_id' => $userId,
-            'phone' => $phone,
-            'order_id' => $uuid,
-            'amount' => $configValue,
-            'amount_of' => $perValue,
-            'name' => $values['name'],
-            'type' => 1,
-            'operator_type' => $operator_type,
-            'created_at'=>date("Y-m-d H:i:s"),
-            'updated_at'=>date("Y-m-d H:i:s")
-        ]);
-        //事务开始
-        DB::beginTransaction();
-        $orderData = LifePrivilege::where('id',$id)->lockForUpdate()->first();
+        //判断余额是否足够
+        $amountIsEnough = FeeAndFlowBasic::AmountIsEnough($userId,$configValue);
+        if(!$amountIsEnough){
+            throw new OmgException(OmgException::FAILED_AMOUNT_NOT_ENOUGH);
+        }
         //判断是否可充值
-        $isCan = $FeeAndFlowBasic->FeeInfo($phone,$values['name']);
+        $FeeAndFlowBasic = new FeeAndFlowBasic();
+        $isCan = $FeeAndFlowBasic->FeeInfo($phone,$name);
         if($isCan['retcode'] != 1){
-            LifePrivilege::where('id',$orderData->id)->update([
-                'remark_of' => json_encode($isCan)
-            ]);
-            //事务提交结束
-            DB::commit();
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
-        //充值
-        $res = $FeeAndFlowBasic->FeeSend($phone,$values['name'],$uuid);
-        //充流量成功
-        if($res['retcode'] == 1){
-            //扣款
-            $config = Config::get("feeandflow");
-            $record_id = $config['activity_id']+$orderData->id;
-            $uuidActivity = SendAward::create_guid();
-            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$configValue,'call_cost_refill');
-            $debitStatus = 0;
-            if(isset($debitRes['result'])){
-                //扣款成功
-                $debitStatus = 1;
-            }
-            $orderStatus = 0;
-            if(isset($res['game_state']) && $res['game_state'] == 0){
-                //正在充值
-                $orderStatus = 1;
-            }
-            if(isset($res['game_state']) && $res['game_state'] == 9){
-                //失败
-                $orderStatus = 2;
-            }
-            if(isset($res['game_state']) && $res['game_state'] == 1){
-                //成功
-                $orderStatus = 3;
-            }
+        //生成订单操作
+        //事务开始
+        DB::beginTransaction();
+        $res = $FeeAndFlowBasic->CreateOrders($userId,$phone,$name,$perValue,$configValue,1,$operator_type);
+        //事务提交结束
+        DB::commit();
 
-            //修改订单状态
-            LifePrivilege::where('id',$orderData->id)->update([
-                'debit_status' => $debitStatus,
-                'order_status' => $orderStatus,
-                'remark' => json_encode($debitRes),
-                'remark_of' => json_encode($res)
-            ]);
-            //事务提交结束
-            DB::commit();
-            if($orderStatus == 2){
-                throw new OmgException(OmgException::FAILED_RECHARGE_OFPAY);
-            }
+        //返回值
+        if(isset($res['code']) && $res['code'] == 0){
             return [
                 'code' => 0,
                 'message' => 'success'
             ];
         }
-        //修改订单状态为充值失败
-        LifePrivilege::where('id',$orderData->id)->update([
-            'order_status' => 2,
-            'remark_of' => json_encode($res)
-        ]);
-        //事务提交结束
-        DB::commit();
+        //订单失败
+        if(isset($res['code']) && $res['code'] == -1){
+            throw new OmgException(OmgException::FAILED_RECHARGE_OFPAY);
+        }
+        //扣款失败
+        if(isset($res['code']) && $res['code'] == -2){
+            throw new OmgException(OmgException::FAILED_AMOUNT_REDUCE);
+        }
         return [
             'code' => -1,
-            'message' => isset($res['err_msg']) ? $res['err_msg']: "failed"
+            'message' => 'failed',
+            'data' => $res
         ];
     }
     /**
@@ -186,104 +140,55 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         if(strlen($phone) != 11 || $id <= 0 || $operator_type <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $FeeAndFlowBasic = new FeeAndFlowBasic();
-        //获取殴飞相应的面值
+        //获取殴飞相应的价格
         $values = FeeAndFlowBasic::getValues($id,2,$operator_type);
-        $perValue = $values['perValue'];
+        $name = $values['name'];//面值
+        $perValue = $values['perValue'];//殴飞对应的价格
         if($perValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
-        //配置的面值
-        $configValue = $values['configValue'];
+        //获取配置的价格
+        $configValue = $values['configValue'];//后台配置的价格
         if($configValue <= 0){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
-
-        //唯一订单id(殴飞)
-        $uuid = FeeAndFlowBasic::create_guid();
-        //生成订单
-        $id = LifePrivilege::insertGetId([
-            'user_id' => $userId,
-            'phone' => $phone,
-            'order_id' => $uuid,
-            'amount' => $configValue,
-            'amount_of' => $perValue,
-            'name' => $values['name'],
-            'type' => 2,
-            'operator_type' => $operator_type,
-            'created_at'=>date("Y-m-d H:i:s"),
-            'updated_at'=>date("Y-m-d H:i:s")
-        ]);
-        //事务开始
-        DB::beginTransaction();
-        $orderData = LifePrivilege::where('id',$id)->lockForUpdate()->first();
-
+        //判断余额是否足够
+        $amountIsEnough = FeeAndFlowBasic::AmountIsEnough($userId,$configValue);
+        if(!$amountIsEnough){
+            throw new OmgException(OmgException::FAILED_AMOUNT_NOT_ENOUGH);
+        }
         //判断是否可充值
-        $isCan = $FeeAndFlowBasic->FlowInfo($phone,$perValue,$values['name']);
+        $FeeAndFlowBasic = new FeeAndFlowBasic();
+        $isCan = $FeeAndFlowBasic->FlowInfo($phone,$perValue,$name);
         if($isCan['retcode'] != 1){
-            LifePrivilege::where('id',$orderData->id)->update([
-                'remark_of' => json_encode($isCan)
-            ]);
-            //事务提交结束
-            DB::commit();
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
+        //生成订单操作
+        //事务开始
+        DB::beginTransaction();
+        $res = $FeeAndFlowBasic->CreateOrders($userId,$phone,$name,$perValue,$configValue,2,$operator_type);
+        //事务提交结束
+        DB::commit();
 
-        //发送流量
-        $res = $FeeAndFlowBasic->FlowSend($phone,$perValue,$values['name'],$uuid);
-        //充流量成功
-        if($res['retcode'] == 1){
-            //扣款
-            $config = Config::get("feeandflow");
-            $record_id = $config['activity_id']+$orderData->id;
-            $uuidActivity = SendAward::create_guid();
-            $debitRes = Func::decrementAvailable($userId,$record_id,$uuidActivity,$configValue,'networks_flow_refill');
-            $debitStatus = 0;
-            if(isset($debitRes['result'])){
-                //扣款成功
-                $debitStatus = 1;
-            }
-            $orderStatus = 0;
-            if(isset($res['game_state']) && $res['game_state'] == 0){
-                //正在充值
-                $orderStatus = 1;
-            }
-            if(isset($res['game_state']) && $res['game_state'] == 9){
-                //失败
-                $orderStatus = 2;
-            }
-            if(isset($res['game_state']) && $res['game_state'] == 1){
-                //成功
-                $orderStatus = 3;
-            }
-            //修改订单状态
-            LifePrivilege::where('id',$orderData->id)->update([
-                'debit_status' => $debitStatus,
-                'order_status' => $orderStatus,
-                'remark' => json_encode($debitRes),
-                'remark_of' => json_encode($res)
-            ]);
-            //事务提交结束
-            DB::commit();
-            if($orderStatus == 2){
-                //如果失败
-                throw new OmgException(OmgException::FAILED_RECHARGE_OFPAY);
-            }
+        //返回值
+        if(isset($res['code']) && $res['code'] == 0){
             return [
                 'code' => 0,
                 'message' => 'success'
             ];
         }
-        //修改订单状态为充流量失败
-        LifePrivilege::where('id',$orderData->id)->update([
-            'order_status' => 2,
-            'remark_of' => json_encode($res)
-        ]);
-        //事务提交结束
-        DB::commit();
+        //订单失败
+        if(isset($res['code']) && $res['code'] == -1){
+            throw new OmgException(OmgException::FAILED_RECHARGE_OFPAY);
+        }
+        //扣款失败
+        if(isset($res['code']) && $res['code'] == -2){
+            throw new OmgException(OmgException::FAILED_AMOUNT_REDUCE);
+        }
         return [
             'code' => -1,
-            'message' => isset($res['err_msg']) ? $res['err_msg']: "failed"
+            'message' => 'failed',
+            'data' => $res
         ];
     }
 
