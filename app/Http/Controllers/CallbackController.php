@@ -12,6 +12,7 @@ use Config;
 class CallbackController extends Controller
 {
     public function postFeeAndFlowCallback(Request $request){
+        file_put_contents(storage_path('logs/feeFlowCallback-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  request:'.json_encode($request->all()).PHP_EOL,FILE_APPEND);
         //code    1成功9失败
         $ret_code = isset($request->ret_code) && !empty($request->ret_code) ? $request->ret_code : '';
         //订单id

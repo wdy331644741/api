@@ -66,6 +66,7 @@ class FeeAndFlowBasic
         //请求接口
         $res = $this->_client->post('/onlineorder.do', ['form_params' => $feeParams]);
         $res = self::xmlToArray($res->getBody());
+        $res['callback'] = $feeParams['ret_url'];
         return $res;
     }
     /**
@@ -123,6 +124,7 @@ class FeeAndFlowBasic
         //请求接口
         $res = $this->_client->post('/flowOrder.do', ['form_params' => $flowParams]);
         $res = self::xmlToArray($res->getBody());
+        $res['callback'] = $flowParams['retUrl'];
         return $res;
     }
 
