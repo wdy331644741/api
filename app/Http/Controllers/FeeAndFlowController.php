@@ -26,7 +26,7 @@ class FeeAndFlowController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:2|max:255',
             'type' => 'required|numeric|between:0.1,100',
-            'operator_type' => 'required|integer|min:0',
+            'operator_type' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0.1',
         ]);
         if($validator->fails()){
