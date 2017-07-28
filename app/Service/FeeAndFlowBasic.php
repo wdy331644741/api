@@ -364,7 +364,7 @@ class FeeAndFlowBasic
             //殴飞的配置列表
             $ofFeeList = $config['fee'][$name];
             //获取后台配置话费列表
-            $configFeeList = LifePrivilegeConfig::where(['type'=>1,'status'=>1,'operator_type'=>$opType])->orderBy('name','asc')->get()->toArray();
+            $configFeeList = LifePrivilegeConfig::where(['type'=>1,'status'=>1,'operator_type'=>$opType])->orderBy('price','asc')->get()->toArray();
             $displayList = [];
             foreach($configFeeList as $key => $item){
                 if(isset($item['name'])){
@@ -380,7 +380,7 @@ class FeeAndFlowBasic
             //殴飞的配置列表
             $ofFlowList = $config['flow'][$name];
             //获取后台配置流量列表
-            $configFlowList = LifePrivilegeConfig::where(['type'=>2,'status'=>1,'operator_type'=>$opType])->orderBy('name','asc')->get()->toArray();
+            $configFlowList = LifePrivilegeConfig::where(['type'=>2,'status'=>1,'operator_type'=>$opType])->orderBy('price','asc')->get()->toArray();
             $displayList = [];
             foreach($configFlowList as $key => $item){
                 if(isset($item['name'])){
