@@ -13,6 +13,7 @@ use App\Models\Bbs\ThreadCollection;
 use App\Models\Bbs\ThreadZan;
 use App\Models\Bbs\CommentZan;
 use App\Models\Bbs\Pm;
+use Illuminate\Pagination\Paginator;
 
 
 
@@ -241,5 +242,36 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            throw new OmgException(OmgException::API_FAILED);
        }
    }
+    /**
+     *  获取收藏帖子接口
+     *
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserCollectList($params)
+    {
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = ThreadCollection::where(["user_id"=>$this->userId,"status"=>0])
+            ->with('thread')
+            ->orderByRaw('updated_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+        ;
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+
+    }
 }
 
