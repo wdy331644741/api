@@ -18,17 +18,16 @@ class CallbackController extends Controller
         $sporder_id = isset($request->sporder_id) && !empty($request->sporder_id) ? $request->sporder_id : '';
         //回调时间
         $ordersuccesstime = isset($request->ordersuccesstime) && !empty($request->ordersuccesstime) ? $request->ordersuccesstime : '';
-        //错误信息转码
-        $request->err_msg = isset($request->err_msg) && !empty($request->err_msg) ? mb_convert_encoding($request->err_msg, "UTF-8", "GB2312") : '';
-        $str = 'ret_code:'.$request->ret_code.
-            ' | sporder_id:'.$request->sporder_id.
-            ' | ordersuccesstime:'.$request->ordersuccesstime.
-            ' | err_msg:'.$request->err_msg;
-        $requests = ['none'];
-        if(!empty($request->all())){
-            $requests = $request->all();
-        }
-        file_put_contents(storage_path('logs/feeFlowCallback-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  request:'.json_encode($requests).$str.PHP_EOL,FILE_APPEND);
+        //错误信息
+        $err_msg = isset($request->err_msg) && !empty($request->err_msg) ? mb_convert_encoding($request->err_msg, "UTF-8", "GB2312") : '';
+        //插入日志
+        $errData = [
+            'ret_code'=>$ret_code,
+            'sporder_id'=>$sporder_id,
+            'ordersuccesstime'=>$ordersuccesstime,
+            'err_msg'=>$err_msg,
+        ];
+        file_put_contents(storage_path('logs/feeFlowCallback-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  request:'.json_encode($errData).PHP_EOL,FILE_APPEND);
         if(empty($ret_code) || empty($sporder_id)){
             return false;
         }
@@ -37,7 +36,7 @@ class CallbackController extends Controller
             $upData = [];
             $upData['order_status'] = 0;
             $upData['order_time'] = $ordersuccesstime;
-            $upData['order_remark'] = json_encode($request->all());
+            $upData['order_remark'] = json_encode($errData);
             if($ret_code == 1){
                 //成功
                 $upData['order_status'] = 3;
