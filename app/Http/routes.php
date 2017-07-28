@@ -87,6 +87,17 @@ Route::get('/enclosures/{url}',function ($url) {
         'Expires' => gmdate('r', time()+60*60*24*30),
     ]);
 });
+
+//文件转调
+Route::get('/file/{url}',function ($url) {
+    $file = file_get_contents(base_path()."/storage/excel/exports/{$url}");
+    return Response::make($file)->withHeaders([
+        'Content-type' => getMimeTypeByExtension($url),
+        'Cache-Control'=> "max-age=" . 120,
+        'Expires' => gmdate('r', time()+120),
+    ]);
+});
+
 Route::controller('media', 'MediaController');
 //动态调用文章
 Route::get('content/help','ContentController@getHelp');
