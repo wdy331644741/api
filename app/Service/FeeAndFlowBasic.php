@@ -66,7 +66,9 @@ class FeeAndFlowBasic
         //请求接口
         $res = $this->_client->post('/onlineorder.do', ['form_params' => $feeParams]);
         $res = self::xmlToArray($res->getBody());
-        $res['callback'] = $feeParams['ret_url'];
+        if(!empty($res)) {
+            $res['callback'] = $feeParams['ret_url'];
+        }
         return $res;
     }
     /**
@@ -124,7 +126,9 @@ class FeeAndFlowBasic
         //请求接口
         $res = $this->_client->post('/flowOrder.do', ['form_params' => $flowParams]);
         $res = self::xmlToArray($res->getBody());
-        $res['callback'] = $flowParams['retUrl'];
+        if(!empty($res)){
+            $res['callback'] = $flowParams['retUrl'];
+        }
         return $res;
     }
 
@@ -360,7 +364,7 @@ class FeeAndFlowBasic
             //殴飞的配置列表
             $ofFeeList = $config['fee'][$name];
             //获取后台配置话费列表
-            $configFeeList = LifePrivilegeConfig::where(['type'=>1,'status'=>1])->orderBy('name','asc')->get()->toArray();
+            $configFeeList = LifePrivilegeConfig::where(['type'=>1,'status'=>1,'operator_type'=>$opType])->orderBy('name','asc')->get()->toArray();
             $displayList = [];
             foreach($configFeeList as $key => $item){
                 if(isset($item['name'])){
