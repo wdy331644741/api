@@ -251,10 +251,17 @@ class FeeAndFlowController extends Controller
         }
         $fileName = date("YmdHis").mt_rand(1000,9999);
         $typeName = "xls";
+        if(is_dir(storage_path('excel/exports'))){
+            $fileArr = glob(storage_path('excel/exports/*.xls'));
+            for($i=0; $i<count($fileArr); $i++){
+                unlink($fileArr[$i]);
+            }
+        }
         Excel::create($fileName,function($excel) use ($cellData){
             $excel->sheet('score', function($sheet) use ($cellData){
                 $sheet->rows($cellData);
             });
-        })->export($typeName);
+        })->store($typeName, storage_path('excel/exports'));
+        return $this->outputJson(0,['url'=>env('FILE_HTTP_URL').$fileName.'.'.$typeName]);
     }
 }
