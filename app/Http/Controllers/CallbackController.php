@@ -12,7 +12,6 @@ use Config;
 class CallbackController extends Controller
 {
     public function postFeeAndFlowCallback(Request $request){
-        file_put_contents(storage_path('logs/feeFlowCallback-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  request:'.json_encode($request->all()).PHP_EOL,FILE_APPEND);
         //code    1成功9失败
         $ret_code = isset($request->ret_code) && !empty($request->ret_code) ? $request->ret_code : '';
         //订单id
@@ -21,6 +20,15 @@ class CallbackController extends Controller
         $ordersuccesstime = isset($request->ordersuccesstime) && !empty($request->ordersuccesstime) ? $request->ordersuccesstime : '';
         //错误信息
         $err_msg = isset($request->err_msg) && !empty($request->err_msg) ? $request->err_msg : '';
+        $str = 'ret_code:'.$request->ret_code.
+            ' | sporder_id:'.$request->sporder_id.
+            ' | ordersuccesstime:'.$request->ordersuccesstime.
+            ' | err_msg:'.$request->err_msg;
+        $requests = ['none'];
+        if(!empty($request->all())){
+            $requests = $request->all();
+        }
+        file_put_contents(storage_path('logs/feeFlowCallback-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  request:'.json_encode($requests).$str.PHP_EOL,FILE_APPEND);
         if(empty($ret_code) || empty($sporder_id)){
             return false;
         }
