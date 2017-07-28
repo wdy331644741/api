@@ -167,7 +167,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
-
         $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
         //
         if($threadTimeLimit){
@@ -295,7 +294,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $thread->istop =  0;
         $thread->isverify = $verifyResult;
 
-        $thread->cover =  isset($params->imgs)?json_encode($params->imgs):"";
+        $thread->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
         $thread->verify_time = date('Y-m-d H:i:s');
 
         if($verifyResult ==0 ){
