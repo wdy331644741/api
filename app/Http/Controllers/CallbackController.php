@@ -18,8 +18,8 @@ class CallbackController extends Controller
         $sporder_id = isset($request->sporder_id) && !empty($request->sporder_id) ? $request->sporder_id : '';
         //回调时间
         $ordersuccesstime = isset($request->ordersuccesstime) && !empty($request->ordersuccesstime) ? $request->ordersuccesstime : '';
-        //错误信息
-        $err_msg = isset($request->err_msg) && !empty($request->err_msg) ? mb_convert_encoding($request->err_msg, "UTF-8", "GB2312") : '';
+        //错误信息转码
+        $request->err_msg = isset($request->err_msg) && !empty($request->err_msg) ? mb_convert_encoding($request->err_msg, "UTF-8", "GB2312") : '';
         $str = 'ret_code:'.$request->ret_code.
             ' | sporder_id:'.$request->sporder_id.
             ' | ordersuccesstime:'.$request->ordersuccesstime.
@@ -37,7 +37,7 @@ class CallbackController extends Controller
             $upData = [];
             $upData['order_status'] = 0;
             $upData['order_time'] = $ordersuccesstime;
-            $upData['order_remark'] = $err_msg;
+            $upData['order_remark'] = json_encode($request->all());
             if($ret_code == 1){
                 //成功
                 $upData['order_status'] = 3;
