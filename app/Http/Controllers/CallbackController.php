@@ -19,7 +19,7 @@ class CallbackController extends Controller
         //回调时间
         $ordersuccesstime = isset($request->ordersuccesstime) && !empty($request->ordersuccesstime) ? $request->ordersuccesstime : '';
         //错误信息
-        $err_msg = isset($request->err_msg) && !empty($request->err_msg) ? $request->err_msg : '';
+        $err_msg = isset($request->err_msg) && !empty($request->err_msg) ? mb_convert_encoding($request->err_msg, "UTF-8", "GB2312") : '';
         $str = 'ret_code:'.$request->ret_code.
             ' | sporder_id:'.$request->sporder_id.
             ' | ordersuccesstime:'.$request->ordersuccesstime.
