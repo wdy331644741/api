@@ -452,7 +452,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function getBbsUserThread($params){
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -770,7 +769,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * dayPublishThread  achievePublishThread achieveZanThreadP achieveZanThread achieveZanComment achieveGreatThread
      */
     public function queryBbsUserTask($param){
-        $this->userId =123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -885,294 +883,100 @@ class BbsUserJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-     public function BbsUserSendAward($param){
+     public function getBbsUserCountAward($param){
          if (empty($this->userId)) {
              throw  new OmgException(OmgException::NO_LOGIN);
          }
-         $nowTime = date("Y:m:d",time());
-         switch ($param->taskType){
-             case "dayThreadOne":
-                 //是否领过奖
-                 $alisa = "task_everyday_thread_one";
-                 $dayThreadTargetOne =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayThreadOne','user_id'=> $this->userId])->count();
-                 if($dayThreadTargetOne){
-                    throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $threadCount = Thread::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
+         $nowTime = date("Y-m-d",time());
+         $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread"])->get()->toArray();
 
-                 if($threadCount < $this->bbsDayThreadOneTaskFinsh){
-                    throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
+         foreach ($dayPublishThreadTaskInfo as $k=>$value){
+             $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+             if(!$res){
+                 return [
+                     'code'=>0,
+                     'message'=>'success',
+                     'data'=>1
+                 ];
+             }
 
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 //dd($sendData);exit;
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsDayTaskSumAwardKey,$this->bbsDayThreadOneTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'dayThreadOne';
-                     $task->award = $this->bbsDayThreadOneTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                break;
-             case "dayThreadFive":
-                 //是否领过奖
-                 $alisa = "task_everyday_thread_five";
-                 $dayThreadTargetFive =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayThreadFive','user_id'=> $this->userId])->count();
-                 if($dayThreadTargetFive){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $threadCount = Thread::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
-                 if($threadCount < $this->bbsDayThreadFiveTaskFinsh){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsDayTaskSumAwardKey,$this->bbsDayThreadFiveTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'dayThreadFive';
-                     $task->award = $this->bbsDayThreadFiveTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             case "dayCommentOne":
-                 //是否领过奖
-                 $alisa = "task_everyday_comment_one";
-                 $dayCommentTargetFive =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayCommentOne','user_id'=> $this->userId])->count();
-                 if($dayCommentTargetFive){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $commentCount = Comment::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
-                 if($commentCount < $this->bbsDayCommentOneTaskFinsh){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsDayTaskSumAwardKey,$this->bbsDayCommentOneTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'dayCommentOne';
-                     $task->award = $this->bbsDayCommentOneTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             case "dayCommentFive":
-                 //是否领过奖
-                 $alisa = "task_everyday_comment_five";
-                 $dayThreadTargetFive =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayCommentFive','user_id'=> $this->userId])->count();
-                 if($dayThreadTargetFive){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $threadCount = Comment::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
-                 if($threadCount < $this->bbsDayThreadFiveTaskFinsh){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsDayTaskSumAwardKey,$this->bbsDayCommentFiveTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'dayCommentFive';
-                     $task->award = $this->bbsDayCommentFiveTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             case "dayAllTask":
-                 //是否领过奖
-                 $alisa = "task_everyday_all";
-                 $dayAllTask =  Task::where('award_time','>',$nowTime)->where(['task_type'=>'dayAllTask','user_id'=> $this->userId])->count();
-                 if($dayAllTask){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $threadOneCount = Task::where('created_at','>',$nowTime)->where(['task_type'=>'dayThreadOne','user_id'=>$this->userId])->count();
-                 $threadFiveCount = Task::where('created_at','>',$nowTime)->where(['task_type'=>'dayThreadFive','user_id'=>$this->userId])->count();
-                 $commentOneCount = Task::where('created_at','>',$nowTime)->where(['task_type'=>'dayCommentOne','user_id'=>$this->userId])->count();
-                 $commentFiveCount = Task::where('created_at','>',$nowTime)->where(['task_type'=>'dayCommentFive','user_id'=>$this->userId])->count();
-                 if(!($threadOneCount &&$threadFiveCount&&$commentOneCount&&$commentFiveCount)){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsDayTaskSumAwardKey,$this->bbsDayAllTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'dayAllTask';
-                     $task->award = $this->bbsDayAllTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             case "achieveThreadTen":
-                 //是否领过奖
-                 $alisa = "task_achieve_thread_ten";
-                 $achieveThreadTenTask =  Task::where(['task_type'=>'achieveThreadTen','user_id'=> $this->userId])->count();
-                 if($achieveThreadTenTask){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $achieveThreadTenTaskCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
-                 if($achieveThreadTenTaskCount < $this->bbsAchieveThreadTenTaskFinsh){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     Redis::INCRBY($this->bbsAchieveTaskSumAwardKey,$this->bbsAchieveThreadTenTaskFinshAward);
-                     //成功
-                     //信息入库
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'achieveThreadTen';
-                     $task->award = $this->bbsAchieveThreadTenTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             case "achieveCommentFifty":
-                 //是否领过奖
-                 $alisa = "task_achieve_comment_fifty";
-                 $achieveCommentFiftyTask =  Task::where(['task_type'=>'achieveCommentFifty','user_id'=> $this->userId])->count();
-                 if($achieveCommentFiftyTask){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $achieveCommentFiftyTaskCount = Comment::where(['isverify'=>1,'user_id'=>$this->userId])->count();
-                 if($achieveCommentFiftyTaskCount < $this->bbsAchieveCommentFiftyTaskFinsh){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsAchieveTaskSumAwardKey,$this->bbsAchieveCommentFiftyTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'achieveCommentFifty';
-                     $task->award = $this->bbsAchieveCommentFiftyTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             case "achieveUpdateImgOrName":
-                 //是否领过奖
-                 $alisa = "task_achieve_imgOrName";
-                 $dayCommentTargetFive =  Task::where(['task_type'=>'achieveUpdateImgOrName','user_id'=> $this->userId])->count();
-                 if($dayCommentTargetFive){
-                     throw new OmgException(OmgException::MALL_IS_HAS);
-                 }
-                 $commentCount = Redis::getBit($this->achieveUserImgOrNameKey,$this->userId);
-                 if(!$commentCount){
-                     throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
-                 }
-                 //发送代金券
-                 $sendData = SendAward::ActiveSendAward($this->userId,$alisa);
-                 //
-                 if(isset($sendData[0]) && isset($sendData[0]['status']) && $sendData[0]['status'] == true){
-                     //成功
-                     //信息入库
-                     Redis::INCRBY($this->bbsAchieveTaskSumAwardKey,$this->bbsAchieveImgOrNameTaskFinshAward);
-                     $task = new Task();
-                     $task->user_id = $this->userId;
-                     $task->task_type = 'achieveUpdateImgOrName';
-                     $task->award = $this->bbsAchieveImgOrNameTaskFinshAward;
-                     $task->award_time = date("Y-m-d H:i:s",time());
-                     $task->save();
-                     return array(
-                         'code' => 0,
-                         'message' => '领取成功',
-                         'data' => $sendData[0]
-                     );
-                 }else{
-                     //失败
-                     throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-                 }
-                 break;
-             default:
-                 throw new OmgException(OmgException::DATA_ERROR);
-                 break;
          }
+
+         //成就累计发帖  achievePublishThread
+         $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
+         foreach ($achievePublishThreadTaskInfo as $k=>$value){
+             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+             if(!$res){
+                 return [
+                     'code'=>0,
+                     'message'=>'success',
+                     'data'=>1
+                 ];
+             }
+
+         }
+         //成就为他人点赞 achieveZanThreadP
+         $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
+
+         foreach ($achieveZanThreadPTaskInfo as $k=>$value){
+             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+             if(!$res){
+                 return [
+                     'code'=>0,
+                     'message'=>'success',
+                     'data'=>1
+                 ];
+             }
+
+         }
+         //成就回复点赞 achieveZanComment
+         $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment"])->get()->toArray();
+
+         foreach ($achieveZanCommentTaskInfo as $k=>$value){
+             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+             if(!$res){
+                 return [
+                     'code'=>0,
+                     'message'=>'success',
+                     'data'=>1
+                 ];
+             }
+
+         }
+         //成就主题贴点赞 achieveZanThread
+         $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
+
+         foreach ($achieveZanThreadTaskInfo as $k=>$value){
+             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+             if(!$res){
+                 return [
+                     'code'=>0,
+                     'message'=>'success',
+                     'data'=>1
+                 ];
+             }
+
+         }
+         //主题贴加精数量 achieveGreatThread
+         $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread"])->get()->toArray();
+
+         foreach ($achieveGreatThreadTaskInfo as $k=>$value){
+             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+             if(!$res){
+                 return [
+                     'code'=>0,
+                     'message'=>'success',
+                     'data'=>1
+                 ];
+             }
+
+         }
+         return [
+             'code'=>0,
+             'message'=>'success',
+             'data'=>0
+         ];
+
 
      }
 
