@@ -17,8 +17,8 @@ class FeeAndFlowController extends Controller
         $type = isset($request->type) ? $request->type : 1;
         $data = LifePrivilegeConfig::where("type",$type)
             ->orderBy('status', 'desc')
-            ->orderBy('price', 'asc')
             ->orderBy('operator_type', 'asc')
+            ->orderBy('price', 'asc')
             ->paginate(10);
         return $this->outputJson(0,$data);
     }
