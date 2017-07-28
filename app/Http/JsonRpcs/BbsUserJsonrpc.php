@@ -904,7 +904,6 @@ class BbsUserJsonRpc extends JsonRpc {
 
          //成就累计发帖  achievePublishThread
          $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
-
          foreach ($achievePublishThreadTaskInfo as $k=>$value){
              $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
              if(!$res){
