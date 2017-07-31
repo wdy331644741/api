@@ -9,6 +9,7 @@ use App\Models\Bbs\User;
 use Lib\JsonRpcClient;
 use Illuminate\Pagination\Paginator;
 use Validator;
+use App\Models\bbs\ThreadRecord;
 
 
 
@@ -62,6 +63,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('user')
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -116,6 +118,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with("user")
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('order_field DESC')
             ->limit(1)
             ->get()
@@ -135,6 +138,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('user')
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -186,6 +190,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with("user")
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('order_field DESC')
             ->limit(1)
             ->get()
@@ -205,6 +210,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('user')
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -256,6 +262,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with("user")
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('order_field DESC')
             ->limit(1)
             ->get()
@@ -275,6 +282,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('user')
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -296,13 +304,18 @@ class BbsThreadJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public  function getBbsThreadDetail($params){
+
         $userId = $this->userId;
+
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
         ]);
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
 
+        }
+        if($this->userId){
+            ThreadRecord::firstOrCreate(['user_id' => $this->userId,'tid'=>$params->id],['user_id' => $this->userId,'tid'=>$params->id]);
         }
 
         $thread =  new Thread(['userId'=>$userId]);
@@ -317,6 +330,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('user')
             ->with('collection')
             ->with('zan')
+            ->with('read')
             ->with('commentAndVerify')
             ->first();
 

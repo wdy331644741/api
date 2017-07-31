@@ -54,4 +54,8 @@ class Thread extends Model
         $userId = $this->userId;
         return $this->hasOne('App\Models\Bbs\ThreadZan','tid','id')->where(['status'=>0,'user_id'=>$userId]);
     }
+    public function read(){
+        $userId = $this->userId;
+        return $this->hasOne('App\Models\Bbs\ThreadRecord','tid','id')->where(['user_id'=>$userId]);
+    }
 }
