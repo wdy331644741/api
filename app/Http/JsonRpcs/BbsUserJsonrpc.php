@@ -739,6 +739,18 @@ class BbsUserJsonRpc extends JsonRpc {
             ->count();
         //用户被收藏数目
         $bbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
+        $countInfo = $this->getBbsUserCountPm($param);
+        if($countInfo['data']['num']){
+            $bbsUserInfo['pmReadPoint']=1;
+        }else {
+            $bbsUserInfo['pmReadPoint'] = 0;
+        }
+        $awardInfo = $this->getBbsUserCountAward($param);
+        if($awardInfo['data']){
+            $bbsUserInfo['awardReadPoint']=1;
+        }else{
+            $bbsUserInfo['awardReadPoint']=0;
+        }
         return [
             'code'=>0,
             'message'=>'success',

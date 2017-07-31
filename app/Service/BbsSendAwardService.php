@@ -11,6 +11,7 @@ use App\Models\Bbs\Comment;
 use App\Models\Activity;
 use App\Models\Bbs\Tasks;
 use App\Service\SendAward;
+use App\Models\Bbs\GroupTask;
 
 
 
