@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Bbs;
 
 use App\Models\Bbs\Comment;
 use App\Models\Bbs\ReplyConfig;
+use App\Models\Bbs\Tasks;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -13,6 +14,9 @@ use App\Models\Bbs\Thread;
 use App\Http\Traits\BasicDatatables;
 use App\Models\Bbs\Pm;
 use Validator;
+use App\Models\Bbs\Task;
+use App\Service\BbsSendAwardService;
+use App\Service\SendAward;
 
 class ThreadController extends Controller
 {
@@ -190,6 +194,7 @@ class ThreadController extends Controller
             $pm->tid = $id;
             $pm->msg_type = 1;
             $pm->type = 2;
+            $pm->content = '您的贴子未能通过审核';
             $pm->save();
         }
         if($res){
@@ -210,6 +215,21 @@ class ThreadController extends Controller
         }
         $res = Thread::where('id',$id)->update(['isverify'=>1,'verify_time'=>date('Y-m-d H:i:s')]);
         if($res){
+            $postTime = date('Y-m-d',strtotime($thread->created_at));
+            $taskHistry = Task::where('id',$thread->user_id)->whereRaw('DATE_FORMAT(award_time, "%Y-%m-%d") = '."'".$postTime."'")->count();
+            if(!$taskHistry){
+                $tasks = Tasks::where("task_mark","dayPublishThread")->get()->toArray();
+                foreach ($tasks as $value) {
+                    $postNum = Thread::where(["user_id"=>$thread->user_id,"isverify"=>1])->whereRaw('DATE_FORMAT(created_at, "%Y-%m-%d") = '."'".$postTime."'")->count();
+                    //审核发奖条件
+                    if($postNum >= $value['number']){
+                        //发奖
+                        $this->organizeDataAndSend($value,$thread->user_id,$thread->created_at);
+                    }
+                }
+            }
+            $bbsSendAward = new BbsSendAwardService($thread->user_id);
+            $bbsSendAward->publishThreadAward(2);
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
@@ -289,7 +309,7 @@ class ThreadController extends Controller
         }
     }
 
-    //批量拒绝评论
+    //批量拒绝帖子
     public function postBatchFail(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required',
@@ -329,5 +349,33 @@ class ThreadController extends Controller
         }else{
             return $this->outputJson(10011,array('error_msg'=>'Error Array','error_arr'=>$error));
         }
+    }
+
+    /*
+     *帖子发奖
+     */
+    private function organizeDataAndSend($params,$awardUserId,$award_time=null){
+        $awards['id'] = 0;
+        $awards['user_id'] = $awardUserId;
+        $awards['source_id'] = $params['id'];
+        $awards['name'] = $params['award'].'元体验金';
+        $awards['source_name'] = $params['name'];
+        $awards['experience_amount_money'] = $params['award'];
+        $awards['effective_time_type'] = 1;
+        $awards['effective_time_day'] = $params['exp_day'];
+        $awards['platform_type'] = 0;
+        $awards['limit_desc'] = '';
+        $awards['trigger'] = "";
+        $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+        SendAward::experience($awards);
+        //记录发奖数据
+        $task = new Task();
+        $task->user_id = $awardUserId;
+        $task->task_type = $params['remark'];
+        $task->award = $params['award'];
+        $task->award_time = $award_time ? $award_time : date('Y-m-d H:i:s');
+        $task->task_group_id = $params['group_id'];
+        $task->save();
+
     }
 }
