@@ -314,11 +314,13 @@ class BbsThreadJsonRpc extends JsonRpc
             throw new OmgException(OmgException::DATA_ERROR);
 
         }
+
         if($this->userId){
             ThreadRecord::firstOrCreate(['user_id' => $this->userId,'tid'=>$params->id],['user_id' => $this->userId,'tid'=>$params->id]);
+
         }
 
-        $thread =  new Thread(['userId'=>$userId]);
+        $thread =  new Thread(['userId'=>$this->userId]);
         $id = $params->id;
 
         $thread_info =  $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot","cover", "title","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
