@@ -236,15 +236,41 @@ class FeeAndFlowController extends Controller
                     '操作时间'
                 );
             }
+            $debit_status = '';
+            if($item['debit_status'] == 0){
+                $debit_status = '未扣款';
+            }elseif($item['debit_status'] == 1){
+                $debit_status = '已扣款';
+            }elseif($item['debit_status'] == 2){
+                $debit_status = '已退款';
+            }
+            $order_status = '';
+            if($item['order_status'] == 0){
+                $order_status = '未充值';
+            }elseif($item['order_status'] == 1){
+                $order_status = '正在充值';
+            }elseif($item['order_status'] == 2){
+                $order_status = '充值失败';
+            }elseif($item['order_status'] == 3){
+                $order_status = '充值成功';
+            }elseif($item['order_status'] == 4){
+                $order_status = '异常状态';
+            }
+            $repair_status = '';
+            if($item['repair_status'] == 0){
+                $repair_status = '未补单';
+            }elseif($item['repair_status'] == 1){
+                $repair_status = '已补单';
+            }
             $cellData[$key+1] = array(
                 $item['id'],
                 $item['order_id'],
                 $item['user_id'],
                 $item['name'],
                 $item['phone'],
-                $item['debit_status'],
-                $item['order_status'],
-                $item['repair_status'],
+                $debit_status,
+                $order_status,
+                $repair_status,
                 $item['amount'],
                 $item['amount_of'],
                 $item['amount_of'],
