@@ -35,11 +35,25 @@ class BbsSendAwardService
     /*
      * 发帖触发
      * */
-    public function publishThreadAward()
+    public function publishThreadAward($type = 0)
     {
+        switch (true){
+            case $type === 0:
+                $this->dayPublishThreadTask();
+                $this->publishThreadTask();
+                break;
+            case $type === 1:
+                $this->dayPublishThreadTask();
+                break;
+            case $type === 2:
+                $this->publishThreadTask();
+                break;
+            default :
+                $this->dayPublishThreadTask();
+                $this->publishThreadTask();
+        }
 
-        $this->dayPublishThreadTask();
-        $this->publishThreadTask();
+
     }
     /*
      * 评论触发

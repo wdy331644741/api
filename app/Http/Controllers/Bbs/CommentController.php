@@ -149,7 +149,7 @@ class CommentController extends Controller
             $pm->tid = $comment->tid;
             $pm->msg_type = 1;
             $pm->type = 3;
-            //$pm->content = $comment->content;
+            $pm->content = '您的回复未能通过审核';
             $pm->save();
         }
         if($res){
