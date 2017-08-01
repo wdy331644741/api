@@ -249,7 +249,7 @@ class Func
      */
     static function checkTradePwd($tradePwd) {
         $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
-        return $client->decrementAvailable(array(
+        return $client->checkTradePwd(array(
             "trade_pwd" => $tradePwd,
         ));
     }
