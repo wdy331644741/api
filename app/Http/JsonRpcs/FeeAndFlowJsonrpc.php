@@ -63,8 +63,18 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         $phone = isset($params->phone) && !empty($params->phone) ? $params->phone : 0;
         //商品id
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
-        if(strlen($phone) != 11 || $id <= 0 ){
+        //交易密码
+        $tradePwd = isset($params->tradePwd) && !empty($params->tradePwd) ? $params->tradePwd : 0;
+        if(strlen($phone) != 11 || $id <= 0 || $tradePwd <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        //验证交易密码
+        $tradePwdRes = Func::checkTradePwd($tradePwd);
+        if(!isset($tradePwdRes['result'])){
+            return [
+                'code' => -2,
+                'message' => $tradePwdRes['error']['message']
+            ];
         }
         //获取殴飞相应的价格
         $values = FeeAndFlowBasic::getValues($id,1);
@@ -134,8 +144,18 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         $phone = isset($params->phone) && !empty($params->phone) ? $params->phone : 0;
         //商品ID
         $id = isset($params->id) && !empty($params->id) ? $params->id : 0;
-        if(strlen($phone) != 11 || $id <= 0){
+        //交易密码
+        $tradePwd = isset($params->tradePwd) && !empty($params->tradePwd) ? $params->tradePwd : 0;
+        if(strlen($phone) != 11 || $id <= 0 || $tradePwd <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        //验证交易密码
+        $tradePwdRes = Func::checkTradePwd($tradePwd);
+        if(!isset($tradePwdRes['result'])){
+            return [
+                'code' => -2,
+                'message' => $tradePwdRes['error']['message']
+            ];
         }
         //获取殴飞相应的价格
         $values = FeeAndFlowBasic::getValues($id,2);
