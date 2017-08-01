@@ -24,6 +24,7 @@ use App\Service\NetEastCheckService;
 use App\Service\Attributes;
 use App\Service\BbsSendAwardService;
 use App\Models\Bbs\CommentReply;
+use App\Models\Bbs\GroupTask;
 
 
 
@@ -31,33 +32,14 @@ use App\Models\Bbs\CommentReply;
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;
-    private $achieveUserImgOrNameKey = '';
-    private $bbsDayTaskSumAwardKey = '';
-    private $bbsAchieveTaskSumAwardKey = '';
-    private $bbsDayThreadOneTaskFinsh = 1;
-    private $bbsDayThreadFiveTaskFinsh = 5;
-    private $bbsDayCommentOneTaskFinsh = 1;
-    private $bbsDayCommentFiveTaskFinsh = 5;
-    private $bbsAchieveThreadTenTaskFinsh = 10;
-    private $bbsAchieveCommentFiftyTaskFinsh = 50;
-    private $bbsDayThreadOneTaskFinshAward = 800;
-    private $bbsDayThreadFiveTaskFinshAward = 2500;
-    private $bbsDayCommentOneTaskFinshAward = 500;
-    private $bbsDayCommentFiveTaskFinshAward = 1500;
-    private $bbsDayAllTaskFinshAward = 1000;
-    private $bbsAchieveThreadTenTaskFinshAward = 5000;
-    private $bbsAchieveCommentFiftyTaskFinshAward = 5000;
-    private $bbsAchieveImgOrNameTaskFinshAward = 500;
-    private $bbsSumAward = 800+2500+500+1500+1000+5000+5000+500;
+
 
     public function __construct()
     {
         global $userId;
         $this->userId = $userId;
         $this->userInfo = Func::getUserBasicInfo($userId);
-        $this->bbsDayTaskSumAwardKey = 'bbsDayTaskSum_'.date('Y-m-d',time()).'_'.$this->userId;
-        $this->bbsAchieveTaskSumAwardKey = 'bbsAchieveTaskSum_'.$this->userId;
-        $this->achieveUserImgOrNameKey = 'achieveUserImgOrName';
+
     }
 
     /**
