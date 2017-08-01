@@ -338,6 +338,16 @@ class Func
             "sign" => hash('sha256', $userId.env('INSIDE_SECRET')),
         ));
     }
+
+    /**
+     * 验证交易密码
+     */
+    static function checkTradePwd($tradePwd) {
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        return $client->decrementAvailable(array(
+            "trade_pwd" => $tradePwd,
+        ));
+    }
     //生成Guid
     static function create_guid()
     {
