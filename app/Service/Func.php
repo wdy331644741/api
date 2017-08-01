@@ -343,7 +343,7 @@ class Func
      * 验证交易密码
      */
     static function checkTradePwd($tradePwd) {
-        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         return $client->checkTradePwd(array(
             "trade_pwd" => $tradePwd,
         ));
