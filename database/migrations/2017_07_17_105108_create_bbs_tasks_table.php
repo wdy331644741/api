@@ -25,6 +25,10 @@ class CreateBbsTasksTable extends Migration
             $table->tinyInteger('enable')->default(0)->comment("启用 0 未启用 1 启用");
             $table->string('remark')->nullable()->default(NULL);
             $table->timestamps();
+            $table->index('group_id');
+            $table->index('trigger_type');
+            $table->index('enable');
+
         });
     }
 
