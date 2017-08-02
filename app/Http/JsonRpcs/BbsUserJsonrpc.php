@@ -113,8 +113,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $netCheck = new NetEastCheckService($inParamText);
         $res = $netCheck->userCheck();
 
-        if($res['result']['code']!=0){
-            throw new OmgException(OmgException::NICKNAME_ERROR);
+        if($res['code']!=200){
+            throw new OmgException(OmgException::NAME_IS_ALIVE);
         }
 
         $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
@@ -122,8 +122,6 @@ class BbsUserJsonRpc extends JsonRpc {
         if (!$users) {
             User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
 
-            $bbsAward = new BbsSendAwardService($this->userId);
-            $bbsAward->updateImgOrName();
             $userInfo = array(
                 'user_id' => $this->userId,
                 'nickName' => $param->nickname,
@@ -518,7 +516,7 @@ class BbsUserJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type,'isread'=>0])
+        $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type])
             ->with('fromUsers','threads','comments')
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)

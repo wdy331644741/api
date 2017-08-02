@@ -18,6 +18,9 @@ class CreateBbsCommentZansTable extends Migration
             $table->integer('cid');
             $table->tinyInteger('status');
             $table->timestamps();
+            $table->index('user_id');
+            $table->index('cid');
+            $table->index(['user_id','cid']);
         });
     }
 
