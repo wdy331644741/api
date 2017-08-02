@@ -482,17 +482,11 @@ class BbsUserJsonRpc extends JsonRpc {
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $rData['list'] = $res['data'];
-        $rData['total'] = $res['total'];
-        $rData['per_page'] = $res['per_page'];
-        $rData['current_page'] = $res['current_page'];
-        $rData['last_page'] = $res['last_page'];
-        $rData['from'] = $res['from'];
-        $rData['to'] = $res['to'];
+
         return array(
             'code'=>0,
             'message'=>'success',
-            'data'=>$rData,
+            'data'=>$res,
         );
 
     }
