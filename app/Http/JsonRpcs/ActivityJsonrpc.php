@@ -998,4 +998,23 @@ class ActivityJsonRpc extends JsonRpc {
             'data'=> true
         );
     }
+
+    /**
+     * 总收益账单2.5%加息券
+     *
+     * @JsonRpcMethod
+     */
+    static function incomeStatement(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = SendAward::ActiveSendAward($userId,'income_statement_2.5');
+        //调用发奖
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> $res
+        );
+    }
 }
