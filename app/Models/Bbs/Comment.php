@@ -29,7 +29,7 @@ class Comment extends Model
     }
 
     public function thread() {
-        return $this->belongsTo('App\Models\Bbs\Thread', 'id', 'tid');
+        return $this->hasOne('App\Models\Bbs\Thread', 'id', 'tid');
     }
 
     public function zan(){

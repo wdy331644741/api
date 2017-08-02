@@ -476,8 +476,9 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = Comment::select('id','from_user_id', 'tid', 'content', 'isverify', 'verify_time', 'created_at',  'updated_at')
+        $res = Comment::select('id','tid', 'content', 'isverify', 'verify_time', 'created_at',  'updated_at')
             ->where(['isverify'=>1,'user_id'=>$this->userId])
+            ->with('thread')
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
