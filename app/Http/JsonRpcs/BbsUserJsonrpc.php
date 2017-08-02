@@ -516,7 +516,7 @@ class BbsUserJsonRpc extends JsonRpc {
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type,'isread'=>0])
+        $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type])
             ->with('fromUsers','threads','comments')
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)

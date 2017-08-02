@@ -16,6 +16,7 @@ class AddTaskToBbsTaskTable extends Migration
         Schema::table('bbs_task', function (Blueprint $table) {
 
             $table->tinyInteger('task_group_id')->comment("任务组id");
+            $table->index('task_group_id');
 
         });
     }

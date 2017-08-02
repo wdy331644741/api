@@ -382,8 +382,35 @@ class BbsThreadJsonRpc extends JsonRpc
         );
 
     }
+    /**
+     *
+     *
+     * 获取置顶帖子列表
+     *
+     * @JsonRpcMethod
+     */
+    public function delBbsUserThread($params)
+    {
 
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+            'ids' => 'required',
 
+        ]);
+
+        if ($validator->fails()) {
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+
+        $deleted['num'] = Thread::where(['user_id' => $this->userId])->whereIn('id', $params->ids)->delete();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $deleted,
+        );
+    }
 
 
 }

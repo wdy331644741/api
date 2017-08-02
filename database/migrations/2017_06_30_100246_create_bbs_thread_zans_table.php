@@ -18,6 +18,9 @@ class CreateBbsThreadZansTable extends Migration
             $table->integer('tid');
             $table->tinyInteger('status');
             $table->timestamps();
+            $table->index('user_id');
+            $table->index('tid');
+            $table->index(['user_id','tid']);
         });
     }
 

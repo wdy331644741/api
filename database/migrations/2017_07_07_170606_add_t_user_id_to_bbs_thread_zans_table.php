@@ -15,6 +15,7 @@ class AddTUserIdToBbsThreadZansTable extends Migration
         Schema::table('bbs_thread_zans', function (Blueprint $table) {
 
             $table->Integer('t_user_id')->comment("帖子用户id");
+            $table->index('t_user_id');
 
         });
     }
