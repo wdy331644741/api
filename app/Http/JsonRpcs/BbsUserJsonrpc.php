@@ -755,7 +755,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * dayPublishThread  achievePublishThread achieveZanThreadP achieveZanThread achieveZanComment achieveGreatThread
      */
     public function queryBbsUserTask($param){
-        $this->userId=123;
+        
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
