@@ -73,27 +73,30 @@ class BbsCommentJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
    public  function delBbsComment($params){
+       $this->userId =123;
        if (empty($this->userId)) {
            throw  new OmgException(OmgException::NO_LOGIN);
        }
        $validator = Validator::make(get_object_vars($params), [
-           'id'=>'required|exists:bbs_comments,id',
+           'ids' => 'required'
        ]);
        if($validator->fails()){
            throw new OmgException(OmgException::DATA_ERROR);
        }
-       $commentInfo = Comment::where(["id"=>$params->id])->first();
-       $res = Comment::where(["id"=>$params->id,"user_id"=>$this->userId])->delete();
-       if($res){
-           Thread::where(["id"=>$commentInfo['tid']])->decrement('comment_num');
-           return [
-               'code'=>0,
-               'message'=>'success',
-               'data'=>$res,
-           ];
-       }else{
-           throw new OmgException(OmgException::DATA_ERROR);
+       $resNum =0;
+       foreach ($params->ids as $value) {
+           $commentInfo = Comment::where(["id" => $value])->first();
+           $res = Comment::where(["id" => $value, "user_id" => $this->userId])->delete();
+           if ($res) {
+               Thread::where(["id" => $commentInfo['tid']])->decrement('comment_num');
+               $resNum++;
+           }
        }
+       return[
+           'code'=>0,
+           'message'=>'success',
+           'data'=>$resNum,
+       ];
    }
 
 
