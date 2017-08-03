@@ -69,6 +69,78 @@ class TaskController extends Controller
         }
     }
 
+    //添加子任务
+    public function postAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'group_id' => 'required|exists:bbs_group_tasks,id',
+            'number' => 'required|integer',
+            'task_mark' => 'required',
+            'trigger_type' => 'required',
+            'award_type' => 'required',
+            'award' => 'required|integer',
+            'frequency' => 'required|in:0,1,2',
+            'exp_day' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $task = new Tasks();
+        $task->name = $request->name;
+        $task->group_id = $request->group_id;
+        $task->number = $request->number;
+        $task->task_mark = $request->task_mark;
+        $task->trigger_type = $request->trigger_type;
+        $task->award_type = $request->award_type;
+        $task->award = $request->award;
+        $task->frequency = $request->frequency;
+        $task->exp_day = $request->exp_day;
+        $task->remark = $request->task_mark.'_'.$request->number;
+        $res = $task->save();
+        if($res){
+            return $this->outputJson(0,array('insert_id'=>$task->id));
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //修改子任务
+    public function postPut(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:bbs_tasks,id',
+            'name' => 'required',
+            'group_id' => 'required|exists:bbs_group_tasks,id',
+            'number' => 'required|integer',
+            'task_mark' => 'required',
+            'trigger_type' => 'required',
+            'award_type' => 'required',
+            'award' => 'required|integer',
+            'frequency' => 'required|in:0,1,2',
+            'exp_day' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            return $this->outputJson(10001, array('error_msg' => $validator->errors()->first()));
+        }
+        $putData = [
+            'name' => $request->name,
+            'group_id' => $request->group_id,
+            'number' => $request->number,
+            'task_mark' => $request->task_mark,
+            'trigger_type' => $request->trigger_type,
+            'award_type' => $request->award_type,
+            'award' => $request->award,
+            'frequency' => $request->frequency,
+            'exp_day' => $request->exp_day,
+            'remark' => $request->task_mark . '_' . $request->number
+        ];
+        $res = Tasks::where('id', $request->id)->update($putData);
+        if ($res) {
+            return $this->outputJson(0);
+        } else {
+            return $this->outputJson(10002, array('error_msg' => 'Database Error'));
+        }
+    }
 
     //任务列表
     public function getGroupList(Request $request){
@@ -124,6 +196,7 @@ class TaskController extends Controller
             'name' => 'string|required',
             'type_id'=>'integer|required',
             'tip'=>'required|string',
+            'alias_name'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -132,7 +205,7 @@ class TaskController extends Controller
         $group->name = $request->name;
         $group->type_id = $request->type_id;
         $group->tip = $request->tip;
-        $group->alias_name = $request->alias_name ? $request->alias_name : NULL;
+        $group->alias_name = $request->alias_name;
         $res = $group->save();
         if($res){
             return $this->outputJson(0,array('insert_id'=>$group->id));
@@ -172,13 +245,14 @@ class TaskController extends Controller
             'id' => 'required|exists:bbs_group_tasks,id',
             'name' => 'required',
             'tip'=>'required',
+            'alias_name'=>'required'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $res = GroupTask::where('id',$request->id)->update([
             'name'=>$request->name,
-            'alias_name'=>$request->alias_name ? $request->alias_name : NULL,
+            'alias_name'=>$request->alias_name,
             'tip'=>$request->tip,
         ]);
         if($res){
