@@ -73,6 +73,7 @@ class BbsCommentJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
    public  function delBbsComment($params){
+       $this->userId =123;
        if (empty($this->userId)) {
            throw  new OmgException(OmgException::NO_LOGIN);
        }
@@ -83,7 +84,7 @@ class BbsCommentJsonRpc extends JsonRpc {
            throw new OmgException(OmgException::DATA_ERROR);
        }
        $resNum =0;
-       foreach ($params->id as $value) {
+       foreach ($params->ids as $value) {
            $commentInfo = Comment::where(["id" => $value])->first();
            $res = Comment::where(["id" => $value, "user_id" => $this->userId])->delete();
            if ($res) {
