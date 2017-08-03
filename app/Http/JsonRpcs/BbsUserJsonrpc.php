@@ -756,65 +756,71 @@ class BbsUserJsonRpc extends JsonRpc {
      * dayPublishThread  achievePublishThread achieveZanThreadP achieveZanThread achieveZanComment achieveGreatThread
      */
     public function queryBbsUserTask($param){
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         //每日发帖任务 dayPublishThread
         $nowTime = date("Y-m-d",time());
-        $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread"])->get()->toArray();
+        $dayPublishThreadTaskInfo["list"] = Tasks::where(["task_mark"=>"dayPublishThread"])->get()->toArray();
         $dayThreadCount = Thread::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
-        foreach ($dayPublishThreadTaskInfo as $k=>$value){
+        foreach ($dayPublishThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $dayPublishThreadTaskInfo[$k]['current'] = $dayThreadCount;
-            $dayPublishThreadTaskInfo[$k]['isaward'] = $res;
+            $value['current'] = $dayThreadCount;
+            $value['isaward'] = $res;
 
         }
-
+        $dayPublishThreadTaskInfo["description"] = "每日发帖";
         //成就累计发帖  achievePublishThread
-        $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
+        $achievePublishThreadTaskInfo["list"] = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
         $achieveThreadCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
-        foreach ($achievePublishThreadTaskInfo as $k=>$value){
+        foreach ($achievePublishThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $achievePublishThreadTaskInfo[$k]['current'] = $achieveThreadCount;
-            $achievePublishThreadTaskInfo[$k]['isaward'] = $res;
+            $value['current'] = $achieveThreadCount;
+            $value['isaward'] = $res;
 
         }
+        $achievePublishThreadTaskInfo["description"] ="累计发布主题帖";
         //成就为他人点赞 achieveZanThreadP
-        $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
+        $achieveZanThreadPTaskInfo["list"] = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
         $achieveZanThreadPCount = ThreadZan::where(['user_id'=>$this->userId])->count();
-        foreach ($achieveZanThreadPTaskInfo as $k=>$value){
+        foreach ($achieveZanThreadPTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $achieveZanThreadPTaskInfo[$k]['current'] = $achieveZanThreadPCount;
-            $achieveZanThreadPTaskInfo[$k]['isaward'] = $res;
+            $value['current'] = $achieveZanThreadPCount;
+            $value['isaward'] = $res;
 
         }
+        $achieveZanThreadPTaskInfo["description"] = "累计为他人点赞";
         //成就回复点赞 achieveZanComment
-        $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment"])->get()->toArray();
+        $achieveZanCommentTaskInfo["list"] = Tasks::where(["task_mark"=>"achieveZanComment"])->get()->toArray();
         $achieveZanCommentCount = CommentZan::where(['c_user_id'=>$this->userId])->count();
-        foreach ($achieveZanCommentTaskInfo as $k=>$value){
+        foreach ($achieveZanCommentTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $achieveZanCommentTaskInfo[$k]['current'] = $achieveZanCommentCount;
-            $achieveZanCommentTaskInfo[$k]['isaward'] = $res;
+            $value['current'] = $achieveZanCommentCount;
+            $value['isaward'] = $res;
 
         }
+        $achieveZanCommentTaskInfo["description"] = "回复获得点赞";
         //成就主题贴点赞 achieveZanThread
-        $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
-        $achieveZanThreadCount = ThreadZan::where(['t_user_id'=>$this->userId])->count();
-        foreach ($achieveZanThreadTaskInfo as $k=>$value){
+        $achieveZanThreadTaskInfo["list"] = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
+        $achieveZanThreadCount["list"] = ThreadZan::where(['t_user_id'=>$this->userId])->count();
+        foreach ($achieveZanThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $achieveZanThreadTaskInfo[$k]['current'] = $achieveZanThreadCount;
-            $achieveZanThreadTaskInfo[$k]['isaward'] = $res;
+            $value['current'] = $achieveZanThreadCount;
+            $value['isaward'] = $res;
 
         }
+        $achieveZanThreadTaskInfo["description"] = "主题帖获得点赞";
         //主题贴加精数量 achieveGreatThread
-        $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread"])->get()->toArray();
+        $achieveGreatThreadTaskInfo["list"] = Tasks::where(["task_mark"=>"achieveGreatThread"])->get()->toArray();
         $achieveGreatThreadCount = Thread::where(['user_id'=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
-        foreach ($achieveGreatThreadTaskInfo as $k=>$value){
+        foreach ($achieveGreatThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $achieveGreatThreadTaskInfo[$k]['current'] = $achieveGreatThreadCount;
-            $achieveGreatThreadTaskInfo[$k]['isaward'] = $res;
+            $value['current'] = $achieveGreatThreadCount;
+            $value['isaward'] = $res;
 
         }
+        $achieveGreatThreadTaskInfo["description"] = "主题帖被加精";
         $res = [
             [
                 "title"=>"每日任务",
@@ -822,7 +828,7 @@ class BbsUserJsonRpc extends JsonRpc {
                 "list"=>[
                     [
                         "dayPublishThread"=>$dayPublishThreadTaskInfo,
-                        "description"=>"每日发帖"
+
                     ]
 
                 ]
@@ -833,15 +839,15 @@ class BbsUserJsonRpc extends JsonRpc {
                 "list"=>[
                     [
                         "achievePublishThread"=>$achievePublishThreadTaskInfo,
-                        "description"=>"累计发布主题帖",
+
                     ],
                     [
                         "achieveZanThreadP"=>$achieveZanThreadPTaskInfo,
-                        "description"=>"累计为他人点赞",
+
                     ],
                     [
                         "achieveZanComment"=>$achieveZanCommentTaskInfo,
-                        "description"=>"回复获得点赞",
+
                     ],
                     [
                         "achieveZanThread"=>$achieveZanThreadTaskInfo,
@@ -849,7 +855,7 @@ class BbsUserJsonRpc extends JsonRpc {
                     ],
                     [
                         "achieveGreatThread"=>$achieveGreatThreadTaskInfo,
-                        "description"=>"主题帖被加精",
+
                     ],
 
 
