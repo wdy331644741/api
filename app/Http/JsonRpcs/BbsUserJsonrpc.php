@@ -755,7 +755,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * dayPublishThread  achievePublishThread achieveZanThreadP achieveZanThread achieveZanComment achieveGreatThread
      */
     public function queryBbsUserTask($param){
-
+        $this->userId=123;
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -765,8 +765,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $dayThreadCount = Thread::where('created_at','>',$nowTime)->where(['isverify'=>1,'user_id'=>$this->userId])->count();
         foreach ($dayPublishThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $value['current'] = $dayThreadCount;
-            $value['isaward'] = $res;
+            $dayPublishThreadTaskInfo["list"][$k]['current'] = $dayThreadCount;
+            $dayPublishThreadTaskInfo["list"][$k]['isaward'] = $res;
 
         }
         $dayPublishThreadTaskInfo["description"] = "每日发帖";
@@ -775,8 +775,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveThreadCount = Thread::where(['isverify'=>1,'user_id'=>$this->userId])->count();
         foreach ($achievePublishThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $value['current'] = $achieveThreadCount;
-            $value['isaward'] = $res;
+            $achievePublishThreadTaskInfo["list"][$k]['current'] = $achieveThreadCount;
+            $achievePublishThreadTaskInfo["list"][$k]['isaward'] = $res;
 
         }
         $achievePublishThreadTaskInfo["description"] ="累计发布主题帖";
@@ -785,8 +785,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveZanThreadPCount = ThreadZan::where(['user_id'=>$this->userId])->count();
         foreach ($achieveZanThreadPTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $value['current'] = $achieveZanThreadPCount;
-            $value['isaward'] = $res;
+            $achieveZanThreadPTaskInfo["list"][$k]['current'] = $achieveZanThreadPCount;
+            $achieveZanThreadPTaskInfo["list"][$k]['isaward'] = $res;
 
         }
         $achieveZanThreadPTaskInfo["description"] = "累计为他人点赞";
@@ -795,8 +795,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveZanCommentCount = CommentZan::where(['c_user_id'=>$this->userId])->count();
         foreach ($achieveZanCommentTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $value['current'] = $achieveZanCommentCount;
-            $value['isaward'] = $res;
+            $achieveZanCommentTaskInfo["list"][$k]['current'] = $achieveZanCommentCount;
+            $achieveZanCommentTaskInfo["list"][$k]['isaward'] = $res;
 
         }
         $achieveZanCommentTaskInfo["description"] = "回复获得点赞";
@@ -805,8 +805,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveZanThreadCount["list"] = ThreadZan::where(['t_user_id'=>$this->userId])->count();
         foreach ($achieveZanThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $value['current'] = $achieveZanThreadCount;
-            $value['isaward'] = $res;
+            $achieveZanThreadTaskInfo["list"][$k]['current'] = $achieveZanThreadCount;
+            $achieveZanThreadTaskInfo["list"][$k]['isaward'] = $res;
 
         }
         $achieveZanThreadTaskInfo["description"] = "主题帖获得点赞";
@@ -815,8 +815,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveGreatThreadCount = Thread::where(['user_id'=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
         foreach ($achieveGreatThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-            $value['current'] = $achieveGreatThreadCount;
-            $value['isaward'] = $res;
+            $achieveGreatThreadTaskInfo["list"][$k]['current'] = $achieveGreatThreadCount;
+            $achieveGreatThreadTaskInfo["list"][$k]['isaward'] = $res;
 
         }
         $achieveGreatThreadTaskInfo["description"] = "主题帖被加精";
@@ -850,7 +850,7 @@ class BbsUserJsonRpc extends JsonRpc {
                     ],
                     [
                         "achieveZanThread"=>$achieveZanThreadTaskInfo,
-                        "description"=>"主题帖获得点赞",
+
                     ],
                     [
                         "achieveGreatThread"=>$achieveGreatThreadTaskInfo,
@@ -864,11 +864,11 @@ class BbsUserJsonRpc extends JsonRpc {
             ]
 
         ];
-        return array(
+        return [
             'code'=>0,
             'message'=>'success',
             'data'=>$res
-        );
+        ];
     }
 
     /**
