@@ -1004,6 +1004,30 @@ class ActivityJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
+    static function incomeStatementStatus(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = ActivityService::isExistByAliasUserID('income_statement_2.5',$userId);
+        if($res == 1){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> true
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> false
+        );
+    }
+    /**
+     * 总收益账单2.5%加息券
+     *
+     * @JsonRpcMethod
+     */
     static function incomeStatement(){
         global $userId;
         if(!$userId) {
