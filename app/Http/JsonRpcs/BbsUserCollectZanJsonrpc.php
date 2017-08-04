@@ -273,5 +273,40 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
         );
 
     }
+    /**
+     *  批量删除收藏帖子接口
+     *
+     *
+     * @JsonRpcMethod
+     */
+    public function delBbsThreadCollect($params){
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+            'ids' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $resNum = 0;
+        foreach ($params->ids as $value) {
+            $threadCollectInfo = ThreadCollection::where(["id"=>$value])->first();
+            $res = ThreadCollection::updateOrCreate(["user_id" => $this->userId, "id" => $value], ["status" => 1]);
+            if ($res) {
+                Thread::where(["id" => $threadCollectInfo["tid"]])->decrement("collection_num");
+                $resNum++;
+            }
+        }
+        return [
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$resNum,
+        ];
+
+
+    }
+
 }
 
