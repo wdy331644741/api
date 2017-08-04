@@ -73,7 +73,7 @@ class BbsCommentJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
    public  function delBbsComment($params){
-       $this->userId =123;
+
        if (empty($this->userId)) {
            throw  new OmgException(OmgException::NO_LOGIN);
        }

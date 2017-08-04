@@ -10,6 +10,7 @@ use App\Models\Bbs\Comment;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Pm;
 use App\Models\Bbs\ReplyConfig;
+use App\Models\Bbs\CommentReply;
 use App\Http\Traits\BasicDatatables;
 use Validator;
 
@@ -28,6 +29,32 @@ class CommentController extends Controller
         $this->model = new Comment();
     }
 
+    //官方回复评论
+    public function postAdminReply(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'comment_id'=>'required|exists:bbs_comments,id',
+            'from_id'=>'required|exists:bbs_users,id',
+            'content'=>'required'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $comment = Comment::find($request->comment_id);
+        $commentReply = new CommentReply();
+        $commentReply->comment_id = $request->comment_id;
+        $commentReply->from_id = $request->from_id;
+        $commentReply->to_id = $comment->user_id;
+        $commentReply->content = $request->content;
+        $commentReply->reply_type = 'comment';
+        $commentReply->is_verify = 1;
+        $res = $commentReply->save();
+        if($res){
+            return $this->outputJson(0,array('id'=>$commentReply->id));
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+
+    }
 
     /*//审核评论
     public function postCheck(Request $request){
