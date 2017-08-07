@@ -205,7 +205,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $bbsAward->commentZanAward();
            return array(
                'code'=>0,
-               'message'=>'success',
+               'message'=>'已点赞',
                'data'=>$res,
            );
        }else{
