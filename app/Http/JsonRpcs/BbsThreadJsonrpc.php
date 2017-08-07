@@ -364,14 +364,14 @@ class BbsThreadJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getBbsThreadTopList($params){
-        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 3;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
         $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
-            //->with('user')
+
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();

@@ -61,7 +61,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->save();
            return array(
                'code'=>0,
-               'message'=>'success',
+               'message'=>'已收藏',
                'data'=>$res,
            );
        }else{
@@ -91,7 +91,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
              Thread::where(["id"=>$params->id])->decrement("collection_num");
             return array(
                 'code'=>0,
-                'message'=>'success',
+                'message'=>'已取消收藏',
                 'data'=>$res,
             );
         }else{
@@ -129,10 +129,11 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->msg_type = 2;
            $pm->save();
            $bbsAward = new BbsSendAwardService($this->userId,$threadInfo['user_id']);
-           $bbsAward->threadZanAward();
+           $num = $bbsAward->threadZanAward();
+           $message = $num?"已点赞":"已点赞，体验金+".$num;
            return array(
                'code'=>0,
-               'message'=>'success',
+               'message'=>$message,
                'data'=>$res,
            );
        }else{
@@ -163,7 +164,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            Thread::where(["id"=>$params->id])->decrement("zan_num");
            return array(
                'code'=>0,
-               'message'=>'success',
+               'message'=>'已取消点赞',
                'data'=>$res,
            );
        }else{
@@ -204,7 +205,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $bbsAward->commentZanAward();
            return array(
                'code'=>0,
-               'message'=>'success',
+               'message'=>'已点赞',
                'data'=>$res,
            );
        }else{

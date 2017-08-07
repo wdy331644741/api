@@ -70,7 +70,8 @@ class BbsSendAwardService
     public  function threadZanAward()
     {
         $this->zanThreadPTask();
-        $this->zanThreadTask();
+        $award = $this->zanThreadTask();
+        return $award;
     }
     /*
      * 评论点赞触发
@@ -173,6 +174,7 @@ class BbsSendAwardService
                     if ($userDayThreadCount >= $value['number']) {
                         //发奖
                         $this->organizeDataAndSend($value,$this->userPid);
+                        return $value["award"];
                     }
 
                 } else {
