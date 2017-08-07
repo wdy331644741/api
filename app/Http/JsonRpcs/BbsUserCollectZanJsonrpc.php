@@ -130,7 +130,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
            $pm->save();
            $bbsAward = new BbsSendAwardService($this->userId,$threadInfo['user_id']);
            $num = $bbsAward->threadZanAward();
-           $message = $num?"已点赞":"已点赞，体验金+".$num;
+           $message = empty($num)?"已点赞":"已点赞，体验金+".$num;
            return array(
                'code'=>0,
                'message'=>$message,
