@@ -142,7 +142,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($hotThread, $res['data']);
+        if($params->page == 1) {
+            $res['data'] = array_merge($hotThread, $res['data']);
+        }
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
@@ -214,7 +216,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($greatThread, $res['data']);
+        if($params->page ==1) {
+            $res['data'] = array_merge($greatThread, $res['data']);
+        }
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
@@ -286,7 +290,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($lastThread, $res['data']);
+        if($params->page == 1) {
+            $res['data'] = array_merge($lastThread, $res['data']);
+        }
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
