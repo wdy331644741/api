@@ -40,7 +40,7 @@ class TaskController extends Controller
     //发布活动
     public function postOnline(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'alpha_num|exists:bbs_group_tasks,id',
+            'id' => 'alpha_num|exists:bbs_tasks,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -56,7 +56,7 @@ class TaskController extends Controller
     //下线活动
     public function postOffline(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'alpha_num|exists:bbs_group_tasks,id',
+            'id' => 'alpha_num|exists:bbs_tasks,id',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
