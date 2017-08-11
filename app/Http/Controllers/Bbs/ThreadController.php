@@ -152,6 +152,11 @@ class ThreadController extends Controller
         }
         $res = Thread::where('id',$request->id)->update($putData);
         if($res){
+            if(isset($request->isgreat)){
+                $thread = Thread::find($request->id);
+                $bbsSendAward = new BbsSendAwardService($thread->user_id);
+                $bbsSendAward->threadGreatAward();
+            }
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
