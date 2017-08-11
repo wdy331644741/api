@@ -550,7 +550,7 @@ class BbsUserJsonRpc extends JsonRpc {
         }
 
 
-        $deleted['num'] = Pm::where(['user_id'=>$this->userId,'isread'=>0])->whereIn('id',$params->ids)->delete();
+        $deleted['num'] = Pm::where(['user_id'=>$this->userId])->whereIn('id',$params->ids)->delete();
         return array(
             'code'=>0,
             'message'=>'success',

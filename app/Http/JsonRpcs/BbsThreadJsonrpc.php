@@ -109,7 +109,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread = new Thread(['userId' => $userId]);
         $hotThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->selectRaw('(views+comment_num) as order_field')
-            ->where(['istop' => 0])
+            ->where(['istop' => 1])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
@@ -142,7 +142,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($hotThread, $res['data']);
+        if($page == 1) {
+            $res['data'] = array_merge($hotThread, $res['data']);
+        }
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
@@ -181,7 +183,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread = new Thread(['userId' => $userId]);
         $greatThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->selectRaw('(views+comment_num) as order_field')
-            ->where(['isgreat' => 0])
+            ->where(['isgreat' => 1])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
@@ -214,7 +216,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($greatThread, $res['data']);
+        if($page ==1) {
+            $res['data'] = array_merge($greatThread, $res['data']);
+        }
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
@@ -286,7 +290,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
-        $res['data'] = array_merge($lastThread, $res['data']);
+        if($page == 1) {
+            $res['data'] = array_merge($lastThread, $res['data']);
+        }
         //$topList = $this->getBbsThreadTopList($params);
         return [
             'code' => 0,
@@ -364,14 +370,14 @@ class BbsThreadJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getBbsThreadTopList($params){
-        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 3;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
         $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
-            //->with('user')
+
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
