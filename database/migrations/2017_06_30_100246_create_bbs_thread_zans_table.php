@@ -14,7 +14,7 @@ class CreateBbsThreadZansTable extends Migration
     {
         Schema::create('bbs_thread_zans', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id')->index();
+            $table->integer('user_id');
             $table->integer('tid');
             $table->tinyInteger('status');
             $table->timestamps();

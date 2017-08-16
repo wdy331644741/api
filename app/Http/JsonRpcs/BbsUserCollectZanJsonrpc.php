@@ -46,6 +46,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
        if ($validator->fails()) {
            throw new OmgException(OmgException::DATA_ERROR);
        }
+       //
        $threadInfo = Thread::where(["id"=>$params->id])->first();
        $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id,"t_user_id"=>$threadInfo['user_id']],["status"=>0]);
 

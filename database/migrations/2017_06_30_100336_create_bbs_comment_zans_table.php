@@ -14,7 +14,7 @@ class CreateBbsCommentZansTable extends Migration
     {
         Schema::create('bbs_comment_zans', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id')->index();
+            $table->integer('user_id');
             $table->integer('cid');
             $table->tinyInteger('status');
             $table->timestamps();

@@ -100,7 +100,7 @@ class BbsUserJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NICKNAME_IS_NULL);
         }
         $validator = Validator::make(get_object_vars($param), [
-            'nickname'=>'required|max:10',
+            'nickname'=>'required|max:11|min:2',
         ]);
         if($validator->fails()){
             throw new OmgException(OmgException::NICKNAME_ERROR);
@@ -666,7 +666,6 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsUserInfo($param){
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -712,7 +711,9 @@ class BbsUserJsonRpc extends JsonRpc {
         $bbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
             ->leftJoin('bbs_threads', 'tid', '=', 'bbs_threads.id')
             ->where(["bbs_threads.user_id"=>$this->userId,"bbs_threads.isverify"=>1])
-            ->count();
+           ->count();
+
+        dd($bbsUserInfo['userCommentNum']);
         //用户被收藏数目
         $bbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
         $countInfo = $this->getBbsUserCountPm($param);

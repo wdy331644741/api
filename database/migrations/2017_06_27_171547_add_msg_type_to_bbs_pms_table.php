@@ -13,7 +13,7 @@ class AddMsgTypeToBbsPmsTable extends Migration
     public function up()
     {
         Schema::table('bbs_pms', function (Blueprint $table) {
-            $table->tinyInteger('msg_type')->index()->comment('1:系统，2:互动');
+            $table->tinyInteger('msg_type')->comment('1:系统，2:互动');
             $table->index('msg_type');
         });
     }

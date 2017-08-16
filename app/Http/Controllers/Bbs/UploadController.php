@@ -109,7 +109,7 @@ class UploadController extends Controller
                         "jsonrpc" => 2.0,
                         "error" => [
                             "code" => -3402,
-                            "message" => "图片保存失败"
+                            "message" => "图片审核未通过"
                         ],
                         "id" => 1
                     ]);
