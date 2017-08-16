@@ -13,9 +13,8 @@ class AddTUserIdToBbsCommentZansTable extends Migration
     public function up()
     {
         Schema::table('bbs_comment_zans', function (Blueprint $table) {
-
             $table->Integer('c_user_id')->comment("回复用户id");
-            $table->index('t_user_id');
+            $table->index('c_user_id');
 
         });
     }
