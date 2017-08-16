@@ -1010,7 +1010,7 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $res = ActivityService::isExistByAliasUserID('income_statement_2.5',$userId);
-        if($res == 1){
+        if($res >= 1){
             return array(
                 'code' => 0,
                 'message' => 'success',

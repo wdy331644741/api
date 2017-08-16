@@ -6,6 +6,7 @@ use App\Models\Banner;
 use App\Models\AppStartpage;
 use App\Exceptions\OmgException as OmgException;
 use Illuminate\Pagination\Paginator;
+use Lib\JsonRpcClient;
 
 class BannerJsonRpc extends JsonRpc {
 
@@ -367,6 +368,62 @@ class BannerJsonRpc extends JsonRpc {
             $data['Etag'] = strval(strtotime($data['release_at']));
             $data['img'] = $data["img{$params->value}"];
         }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
+    /**
+     *  获取存管弹框
+     *
+     * @JsonRpcMethod
+     */
+    public function appDepositoryPop(){
+        //获取绑卡状态
+        $url = env('ACCOUNT_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $status = $client->neededActive();
+        //成功
+        if(isset($status['result']['code']) && $status['result']['code'] == 0){
+            if($status['result']['active_status'] == 0){
+                $bindStatus = false;
+            }elseif($status['result']['active_status'] == 1){
+                $bindStatus = true;
+            }else{
+                return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => []
+                );
+            }
+        }else{
+            throw new OmgException(OmgException::API_FAILED);
+        }
+
+        $where = array(
+            'can_use' => 1,
+            'position' => 'pop',
+        );
+        if($bindStatus){
+            $where['name'] = '存管弹窗立即激活';
+        }else{
+            $where['name'] = '存管弹窗立即开通';
+        }
+        $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+            ->where(function($query) {
+                $query->whereNull('start')->orWhereRaw('start < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end')->orWhereRaw('end > now()');
+            })
+            ->orderByRaw('id + sort DESC')->first();
+
+        if(!$data) {
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $data['Etag'] = $data['release_time'];
         return array(
             'code' => 0,
             'message' => 'success',
