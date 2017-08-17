@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Jobs\ScratchBatch;
+use App\Models\HdScratch;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
@@ -54,7 +55,31 @@ class ScratchJsonRpc extends JsonRpc
             'data' => $result,
         ];
     }
+    /**
+     * 获取我的奖品列表
+     *
+     * @JsonRpcMethod
+     */
+    public function scratchList() {
+        $list = Cache::remember('scratch_list', 2, function() {
+            $data = HdScratch::select('user_id', 'award_name')->where('status',1)->orderBy('id', 'desc')->take(100)->get();
+            $newData = [];
+            foreach ($data as &$item){
+                if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+                    $phone = Func::getUserPhone($item['user_id']);
+                    $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                    $newData[] = "恭喜".$item['phone']."获得".$item['award_name'];
+                }
+            }
+            return $newData;
+        });
 
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $list,
+        ];
+    }
     /**
      * 抽奖
      *
