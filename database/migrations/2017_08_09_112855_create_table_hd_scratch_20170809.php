@@ -26,6 +26,7 @@ class CreateTableHdScratch20170809 extends Migration
             $table->timestamps();
             $table->index('user_id');
             $table->index('type');
+            $table->index('status');
         });
     }
 
