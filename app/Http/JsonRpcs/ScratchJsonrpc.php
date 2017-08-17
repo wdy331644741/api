@@ -22,7 +22,7 @@ class ScratchJsonRpc extends JsonRpc
      */
     public function scratchInfo($params) {
         global $userId;
-        $userId = 17167071;
+
         $result = ['login' => false, 'number' => [],'award_list' => []];
 
         // 用户是否登录
@@ -62,7 +62,7 @@ class ScratchJsonRpc extends JsonRpc
      */
     public function scratchDraw($params) {
         global $userId;
-        $userId = 1716707;
+
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);

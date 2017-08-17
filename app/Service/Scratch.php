@@ -15,40 +15,8 @@ class Scratch
      */
     static function sendAward($userId, $award) {
         $remark = [];
-        // 发送现金
-        if($award['type'] === 'rmb') {
-            $uuid = SendAward::create_guid();
-            // 创建记录
-            $res = HdScratch::create([
-                'user_id' => $userId,
-                'award_name' => $award['name'],
-                'alias_name' => $award['alias_name'],
-                'uuid' => $uuid,
-                'ip' => Request::getClientIp(),
-                'user_agent' => Request::header('User-Agent'),
-                'status' => 1,
-                'type' => 'rmb',
-                'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-            ]);
-
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'magic_ice_cube');
-
-            $remark['addMoneyRes'] = $purchaseRes;
-            // 成功
-            if(isset($purchaseRes['result'])) {
-                $res->update(['status' => 1, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
-                return true;
-            }
-
-            // 失败
-            if(!isset($purchaseRes['result'])) {
-                $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
-                return false;
-            }
-        }
-
         // 根据别名发活动奖品
-        if($award['type'] === 'activity' ) {
+        if(!empty($award['alias_name'])) {
             $aliasName = $award['alias_name'];
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $remark['award'] = $awards;
