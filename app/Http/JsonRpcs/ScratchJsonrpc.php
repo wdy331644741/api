@@ -144,20 +144,12 @@ class ScratchJsonRpc extends JsonRpc
 
     //获取奖品
     private function getAward($awardList) {
-        // 获取权重总值
-//        $weight = 0;
-//        foreach($awardList as $award) {
-//            $weight += $award['weight'];
-//        }
-//        $target = rand(1, $weight);
-//        foreach($awardList as $award) {
-//            $target = $target - $award['weight'];
-//            if($target <= 0) {
-//                return $award;
-//            }
-//        }
+        $count = count($awardList);
+        if($count < 1){
+            return [];
+        }
         //三个奖品随机
-        $round = mt_rand(0,2);
+        $round = mt_rand(0,$count-1);
         return $awardList[$round];
     }
 
