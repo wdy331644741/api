@@ -712,7 +712,7 @@ class BbsUserJsonRpc extends JsonRpc {
             ->where(["bbs_threads.user_id"=>$this->userId,"bbs_threads.isverify"=>1])
            ->count();
 
-        dd($bbsUserInfo['userCommentNum']);
+
         //用户被收藏数目
         $bbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
         $countInfo = $this->getBbsUserCountPm($param);
