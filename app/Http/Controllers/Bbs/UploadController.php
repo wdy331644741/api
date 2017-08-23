@@ -38,7 +38,7 @@ class UploadController extends Controller
                 "jsonrpc" => 2.0,
                 "error" => [
                     "code" => -3402,
-                    "message" => "图片格式错误"
+                    "message" => "图片格式错误 extension:".$request->file('img')->getClientOriginalExtension(),
                 ],
                 "id" => 1
             ]);
@@ -46,7 +46,7 @@ class UploadController extends Controller
         try{
             //上传初始图片
             $aliyunOssClient = new AliyunOSSService();
-            $object = $user_id.time().".".$request->file('img')->getClientOriginalExtension();
+            $object = $user_id.time().rand(0,25).".".$request->file('img')->getClientOriginalExtension();
             $res = $aliyunOssClient->uploadFile($object,$request->file('img')->getRealPath());
 
             $imgManager = new ImageManager();
