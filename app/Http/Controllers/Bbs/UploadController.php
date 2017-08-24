@@ -30,15 +30,14 @@ class UploadController extends Controller
         global $user_id;
 
         $validator = Validator::make($request->all(), [
-            'img' => 'required|mimes:png,jpg,jpeg',
+            'img' => 'required|mimes:png,jpg,jpeg|max:5120',
         ]);
-
         if ($validator->fails()) {
             return $this->outputJson([
                 "jsonrpc" => 2.0,
                 "error" => [
                     "code" => -3402,
-                    "message" => "图片格式错误 extension:".$request->file('img')->getClientOriginalExtension(),
+                    "message" => "图片格式错误或者图片太大",
                 ],
                 "id" => 1
             ]);
