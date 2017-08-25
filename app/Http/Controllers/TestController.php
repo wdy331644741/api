@@ -37,7 +37,7 @@ class TestController extends Controller
         //获取连续签到到停服当天的数据
         $upData = [];
         $upData['updated_at'] = date("Y-m-d H:i:s",strtotime($openTime));
-        $res = UserAttribute::where('updated_at','like',$closeTime.'%')->increment('number',$addDays,$upData);
+        $res = UserAttribute::where('updated_at','like',$closeTime.'%')->where('key','signin')->increment('number',$addDays,$upData);
         echo "添加连续签到：".$addDays."天";
         echo "<br />";
         echo "修改了".$res."条";
