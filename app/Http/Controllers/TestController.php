@@ -31,16 +31,10 @@ class TestController extends Controller
         if(empty($closeTime) || $dateType != '00:00:00' || empty(strtotime($openTime))){
             return '时间参数格式不正确';
         }
-        $addDays = intval((strtotime($openTime)-strtotime($closeTime))/(3600*24));
-        if($addDays < 1){
-            return '时间未到手动连续添加天数';
-        }
         //获取连续签到到停服当天的数据
         $upData = [];
         $upData['updated_at'] = date("Y-m-d H:i:s",strtotime($openTime));
-        $res = UserAttribute::where('updated_at','like',$closeTime.'%')->where('key','signin')->increment('number',$addDays,$upData);
-        echo "添加连续签到：".$addDays."天";
-        echo "<br />";
+        $res = UserAttribute::where('updated_at','like',$closeTime.'%')->where('key','signin')->update($upData);
         echo "修改了".$res."条";
     }
     public function getPobaiyi($userId, $money) {
