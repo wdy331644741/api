@@ -70,7 +70,7 @@ class Scratch
                 $key = $config['diamonds']['key'];
             }
             $num = intval($triggerData['Investment_amount']/10000);
-            if(empty($key) && $num <= 0){
+            if(empty($key) || $num <= 0){
                 return false;
             }
             //给用户添加次数
