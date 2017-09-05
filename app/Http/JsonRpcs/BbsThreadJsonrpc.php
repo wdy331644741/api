@@ -115,12 +115,12 @@ class BbsThreadJsonRpc extends JsonRpc
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->with("user")
-            ->with('collection')
-            ->with('zan')
-            ->with('read')
-            ->orderByRaw('order_field DESC')
-            ->limit(1)
+            ->with("commentAndVerify")
+
+            ->orderByRaw('views DESC')
+            ->offset(0)
+            ->limit(8)
+            ->orderByRaw('bbs_threads.updated_at DESC')
             ->get()
             ->toArray();
         $hotThreadId =[];
