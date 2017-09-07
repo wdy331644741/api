@@ -68,7 +68,6 @@ class BbsThreadJsonRpc extends JsonRpc
             ->limit(1)
             ->get()
             ->toArray();
-
         $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
@@ -76,7 +75,7 @@ class BbsThreadJsonRpc extends JsonRpc
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->whereNotIn('id', [$commentThread[0]['id']])
+            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:""])
             ->with("user")
             ->with('collection')
             ->with('zan')
@@ -93,7 +92,7 @@ class BbsThreadJsonRpc extends JsonRpc
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->whereNotIn('id', [$commentThread[0]['id'],$pvThread[0]['id']])
+            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
             ->with('user')
             ->with('collection')
             ->with('zan')
@@ -252,7 +251,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('updated_at DESC')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         return [
