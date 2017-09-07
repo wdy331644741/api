@@ -191,6 +191,16 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 刮刮乐活动 start */
+            //投资
+            case 'scratch_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //根据标的不同添加抽奖次数
+                    Scratch::addScratchNum($triggerData);
+                }
+                break;
+            /** 刮刮乐活动 end */
+
             /** 七月大转盘活动 start */
             //签到
             case 'dazhuanpan_sign_in':
