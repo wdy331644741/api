@@ -88,6 +88,9 @@ class SignInSystemJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
+        //事务开始
+        DB::beginTransaction();
+        SignInSystem::find(1)->lockForUpdate();
 
         $config = Config::get('signinsystem');
 
@@ -169,6 +172,8 @@ class SignInSystemJsonRpc extends JsonRpc
             // 失败
             if(!isset($purchaseRes['result'])) {
                 $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
+                //事务提交
+                DB::commit();
                 throw new OmgException(OmgException::API_FAILED);
             }
         }
@@ -194,10 +199,13 @@ class SignInSystemJsonRpc extends JsonRpc
                     'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
                 ]);
             }else{
+                //事务提交
+                DB::commit();
                 throw new OmgException(OmgException::API_FAILED);
             }
         }
-
+        //事务提交
+        DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
