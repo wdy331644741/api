@@ -29,6 +29,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         $phoneNum = substr($phone,0,7);
         $FeeAndFlowBasic = new FeeAndFlowBasic();
         $res = $FeeAndFlowBasic->AttributionInfo($phoneNum);
+        file_put_contents(storage_path('logs/feeFlowMobileInfo-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'  data:'.$res.PHP_EOL,FILE_APPEND);
         $res = explode("|",mb_convert_encoding($res, "UTF-8", "GB2312"));
         if(count($res) == 1){
             throw new OmgException(OmgException::VALID_PHONE_TYPE_FAIL);
