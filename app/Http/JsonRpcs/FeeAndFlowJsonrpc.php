@@ -73,7 +73,7 @@ class FeeAndFlowJsonRpc extends JsonRpc {
         $tradePwdRes = Func::checkTradePwd($tradePwd);
         if(!isset($tradePwdRes['result'])){
             return [
-                'code' => -2,
+                'code' => $tradePwdRes['error']['code'],
                 'message' => $tradePwdRes['error']['message']
             ];
         }
