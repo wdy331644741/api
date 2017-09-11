@@ -353,7 +353,7 @@ class FeeAndFlowBasic
             $opType = 2;
         }
         if($str == '电信'){
-            $name = 'dianxian';
+            $name = 'dianxin';
             $opType = 3;
         }
         if($name == '' || $opType == ''){
