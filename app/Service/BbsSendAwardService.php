@@ -227,11 +227,11 @@ class BbsSendAwardService
      * */
     private  function greatThreadTask()
     {
-        $achieveGreatCommentInfo = Tasks::where(["task_mark"=>"achieveGreatComment","enable"=>1])->get()->toArray();
-        if($achieveGreatCommentInfo) {
+        $achieveGreatThreadInfo = Tasks::where(["task_mark"=>"achieveGreatThread","enable"=>1])->get()->toArray();
+        if($achieveGreatThreadInfo) {
             //点击者 处理点赞任务
             $userGreatThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
-            foreach ($achieveGreatCommentInfo as $value) {
+            foreach ($achieveGreatThreadInfo as $value) {
                 //审核是否已经发过奖
                 $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
                 //未发过奖
