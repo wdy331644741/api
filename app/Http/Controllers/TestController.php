@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserAttribute;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -22,6 +23,20 @@ use App\Service\PoBaiYiService;
 
 class TestController extends Controller
 {
+    public function getSigninRepair(Request $request){
+        //停服当天时间
+        $closeTime = $request->closeTime;
+        $dateType = date("H:i:s",strtotime($closeTime));
+        $openTime = $request->signinTime;
+        if(empty($closeTime) || $dateType != '00:00:00' || empty(strtotime($openTime))){
+            return '时间参数格式不正确';
+        }
+        //获取连续签到到停服当天的数据
+        $upData = [];
+        $upData['updated_at'] = date("Y-m-d H:i:s",strtotime($openTime));
+        $res = UserAttribute::where('updated_at','like',$closeTime.'%')->where('key','signin')->update($upData);
+        echo "修改了".$res."条";
+    }
     public function getPobaiyi($userId, $money) {
         PoBaiYiService::addMoney($userId, $money);
     }
