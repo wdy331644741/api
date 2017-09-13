@@ -10,6 +10,6 @@ class ThreadCollection extends Model
     protected $guarded = ['created_at', 'update_at'];
 
     public function thread() {
-        return $this->hasOne('App\Models\Bbs\Thread', 'id', 'tid');
+        return $this->hasOne('App\Models\Bbs\Thread', 'id', 'tid')->where(['isverify'=>1]);
     }
 }
