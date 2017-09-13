@@ -140,7 +140,7 @@ class BbsThreadJsonRpc extends JsonRpc
         });
 
         $thread = new Thread(['userId' => $userId]);
-
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
         $hotThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->selectRaw('(views+comment_num) as order_field')
             ->where(['istop' => 1])
