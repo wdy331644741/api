@@ -26,10 +26,10 @@ class BbsSendAwardService
      * 帖子点赞触发 threadZan   评论点赞触发  commentZan
      * 帖子加精触发  threadGreat
      * */
-     public function __construct($userId,$userPid = "")
+     public function __construct($userId,$userPid = 0)
      {
         $this->userId = $userId;
-        $this->userPId = $userPid;
+        $this->userPid = $userPid;
 
      }
     /*
@@ -69,8 +69,8 @@ class BbsSendAwardService
      * */
     public  function threadZanAward()
     {
-        $this->zanThreadPTask();
-        $award = $this->zanThreadTask();
+        $award = $this->zanThreadPTask();
+        $this->zanThreadTask();
         return $award;
     }
     /*
@@ -94,7 +94,7 @@ class BbsSendAwardService
     private function dayPublishThreadTask()
     {
 
-        $dayPublishThreadInfo = Tasks::where(["task_mark"=>"dayPublishThread"])->get()->toArray();
+        $dayPublishThreadInfo = Tasks::where(["task_mark"=>"dayPublishThread","enable"=>1])->get()->toArray();
             if($dayPublishThreadInfo) {
             $nowTime = date("Y:m:d",time());
             $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',$nowTime)->count();
@@ -129,7 +129,7 @@ class BbsSendAwardService
     private function publishThreadTask()
     {
 
-        $dayPublishThreadInfo = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
+        $dayPublishThreadInfo = Tasks::where(["task_mark"=>"achievePublishThread","enable"=>1])->get()->toArray();
         if($dayPublishThreadInfo) {
 
             $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->count();
@@ -161,9 +161,9 @@ class BbsSendAwardService
      * **/
     private  function zanThreadTask()
     {
-        $achievePublishThreadInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
+        $achievePublishThreadInfo = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->get()->toArray();
         if($achievePublishThreadInfo) {
-            //点击者 处理点赞任务
+            //作者 处理点赞任务
             $userDayThreadCount = ThreadZan::where(["t_user_id"=>$this->userPid,"status"=>0])->count();
             foreach ($achievePublishThreadInfo as $value) {
                 //审核是否已经发过奖
@@ -176,8 +176,6 @@ class BbsSendAwardService
                         $this->organizeDataAndSend($value,$this->userPid);
                         return $value["award"];
                     }
-
-                } else {
 
                 }
 
@@ -196,7 +194,7 @@ class BbsSendAwardService
      * */
     private  function zanCommentTask()
     {
-        $achieveZanCommentInfo = Tasks::where(["task_mark"=>"achieveZanComment"])->get()->toArray();
+        $achieveZanCommentInfo = Tasks::where(["task_mark"=>"achieveZanComment","enable"=>1])->get()->toArray();
         if($achieveZanCommentInfo) {
             //点击者 处理点赞任务
             $userZanCommentCount = CommentZan::where(["c_user_id"=>$this->userPid,"status"=>0])->count();
@@ -229,11 +227,11 @@ class BbsSendAwardService
      * */
     private  function greatThreadTask()
     {
-        $achieveGreatCommentInfo = Tasks::where(["task_mark"=>"achieveGreatComment"])->get()->toArray();
-        if($achieveGreatCommentInfo) {
+        $achieveGreatThreadInfo = Tasks::where(["task_mark"=>"achieveGreatThread","enable"=>1])->get()->toArray();
+        if($achieveGreatThreadInfo) {
             //点击者 处理点赞任务
             $userGreatThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1,"isgreat"=>1])->count();
-            foreach ($achieveGreatCommentInfo as $value) {
+            foreach ($achieveGreatThreadInfo as $value) {
                 //审核是否已经发过奖
                 $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
                 //未发过奖
@@ -260,9 +258,10 @@ class BbsSendAwardService
      * */
     private function zanThreadPTask()
     {
-        $achieveZanThreadPInfo = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
+        $achieveZanThreadPInfo = Tasks::where(["task_mark"=>"achieveZanThreadP","enable"=>1])->get()->toArray();
 
         if($achieveZanThreadPInfo) {
+
             //点击者 处理点赞任务
             $userZanThreadCount = ThreadZan::where(["user_id"=>$this->userId,"status"=>0])->count();
 
@@ -275,10 +274,11 @@ class BbsSendAwardService
                     if ($userZanThreadCount >= $value['number']) {
                         //发奖
                         $this->organizeDataAndSend($value,$this->userId);
+                        return $value["award"];
                     }
 
                 } else {
-
+                    return false;
                 }
 
 
