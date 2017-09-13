@@ -107,7 +107,6 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DaZhuanPanJsonRpc());
         $jsonRpcServer->addService(new FeeAndFlowJsonRpc());
         $jsonRpcServer->addService(new ScratchJsonRpc());
-
         $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
