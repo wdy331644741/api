@@ -164,9 +164,9 @@ class BbsUserJsonRpc extends JsonRpc {
 
         $threadNum = Attributes::getNumberByDay($this->userId,"bbs_user_thread_nums");
 
-//        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
-//            throw new OmgException(OmgException::THREAD_LIMIT);
-//        }
+        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
+            throw new OmgException(OmgException::THREAD_LIMIT);
+        }
 
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
@@ -319,9 +319,9 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $commentNum = Attributes::getNumberByDay($this->userId,"bbs_user_comment_nums");
 
-//        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
-//            throw new OmgException(OmgException::COMMENT_LIMIT);
-//        }
+        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
+            throw new OmgException(OmgException::COMMENT_LIMIT);
+        }
 
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
