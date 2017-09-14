@@ -376,15 +376,14 @@ class BbsUserJsonRpc extends JsonRpc {
             Thread::where(['id'=>$params->id])->increment('comment_num');
             //发送消息
             $pm = new Pm();
-            $pm->user_id = Thread::where(['id'=>$params->id])->first()->id;
+            $pm->user_id = Thread::where(['id'=>$params->id])->first()->user_id;
             $pm->from_user_id = $this->userId;
             $pm->tid = $params->id;
             $pm->content = "回复了你的评论";
             $pm->type = 4;
             $pm->msg_type = 2;
             $pm->save();
-            //$bbsAward = new BbsSendAwardService($this->userId);
-            //$bbsAward->publishThreadAward();
+
         }
         Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
 
