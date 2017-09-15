@@ -28,7 +28,6 @@ class UploadController extends Controller
     {
 
         global $user_id;
-
         $messages = [
             'mimes'    => '图片格式错误',
             'max'    => '图片太大',

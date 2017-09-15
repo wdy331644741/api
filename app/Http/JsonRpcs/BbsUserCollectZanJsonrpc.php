@@ -52,14 +52,21 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
 
        if($res){
            Thread::where(["id"=>$params->id])->increment("collection_num");
-           $pm = new Pm();
-           $pm->user_id = $threadInfo['user_id'];
-           $pm->from_user_id = $this->userId;
-           $pm->tid = $threadInfo['id'];
-           $pm->content = "收藏了你的帖子";
-           $pm->type = 1;
-           $pm->msg_type = 2;
-           $pm->save();
+           //筛选是否已经收藏过
+           $collectInfo = Pm::onlyTrashed()
+               ->where(["user_id" => $threadInfo['user_id'],"from_user_id"=>$this->userId,"tid"=>$threadInfo['id'],"type"=>1,"msg_type"=>2 ])->first();
+           if($collectInfo){
+               Pm::onlyTrashed()->where(["id"=>$collectInfo->id])->restore();
+           }else {
+               $pm = new Pm();
+               $pm->user_id = $threadInfo['user_id'];
+               $pm->from_user_id = $this->userId;
+               $pm->tid = $threadInfo['id'];
+               $pm->content = "收藏了你的帖子";
+               $pm->type = 1;
+               $pm->msg_type = 2;
+               $pm->save();
+           }
            return array(
                'code'=>0,
                'message'=>'已收藏',
@@ -89,7 +96,12 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
         }
         $res = ThreadCollection::updateOrCreate(["user_id"=>$this->userId,"tid"=>$params->id],["status"=>1]);
         if($res){
+            //收藏数-1
              Thread::where(["id"=>$params->id])->decrement("collection_num");
+             //消息软删除
+            $threadInfo = Thread::where(["id"=>$params->id])->first();
+            Pm::where(["user_id"=>$threadInfo['user_id'],"from_user_id"=>$this->userId,"type"=>1,"msg_type"=>2 ])->update(["isread"=>0]);
+            Pm::where(["user_id"=>$threadInfo['user_id'],"from_user_id"=>$this->userId,"type"=>1,"msg_type"=>2 ])->delete();
             return array(
                 'code'=>0,
                 'message'=>'已取消收藏',
