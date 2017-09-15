@@ -81,6 +81,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('zan')
             ->with('read')
             ->orderByRaw('views DESC')
+            ->limit(1)
             ->get()
             ->toArray();
 
