@@ -12,12 +12,14 @@ class AliyunOSSService
     static  private $accessKeySecret;
     static  private $endPoint;
     static private $bucket;
+    static private $folder;
     public function __construct()
     {
         self::$accessKeyId = env('OSS_ACCESS_KEY1');
         self::$accessKeySecret = env('OSS_ACCESS_SECRET1');
         self::$endPoint = env('OSS_ENDPOINT1');
         self::$bucket = env('OSS_BUCKET1');
+        self::$folder = env('OSS_FOLDER1');
 
     }
     /*
@@ -28,7 +30,7 @@ class AliyunOSSService
      {
          try {
              $ossClient = new OssClient(self::$accessKeyId, self::$accessKeySecret, self::$endPoint);
-             return  $ossClient->uploadFile(self::$bucket,$object,$path);
+             return  $ossClient->uploadFile(self::$bucket,self::$folder."/".$object,$path);
          } catch (OssException $e) {
              throw new \Exception($e->getMessage(),502);
          }

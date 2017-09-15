@@ -100,6 +100,7 @@ class BbsUserCollectZanJsonrpc extends JsonRpc {
              Thread::where(["id"=>$params->id])->decrement("collection_num");
              //消息软删除
             $threadInfo = Thread::where(["id"=>$params->id])->first();
+            Pm::where(["user_id"=>$threadInfo['user_id'],"from_user_id"=>$this->userId,"type"=>1,"msg_type"=>2 ])->update(["isread"=>0]);
             Pm::where(["user_id"=>$threadInfo['user_id'],"from_user_id"=>$this->userId,"type"=>1,"msg_type"=>2 ])->delete();
             return array(
                 'code'=>0,
