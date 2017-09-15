@@ -28,7 +28,7 @@ class UploadController extends Controller
     {
 
         global $user_id;
-
+        file_put_contents(storage_path('logs/register-'.date('Y-m-d')).'.log',json_encode($_FILES)  .PHP_EOL,FILE_APPEND);
         $messages = [
             'mimes'    => '图片格式错误',
             'max'    => '图片太大',
