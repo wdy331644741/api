@@ -33,7 +33,7 @@ class CommentController extends Controller
     public function postAdminReply(Request $request) {
         $validator = Validator::make($request->all(), [
             'comment_id'=>'required|exists:bbs_comments,id',
-            'from_id'=>'required|exists:bbs_users,id',
+            'from_id'=>'required|exists:bbs_users,user_id',
             'content'=>'required'
         ]);
         if($validator->fails()){
