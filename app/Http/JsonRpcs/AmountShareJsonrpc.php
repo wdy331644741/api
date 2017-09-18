@@ -272,7 +272,7 @@ class AmountShareJsonRpc extends JsonRpc
         $where['id'] = $id;
         $where['status'] = 1;
         $where['award_status'] = 0;
-        $isFinish = HdAmountShare::where($where)->where("created_at",">",$acTime)->lockForUpdate()->first();
+        $isFinish = HdAmountShare::where($where)->where("created_at",">=",$acTime)->lockForUpdate()->first();
         if(!empty($isFinish) && $isFinish->total_money === $isFinish->use_money && $isFinish->total_num === $isFinish->receive_num){
             //判断有没有新注册的用户领取
             $newList = HdAmountShareInfo::select(DB::raw('SUM(money) as money'))
