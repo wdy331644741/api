@@ -4,8 +4,8 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Service\ActivityService;
 use App\Service\AmountShareBasic;
-use App\Models\HdAmountShare;
-use App\Models\HdAmountShareInfo;
+use App\Models\HdAmountShareEleven;
+use App\Models\HdAmountShareElevenInfo;
 use App\Service\Func;
 use DB, Request;
 
