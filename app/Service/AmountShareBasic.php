@@ -1,8 +1,8 @@
 <?php
 namespace App\Service;
-use App\Models\HdAmountShare;
+use App\Models\HdAmountShareEleven;
 use App\Models\Activity;
-use App\Models\HdAmountShareInfo;
+use App\Models\HdAmountShareElevenInfo;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
