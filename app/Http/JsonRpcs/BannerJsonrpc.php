@@ -5,6 +5,7 @@ use App\Models\ImgPosition;
 use App\Models\Banner;
 use App\Models\AppStartpage;
 use App\Exceptions\OmgException as OmgException;
+use App\Service\Func;
 use Illuminate\Pagination\Paginator;
 use Lib\JsonRpcClient;
 
@@ -80,6 +81,7 @@ class BannerJsonRpc extends JsonRpc {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
                     ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
+                 $data = $this->addChannelImg($data);
                 break;
             case "annualreport":
                 Paginator::currentPageResolver(function () use ($page) {
@@ -391,5 +393,57 @@ class BannerJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $data
         );
+    }
+
+    //特定渠道添加图片
+    private function addChannelImg($data){
+        global $userId;
+        $userInfo = Func::getUserBasicInfo($userId);
+        $thisChannel = isset($userInfo['from_channel']) ? $userInfo['from_channel'] : '';
+        if(empty($thisChannel)){
+            return $data;
+        }
+        $channel = [
+            "wanglibao1",
+            "APPStore",
+            "sogou",
+            "samsung",
+            "leshi",
+            "huawei",
+            "m360",
+            "meizu",
+            "vivo",
+            "baidu",
+            "ali",
+            "lenovo",
+            "qq",
+            "oppo",
+            "xiaomi",
+            "chuizi",
+            "wenzhoulouyu",
+            "baidupz",
+            "mbaidupz",
+            "gbcxyd4",
+            "mbaidujj",
+            "baidujj",
+            "mdsp"
+        ];
+        if(in_array($thisChannel,$channel)){
+            $where = ['position' => 'mobile','can_use' => 0,'name'=>"特定渠道显示"];
+            $arr = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                ->where($where)
+                ->where(function($query) {
+                    $query->whereNull('start')->orWhereRaw('start < now()');
+                })
+                ->where(function($query) {
+                    $query->whereNull('end')->orWhereRaw('end > now()');
+                })
+                ->take(1)->get()->toArray();
+            foreach($data as $key => $item){
+                $arr[$key+1] = $item;
+            }
+            return $arr;
+        }
+        return $data;
     }
 }
