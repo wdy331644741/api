@@ -24,6 +24,11 @@ class AmountShareJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('amount_share');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        $acTime = isset($activityInfo->start_at) && !empty($activityInfo->start_at) ? $activityInfo->start_at : '2017-09-15 00:00:00';
         $result = ['my_top' => 0, 'my_total_money' => 0, 'level' => 1, 'my_list' => [], 'my_expire_list' => []];
 
         //获取vip等级
@@ -32,9 +37,9 @@ class AmountShareJsonRpc extends JsonRpc
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
         if($num == 0){
-            $list = HdAmountShare::where($where)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShare::where($where)->where("created_at",">=",$acTime)->orderByRaw("id desc")->get()->toArray();
         }else{
-            $list = HdAmountShare::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShare::where($where)->where("created_at",">=",$acTime)->take($num)->orderByRaw("id desc")->get()->toArray();
         }
         //失效列表
         foreach($list as $item){
@@ -52,11 +57,11 @@ class AmountShareJsonRpc extends JsonRpc
         }
         //这一周总排名
         $thisWeek = date("W");
-        $totalList = HdAmountShare::where('week',$thisWeek)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get()->toArray();
+        $totalList = HdAmountShare::where('week',$thisWeek)->where("created_at",">=",$acTime)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get()->toArray();
 
         if (!empty($list)) {
             //自己的分享领取完金额
-            $myTotalMoneyList = HdAmountShare::where('week',$thisWeek)->where('user_id',$userId)->get()->toArray();
+            $myTotalMoneyList = HdAmountShare::where('week',$thisWeek)->where('user_id',$userId)->where("created_at",">=",$acTime)->get()->toArray();
             if(!empty($myTotalMoneyList)){
                 //自己的排名
                 $top = 0;
@@ -90,9 +95,14 @@ class AmountShareJsonRpc extends JsonRpc
      */
     public function amountShareTopList($params)
     {
+        $activityInfo = ActivityService::GetActivityInfoByAlias('amount_share');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        $acTime = isset($activityInfo->start_at) && !empty($activityInfo->start_at) ? $activityInfo->start_at : '2017-09-15 00:00:00';
         $num = isset($params->num) && !empty($params->num) ? $params->num : 3;
         $thisWeek = date("W");
-        $list = HdAmountShare::where('week',$thisWeek)
+        $list = HdAmountShare::where('week',$thisWeek)->where("created_at",">=",$acTime)
             ->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))
             ->groupBy("user_id")
             ->orderByRaw("money desc,max_id asc")
@@ -251,13 +261,18 @@ class AmountShareJsonRpc extends JsonRpc
         if($id <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('amount_share');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        $acTime = isset($activityInfo->start_at) && !empty($activityInfo->start_at) ? $activityInfo->start_at : '2017-09-15 00:00:00';
         DB::beginTransaction();
         //判断该红包是否被全部领取
         $where['user_id'] = $userId;
         $where['id'] = $id;
         $where['status'] = 1;
         $where['award_status'] = 0;
-        $isFinish = HdAmountShare::where($where)->lockForUpdate()->first();
+        $isFinish = HdAmountShare::where($where)->where("created_at",">",$acTime)->lockForUpdate()->first();
         if(!empty($isFinish) && $isFinish->total_money === $isFinish->use_money && $isFinish->total_num === $isFinish->receive_num){
             //判断有没有新注册的用户领取
             $newList = HdAmountShareInfo::select(DB::raw('SUM(money) as money'))
