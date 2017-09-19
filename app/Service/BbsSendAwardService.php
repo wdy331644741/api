@@ -190,7 +190,7 @@ class BbsSendAwardService
     }
     /*
      *
-     * 成就评论点赞任务
+     * 成就评论被点赞任务
      * */
     private  function zanCommentTask()
     {

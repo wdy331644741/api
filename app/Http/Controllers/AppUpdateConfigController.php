@@ -72,7 +72,7 @@ class AppUpdateConfigController extends Controller
             'force' =>'required|in:0,1',
             'description'=>'required',
             'url'=>'required_if:platform,1|url',
-            'version'=> 'required',
+            'version'=>array('required','regex:/^\d{1,3}\.\d{1,3}\.\d{1,3}$/'),
             'size'=>'required',
             'platform'=>'required|in:1,2,3',
         ]);

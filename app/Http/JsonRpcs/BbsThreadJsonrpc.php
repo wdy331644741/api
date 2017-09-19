@@ -140,6 +140,28 @@ class BbsThreadJsonRpc extends JsonRpc
         });
 
         $thread = new Thread(['userId' => $userId]);
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
+        $hotThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->selectRaw('(views+comment_num) as order_field')
+            ->where(['istop' => 1])
+            ->where('created_at', '>', $monthTime)
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+            })
+            ->with("user")
+            ->with("commentAndVerify")
+            ->orderByRaw('views DESC')
+            ->offset(0)
+            ->limit(10)
+            ->orderByRaw('bbs_threads.updated_at DESC')
+            ->get()
+            ->toArray();
+        $hotThreadId =[];
+        foreach ($hotThread as $key => $value) {
+            $hotThreadId[] = $value['id'];
+        }
+
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->where(['istop' => 0,'ishot'=>1])
             ->Where(function ($query) use ($typeId, $userId) {

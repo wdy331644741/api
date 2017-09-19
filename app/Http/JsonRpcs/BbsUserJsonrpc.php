@@ -164,9 +164,9 @@ class BbsUserJsonRpc extends JsonRpc {
 
         $threadNum = Attributes::getNumberByDay($this->userId,"bbs_user_thread_nums");
 
-//        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
-//            throw new OmgException(OmgException::THREAD_LIMIT);
-//        }
+        if($threadNum >= Config::get('bbsConfig')['threadPublishMax']){
+            throw new OmgException(OmgException::THREAD_LIMIT);
+        }
 
         $validator = Validator::make(get_object_vars($params), [
             'type_id'=>'required|exists:bbs_thread_sections,id',
@@ -319,9 +319,9 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $commentNum = Attributes::getNumberByDay($this->userId,"bbs_user_comment_nums");
 
-//        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
-//            throw new OmgException(OmgException::COMMENT_LIMIT);
-//        }
+        if($commentNum >= Config::get('bbsConfig')['commentPublishMax']){
+            throw new OmgException(OmgException::COMMENT_LIMIT);
+        }
 
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
@@ -376,15 +376,14 @@ class BbsUserJsonRpc extends JsonRpc {
             Thread::where(['id'=>$params->id])->increment('comment_num');
             //发送消息
             $pm = new Pm();
-            $pm->user_id = Thread::where(['id'=>$params->id])->first()->id;
+            $pm->user_id = Thread::where(['id'=>$params->id])->first()->user_id;
             $pm->from_user_id = $this->userId;
             $pm->tid = $params->id;
             $pm->content = "回复了你的评论";
             $pm->type = 4;
             $pm->msg_type = 2;
             $pm->save();
-            //$bbsAward = new BbsSendAwardService($this->userId);
-            //$bbsAward->publishThreadAward();
+
         }
         Attributes::incrementByDay($this->userId,"bbs_user_comment_nums");
 
@@ -881,8 +880,7 @@ class BbsUserJsonRpc extends JsonRpc {
              throw  new OmgException(OmgException::NO_LOGIN);
          }
          $nowTime = date("Y-m-d",time());
-         $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread"])->get()->toArray();
-
+         $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread","enable"=>1])->get()->toArray();
          foreach ($dayPublishThreadTaskInfo as $k=>$value){
              $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
              if(!$res){
@@ -896,7 +894,7 @@ class BbsUserJsonRpc extends JsonRpc {
          }
 
          //成就累计发帖  achievePublishThread
-         $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread"])->get()->toArray();
+         $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread","enable"=>1])->get()->toArray();
          foreach ($achievePublishThreadTaskInfo as $k=>$value){
              $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
              if(!$res){
@@ -909,7 +907,7 @@ class BbsUserJsonRpc extends JsonRpc {
 
          }
          //成就为他人点赞 achieveZanThreadP
-         $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP"])->get()->toArray();
+         $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP","enable"=>1])->get()->toArray();
 
          foreach ($achieveZanThreadPTaskInfo as $k=>$value){
              $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
@@ -923,7 +921,7 @@ class BbsUserJsonRpc extends JsonRpc {
 
          }
          //成就回复点赞 achieveZanComment
-         $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment"])->get()->toArray();
+         $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment","enable"=>1])->get()->toArray();
 
          foreach ($achieveZanCommentTaskInfo as $k=>$value){
              $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
@@ -937,7 +935,7 @@ class BbsUserJsonRpc extends JsonRpc {
 
          }
          //成就主题贴点赞 achieveZanThread
-         $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread"])->get()->toArray();
+         $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->get()->toArray();
 
          foreach ($achieveZanThreadTaskInfo as $k=>$value){
              $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
@@ -951,7 +949,7 @@ class BbsUserJsonRpc extends JsonRpc {
 
          }
          //主题贴加精数量 achieveGreatThread
-         $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread"])->get()->toArray();
+         $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread","enable"=>1])->get()->toArray();
 
          foreach ($achieveGreatThreadTaskInfo as $k=>$value){
              $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
