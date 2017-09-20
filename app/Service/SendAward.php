@@ -191,6 +191,40 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /**龙吟虎啸活动 start**/
+                //注册
+            case 'longyinhuxiao_register':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
+                    Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+                //签到
+            case 'longyinhuxiao_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+            //投资
+            case 'longyinhuxiao_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000);
+                            Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            //邀请人投资
+            case 'longyinhuxiao_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+            /**龙吟虎啸活动 end**/
             /** 七月大转盘活动 start */
             //签到
             case 'dazhuanpan_sign_in':

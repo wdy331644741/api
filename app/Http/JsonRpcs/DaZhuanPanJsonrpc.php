@@ -36,7 +36,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         }
 
         // 活动是否存在
-        $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();;
+        $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();
         if(isset($activityInfo->id) && $activityInfo->id > 0) {
             $startTime = isset($activityInfo->start_at) && !empty($activityInfo->start_at) ? strtotime($activityInfo->start_at) : 0;
             $endTime = isset($activityInfo->end_at) && !empty($activityInfo->end_at) ? strtotime($activityInfo->end_at) : 0;
@@ -93,14 +93,13 @@ class DaZhuanPanJsonRpc extends JsonRpc
      */
     public function dazhuanpanDraw($params) {
         global $userId;
-
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
         //获取抽奖次数
         $num = isset($params->num) ? $params->num : 0;
-        if($num != 1 && $num != 10){
+        if($num != 1){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $config = Config::get('dazhuanpan');
@@ -111,7 +110,6 @@ class DaZhuanPanJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         UserAttribute::where('user_id',$userId)->where('key',$config['drew_total_key'])->lockForUpdate()->get();
-
         $number = $this->getUserNum($userId,$config);
         if($number <= 0) {
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
@@ -120,28 +118,30 @@ class DaZhuanPanJsonRpc extends JsonRpc
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
 
+        /*
         // 循环获取奖品
         $awardArr = [];
         for($i = 1;$i <= $num; $i++){
             $award = $this->getAward($config);
             $awardArr[] = $award;
         }
+        */
+        //只能一次一次抽奖
+        $award = $this->getAward($config);
         //放入队列
-        $this->dispatch(new DazhuanpanBatch($userId,$config,$awardArr));
+        $this->dispatch(new DazhuanpanBatch($userId,$config,$award));
         //格式化后返回
-        foreach($awardArr  as &$item){
-            unset($item['num']);
-            unset($item['weight']);
-        }
+        unset($award['num']);
+        unset($award['weight']);
         //减少用户抽奖次数
-        $this->reduceUserNum($userId,$config,count($awardArr));
+        $this->reduceUserNum($userId,$config,1);
 
         //事务提交结束
         DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $awardArr,
+            'data' => $award,
         ];
     }
 
@@ -172,8 +172,9 @@ class DaZhuanPanJsonRpc extends JsonRpc
             ->where('type', '!=', 'empty')
             ->where('user_id',$userId)
             ->orderBy('id', 'desc')->paginate($num)->toArray();
-        foreach ($data as &$item){
-            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+        foreach ($data['data'] as &$item){
+//            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+            if(!empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
@@ -197,7 +198,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function dazhuanpanList() {
-        $list = Cache::remember('dazhuanpan_list', 2, function() {
+        $list = Cache::remember('longyinhuxiao_list', 2, function() {
             $data = DaZhuanPan::select('user_id', 'award_name')->where('type', '!=', 'empty')->orderBy('id', 'desc')->take(20)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
@@ -206,14 +207,14 @@ class DaZhuanPanJsonRpc extends JsonRpc
                 }
             }
             //获取随机加入的奖品
-            $joinData = $this->joinData();
-            if(!empty($joinData)){
-                $newData[0] = $joinData;
-                for($i=1;$i<=count($data);$i++){
-                    $newData[$i] = $data[$i-1];
-                }
-                $data = $newData;
-            }
+//            $joinData = $this->joinData();
+//            if(!empty($joinData)){
+//                $newData[0] = $joinData;
+//                for($i=1;$i<=count($data);$i++){
+//                    $newData[$i] = $data[$i-1];
+//                }
+//                $data = $newData;
+//            }
             return $data;
         });
 
