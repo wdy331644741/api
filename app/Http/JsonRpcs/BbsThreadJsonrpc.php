@@ -71,7 +71,7 @@ class BbsThreadJsonRpc extends JsonRpc {
 
             ->orderByRaw('views DESC')
             ->offset(0)
-            ->limit(1)
+            ->limit(10)
             ->orderByRaw('bbs_threads.updated_at DESC')
             ->get()
             ->toArray();
