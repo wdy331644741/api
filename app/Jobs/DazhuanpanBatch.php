@@ -35,8 +35,9 @@ class DazhuanpanBatch extends Job implements ShouldQueue
     public function handle()
     {
         //循环发奖
-        foreach($this->awards as $item){
-            DazhuanpanService::sendAward($this->userId, $item);
-        }
+//        foreach($this->awards as $item){
+//            DazhuanpanService::sendAward($this->userId, $item);
+//        }
+        DazhuanpanService::sendAward($this->userId, $this->awards);
     }
 }
