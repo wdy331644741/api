@@ -477,6 +477,9 @@ class BannerJsonRpc extends JsonRpc {
                     $query->whereNull('end')->orWhereRaw('end > now()');
                 })
                 ->take(1)->get()->toArray();
+            if(empty($arr)){
+                return $data;
+            }
             foreach($data as $key => $item){
                 $arr[$key+1] = $item;
             }
