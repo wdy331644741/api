@@ -81,7 +81,7 @@ class BannerJsonRpc extends JsonRpc {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
                     ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
-                 $data = $this->addChannelImg($data);
+                 $data = $this->addChannelImg($data,'mobile');
                 break;
             case "annualreport":
                 Paginator::currentPageResolver(function () use ($page) {
@@ -133,6 +133,9 @@ class BannerJsonRpc extends JsonRpc {
                         $query->whereNull('end')->orWhereRaw('end > now()');
                     })
                     ->orderByRaw('id + sort DESC')->get()->toArray();
+                if($position == 'pc'){
+                    $data = $this->addChannelImg($data,'pc');
+                }
         }
 
         $rData['list'] = $data;
@@ -434,11 +437,11 @@ class BannerJsonRpc extends JsonRpc {
     }
 
     //特定渠道添加图片
-    private function addChannelImg($data){
+    private function addChannelImg($data,$position){
         global $userId;
         $userInfo = Func::getUserBasicInfo($userId,true);
         $thisChannel = isset($userInfo['from_channel']) ? $userInfo['from_channel'] : '';
-        if(empty($thisChannel)){
+        if(empty($thisChannel) || empty($position)){
             return $data;
         }
         $channel = [
@@ -467,7 +470,7 @@ class BannerJsonRpc extends JsonRpc {
             "mdsp"
         ];
         if(in_array($thisChannel,$channel)){
-            $where = ['position' => 'mobile','can_use' => 0,'name'=>"特定渠道显示，请勿动，请勿上线"];
+            $where = ['position' => $position,'can_use' => 0,'name'=>"特定渠道显示，请勿动，请勿上线"];
             $arr = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
                 ->where($where)
                 ->where(function($query) {
