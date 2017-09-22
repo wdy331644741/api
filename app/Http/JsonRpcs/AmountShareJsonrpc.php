@@ -32,17 +32,17 @@ class AmountShareJsonRpc extends JsonRpc
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
         if($num == 0){
-            $list = HdAmountShareEleven::where($where)->where('status',0)->whereRaw('now() < end_time')->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShareEleven::where($where)->where('award_status',0)->whereRaw('now() < end_time')->orderByRaw("id desc")->get()->toArray();
             $expireList = HdAmountShareEleven::where($where)->where(
                 function($query) {
-                    $query->whereRaw('status = 1')->orWhereRaw('now() > end_time');
+                    $query->whereRaw('award_status = 1')->orWhereRaw('now() > end_time');
                 }
             )->orderByRaw("id desc")->get()->toArray();
         }else{
-            $list = HdAmountShareEleven::where($where)->where('status',0)->whereRaw('now() < end_time')->take($num)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShareEleven::where($where)->where('award_status',0)->whereRaw('now() < end_time')->take($num)->orderByRaw("id desc")->get()->toArray();
             $expireList = HdAmountShareEleven::where($where)->where(
                 function($query) {
-                    $query->whereRaw('status = 1')->orWhereRaw('now() > end_time');
+                    $query->whereRaw('award_status = 1')->orWhereRaw('now() > end_time');
                 }
             )->orderByRaw("id desc")->take($num)->get()->toArray();
         }
