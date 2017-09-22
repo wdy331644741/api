@@ -32,22 +32,34 @@ class AmountShareJsonRpc extends JsonRpc
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
         if($num == 0){
-            $list = HdAmountShareEleven::where($where)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShareEleven::where($where)->where('status',0)->whereRaw('now() < end_time')->orderByRaw("id desc")->get()->toArray();
+            $expireList = HdAmountShareEleven::where($where)->where(
+                function($query) {
+                    $query->whereRaw('status = 1')->orWhereRaw('now() > end_time');
+                }
+            )->orderByRaw("id desc")->get()->toArray();
         }else{
-            $list = HdAmountShareEleven::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShareEleven::where($where)->where('status',0)->whereRaw('now() < end_time')->take($num)->orderByRaw("id desc")->get()->toArray();
+            $expireList = HdAmountShareEleven::where($where)->where(
+                function($query) {
+                    $query->whereRaw('status = 1')->orWhereRaw('now() > end_time');
+                }
+            )->orderByRaw("id desc")->take($num)->get()->toArray();
         }
-        //失效列表
+        //正常列表
         foreach($list as $item){
             if(isset($item['id']) && !empty($item['id'])){
                 //我的新用户领取金额
                 $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
-                //判断是否过期
-                $endTime = strtotime($item['end_time']);
-                if(time() > $endTime || $item['award_status'] == 1){
-                    $result['my_expire_list'][] = $item;
-                }else{
-                    $result['my_list'][] = $item;
-                }
+                $result['my_list'][] = $item;
+            }
+        }
+        //失效列表
+        foreach($expireList as $item){
+            if(isset($item['id']) && !empty($item['id'])){
+                //我的新用户领取金额
+                $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
+                $result['my_expire_list'][] = $item;
             }
         }
         //这一周总排名
