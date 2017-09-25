@@ -65,7 +65,7 @@ class DazhuanpanService
         // 根据别名发活动奖品
         if($award['type'] === 'activity' ) {
             $aliasName = $award['alias_name'];
-            $awards = SendAward::ActiveSendAward($userId, 'dazhuanpan_' . $aliasName);
+            $awards = SendAward::ActiveSendAward($userId, 'longyinhuxiao_' . $aliasName);
             $remark['award'] = $awards;
             if(isset($awards[0]['award_name']) && $awards[0]['status']) {
                 DaZhuanPan::create([
