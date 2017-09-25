@@ -152,7 +152,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
      */
     public function dazhuanpanMyList($params) {
         global $userId;
-$userId = 5101260;
+
         $num = isset($params->num) ? $params->num : 10;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
