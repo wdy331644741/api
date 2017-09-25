@@ -178,7 +178,9 @@ class DaZhuanPanJsonRpc extends JsonRpc
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
+            $item['effective_time_day'] = date('Y-m-d H:i:s', strtotime($item['created_at']) + 7 * 24 * 3600);
         }
+        
         $rData['total'] = $data['total'];
         $rData['per_page'] = $data['per_page'];
         $rData['current_page'] = $data['current_page'];
