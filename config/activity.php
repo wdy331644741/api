@@ -382,6 +382,26 @@ return [
         19=>[
             'name'=>'回款次数',
             'model_name'=>'Paymentnum'
+        ],
+        20=>[
+            'name'=>'发帖数量',
+            'model_name'=>'Postnum'
+        ],
+        21=>[
+            'name'=>'点赞数量',
+            'model_name'=>'Zannum'
+        ],
+        22=>[
+            'name'=>'评论获得点赞数量',
+            'model_name'=>'Commentzannum'
+        ],
+        23=>[
+            'name'=>'帖子获得点赞数量',
+            'model_name'=>'Threadzannum'
+        ],
+        24=>[
+            'name'=>'加精数量',
+            'model_name'=>'Greatnum'
         ]
     ],
     'activity_type'=>[
