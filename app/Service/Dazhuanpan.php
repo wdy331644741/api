@@ -46,7 +46,7 @@ class DazhuanpanService
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
 
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'magic_ice_cube');
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'longyinhuxiao');
 
             $remark['addMoneyRes'] = $purchaseRes;
             // 成功
