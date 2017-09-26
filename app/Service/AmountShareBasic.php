@@ -183,6 +183,10 @@ class AmountShareBasic
         $registerTime = isset($userInfo['create_time']) && !empty($userInfo['create_time']) ? strtotime($userInfo['create_time']) : 0;
         $thisFromUserId = isset($userInfo['from_user_id']) && !empty($userInfo['from_user_id']) ? intval($userInfo['from_user_id']) : 0;
         if($thisFromUserId == $fromUserId){
+            $count = HdAmountShareElevenInfo::where('user_id',$userId)->where('is_new',1)->count();
+            if($count >= 1){
+                return 0;
+            }
             if($registerTime <= 0){
                 return 0;
             }
