@@ -65,6 +65,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //是否分享
+        $data['short_des'] = trim($request['short_des']);
         //简短说明
         $data['short_desc'] = $request['short_desc'];
         //类型
@@ -192,6 +194,8 @@ class ImgManageController extends Controller
         $data['end'] = empty($request['end']) ? null : $request['end'];
         //描述
         $data['desc'] = trim($request['desc']);
+        //是否分享
+        $data['short_des'] = trim($request['short_des']);
         //简短描述
         $data['short_desc'] = trim($request['short_desc']);
         //类型
