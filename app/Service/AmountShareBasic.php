@@ -1,8 +1,8 @@
 <?php
 namespace App\Service;
-use App\Models\HdAmountShare;
+use App\Models\HdAmountShareEleven;
 use App\Models\Activity;
-use App\Models\HdAmountShareInfo;
+use App\Models\HdAmountShareElevenInfo;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
@@ -118,11 +118,11 @@ class AmountShareBasic
         $inviteCode = Func::getUserBasicInfo($param['user_id'],true);
         $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
         $data['uri'] = self::getAmountShareURI($data['identify'],$inviteCode);
-        $id = HdAmountShare::insertGetId($data);
+        $id = HdAmountShareEleven::insertGetId($data);
         return array('id'=>$id,'result'=>$data);
     }
     static function getAmountShareURI($identify,$inviteCode){
-        $callbackURI = urlencode(env("APP_URL")."/active/luck/receive.html?k=".$identify."&invite_code=".$inviteCode);
+        $callbackURI = urlencode(env("APP_URL")."/active/share_red/receive.html?k=".$identify."&invite_code=".$inviteCode);
         return env("MONEY_SHARE_WECHAT_URL").$callbackURI;
     }
 
@@ -183,6 +183,10 @@ class AmountShareBasic
         $registerTime = isset($userInfo['create_time']) && !empty($userInfo['create_time']) ? strtotime($userInfo['create_time']) : 0;
         $thisFromUserId = isset($userInfo['from_user_id']) && !empty($userInfo['from_user_id']) ? intval($userInfo['from_user_id']) : 0;
         if($thisFromUserId == $fromUserId){
+            $count = HdAmountShareElevenInfo::where('user_id',$userId)->where('is_new',1)->count();
+            if($count >= 1){
+                return 0;
+            }
             if($registerTime <= 0){
                 return 0;
             }
@@ -194,13 +198,13 @@ class AmountShareBasic
     }
     //获取新用户应该注册应该获取的金额
     static function getNewUserMoney($mallInfo){
-        $myNewUserCount = HdAmountShareInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
+        $myNewUserCount = HdAmountShareElevenInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
         if($mallInfo['period'] == 1){
-            $multiple = 0.0001;
-        }elseif($mallInfo['period'] == 3){
-            $multiple = 0.0002;
-        }elseif($mallInfo['period'] >= 6){
             $multiple = 0.0003;
+        }elseif($mallInfo['period'] == 3){
+            $multiple = 0.0006;
+        }elseif($mallInfo['period'] >= 6){
+            $multiple = 0.0009;
         }else{
             $multiple = 0;
         }
