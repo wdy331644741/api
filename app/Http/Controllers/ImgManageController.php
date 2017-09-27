@@ -108,7 +108,7 @@ class ImgManageController extends Controller
             //验证文件上传中是否出错
             if ($request->file('img_path')->isValid()) {
                 $mimeTye = $request->file('img_path')->getClientOriginalExtension();
-                $types = array('jpg','jpeg','png','bmp');
+                $types = array('jpg','jpeg','png','bmp','gif');
                 if (in_array($mimeTye,$types)) {
                     //获取位置配置的宽度
                     $width = intval($request['width']);
