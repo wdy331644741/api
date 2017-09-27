@@ -334,7 +334,9 @@ class ActivityJsonRpc extends JsonRpc {
             'type' => 0,
         ];
 
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
+        //事务开始
+        DB::beginTransaction();
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -395,6 +397,7 @@ class ActivityJsonRpc extends JsonRpc {
         $extra = $this->isExtraAwards($userId, $end);
         // 是否分享
         $shared = $this->isShared($userId);
+        DB::commit();
 
         return array(
             'code' => 0,

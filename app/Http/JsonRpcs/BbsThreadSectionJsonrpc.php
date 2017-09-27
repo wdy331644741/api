@@ -18,7 +18,7 @@ class BbsThreadSectionJsonRpc extends JsonRpc {
      */
     public function getBbsThreadSectionList($params){
 
-        $data = ThreadSection::select("id","name","isban","description","icon","pid")
+        $data = ThreadSection::select("id","name","isban","description")
             ->where(['isuse'=>'1'])
             ->orderByRaw('sort')
             ->get()
