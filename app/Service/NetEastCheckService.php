@@ -2,16 +2,13 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
-use function GuzzleHttp\Promise\queue;
 use Lib\Curl;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 
 class NetEastCheckService
 {
 
     const VERSION = 'v3';
-    const API_TIMEOUT=10;
+    const API_TIMEOUT=20;
     private $params = [];
     private $inParams=[];
     public function __construct($param)
@@ -54,8 +51,8 @@ class NetEastCheckService
     }
     public  function imgCheck()
     {
-        $this->params["secretId"] = env('NETEASE_KEY');
-        $this->params["businessId"] = env('IMG_BUSINESSID');
+        $this->params["secretId"] = self::NETEASE_KEY;
+        $this->params["businessId"] = self::IMG_BUSINESSID;
         $this->params["version"] = self::VERSION;
         $this->params["timestamp"] = sprintf("%d", round(microtime(true)*1000));// time in milliseconds
         $this->params["nonce"] = sprintf("%d", rand()); // random int
@@ -68,27 +65,6 @@ class NetEastCheckService
         return $res = self::sendCheck(env('IMG_CHECK'));
 
 
-    }
-    public function userCheck()
-    {
-        $this->params["secretId"] = env('NETEASE_KEY');
-        $this->params["businessId"] = env('USER_BUSINESSID');
-        $this->params["version"] = self::VERSION;
-        $this->params["timestamp"] = sprintf("%d", round(microtime(true)*1000));// time in milliseconds
-        $this->params["nonce"] = sprintf("%d", rand()); // random int
-        $this->params['dataId'] = $this->inParams['dataId'];//设置为时间戳
-        $this->params['content'] = $this->inParams['content'];
-        $this->params['dataType'] = isset($this->inParams['dataType'])?$this->inParams['dataType']:"";
-        $this->params['ip'] = isset($this->inParams['ip'])?$this->inParams['ip']:"";
-        $this->params['account'] = isset($this->inParams['account'])?$this->inParams['account']:"";
-        $this->params['deviceType'] = isset($this->inParams['deviceType'])?$this->inParams['deviceType']:"";
-        $this->params['deviceId'] = isset($this->inParams['deviceId'])?$this->inParams['deviceId']:"";
-        $this->params['callback'] = isset($this->inParams['callback'])?$this->inParams['callback']:"";
-        $this->params['publishTime'] = isset($this->inParams['publishTime'])?$this->inParams['publishTime']:"";
-        $this->toUtf8();
-        $this->params['signature']  = self::genSignature();
-
-        return $res = self::sendCheck(env('USER_CHECK'));
     }
     private  function genSignature()
     {
@@ -106,31 +82,26 @@ class NetEastCheckService
 
     }
     private function sendCheck($checkUrl){
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'timeout' => self::API_TIMEOUT, // read timeout in seconds
+                'content' => http_build_query($this->params),
+            ),
+        );
+        $context  = stream_context_create($options);
+        $result = file_get_contents($checkUrl, false, $context);
 
-        $client = new Client(['timeout'=>self::API_TIMEOUT]);
-        try {
-            $response = $client->request('POST', $checkUrl, [
-                'form_params' =>
-                    $this->params,
-
-            ]);
-        }catch (RequestException $e){
-
-            return [
-                "code"=>500,
-                "msg"=>$e->getMessage()
-            ];
-
-        }
-        $responseBody = json_decode($response->getBody(),true);
-
-        if($responseBody === FALSE){
+        if($result === FALSE){
             //校验失败
-            return array("code"=>500, "msg"=>"error");
+            return array("code"=>500, "msg"=>"file_get_contents failed.");
         }else{
 
-            return $responseBody;
+            return json_decode($result, true);
         }
+
+
 
     }
 

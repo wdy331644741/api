@@ -14,12 +14,13 @@ class CreateCqsscTable extends Migration
     {
         Schema::create('cqssc', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('expect',255)->unique();
+            $table->string('expect');
             $table->integer('opencode');
             $table->datetime('opentime');
             $table->integer('opentimestamp');
+            $table->unique('expect');
             $table->timestamps();
-            //$table->unique('expect');
+            $table->index('expect');
             $table->index('opentimestamp');
         });
     }

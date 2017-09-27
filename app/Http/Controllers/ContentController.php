@@ -62,8 +62,7 @@ class ContentController extends Controller
         }
         $data = ContentType::whereIn('id',$typeId)
             ->with(['contents'=>function($query){
-                $query->where(['release'=>1])
-                    ->orderByRaw('id + sort DESC')->orderBy('id','desc');
+                $query->orderByRaw('id + sort DESC')->orderBy('id','desc');
             }])->orderByRaw('id + sort DESC')
             ->orderBy('id','desc')->get();
         $often = Content::select('id','type_id','title')->where(['release'=>1,'platform'=>1])->get();

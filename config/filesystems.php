@@ -57,11 +57,6 @@ return [
             'root' => storage_path('app/public'),
             'visibility' => 'public',
         ],
-        'bbsImg' => [
-            'driver' => 'local',
-            'root' => storage_path('images'),
-            'visibility' => 'public',
-        ],
 
         's3' => [
             'driver' => 's3',
