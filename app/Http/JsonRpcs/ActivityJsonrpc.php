@@ -25,7 +25,7 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
 use App\Models\DataBlackWord;
-use Cache;
+use Cache,DB;
 use App\Service\ActivityService;
 use Lib\McQueue;
 use App\Service\GlobalAttributes;
