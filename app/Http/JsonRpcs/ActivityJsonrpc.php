@@ -263,7 +263,9 @@ class ActivityJsonRpc extends JsonRpc {
         $isAward = false;
         $awardName = '';
 
-        $signIn = Attributes::getItem($userId, $signInName);
+        //事务开始
+        DB::beginTransaction();
+        $signIn = Attributes::getItemLock($userId, $signInName);
         if(!$signIn) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
@@ -279,7 +281,7 @@ class ActivityJsonRpc extends JsonRpc {
         if($signInNum !== $day) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $extra = Attributes::getItem($userId, $aliasName);
+        $extra = Attributes::getItemLock($userId, $aliasName);
         if($extra) {
             $extraLastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
             $extraLastUpdateDate = date('Y-m-d', strtotime($extraLastUpdate));
@@ -296,6 +298,7 @@ class ActivityJsonRpc extends JsonRpc {
             $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
+        DB::commit();
 
         return array(
             'code' => 0,
