@@ -68,6 +68,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->limit(1)
             ->get()
             ->toArray();
+        
         $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
