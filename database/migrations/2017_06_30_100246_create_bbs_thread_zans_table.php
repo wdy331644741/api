@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCqsscTable extends Migration
+class CreateBbsThreadZansTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,15 +12,15 @@ class CreateCqsscTable extends Migration
      */
     public function up()
     {
-        Schema::create('cqssc', function (Blueprint $table) {
+        Schema::create('bbs_thread_zans', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('expect',255)->unique();
-            $table->integer('opencode');
-            $table->datetime('opentime');
-            $table->integer('opentimestamp');
+            $table->integer('user_id');
+            $table->integer('tid');
+            $table->tinyInteger('status');
             $table->timestamps();
-            //$table->unique('expect');
-            $table->index('opentimestamp');
+            $table->index('user_id');
+            $table->index('tid');
+            $table->index(['user_id','tid']);
         });
     }
 
@@ -31,6 +31,6 @@ class CreateCqsscTable extends Migration
      */
     public function down()
     {
-        Schema::drop('cqssc');
+        Schema::drop('bbs_thread_zans');
     }
 }
