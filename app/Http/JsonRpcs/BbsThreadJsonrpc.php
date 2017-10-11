@@ -139,20 +139,21 @@ class BbsThreadJsonRpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
         $thread = new Thread(['userId' => $userId]);
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
-            ->where(['istop' => 0,'ishot'=>1])
+            ->where(['istop' => 0])
             ->Where(function ($query) use ($typeId, $userId) {
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
+            ->where('created_at', '>', $monthTime)
             ->with('user')
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('views DESC')
             ->paginate($pageNum)
             ->toArray();
 
