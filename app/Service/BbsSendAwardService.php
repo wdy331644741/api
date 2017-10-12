@@ -200,7 +200,7 @@ class BbsSendAwardService
             $userZanCommentCount = CommentZan::where(["c_user_id"=>$this->userPid,"status"=>0])->count();
             foreach ($achieveZanCommentInfo as $value) {
                 //审核是否已经发过奖
-                $res = Task::where(["user_id" => $this->userId, "task_type" => $value['remark']])->count();
+                $res = Task::where(["user_id" => $this->userPid, "task_type" => $value['remark']])->count();
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件

@@ -205,6 +205,17 @@ class Attributes
         return $res;
     }
 
+    static function getItemLock($uid, $key) {
+        if(empty($uid) || empty($key)) {
+            return false;
+        }
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->lockForUpdate()->first();
+        if(!$res) {
+            return false;
+        }
+        return $res;
+    }
+
     static function setItem($uid, $key, $number=0, $string=null, $text=null) {
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
 
