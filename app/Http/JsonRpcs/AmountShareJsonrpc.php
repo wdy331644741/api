@@ -2,11 +2,10 @@
 
 namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
-use App\Models\UserAttribute;
+use App\Service\ActivityService;
 use App\Service\AmountShareBasic;
-use App\Models\AmountShare;
-use App\Models\AmountShareInfo;
-use App\Service\Attributes;
+use App\Models\HdAmountShareEleven;
+use App\Models\HdAmountShareElevenInfo;
 use App\Service\Func;
 use DB, Request;
 
@@ -25,34 +24,52 @@ class AmountShareJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $result = ['my_top' => 0, 'my_total_money' => 0, 'my_list' => [], 'my_expire_list' => []];
+        $result = ['my_top' => 0, 'my_total_money' => 0, 'level' => 1, 'my_list' => [], 'my_expire_list' => []];
 
+        //获取vip等级
+        $userInfo = Func::getUserBasicInfo($userId,true);
+        $result['level'] = isset($userInfo['level']) && $userInfo['level'] > 1 ? $userInfo['level'] : 1;
         //我的投资生成的红包列表
         $where['user_id'] = $userId;
         if($num == 0){
-            $list = AmountShare::where($where)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShareEleven::where($where)->where('award_status',0)->whereRaw('now() < end_time')->orderByRaw("id desc")->get()->toArray();
+            $expireList = HdAmountShareEleven::where($where)->where(
+                function($query) {
+                    $query->whereRaw('award_status = 1')->orWhereRaw('now() > end_time');
+                }
+            )->orderByRaw("id desc")->get()->toArray();
         }else{
-            $list = AmountShare::where($where)->take($num)->orderByRaw("id desc")->get()->toArray();
+            $list = HdAmountShareEleven::where($where)->where('award_status',0)->whereRaw('now() < end_time')->take($num)->orderByRaw("id desc")->get()->toArray();
+            $expireList = HdAmountShareEleven::where($where)->where(
+                function($query) {
+                    $query->whereRaw('award_status = 1')->orWhereRaw('now() > end_time');
+                }
+            )->orderByRaw("id desc")->take($num)->get()->toArray();
         }
-        //失效列表
+        //正常列表
         foreach($list as $item){
             if(isset($item['id']) && !empty($item['id'])){
-                $endTime = strtotime($item['end_time']);
-                if(time() > $endTime || $item['award_status'] == 1){
-                    $result['my_expire_list'][] = $item;
-                }else{
-                    $result['my_list'][] = $item;
-                }
+                //我的新用户领取金额
+                $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
+                $result['my_list'][] = $item;
             }
         }
-        //我的排名&总计生成的红包金额
-        $totalList = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get();
-        $total_count = count($totalList);
+        //失效列表
+        foreach($expireList as $item){
+            if(isset($item['id']) && !empty($item['id'])){
+                //我的新用户领取金额
+                $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
+                $result['my_expire_list'][] = $item;
+            }
+        }
+        //这一周总排名
+        $thisWeek = date("W");
+        $totalList = HdAmountShareEleven::where('week',$thisWeek)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get()->toArray();
 
         if (!empty($list)) {
             //自己的分享领取完金额
-            $myTotalMoney = AmountShare::where('status',1)->where('user_id',$userId)->sum('total_money');
-            if(!empty($myTotalMoney)){
+            $myTotalMoneyList = HdAmountShareEleven::where('week',$thisWeek)->where('user_id',$userId)->get()->toArray();
+            if(!empty($myTotalMoneyList)){
                 //自己的排名
                 $top = 0;
                 foreach($totalList as $key => $item){
@@ -60,14 +77,15 @@ class AmountShareJsonRpc extends JsonRpc
                         $top = $key + 1;
                     }
                 }
-                $result['my_total_money'] = $myTotalMoney;
+                foreach($myTotalMoneyList as $item){
+                    if(isset($item['total_money']) && !empty($item['total_money'])){
+                        //自己的分享领取完金额
+                        $result['my_total_money'] += $item['total_money'];
+                    }
+                }
+                //我的排名
                 $result['my_top'] = $top;
-            }else{
-                $result['my_total_money'] = 0;
-                $result['my_top'] = $total_count+1;
             }
-        }else{
-            $result['my_top'] = $total_count+1;
         }
 
         return array(
@@ -84,29 +102,25 @@ class AmountShareJsonRpc extends JsonRpc
      */
     public function amountShareTopList($params)
     {
-        $result = ['amount_share_1'=>0,'amount_share_3'=>0,'amount_share_6'=>0,'top_list'=>[]];
-        $num = isset($params->num) && !empty($params->num) ? $params->num : 5;
-        $list = AmountShare::where('status',1)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->take($num)->get();
+        $num = isset($params->num) && !empty($params->num) ? $params->num : 3;
+        $thisWeek = date("W");
+        $list = HdAmountShareEleven::where('week',$thisWeek)
+            ->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))
+            ->groupBy("user_id")
+            ->orderByRaw("money desc,max_id asc")
+            ->take($num)->get()->toArray();
         foreach ($list as &$item) {
             if (!empty($item)) {
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
         }
-        $result['top_list'] = $list;
-        //查询各个标的的参与人数
-        $res = UserAttribute::select(DB::raw('sum(number) as num,`key`'))->whereIn('key', ['amount_share_1', 'amount_share_3', 'amount_share_6'])->groupBy("key")->get();
-
-        foreach($res as $item){
-            if(!empty($item->key)){
-                $result[$item->key] = $item->num;
-            }
-        }
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $result
+            'data' => $list
         );
+
     }
 
     /**
@@ -126,14 +140,17 @@ class AmountShareJsonRpc extends JsonRpc
         if (empty($identify)) {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
-
+        $activityInfo = ActivityService::GetActivityInfoByAlias('amount_share');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //显示条数
         $num = isset($params->num) ? $params->num : 5;
 
         // 商品是否存在
         $date = date("Y-m-d H:i:s");
         DB::beginTransaction();
-        $mallInfo = AmountShare::where(['identify' => $identify])
+        $mallInfo = HdAmountShareEleven::where(['identify' => $identify])
             ->where("start_time", "<=", $date)
             ->where("end_time", ">=", $date)
             ->lockForUpdate()->first();
@@ -163,15 +180,15 @@ class AmountShareJsonRpc extends JsonRpc
 
         //用户领取过
         if ($result['isLogin']) {
-            $join = AmountShareInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
+            $join = HdAmountShareElevenInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
             if ($join) {
                 $result['isGot'] = 1;
                 $result['amount'] = $join['money'];
 
                 //获奖记录
-                $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+                $recentList = HdAmountShareElevenInfo::where('main_id', $mallInfo['id'])->where('is_new',"!=", 2)->orderBy('id', 'desc')->take($num)->get();
                 $result['recentList'] = self::_formatData($recentList);
-                
+
                 return array(
                     'code' => 0,
                     'message' => 'success',
@@ -183,9 +200,7 @@ class AmountShareJsonRpc extends JsonRpc
                 $result['isGot'] = 2;
             }
         }
-
-
-        // 发体现金
+        // 发送现金
         if ($result['isLogin'] && !$result['isGot']) {
             $money = AmountShareBasic::getRandomMoney($remain * 100, $remainNum, $mallInfo->min * 100, $mallInfo->max);
             $money = $money / 100;
@@ -198,10 +213,11 @@ class AmountShareJsonRpc extends JsonRpc
             if (!isset($res['result']['code'])) {
                 throw new OmgException(OmgException::API_FAILED);
             }
-            AmountShareInfo::insertGetId([
+            HdAmountShareElevenInfo::insertGetId([
                 'user_id' => $userId,
                 'main_id' => $mallInfo->id,
                 'uuid' => $uuid,
+                'is_new' => AmountShareBasic::isActivityNewUser($userId,$mallInfo->user_id,$activityInfo),
                 'money' => $money,
                 'remark' => json_encode($res, JSON_UNESCAPED_UNICODE),
                 'status' => 1,
@@ -209,16 +225,21 @@ class AmountShareJsonRpc extends JsonRpc
                 'updated_at' => date("Y-m-d H:i:s")
             ]);
             $result['amount'] = $money;
+            //判断首次领取就更新当前周数
+            if(isset($mallInfo->week) && $mallInfo->week == 0){
+                HdAmountShareEleven::where('id',$mallInfo->id)->update(['week'=>date("W")]);
+                HdAmountShareEleven::where('id',$mallInfo->id)->update(['day'=>date("Y-m-d")]);
+            }
             //判断分享的是否领取完
             if(!empty($mallInfo->id) && $mallInfo->total_num  === $mallInfo->receive_num){
                 //修改为领取完状态
-                AmountShare::where('id',$mallInfo->id)->update(['status'=>1]);
+                HdAmountShareEleven::where('id',$mallInfo->id)->update(['status'=>1]);
             }
         }
         DB::commit();
 
         //获奖记录
-        $recentList = AmountShareInfo::where('main_id', $mallInfo['id'])->orderBy('id', 'desc')->take($num)->get();
+        $recentList = HdAmountShareElevenInfo::where('main_id', $mallInfo['id'])->where('is_new',"!=", 2)->orderBy('id', 'desc')->take($num)->get();
         $result['recentList'] = self::_formatData($recentList);
 
         return array(
@@ -242,28 +263,52 @@ class AmountShareJsonRpc extends JsonRpc
         if($id <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
+        DB::beginTransaction();
         //判断该红包是否被全部领取
         $where['user_id'] = $userId;
         $where['id'] = $id;
         $where['status'] = 1;
         $where['award_status'] = 0;
-        $isFinish = AmountShare::where($where)->first();
+        $isFinish = HdAmountShareEleven::where($where)->lockForUpdate()->first();
         if(!empty($isFinish) && $isFinish->total_money === $isFinish->use_money && $isFinish->total_num === $isFinish->receive_num){
-            //发奖
-            $uuid = Func::create_guid();
-            $res = Func::incrementAvailable($userId, $isFinish->id, $uuid, $isFinish->total_money, 'cash_bonus');
-            if (!isset($res['result']['code'])) {
-                throw new OmgException(OmgException::API_FAILED);
+            //判断有没有新注册的用户领取
+            $newList = HdAmountShareElevenInfo::select(DB::raw('SUM(money) as money'))
+                ->where('main_id',$isFinish->id)
+                ->where('is_new',1)->first();
+            if(!empty($newList) && isset($newList['money']) && $newList['money'] > 0){
+                //获取应得金额
+                $sendMoney = AmountShareBasic::getNewUserMoney($isFinish);
+                //发奖
+                $uuid = Func::create_guid();
+                $res = Func::incrementAvailable($userId, $isFinish->id, $uuid, $sendMoney, 'cash_bonus');
+                if (!isset($res['result']['code'])) {
+                    throw new OmgException(OmgException::API_FAILED);
+                }
+                $result['money'] = $sendMoney;
+                //添加记录
+                HdAmountShareElevenInfo::insertGetId([
+                    'user_id' => $userId,
+                    'main_id' => $id,
+                    'uuid' => $uuid,
+                    'is_new' => 2,//2为最后领取的金额
+                    'money' => $sendMoney,
+                    'remark' => json_encode($res, JSON_UNESCAPED_UNICODE),
+                    'status' => 1,
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'updated_at' => date("Y-m-d H:i:s")
+                ]);
+                //修改为本人领取完状态
+                HdAmountShareEleven::where('id',$isFinish->id)->update(['award_status'=>1]);
+
+                DB::commit();
+                return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => $result
+                );
             }
-            $result['money'] = $isFinish->total_money;
-            //修改为本人领取完状态
-            AmountShare::where('id',$isFinish->id)->update(['award_status'=>1]);
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => $result
-            );
         }
+        DB::commit();
         throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
     }
     //将列表的数据整理出手机号
@@ -284,5 +329,4 @@ class AmountShareJsonRpc extends JsonRpc
         }
         return $data;
     }
-
 }

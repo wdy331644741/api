@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserAttribute;
+use App\Service\Scratch;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -21,6 +23,78 @@ use App\Service\PoBaiYiService;
 
 class TestController extends Controller
 {
+    public function getScratchReissue(Request $request){
+        $status = $request->status;
+        //从接口获取9月1日的投资记录
+        $url = "https://www.wanglibao.com/pro/api.php";
+        $client = new JsonRpcClient($url);
+        $investData = $client->guagualeAct();
+        $investData = isset($investData['result']) ? $investData['result'] : [];
+        if($status == 1){
+            echo count($investData);
+            print_r($investData);
+            exit;
+        }
+        //已经补发过的用户id
+        $continueID = [
+            '2437876',
+            '1703223',
+            '134996',
+            '752794',
+            1904585,
+            5329,
+            2388632,
+            259405,
+            1310220,
+            107217,
+            763751,
+            1425118,
+            1425118,
+            1874409,
+            1824535,
+            2376582,
+            2362920,
+            274100,
+            1443646,
+            554137,
+        ];
+        echo "总条数：".count($investData)."条<br />";
+        $continueCount = 0;
+        $count = 0;
+        if(!empty($investData)){
+            foreach ($investData as $item){
+                if(in_array($item['user_id'],$continueID)){
+                    $continueCount++;
+                    continue;
+                }
+                //补发次数
+                $params = [];
+                $params['user_id'] = $item['user_id'];//用户id
+                $params['scatter_type'] = 2;
+                $params['period'] = $item['period'];//标期
+                $params['Investment_amount'] = $item['total_amount'];//投资金额
+                //执行加次数
+                Scratch::addScratchNum($params);
+                $count++;
+            }
+        }
+        echo "之前已补发：".$continueCount."条<br />";
+        echo "接口补发：".$count."条<br />";
+    }
+    public function getSigninRepair(Request $request){
+        //停服当天时间
+        $closeTime = $request->closeTime;
+        $dateType = date("H:i:s",strtotime($closeTime));
+        $openTime = $request->signinTime;
+        if(empty($closeTime) || $dateType != '00:00:00' || empty(strtotime($openTime))){
+            return '时间参数格式不正确';
+        }
+        //获取连续签到到停服当天的数据
+        $upData = [];
+        $upData['updated_at'] = date("Y-m-d H:i:s",strtotime($openTime));
+        $res = UserAttribute::where('updated_at','like',$closeTime.'%')->where('key','signin')->update($upData);
+        echo "修改了".$res."条";
+    }
     public function getPobaiyi($userId, $money) {
         PoBaiYiService::addMoney($userId, $money);
     }

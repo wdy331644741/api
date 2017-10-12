@@ -191,6 +191,45 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 刮刮乐活动 start */
+            //投资
+            case 'scratch_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //根据标的不同添加抽奖次数
+                    Scratch::addScratchNum($triggerData);
+                }
+                break;
+            /** 刮刮乐活动 end */
+
+            /** 七月大转盘活动 start */
+            //签到
+            case 'dazhuanpan_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",1);
+                }
+                break;
+            //投资
+            case 'dazhuanpan_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000)*3;
+                            Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            //邀请人投资
+            case 'dazhuanpan_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"dazhuanpan_drew_user",1);
+                }
+                break;
+            /** 七月大转盘活动 end */
+
             /** 签到系统活动 start */
             //投资就给该用户添加48小时摇红包时间
             case 'sign_in_system_threshold':
