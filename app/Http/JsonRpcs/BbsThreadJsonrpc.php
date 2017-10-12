@@ -357,7 +357,7 @@ class BbsThreadJsonRpc extends JsonRpc
             return $page;
         });
         $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
-            ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
+            ->where(['istop'=>1,'isverify'=>1])
 
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
