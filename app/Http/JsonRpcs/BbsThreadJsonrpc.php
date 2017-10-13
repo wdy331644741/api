@@ -299,12 +299,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->with('commentAndVerify')
             ->first();
 
         if($thread_info) {
-            $thread_info->comments = $thread_info->commentAndVerify;
-            unset($thread_info->commentAndVerify);
             //view +1
             Thread::where(['id' => $params->id])->increment('views');
 
