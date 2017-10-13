@@ -351,7 +351,7 @@ class BbsSendAwardService
             return false;
             //超过阀值 不需要发奖
         }else{
-            return ture;
+            return true;
             //未超过阀值 需要发奖
         }
 
