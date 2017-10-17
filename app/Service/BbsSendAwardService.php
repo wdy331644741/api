@@ -111,8 +111,6 @@ class BbsSendAwardService
 
                     }
 
-                }else{
-
                 }
 
 
@@ -146,8 +144,6 @@ class BbsSendAwardService
                         //发奖
                         $this->organizeDataAndSend($value,$this->userId);
                     }
-
-                }else{
 
                 }
 
@@ -215,15 +211,13 @@ class BbsSendAwardService
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件
+
                     if ($userZanCommentCount >= $value['number']) {
                         //发奖
                         $this->organizeDataAndSend($value,$this->userPid);
                     }
 
-                } else {
-                    return false;
                 }
-
 
             }
         }else{
@@ -256,8 +250,6 @@ class BbsSendAwardService
                         //发奖
                         $this->organizeDataAndSend($value,$this->userId);
                     }
-
-                } else {
 
                 }
 
@@ -296,8 +288,6 @@ class BbsSendAwardService
                         return $value["award"];
                     }
 
-                } else {
-                    return false;
                 }
 
 
@@ -312,6 +302,7 @@ class BbsSendAwardService
      * 拼装接口数据
      * **/
     private function organizeDataAndSend($params,$awardUserId){
+
         $awards['id'] = 0;
         $awards['user_id'] = $awardUserId;
         $awards['source_id'] = $params['id'];
