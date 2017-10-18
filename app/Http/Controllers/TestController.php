@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Service\Scratch;
+use App\Service\SendAward;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -18,11 +20,74 @@ use App\Models\Cqssc;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
 use App\Service\PoBaiYiService;
-
+use Excel;
 
 
 class TestController extends Controller
 {
+    public function postCustomExperience(Request $request){
+        if ($request->hasFile('xls_file')) {
+            //验证文件上传中是否出错
+            if ($request->file('xls_file')->isValid()) {
+                $mimeTye = $request->file('xls_file')->getClientOriginalExtension();
+                $types = array('xls', 'xlsx');
+                if (in_array($mimeTye, $types)) {
+                    $file = $request->file('xls_file');
+                    Excel::load($file,function($reader) {
+                        $reader = $reader->getSheet(0);
+                        $data = $reader->toArray();
+                        $res = $this->_sendExperience($data);
+                        print_r($res);exit;
+                    });
+
+                }
+            }
+        }
+    }
+    private function _sendExperience($data){
+        set_time_limit(0);
+        $err = ['err'=>[],'is_exist'=>[],'msg'=>[]];
+        if(empty($data)){
+            return $err;
+        }
+        foreach($data as $key => $item){
+            if($item[0] <= 0 || $item[1] <= 0){
+                $err['err'][$key] = 'key:'.$key.'_err';
+                continue;
+            }
+            $money = $item[1] * 100;
+            if($money <= 0){
+                $err['err'][$key] = 'key:'.$key.'_money_err';
+                continue;
+            }
+            //判断是否领取
+            $count = SendRewardLog::where(['user_id'=>$item[0],'activity_id'=>50000000])->count();
+            if($count >= 1){
+                $err['is_exist'][$key] = 'key:'.$key.'_is_exist';
+                continue;
+            }
+            $awards['id'] = 0;
+            $awards['user_id'] = $item[0];
+            $awards['source_id'] = 50000000;
+            $awards['name'] = $money.'体验金';
+            $awards['source_name'] = '直播评分';
+            $awards['experience_amount_money'] = $money;
+            $awards['effective_time_type'] = 1;
+            $awards['effective_time_day'] = 7;
+            $awards['platform_type'] = 0;
+            $awards['limit_desc'] = '';
+            $awards['trigger'] = '';
+            $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+            $return = SendAward::experience($awards);
+            if(isset($return['status']) && $return['status'] == true){
+                $err['msg'][$key] = 'key:'.$key.'true';
+            }else{
+                $err['err'][$key] = 'key:'.$key.'_send_err';
+            }
+            usleep(30000);
+        }
+        return $err;
+    }
     public function getScratchReissue(Request $request){
         $status = $request->status;
         //从接口获取9月1日的投资记录
