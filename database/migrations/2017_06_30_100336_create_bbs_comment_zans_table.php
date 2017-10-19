@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCqsscTable extends Migration
+class CreateBbsCommentZansTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,15 +12,15 @@ class CreateCqsscTable extends Migration
      */
     public function up()
     {
-        Schema::create('cqssc', function (Blueprint $table) {
+        Schema::create('bbs_comment_zans', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('expect',255)->unique();
-            $table->integer('opencode');
-            $table->datetime('opentime');
-            $table->integer('opentimestamp');
+            $table->integer('user_id');
+            $table->integer('cid');
+            $table->tinyInteger('status');
             $table->timestamps();
-            //$table->unique('expect');
-            $table->index('opentimestamp');
+            $table->index('user_id');
+            $table->index('cid');
+            $table->index(['user_id','cid']);
         });
     }
 
@@ -31,6 +31,6 @@ class CreateCqsscTable extends Migration
      */
     public function down()
     {
-        Schema::drop('cqssc');
+        Schema::drop('bbs_comment_zans');
     }
 }

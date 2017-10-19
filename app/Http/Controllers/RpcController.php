@@ -44,7 +44,7 @@ use App\Http\JsonRpcs\TreasureJsonRpc;
 use App\Http\JsonRpcs\PoBaiYiJsonRpc;
 use App\Http\JsonRpcs\FiveOneEightJsonRpc;
 use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
-
+use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
 
 class RpcController extends Controller
 {
@@ -97,6 +97,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new SignInSystemJsonRpc());
         $jsonRpcServer->addService(new DaZhuanPanJsonRpc());
         $jsonRpcServer->addService(new ScratchJsonRpc());
+        $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
