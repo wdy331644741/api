@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\Activity;
 use App\Models\ActivityJoin;
 use App\Models\AwardCash;
+use App\Models\GlobalAttribute;
 use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
@@ -25,7 +26,7 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
 use App\Models\DataBlackWord;
-use Cache;
+use Cache,DB;
 use App\Service\ActivityService;
 use Lib\McQueue;
 use App\Service\GlobalAttributes;
@@ -263,7 +264,9 @@ class ActivityJsonRpc extends JsonRpc {
         $isAward = false;
         $awardName = '';
 
-        $signIn = Attributes::getItem($userId, $signInName);
+        //事务开始
+        DB::beginTransaction();
+        $signIn = Attributes::getItemLock($userId, $signInName);
         if(!$signIn) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
@@ -279,7 +282,7 @@ class ActivityJsonRpc extends JsonRpc {
         if($signInNum !== $day) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $extra = Attributes::getItem($userId, $aliasName);
+        $extra = Attributes::getItemLock($userId, $aliasName);
         if($extra) {
             $extraLastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
             $extraLastUpdateDate = date('Y-m-d', strtotime($extraLastUpdate));
@@ -296,6 +299,7 @@ class ActivityJsonRpc extends JsonRpc {
             $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
+        DB::commit();
 
         return array(
             'code' => 0,
@@ -334,7 +338,9 @@ class ActivityJsonRpc extends JsonRpc {
             'type' => 0,
         ];
 
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
+        //事务开始
+        DB::beginTransaction();
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -395,6 +401,7 @@ class ActivityJsonRpc extends JsonRpc {
         $extra = $this->isExtraAwards($userId, $end);
         // 是否分享
         $shared = $this->isShared($userId);
+        DB::commit();
 
         return array(
             'code' => 0,
@@ -1041,4 +1048,51 @@ class ActivityJsonRpc extends JsonRpc {
             'data'=> $res
         );
     }
+
+    /**
+     * 新版见面会逻辑
+     *
+     * @JsonRpcMethod
+     */
+    static function jianmianhuiNew(){
+        //获取设置总人数
+        $setNum = GlobalAttribute::where('key' , 'jianmianhuiNew')->first();
+        $setNum = isset($setNum['number']) ? intval($setNum['number']) : 0;
+        if($setNum <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //返回随机中奖号码
+        $randNum = self::jianmianhuiIsHas($setNum);
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> $randNum
+        );
+
+    }
+
+    /**
+     *获取随机数，且不重复的
+     */
+    private static function jianmianhuiIsHas($setNum){
+        $rand = mt_rand(1,$setNum);
+        //判断该key是否存在
+        $key = 'jianmianhuiNew_'.$rand;
+        $count = GlobalAttribute::where('key' , $key)->count();
+        if($count >= 1){
+            $useCount = GlobalAttribute::where('key' ,'like', "jianmianhuiNew_%")->count();
+            if($useCount >= $setNum){
+                return 0;
+            }
+            return self::jianmianhuiIsHas($setNum);
+        }
+        $insert = [];
+        $insert['key'] = $key;
+        $insert['number'] = $rand;
+        $insert['created_at'] = date("Y-m-d H:i:s");
+        $insert['updated_at'] = date("Y-m-d H:i:s");
+        GlobalAttribute::insertGetId($insert);
+        return $rand;
+    }
+
 }
