@@ -1071,7 +1071,7 @@ class ActivityJsonRpc extends JsonRpc {
     }
 
     /**
-     *
+     *获取随机数，且不重复的
      */
     private static function jianmianhuiIsHas($setNum){
         $rand = mt_rand(1,$setNum);
