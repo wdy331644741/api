@@ -20,6 +20,7 @@ use App\Models\Cqssc;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
 use App\Service\PoBaiYiService;
+
 use Excel;
 
 
@@ -38,7 +39,10 @@ class TestController extends Controller
             return 'params_error';
         }
         if(!empty($this->param['sourceId']) && $this->param['sourceId'] < 50000000){
-            return 'source_id 必须大于等于 50000000';
+            return '活动ID 必须大于等于 50000000';
+        }
+        if(!empty($this->param['sourceName']) && strlen($this->param['sourceName']) < 2){
+            return '活动名 必须大于等于 两个字符';
         }
         if ($request->hasFile('xls_file')) {
             //验证文件上传中是否出错
