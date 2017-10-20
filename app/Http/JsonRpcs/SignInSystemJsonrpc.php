@@ -9,11 +9,13 @@ use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
 use App\Service\Func;
-use App\Service\SendAward;
-use Config, Request, Cache;
+use App\Jobs\SignInSystemJob;
+use Config, Request, Cache,DB;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class SignInSystemJsonRpc extends JsonRpc
 {
+    use DispatchesJobs;
     /**
      * 查询当前状态
      *
@@ -90,6 +92,9 @@ class SignInSystemJsonRpc extends JsonRpc
         }
 
         $config = Config::get('signinsystem');
+        //事务开始
+        DB::beginTransaction();
+        UserAttribute::where('user_id',$userId)->where('key',$config['trade_alias_name'])->first()->lockForUpdate();
 
         if(!$this->isInvested($userId, $config)) {
             throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
@@ -108,7 +113,6 @@ class SignInSystemJsonRpc extends JsonRpc
             'multiple_card' => 0,
             'lastGlobalNum' => 0
         ];
-        $remark = [];
 
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
@@ -134,70 +138,21 @@ class SignInSystemJsonRpc extends JsonRpc
         if($multipleCard > 0){
             $result['multiple_card'] = $multipleCard;
         }
-
-        // 发送现金
+        //放到队列
+        $this->dispatch(new SignInSystemJob($userId,$award,$result));
+        //现金
         if($award['is_rmb']) {
-            $uuid = SendAward::create_guid();
-
-            // 创建记录
             $result['awardName'] = $award['size'] . '元';
-            $result['amount'] = strval($award['size']);
             $result['awardType'] = 7;
-            $res = SignInSystem::create([
-                'user_id' => $userId,
-                'award_name' => $result['awardName'],
-                'uuid' => $uuid,
-                'ip' => Request::getClientIp(),
-                'amount' => $award['size'],
-                'multiple' => $result['multiple'],
-                'multiple_card' => $multipleCard,
-                'user_agent' => Request::header('User-Agent'),
-                'status' => 0,
-                'type' => 7,
-                'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-            ]);
-
-            $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, 'shake');
-
-            $remark['addMoneyRes'] = $result;
-            // 成功
-            if(isset($purchaseRes['result'])) {
-                $res->update(['status' => 1, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
-            }
-
-            // 失败
-            if(!isset($purchaseRes['result'])) {
-                $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
-                throw new OmgException(OmgException::API_FAILED);
-            }
+            $result['amount'] = strval($award['size']);
+        }else{
+            //100元摇一摇红包
+            $result['awardName'] = '100元摇一摇红包';
+            $result['awardType'] = 2;
+            $result['amount'] = strval(intval($result['awardName']));
         }
-
-        // 根据别名发活动奖品
-        if(!$award['is_rmb']) {
-            $aliasName = $award['alias_name'];
-            $awards = SendAward::ActiveSendAward($userId, $aliasName);
-            if(isset($awards[0]['award_name']) && $awards[0]['status']) {
-                $result['awardName'] = $awards[0]['award_name'];
-                $result['awardType'] = $awards[0]['award_type'];
-                $result['amount'] = strval(intval($result['awardName']));
-                $remark['awards'] = $awards;
-                SignInSystem::create([
-                    'user_id' => $userId,
-                    'amount' => $award['size'],
-                    'award_name' => $result['awardName'],
-                    'uuid' => '',
-                    'ip' => Request::getClientIp(),
-                    'user_agent' => Request::header('User-Agent'),
-                    'status' => 1,
-                    'type' => $result['awardType'],
-                    'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-                ]);
-            }else{
-                throw new OmgException(OmgException::API_FAILED);
-            }
-        }
-
+        //事务提交
+        DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
