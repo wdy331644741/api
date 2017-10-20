@@ -25,7 +25,21 @@ use Excel;
 
 class TestController extends Controller
 {
+    public function getCustomExperience(){
+        return view('custom_experience');
+    }
     public function postCustomExperience(Request $request){
+        $this->param = [];
+        $this->param['sourceId'] = intval($request->source_id);
+        $this->param['sourceName'] = $request->source_name;
+        $this->param['multiple'] = intval($request->multiple);
+        $this->param['day'] = intval($request->day);
+        if(empty($this->param['sourceId']) || empty($this->param['sourceName']) || empty($this->param['multiple']) || empty($this->param['day'])){
+            return 'params_error';
+        }
+        if(!empty($this->param['sourceId']) && $this->param['sourceId'] < 50000000){
+            return 'source_id 必须大于等于 50000000';
+        }
         if ($request->hasFile('xls_file')) {
             //验证文件上传中是否出错
             if ($request->file('xls_file')->isValid()) {
@@ -36,15 +50,18 @@ class TestController extends Controller
                     Excel::load($file,function($reader) {
                         $reader = $reader->getSheet(0);
                         $data = $reader->toArray();
-                        $res = $this->_sendExperience($data);
+                        $res = $this->_sendExperience($data,$this->param);
+                        echo "<pre>";
                         print_r($res);exit;
                     });
+
 
                 }
             }
         }
+        return 'file_not_empty';
     }
-    private function _sendExperience($data){
+    private function _sendExperience($data,$param){
         set_time_limit(0);
         $err = ['err'=>[],'is_exist'=>[],'msg'=>[]];
         if(empty($data)){
@@ -55,7 +72,7 @@ class TestController extends Controller
                 $err['err'][$key] = 'key:'.$key.'_err';
                 continue;
             }
-            $money = $item[1] * 100;
+            $money = $item[1] * $param['multiple'];
             if($money <= 0){
                 $err['err'][$key] = 'key:'.$key.'_money_err';
                 continue;
@@ -68,12 +85,12 @@ class TestController extends Controller
             }
             $awards['id'] = 0;
             $awards['user_id'] = $item[0];
-            $awards['source_id'] = 50000000;
+            $awards['source_id'] = $param['sourceId'];
             $awards['name'] = $money.'体验金';
-            $awards['source_name'] = '直播评分';
+            $awards['source_name'] = $param['sourceName'];
             $awards['experience_amount_money'] = $money;
             $awards['effective_time_type'] = 1;
-            $awards['effective_time_day'] = 7;
+            $awards['effective_time_day'] = $param['day'];
             $awards['platform_type'] = 0;
             $awards['limit_desc'] = '';
             $awards['trigger'] = '';
