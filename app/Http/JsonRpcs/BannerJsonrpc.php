@@ -121,6 +121,21 @@ class BannerJsonRpc extends JsonRpc {
                 $rData['from'] = $res['from'];
                 $rData['to'] = $res['to'];
                 break;
+            case "index_icon":
+                if(empty($params->tag)){
+                    throw new OmgException(OmgException::VALID_POSITION_FAIL);
+                }else{
+                    $where['tag'] = $params->tag;
+                }
+                $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use','desc', 'tag', 'short_des', 'short_desc', 'created_at', 'updated_at', 'release_time')->where($where)
+                    ->where(function($query) {
+                        $query->whereNull('start')->orWhereRaw('start < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end')->orWhereRaw('end > now()');
+                    })
+                    ->orderByRaw('id + sort DESC')->get()->toArray();
+                break;
             // 默认
             default:
                 $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)

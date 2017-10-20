@@ -5,36 +5,180 @@ use App\Exceptions\OmgException;
 use App\Models\Bbs\Pm;
 use App\Models\Bbs\Thread;
 use App\Models\Bbs\Comment;
+use App\Models\Bbs\ThreadCollection;
 use App\Models\Bbs\User;
 use Lib\JsonRpcClient;
 use Illuminate\Pagination\Paginator;
 use Validator;
+use App\Models\bbs\ThreadRecord;
 
 
 
-class BbsThreadJsonRpc extends JsonRpc {
+class BbsThreadJsonRpc extends JsonRpc
+{
 
 
-    public  function __construct()
+    public function __construct()
     {
         global $userId;
-        $this->userId =$userId;
+        $this->userId = $userId;
     }
     /**
      *  根据板块获取帖子列表
+     *  全部排序
      *
      * @param id 区域id
      * @param pageNum  每页条数
      * @param page 当前页
      * @JsonRpcMethod
      */
-    public function getBbsThreadList($params){
+
+    public  function getBbsThreadAllList($params){
+
         $userId = $this->userId;
+
         $validator = Validator::make(get_object_vars($params), [
-            'id'=>'required|exists:bbs_thread_sections,id',
+            'id' => 'required|exists:bbs_thread_sections,id',
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $typeId = $params->id;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+        //自定义分页  查找一个月内view最多的帖子  剔除 管理员发的置顶贴
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
+        $thread = new Thread(['userId' => $userId]);
+        $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->where(['istop' => 0,'isgreat'=>1])
+            ->where('created_at', '>', $monthTime)
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+            })
+            ->with("user")
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
+            ->orderByRaw('comment_num DESC')
+            ->limit(1)
+            ->get()
+            ->toArray();
+        
+        $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->where(['istop' => 0])
+            ->where('created_at', '>', $monthTime)
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+            })
+            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:""])
+            ->with("user")
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
+            ->orderByRaw('views DESC')
+            ->limit(1)
+            ->get()
+            ->toArray();
+
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->where(['istop' => 0])
+
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+            })
+            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
+            ->with('user')
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
+            ->orderByRaw('created_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        if($page == 1){
+            $res['data'] = array_merge($commentThread,$pvThread,$res['data']);
+        }
+
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$res
+        ];
+
+    }
+
+    /**
+     *  根据板块获取帖子列表
+     *  最热排序
+     *
+     * @param id 区域id
+     * @param pageNum  每页条数
+     * @param page 当前页
+     * @JsonRpcMethod
+     */
+    public function getBbsThreadHotList($params)
+    {
+        $userId = $this->userId;
+        $validator = Validator::make(get_object_vars($params), [
+            'id' => 'required|exists:bbs_thread_sections,id',
+        ]);
+
+        if ($validator->fails()) {
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $typeId = $params->id;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
+        $thread = new Thread(['userId' => $userId]);
+
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->where(['istop' => 0])
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+            })
+            ->where('created_at', '>', $monthTime)
+            ->with('user')
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
+            ->orderByRaw('views DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$res
+        ];
+
+
+    }
+    /**
+     *
+     *获取精华帖子的详情
+     * @
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsThreadGreatList($params){
+        $userId = $this->userId;
+        $validator = Validator::make(get_object_vars($params), [
+            'id' => 'required|exists:bbs_thread_sections,id',
+        ]);
+
+        if ($validator->fails()) {
             throw new OmgException(OmgException::DATA_ERROR);
         }
         $typeId = $params->id;
@@ -45,165 +189,82 @@ class BbsThreadJsonRpc extends JsonRpc {
         });
         //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
 
-        $mondayTime = date("Y-m-d",strtotime("-1 week Monday"));
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
 
-        $thread = new Thread(['userId'=>$userId]);
-        $hotThreadId = [];
-        $hotThread = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at","bbs_threads.updated_at")
-            ->whereNotIn('bbs_threads.id', function($query) use($typeId){
-            $query->select('id')
-                ->from('bbs_threads')
-                ->where(['bbs_threads.istop'=>1,'bbs_threads.type_id'=>$typeId]);
-
-            })
-            ->where('bbs_threads.created_at','>',$mondayTime)
-            ->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
-            ->orWhere(function($query)use($typeId,$userId){
-                $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
+        $thread = new Thread(['userId' => $userId]);
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->where(['istop' => 0,'isgreat'=>1])
+            ->where('created_at', '>', $monthTime)
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
 
-            ->join("bbs_users",function($join){
-                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
-
-            })
-            ->with("user")
-            ->with("commentAndVerify")
-
-            ->orderByRaw('views DESC')
-            ->offset(0)
-            ->limit(8)
-            ->orderByRaw('bbs_threads.updated_at DESC')
-            ->get()
-            ->toArray();
-        foreach ($hotThread as $key=>$value){
-            $hotThreadId[] = $value['id'];
-        }
-
-        $res = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at","bbs_threads.updated_at")
-            ->where(function($query)use($typeId,$userId) {
-                $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
-                    ->orWhere(function($query)use($typeId,$userId){
-                        $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
-                    });
-            })
-            ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
-                $query->select('id')
-                    ->from('bbs_threads')
-                    ->where(['istop'=>1,'type_id'=>$typeId])
-                    ->orwhereIn('bbs_threads.id',$hotThreadId);
-            })
-            ->Join("bbs_users",function($join){
-                $join->on("bbs_users.user_id","=","bbs_threads.user_id");
-
-            })
             ->with('user')
-            ->with("commentAndVerify")
-            ->orderByRaw('bbs_threads.updated_at DESC')
-
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
-
-        if(empty($hotThread)){
-
-            foreach ($res['data'] as $key => $value){
-                $res['data'][$key]['comments']=[];
-                foreach ($value['comment_and_verify'] as $k =>$v) {
-                    $res['data'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
-                    $res['data'][$key]['comments'][$k] = $res['data'][$key]['comment_and_verify'][$k];
-                    if($k >=1){
-                        break;
-                    }
-                }
-                unset($res['data'][$key]['comment_and_verify']);
-
-            }
-
-            $rData['total'] = $res['total'];
-            $rData['per_page'] = $res['per_page'];
-            $rData['current_page'] = $res['current_page'];
-            $rData['last_page'] = $res['last_page'];
-            $rData['from'] = $res['from'];
-            $rData['to'] = $res['to'];
-            $rData['list'] = $res['data'];
-            return array(
-                'code'=>0,
-                'message'=>'success',
-                'data'=>$rData,
-            );
-        }else{
-            if($page ==1){
-                $offset = 0;
-                $step =$pageNum-count($hotThreadId);
-            }else{
-                $offset = ($page-1)*$pageNum-count($hotThreadId);
-                $step =$pageNum;
-            }
-
-            $result = $thread->select("bbs_threads.id as id","bbs_threads.user_id","content","views","comment_num","isgreat","ishot","title","bbs_threads.created_at","bbs_threads.updated_at")
-
-                ->where(function($query)use($typeId,$userId) {
-                    $query->where(['bbs_threads.isverify'=>1,'bbs_threads.type_id'=>$typeId])
-                        ->orWhere(function($query)use($typeId,$userId){
-                            $query->where(['bbs_threads.user_id'=>$userId,"bbs_threads.type_id"=>$typeId]);
-                        });
-                })
-                ->whereNotIn('bbs_threads.id', function($query) use($typeId,$hotThreadId){
-                    $query->select('id')
-                        ->from('bbs_threads')
-                        ->where(['istop'=>1,'type_id'=>$typeId])
-                        ->orwhereIn('id',$hotThreadId);
-                })
-                ->join("bbs_users",function($join){
-                    $join->on("bbs_users.user_id","=","bbs_threads.user_id");
-
-                })
-                ->with('user')
-                ->with('commentAndVerify')
-                ->orderByRaw('bbs_threads.updated_at DESC')
-                ->offset($offset)
-                ->limit($step)
-                ->get()
-                ->toArray();
-
-            if($page == 1){
-                $data['list'] = array_merge($hotThread,$result);
-            }else{
-                $data['list'] = $result;
-            }
-            
-            foreach ($data['list'] as $key => $value){
-                $data['list'][$key]['comments']=[];
-                foreach ($value['comment_and_verify'] as $k =>$v) {
-
-                    $data['list'][$key]['comment_and_verify'][$k]['user'] = User::where(['user_id' => $v['user_id']])->first();
-                    $data['list'][$key]['comments'][$k] = $data['list'][$key]['comment_and_verify'][$k];
-                    if($k>=1){
-                        break;
-                    }
-
-                }
-                unset($data['list'][$key]['comment_and_verify']);
-            }
-
-            $rData['list'] = $data['list'];
-            $rData['total'] = $res['total'];
-            $rData['per_page'] = $res['per_page'];
-            $rData['current_page'] = $res['current_page'];
-            $rData['last_page'] = $res['last_page'];
-            $rData['from'] = $res['from'];
-            $rData['to'] = $res['to'];
-
-            return array(
-                'code'=>0,
-                'message'=>'success',
-                'data'=>$rData,
-            );
-
-        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$res
+        ];
 
 
     }
 
+    /**
+     *
+     *获取最新帖子的详情
+     * @
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsThreadLastList($params){
+        $userId = $this->userId;
+        $validator = Validator::make(get_object_vars($params), [
+            'id' => 'required|exists:bbs_thread_sections,id',
+        ]);
+
+        if ($validator->fails()) {
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $typeId = $params->id;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $monthTime = date("Y-m-d", strtotime("-1 month"));
+
+        $thread = new Thread(['userId' => $userId]);
+
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+            ->where(['istop' => 0])
+            ->where('created_at', '>', $monthTime)
+            ->Where(function ($query) use ($typeId, $userId) {
+                $query->where(['isverify' => 1, 'type_id' => $typeId])
+                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+            })
+            ->with('user')
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
+            ->orderByRaw('created_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$res
+        ];
+
+
+    }
     /**
      *
      *获取帖子的详情
@@ -212,7 +273,9 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function getBbsThreadDetail($params){
+
         $userId = $this->userId;
+
         $validator = Validator::make(get_object_vars($params), [
             'id'=>'required|exists:bbs_threads,id',
         ]);
@@ -220,15 +283,22 @@ class BbsThreadJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::DATA_ERROR);
 
         }
-
-        $thread =  new Thread(['userId'=>$userId]);
+        if($this->userId){
+            ThreadRecord::firstOrCreate(['user_id' => $this->userId,'tid'=>$params->id],['user_id' => $this->userId,'tid'=>$params->id]);
+        }
+        $thread =  new Thread(['userId'=>$this->userId]);
         $id = $params->id;
-        $thread_info =  $thread->select("id","content","views","url","comment_num","type_id","user_id","isgreat","ishot","title")
+
+        $thread_info =  $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot","cover", "title","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
+
             ->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){
                    $query->where(['user_id'=>$userId,'id'=>$id]);
                })
             ->with('user')
+            ->with('collection')
+            ->with('zan')
+            ->with('read')
             ->with('commentAndVerify')
             ->first();
 
@@ -236,8 +306,8 @@ class BbsThreadJsonRpc extends JsonRpc {
             $thread_info->comments = $thread_info->commentAndVerify;
             unset($thread_info->commentAndVerify);
             //view +1
-            Thread::where(['id' => $params->id])->update(['views' => $thread_info->views + 1]);
-            //dd($thread_info);
+            Thread::where(['id' => $params->id])->increment('views');
+
             if (!empty($params->fromPm)) {
                 Pm::where(['id' => $params->fromPm])->update(['isread' => 1]);
             }
@@ -260,20 +330,14 @@ class BbsThreadJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsThreadTopList($params){
-        $validator = Validator::make(get_object_vars($params), [
-            'id'=>'required|exists:bbs_thread_sections,id',
-        ]);
-        if($validator->fails()){
-            throw new OmgException(OmgException::DATA_ERROR);
-        }
-        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 3;
         $page = isset($params->page) ? $params->page : 1;
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::select("id","cover","title","type_id","url")
+        $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
-            //->with('user')
+
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
@@ -282,8 +346,37 @@ class BbsThreadJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => $res
         );
-    }
 
+    }
+    /**
+     *
+     *
+     * 获取置顶帖子列表
+     *
+     * @JsonRpcMethod
+     */
+    public function delBbsUserThread($params)
+    {
+
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+            'ids' => 'required',
+
+        ]);
+
+        if ($validator->fails()) {
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+
+        $deleted['num'] = Thread::where(['user_id' => $this->userId])->whereIn('id', $params->ids)->delete();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $deleted,
+        );
+    }
 
 
 }

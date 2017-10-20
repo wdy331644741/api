@@ -25,7 +25,7 @@ use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
 use App\Models\DataBlackWord;
-use Cache;
+use Cache,DB;
 use App\Service\ActivityService;
 use Lib\McQueue;
 use App\Service\GlobalAttributes;
@@ -263,7 +263,9 @@ class ActivityJsonRpc extends JsonRpc {
         $isAward = false;
         $awardName = '';
 
-        $signIn = Attributes::getItem($userId, $signInName);
+        //事务开始
+        DB::beginTransaction();
+        $signIn = Attributes::getItemLock($userId, $signInName);
         if(!$signIn) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
@@ -279,7 +281,7 @@ class ActivityJsonRpc extends JsonRpc {
         if($signInNum !== $day) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $extra = Attributes::getItem($userId, $aliasName);
+        $extra = Attributes::getItemLock($userId, $aliasName);
         if($extra) {
             $extraLastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
             $extraLastUpdateDate = date('Y-m-d', strtotime($extraLastUpdate));
@@ -296,6 +298,7 @@ class ActivityJsonRpc extends JsonRpc {
             $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
+        DB::commit();
 
         return array(
             'code' => 0,
@@ -334,7 +337,9 @@ class ActivityJsonRpc extends JsonRpc {
             'type' => 0,
         ];
 
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
+        //事务开始
+        DB::beginTransaction();
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -395,6 +400,7 @@ class ActivityJsonRpc extends JsonRpc {
         $extra = $this->isExtraAwards($userId, $end);
         // 是否分享
         $shared = $this->isShared($userId);
+        DB::commit();
 
         return array(
             'code' => 0,
@@ -995,6 +1001,49 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data'=> true
+        );
+    }
+
+    /**
+     * 总收益账单2.5%加息券
+     *
+     * @JsonRpcMethod
+     */
+    static function incomeStatementStatus(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = ActivityService::isExistByAliasUserID('income_statement_2.5',$userId);
+        if($res >= 1){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> true
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> false
+        );
+    }
+    /**
+     * 总收益账单2.5%加息券
+     *
+     * @JsonRpcMethod
+     */
+    static function incomeStatement(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = SendAward::ActiveSendAward($userId,'income_statement_2.5');
+        //调用发奖
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> $res
         );
     }
 }
