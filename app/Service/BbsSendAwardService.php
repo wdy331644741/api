@@ -111,8 +111,6 @@ class BbsSendAwardService
 
                     }
 
-                }else{
-
                 }
 
 
@@ -128,7 +126,10 @@ class BbsSendAwardService
      * */
     private function publishThreadTask()
     {
-
+        $res = $this->maxAchieveAward($this->userId);
+        if(!$res){
+            return false;
+        }
         $dayPublishThreadInfo = Tasks::where(["task_mark"=>"achievePublishThread","enable"=>1])->get()->toArray();
         if($dayPublishThreadInfo) {
 
@@ -143,8 +144,6 @@ class BbsSendAwardService
                         //发奖
                         $this->organizeDataAndSend($value,$this->userId);
                     }
-
-                }else{
 
                 }
 
@@ -161,6 +160,10 @@ class BbsSendAwardService
      * **/
     private  function zanThreadTask()
     {
+        $res = $this->maxAchieveAward($this->userId);
+        if(!$res){
+            return false;
+        }
         $achievePublishThreadInfo = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->get()->toArray();
         if($achievePublishThreadInfo) {
             //作者 处理点赞任务
@@ -194,6 +197,10 @@ class BbsSendAwardService
      * */
     private  function zanCommentTask()
     {
+        $res = $this->maxAchieveAward($this->userId);
+        if(!$res){
+            return false;
+        }
         $achieveZanCommentInfo = Tasks::where(["task_mark"=>"achieveZanComment","enable"=>1])->get()->toArray();
         if($achieveZanCommentInfo) {
             //点击者 处理点赞任务
@@ -204,15 +211,13 @@ class BbsSendAwardService
                 //未发过奖
                 if (!$res) {
                     //审核发奖条件
+
                     if ($userZanCommentCount >= $value['number']) {
                         //发奖
                         $this->organizeDataAndSend($value,$this->userPid);
                     }
 
-                } else {
-                    return false;
                 }
-
 
             }
         }else{
@@ -227,6 +232,10 @@ class BbsSendAwardService
      * */
     private  function greatThreadTask()
     {
+        $res = $this->maxAchieveAward($this->userId);
+        if(!$res){
+            return false;
+        }
         $achieveGreatThreadInfo = Tasks::where(["task_mark"=>"achieveGreatThread","enable"=>1])->get()->toArray();
         if($achieveGreatThreadInfo) {
             //点击者 处理点赞任务
@@ -242,8 +251,6 @@ class BbsSendAwardService
                         $this->organizeDataAndSend($value,$this->userId);
                     }
 
-                } else {
-
                 }
 
 
@@ -258,6 +265,10 @@ class BbsSendAwardService
      * */
     private function zanThreadPTask()
     {
+        $res = $this->maxAchieveAward($this->userId);
+        if(!$res){
+            return false;
+        }
         $achieveZanThreadPInfo = Tasks::where(["task_mark"=>"achieveZanThreadP","enable"=>1])->get()->toArray();
 
         if($achieveZanThreadPInfo) {
@@ -277,8 +288,6 @@ class BbsSendAwardService
                         return $value["award"];
                     }
 
-                } else {
-                    return false;
                 }
 
 
@@ -293,6 +302,7 @@ class BbsSendAwardService
      * 拼装接口数据
      * **/
     private function organizeDataAndSend($params,$awardUserId){
+
         $awards['id'] = 0;
         $awards['user_id'] = $awardUserId;
         $awards['source_id'] = $params['id'];
@@ -316,6 +326,27 @@ class BbsSendAwardService
         $task->save();
 
     }
+    //只能获取一次的任务 设置阀值
+    private  function maxAchieveAward($userId){
 
+        //获取所有的仅一次发奖任务类型
+        $maxAward = Tasks::where(["frequency"=>2,"enable"=>1])->sum('award');
+        $achieveAwardType = Tasks::select(['remark'])->get()->toArray();
+        foreach ($achieveAwardType as $v){
+            $achieveAwardTypes[] = $v['remark'];
+        }
+        $userAward = Task::where(["user_id"=>$userId])
+            ->whereIn("task_type",$achieveAwardTypes)
+            ->sum('award');
+        if($userAward>$maxAward){
+            return false;
+            //超过阀值 不需要发奖
+        }else{
+            return true;
+            //未超过阀值 需要发奖
+        }
+
+
+    }
 
 }

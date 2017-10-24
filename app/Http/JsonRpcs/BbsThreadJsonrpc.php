@@ -299,12 +299,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->with('commentAndVerify')
             ->first();
 
         if($thread_info) {
-            $thread_info->comments = $thread_info->commentAndVerify;
-            unset($thread_info->commentAndVerify);
             //view +1
             Thread::where(['id' => $params->id])->increment('views');
 
@@ -336,7 +333,7 @@ class BbsThreadJsonRpc extends JsonRpc
             return $page;
         });
         $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
-            ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->id])
+            ->where(['istop'=>1,'isverify'=>1])
 
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
