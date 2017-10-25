@@ -505,6 +505,40 @@ class SendAward
                     }
                 }
                 break;
+            //投资12月及以上标送直抵红包2017.11.6-11.17 start
+            case"investment_send_zdhb":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        $nowtimeStamp = time();
+                        if($nowtimeStamp >= strtotime($activityInfo['start_at']) && $nowtimeStamp <= strtotime($activityInfo['end_at'])){
+                            $num = bcmul($amount,0.005,2);
+                            //直抵红包相关参数
+                            $info = [
+                                'id'=>0,
+                                'user_id'=>$triggerData['user_id'],
+                                'source_id'=>$activityInfo['id'],
+                                'name'=>$num."元直抵红包",
+                                'source_name'=>'清空购物车',
+                                'red_money'=>$num,
+                                'effective_time_type'=>2,
+                                'effective_time_start'=>date('Y-m-d H:i:s'),
+                                'effective_time_end'=>'2017-11-18 00:00:00',
+                                'investment_threshold'=>0,
+                                'project_duration_type'=>1,
+                                'product_id'=>'',
+                                'project_type'=>null,
+                                'platform_type'=>0,
+                                'limit_desc'=>null,
+                                'trigger'=>null
+                            ];
+                            self::redMoney($info);
+                        }
+                    }
+                }
+                break;
+            //投资12月及以上标送直抵红包2017.11.6-11.17 end
             //实名送100M流量
             case "gdyidong_flow_100M":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
@@ -1033,12 +1067,12 @@ class SendAward
         $info['uuid'] = null;
         $info['status'] = 0;
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
-            'red_money' => 'required|integer|min:1',
+            'red_money' => 'required|numeric|min:0',
             'effective_time_type' => 'required|integer|min:1',
             'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
@@ -1068,8 +1102,11 @@ class SendAward
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
         $data['source_id'] = $info['source_id'];
+
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
+
         $data['project_type'] = $info['project_type'];//项目类型
+
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
         //项目期限时间
         if($data['project_duration_type'] > 1){
@@ -1087,9 +1124,13 @@ class SendAward
         }
         $data['investment_threshold'] = $info['investment_threshold'];
         $data['source_name'] = $info['name'];
+
         $data['platform'] = $info['platform_type'];
+
         $data['limit_desc'] = $info['limit_desc'];
+
         $data['trigger'] = $info['trigger'];
+
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
