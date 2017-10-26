@@ -6,7 +6,7 @@
     <body>
         <div class="container">
             <div class="content">
-                <form action="/test/custom-experience" method="post" enctype="multipart/form-data">
+                <form action="/yunying/test/custom-experience" method="post" enctype="multipart/form-data">
                     <table>
                         <tr>
                             <td>
