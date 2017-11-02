@@ -2,6 +2,9 @@
 
 namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
+use App\Models\UserAttribute;
+use App\Service\Attributes;
+use App\Service\SendAward;
 use Lib\JsonRpcClient;
 use Redis;
 use Config;
@@ -63,5 +66,42 @@ class InvestmentJsonrpc extends JsonRpc {
             'message' => 'success',
             'data' => $data,
         );
+    }
+
+    /**
+     *  网剧投资状态&领取
+     *
+     * @JsonRpcMethod
+     */
+    public function networkDrama($params){
+        global $userId;
+        
+        $receive = isset($params->receive) ? $params->receive : 0;
+        $res = ['is_login' => false,
+                'is_got' => false,
+                'code' => ''
+        ];
+        if (!empty($userId)) {
+            //未登录
+            $res['is_login'] = true;
+        }
+        $config = Config::get('networkdrama');
+        //判断是否领取过
+        $isHas = Attributes::getItem($userId,$config['key']);
+        if(isset($isHas['number']) && $isHas['number'] >= 1){
+            $res['is_got'] = true;
+            $res['code'] = isset($isHas['string']) ? $isHas['string'] : '';
+        }else{
+            //发奖
+            if($res['is_login'] == true && $receive == 1){
+                $result = SendAward::ActiveSendAward($userId,$config['alias_name']);
+                $code = isset($result[0]['code']) && !empty($result[0]['code']) ? $result[0]['code'] : '';
+                $res['is_got'] = true;
+                $res['code'] = $code;
+                //设置为已领取
+                Attributes::setItem($userId,$config['key'],1,$code);
+            }
+        }
+        return $res;
     }
 }
