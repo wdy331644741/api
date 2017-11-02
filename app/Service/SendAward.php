@@ -508,7 +508,7 @@ class SendAward
             //投资12月及以上标送直抵红包2017.11.6-11.17 start
             case"investment_send_zdhb":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
-                    //判断是否是6个月以上标
+                    //判断是否是12个月以上标
                     if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12){
                         $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                         $nowtimeStamp = time();
@@ -531,7 +531,8 @@ class SendAward
                                 'project_type'=>null,
                                 'platform_type'=>0,
                                 'limit_desc'=>null,
-                                'trigger'=>null
+                                'trigger'=>null,
+                                'mail'=>"恭喜您在'{{sourcename}}'活动中获得{{awardname}}"
                             ];
                             self::redMoney($info);
                         }
