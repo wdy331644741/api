@@ -82,7 +82,7 @@ class TestController extends Controller
                 continue;
             }
             //判断是否领取
-            $count = SendRewardLog::where(['user_id'=>$item[0],'activity_id'=>50000000])->count();
+            $count = SendRewardLog::where(['user_id'=>$item[0],'activity_id'=>$param['sourceId']])->count();
             if($count >= 1){
                 $err['is_exist'][$key] = 'key:'.$key.'_is_exist';
                 continue;
@@ -105,7 +105,7 @@ class TestController extends Controller
             }else{
                 $err['err'][$key] = 'key:'.$key.'_send_err';
             }
-            usleep(30000);
+            usleep(60000);
         }
         return $err;
     }
