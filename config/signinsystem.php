@@ -5,7 +5,7 @@ return [
     'trade_alias_name' => 'sign_in_system_threshold',
     'multiple_card_alias_name' => 'sign_in_system_multiple_card',
     'expired_hour' => 48,
-    'interval' => 3, // 两次抽奖间隔秒数
+    'interval' => 5, // 两次抽奖间隔秒数
     'award_number_multiple' => 1,  //奖品数量倍率
     'multipleLists' => [
         [
