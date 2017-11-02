@@ -195,7 +195,8 @@ class SendAward
             //投资
             case 'network_drama_invest':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
-                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12 && $amount >= 600){
                         $config = Config::get('networkdrama');
                         //判断是否生产数据
                         $isHas = Attributes::getItem($triggerData['user_id'],$config['key']);
