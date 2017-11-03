@@ -79,6 +79,7 @@ class InvestmentJsonrpc extends JsonRpc {
         $receive = isset($params->receive) ? $params->receive : 0;
         $res = ['is_login' => false,
                 'is_got' => false,
+                'is_standard' => false,
                 'code' => ''
         ];
         if (!empty($userId)) {
@@ -88,6 +89,10 @@ class InvestmentJsonrpc extends JsonRpc {
         $config = Config::get('networkdrama');
         //判断是否领取过
         $isHas = Attributes::getItem($userId,$config['key']);
+        //判断是否达到领取标准
+        if(isset($isHas['number']) && $isHas['number'] >= 0) {
+            $res['is_standard'] = true;
+        }
         if(isset($isHas['number']) && $isHas['number'] >= 1){
             $res['is_got'] = true;
             $res['code'] = isset($isHas['string']) ? $isHas['string'] : '';
