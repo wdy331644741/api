@@ -105,7 +105,7 @@ class TestController extends Controller
             }else{
                 $err['err'][$key] = 'key:'.$key.'_send_err';
             }
-            usleep(60000);
+            usleep(80000);
         }
         return $err;
     }
