@@ -1545,6 +1545,23 @@ class SendAward
         return $uuid;
     }
 
+    //由基础信息 获取到用户尊称
+    static function setUserRespectedName($userBasicInfo){
+        $respected = '';
+        if(isset($userBasicInfo['realname']) && !empty($userBasicInfo['realname']) )
+            $last_name = mb_substr($userBasicInfo['realname'] ,0,1,'utf-8');
+        if(isset($userBasicInfo['gender']) && $userBasicInfo['gender'] != 0 ){
+            $gender = $userBasicInfo['gender'] == 1?'先生':'女士';
+        }
+        //如果都存在，生成尊称
+        if(isset($last_name) && isset($gender)){
+            $respected = $last_name.$gender;
+        }else{
+            $respected = '网利宝用户';
+        }
+        return $respected;
+    }
+
     /**
      * 发送站内信及添加日志
      * @param $info
@@ -1555,6 +1572,9 @@ class SendAward
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
         $message['code'] = isset($info['code']) ? $info['code'] : '';
+
+        $userBasicInfo = Func::getUserBasicInfo($info['user_id']);//获取用户基本信息
+        $message['respecteduname'] = self::setUserRespectedName($userBasicInfo);//用户尊称key：respecteduname
         $return = array();
         $info['message_status'] = 0;
         $info['mail_status'] = 0;
