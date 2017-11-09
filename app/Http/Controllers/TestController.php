@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
+use App\Service\Func;
 use App\Service\Scratch;
 use App\Service\SendAward;
 use Illuminate\Http\Request;
@@ -26,6 +27,17 @@ use Excel;
 
 class TestController extends Controller
 {
+    public function getSendMeMoney(Request $request){
+        $userId = $request->user_id;
+        $uuid = Func::create_guid();
+        $money = mt_rand(50,100);
+        $float = mt_rand(1,9);
+        $money = $money.".".$float;
+        $id = mt_rand(100,1000);
+        $res = Func::incrementAvailable($userId, $id, $uuid, $money, 'cash_bonus');
+        echo "<bre>";   
+        print_r($res);exit;
+    }
     public function getCustomExperience(){
         return view('custom_experience');
     }

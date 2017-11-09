@@ -260,11 +260,12 @@ class Func
 
     static function randomStr($length) {
         $strArr = 'abcdefghigklmnopqrstuvwxyz0123456';
+        $dateStr = date("YmdHis");
         $str = '';
         for ($i = 0; $i < $length; $i++) {
             $str .= $strArr[rand(0, strlen($strArr)-1)];
         }
-        return $str;
+        return $str."_".$dateStr;
     }
 
     /**
