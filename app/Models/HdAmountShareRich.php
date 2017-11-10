@@ -13,6 +13,6 @@ class HdAmountShareRich extends Model
 
     protected $dates = ['deleted_at'];
 
-    public $table = 'hd_amount_share_eleven';
+    public $table = 'hd_amount_share_rich';
 }
 
