@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HdAmountShareRich;
 use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Service\Func;
