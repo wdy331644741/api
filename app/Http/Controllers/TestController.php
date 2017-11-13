@@ -31,10 +31,11 @@ class TestController extends Controller
     public function getSendMeMoney(Request $request){
         $userId = $request->user_id;
         $uuid = Func::create_guid();
+        $count = HdAmountShareRich::count();
         $money = mt_rand(50,100);
         $float = mt_rand(1,9);
         $money = $money.".".$float;
-        $id = mt_rand(100,1000);
+        $id = mt_rand(intval($count/2),$count);
         $res = Func::incrementAvailable($userId, $id, $uuid, $money, 'cash_bonus');
         echo "<bre>";   
         print_r($res);exit;
