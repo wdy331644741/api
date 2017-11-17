@@ -33,7 +33,7 @@ class TestController extends Controller
         $userId = $request->user_id;
         $uuid = Func::create_guid();
         $count = HdAmountShareRich::count();
-        $money = mt_rand(50,100);
+        $money = mt_rand(20,60);
         $float = mt_rand(1,9);
         $money = $money.".".$float;
         $id = mt_rand(intval($count/2),$count);
