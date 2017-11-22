@@ -445,7 +445,7 @@ class BannerJsonRpc extends JsonRpc {
             "mbaidujj",
             "baidujj",
             "mdsp",
-            "Appstoreplus"
+            "APPStorePlus"
         ];
         if(in_array($thisChannel,$channel)){
             $where = ['position' => $position,'can_use' => 0,'name'=>"特定渠道显示，请勿动，请勿上线"];
