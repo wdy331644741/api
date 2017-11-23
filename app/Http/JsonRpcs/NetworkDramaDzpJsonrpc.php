@@ -26,6 +26,12 @@ class NetworkDramaDzpJsonRpc extends JsonRpc
      */
     public function networkDazhuanpanInfo() {
         global $userId;
+        global $requestIP;
+
+        //统计浏览量
+        $channel = 'liechang_tv';
+        @Func::statistics($channel, $requestIP);
+
         $config = Config::get('networkdramadzp');
         $result = ['login'=>false, 'available' => 0, 'share_flag'=>false, 'number' => 0];
 //         用户是否登录
@@ -274,10 +280,6 @@ class NetworkDramaDzpJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $data,
         ];
-    }
-    //获取奖品
-    private function getAward($config) {
-
     }
 
     //获取用户的剩余次数
