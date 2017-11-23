@@ -25,6 +25,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
+use App\Models\Statistics;
 use App\Models\DataBlackWord;
 use Cache,DB;
 use App\Service\ActivityService;
@@ -1069,6 +1070,26 @@ class ActivityJsonRpc extends JsonRpc {
             'data'=> $randNum
         );
 
+    }
+
+    /**
+     *  统计页面浏览量
+     * @params  channel string 必须
+     * @JsonRpcMethod
+     */
+    public function statisticsInfo($params) {
+        global $requestIP;
+        $type = isset($params->channel)?$params->channel:'';
+        $ret = Func::statistics($type, $requestIP);
+        $return = $ret;
+        if($ret) {
+            $return = ['id'=>$ret];
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return,
+        ];
     }
 
     /**

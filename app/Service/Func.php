@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Models\Statistics;
 use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
 use Cache;
@@ -360,5 +361,25 @@ class Func
             . substr($charid, 16, 4) . $hyphen
             . substr($charid, 20, 12);
         return $uuid;
+    }
+
+    /*
+     *  统计浏览量
+     * @type 渠道号    string
+     * @ip  ip  string
+     * @remark string
+     * @return $ret  id
+     */
+    static function statistics($type, $ip, $remark='')
+    {
+        $ret = false;
+        if(!empty($type) && !empty($ip)){
+            $params['type'] = $type;
+            $params['ip'] = $ip;
+            $params['remark'] = $remark;
+            $params['created_at'] = $params['updated_at'] = date("Y-m-d H:i:s");
+            $ret = Statistics::insertGetId($params);
+        }
+        return $ret;
     }
 }
