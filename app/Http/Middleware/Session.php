@@ -24,9 +24,10 @@ class Session
 
         $sessionHandler = new SessionHandler();
         $sessionHandler->setGroup(env('ACCOUNT_BASE_HOST'));
-        global $userId,$phone;
+        global $userId,$phone,$requestIP;
         $userId = $sessionHandler->get('userData.user_id');
         $phone = $sessionHandler->get('userData.user_name');
+        $requestIP = $request->getClientIp();
         return $next($request);
     }
 }
