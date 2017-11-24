@@ -168,7 +168,7 @@ class ImgManageController extends Controller
             'id' => 'required|integer|min:1',
             'position' => 'required|min:2|max:255',
             'img_path' => 'required|min:2|max:255',
-            'activity_time' => 'date'
+            'activity_time' => 'date',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -204,6 +204,9 @@ class ImgManageController extends Controller
         $data['updated_at'] = date("Y-m-d H:i:s");
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
+
+        $data['tag'] = empty($request['tag']) ? null : $request['tag'];
+
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
