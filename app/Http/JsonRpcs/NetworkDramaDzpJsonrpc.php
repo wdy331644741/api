@@ -76,22 +76,10 @@ class NetworkDramaDzpJsonRpc extends JsonRpc
                 }
             }
         }
-        //活动开始，获取用户抽奖次数
-        if($result['available']){
-            $defaultNum = 1;
-            //没有登陆, 可以抽奖一次，表里不保存抽奖次数，相当于假次数
-            $result['number'] = $defaultNum;
-            //如果已登陆, 首次进入默认有一次抽奖
-            if($result['login']) {
-                //判断是否首次进入活动页面
-                $firstEntered = Attributes::getItem($userId, $config['drew_user_key']);
-                if($firstEntered){
-                    $number = $this->getUserNum($userId, $config);
-                }else{
-                    $number = $this->getUserNum($userId, $config, $defaultNum);
-                }
+
+        if($result['available'] && $result['login']){
+                $number = $this->getUserNum($userId, $config);
                 $result['number'] = $number < 0 ? 0 : $number;
-            }
         }
 
         $totalNum = intval(Attributes::getNumber($userId, $config['drew_total_key']));
@@ -128,6 +116,15 @@ class NetworkDramaDzpJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
 
+        //start 初始化次数
+        $defaultNum = 1;
+        //没有登陆, 可以抽奖一次，表里不保存抽奖次数，相当于假次数
+            //判断是否首次进入活动页面
+        $firstEntered = Attributes::getItem($userId, $config['drew_user_key']);
+        if(!$firstEntered){
+            $this->getUserNum($userId, $config, $defaultNum);
+        }
+        //end
         //奖品标识验证
         $awardList = $config['awards'];
         $awardArr = array();
