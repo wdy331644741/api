@@ -149,6 +149,7 @@ class BannerJsonRpc extends JsonRpc {
         }
 
         $rData['list'] = $data;
+        $rData['Utag'] = md5(json_encode($data));
         $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : '';
         return array(
             'code' => 0,
