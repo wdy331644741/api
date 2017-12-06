@@ -191,6 +191,7 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+
             /** 网剧活动 start */
             //投资
             case 'network_drama_invest':
@@ -243,6 +244,8 @@ class SendAward
                 }
                 break;
             /**龙吟虎啸活动 end**/
+
+
             /** 刮刮乐活动 start */
             //投资
             case 'scratch_investment':
