@@ -7,10 +7,10 @@ use App\Http\JsonRpcs\AmountShareJsonRpc;
 use App\Http\JsonRpcs\BbsCommentJsonrpc;
 use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
-use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
+use App\Http\JsonRpcs\NetworkDramaDzpJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Http\JsonRpcs\ScratchJsonRpc;
 use App\Http\JsonRpcs\SignInSystemJsonRpc;
@@ -45,7 +45,7 @@ use App\Http\JsonRpcs\TreasureJsonRpc;
 use App\Http\JsonRpcs\PoBaiYiJsonRpc;
 use App\Http\JsonRpcs\FiveOneEightJsonRpc;
 use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
-
+use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
 
 class RpcController extends Controller
 {
@@ -99,6 +99,8 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DaZhuanPanJsonRpc());
         $jsonRpcServer->addService(new ScratchJsonRpc());
         $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
+        $jsonRpcServer->addService(new NetworkDramaDzpJsonRpc());
+
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
