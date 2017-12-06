@@ -191,6 +191,58 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /**龙吟虎啸活动 start**/
+                //注册
+            case 'longyinhuxiao_register':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
+                    Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+                //签到
+            case 'longyinhuxiao_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+            //投资
+            case 'longyinhuxiao_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000);
+                            Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            //邀请人投资
+            case 'longyinhuxiao_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+            /**龙吟虎啸活动 end**/
+            /** 网剧活动 start */
+            //投资
+            case 'network_drama_invest':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12 && $amount >= 600){
+                        $config = Config::get('networkdrama');
+                        //判断是否生产数据
+                        $isHas = Attributes::getItem($triggerData['user_id'],$config['key']);
+                        if($isHas == false){
+                            //不存在就添加
+                            Attributes::setItem($triggerData['user_id'],$config['key']);
+                        }
+                    }
+                }
+                break;
+            /** 网剧活动 end */
+
             /** 刮刮乐活动 start */
             //投资
             case 'scratch_investment':
@@ -200,7 +252,7 @@ class SendAward
                 }
                 break;
             /** 刮刮乐活动 end */
-
+            
             /** 七月大转盘活动 start */
             //签到
             case 'dazhuanpan_sign_in':
@@ -1406,7 +1458,7 @@ class SendAward
         $data = CouponCode::where($where)->lockForUpdate()->first();
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
             //发送消息
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true,'code'=>$data['code']);
             $info['code'] = $data['code'];
             $info['remark'] = json_encode($err);
             $info['status'] = 1;

@@ -4,8 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DaZhuanPan extends Model
+class HdAmountShareRichInfo extends Model
 {
-    public $table = 'longyinhuxiao';
+    public $table = 'hd_amount_share_rich_info';
     protected $guarded = ['created_at', 'update_at'];
 }
+

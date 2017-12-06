@@ -2,14 +2,14 @@
 
 namespace App\Jobs;
 use App\Service\Attributes;
-use App\Service\DazhuanpanService;
+use App\Service\NetworkDramaDzpService;
 use Illuminate\Queue\SerializesModels;
 
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 
-class DazhuanpanBatch extends Job implements ShouldQueue
+class NetworkDramaDzpBatch extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
     private $userId;
@@ -34,10 +34,6 @@ class DazhuanpanBatch extends Job implements ShouldQueue
      */
     public function handle()
     {
-        //循环发奖
-//        foreach($this->awards as $item){
-//            DazhuanpanService::sendAward($this->userId, $item);
-//        }
-        DazhuanpanService::sendAward($this->userId, $this->awards);
+        NetworkDramaDzpService::sendAward($this->userId, $this->awards);
     }
 }

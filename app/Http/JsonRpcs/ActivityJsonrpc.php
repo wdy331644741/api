@@ -25,6 +25,8 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
+use App\Models\CouponCode;
+use App\Models\Statistics;
 use App\Models\DataBlackWord;
 use Cache,DB;
 use App\Service\ActivityService;
@@ -503,6 +505,51 @@ class ActivityJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => json_decode($json)
         );
+    }
+
+    /**
+     * 麻辣H5 活动状态
+     *
+     * @JsonRpcMethod
+     */
+    function spicyAwardStatus(){
+        $where['alias_name'] = 'spicy_198';//活动别名 唯一值
+        $where['enable'] = 1;
+        //获取活动信息
+        $activity = Activity::where($where)->first();
+        if(empty($activity)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //获取奖品id
+        $activityID = isset($activity['id']) ? $activity['id'] : 0;
+        if(empty($activityID)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $awardsList = Award::where('activity_id',$activityID)->get()->toArray();
+        if(empty($awardsList)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //活动配置错误？
+        if(count($awardsList)>1 || $awardsList[0]['award_type'] != 6){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $couponCode = new CouponCode;
+        $couponStatus = $couponCode::select(DB::raw('count(*) as counts'))->where('coupon_id',$awardsList[0]['award_id'])->where('is_use',0)->get()->toArray();
+        $data = array();
+        if($couponStatus[0]['counts'] >0){
+            $data['status'] = 'effective';//failure
+            //如果活动 导入兑换码 大于200时。显示仍为200
+            $data['num'] = $couponStatus[0]['counts']>200 ? 200 : $couponStatus[0]['counts'];
+        }else{
+            $data['status'] = 'failure';
+            $data['num'] = 0;
+        }
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );    
     }
 
     /**
@@ -1068,6 +1115,26 @@ class ActivityJsonRpc extends JsonRpc {
             'data'=> $randNum
         );
 
+    }
+
+    /**
+     *  统计页面浏览量
+     * @params  channel string 必须
+     * @JsonRpcMethod
+     */
+    public function statisticsInfo($params) {
+        global $requestIP;
+        $type = isset($params->channel)?$params->channel:'';
+        $ret = Func::statistics($type, $requestIP);
+        $return = $ret;
+        if($ret) {
+            $return = ['id'=>$ret];
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return,
+        ];
     }
 
     /**

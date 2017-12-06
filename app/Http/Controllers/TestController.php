@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HdAmountShareRich;
 use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
+use App\Service\Func;
 use App\Service\Scratch;
 use App\Service\SendAward;
 use Illuminate\Http\Request;
@@ -26,6 +28,18 @@ use Excel;
 
 class TestController extends Controller
 {
+    public function getSendMeMoney(Request $request){
+        $userId = $request->user_id;
+        $uuid = Func::create_guid();
+        $count = HdAmountShareRich::count();
+        $money = mt_rand(20,60);
+        $float = mt_rand(1,9);
+        $money = $money.".".$float;
+        $id = mt_rand(intval($count/2),$count);
+        $res = Func::incrementAvailable($userId, $id, $uuid, $money, 'cash_bonus');
+        echo "<bre>";   
+        print_r($res);exit;
+    }
     public function getCustomExperience(){
         return view('custom_experience');
     }
@@ -105,7 +119,7 @@ class TestController extends Controller
             }else{
                 $err['err'][$key] = 'key:'.$key.'_send_err';
             }
-            usleep(60000);
+            usleep(80000);
         }
         return $err;
     }
