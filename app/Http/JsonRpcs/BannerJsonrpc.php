@@ -422,30 +422,25 @@ class BannerJsonRpc extends JsonRpc {
             return $data;
         }
         $channel = [
-            "wanglibao1",
-            "APPStore",
-            "sogou",
-            "samsung",
-            "leshi",
-            "huawei",
-            "m360",
-            "meizu",
-            "vivo",
-            "baidu",
             "ali",
-            "lenovo",
-            "qq",
-            "oppo",
-            "xiaomi",
-            "chuizi",
-            "wenzhoulouyu",
+            "APPStore",
+            "baidu",
             "baidupz",
+            "chuizi",
+            "huawei",
+            "lenovo",
+            "m360",
             "mbaidupz",
-            "gbcxyd4",
-            "mbaidujj",
-            "baidujj",
-            "mdsp",
-            "APPStorePlus"
+            "meizu",
+            "oppo",
+            "qq",
+            "sogou",
+            "vivo",
+            "wanglibao1",
+            "xiaomi",
+            "APPStorePlus",
+            "qqplus",
+            "qqplus1"
         ];
         if(in_array($thisChannel,$channel)){
             $where = ['position' => $position,'can_use' => 0,'name'=>"特定渠道显示，请勿动，请勿上线"];
