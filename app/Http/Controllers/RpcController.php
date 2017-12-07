@@ -9,6 +9,7 @@ use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
+use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\NetworkDramaDzpJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
@@ -100,6 +101,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new ScratchJsonRpc());
         $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
         $jsonRpcServer->addService(new NetworkDramaDzpJsonRpc());
+        $jsonRpcServer->addService(new EndYearInvestJsonrpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
