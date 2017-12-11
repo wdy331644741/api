@@ -441,7 +441,13 @@ class BannerJsonRpc extends JsonRpc {
             "xiaomi",
             "APPStorePlus",
             "qqplus",
-            "qqplus1"
+            "qqplus1",
+            "tcsc1",
+            "tcsc2",
+            "tcsc3",
+            "tcsc4",
+            "tcsc5"
+
         ];
         if(in_array($thisChannel,$channel)){
             $where = ['position' => $position,'can_use' => 0,'name'=>"特定渠道显示，请勿动，请勿上线"];
