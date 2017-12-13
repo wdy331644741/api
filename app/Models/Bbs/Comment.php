@@ -36,9 +36,9 @@ class Comment extends Model
         $userId = $this->userId;
         return $this->hasOne('App\Models\Bbs\CommentZan','cid','id')->where(['status'=>0,'user_id'=>$userId]);
     }
-    public function reply(){
+    public function officeReply(){
         $userId = $this->userId;
-        return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1])->orwhere(function($query)use($userId){$query->where(['from_id'=>$userId]);})->with('user');
+        return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1,"officereply"])->orwhere(function($query)use($userId){$query->where(['from_id'=>$userId]);})->with('user');
 
     }
 

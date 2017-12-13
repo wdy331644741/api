@@ -11,7 +11,6 @@ use App\Models\Bbs\ThreadCollection;
 use App\Models\Bbs\ThreadZan;
 use App\Models\Bbs\User;
 use App\Models\Bbs\Pm;
-use App\Models\Bbs\ReplyConfig;
 use Lib\JsonRpcClient;
 use Validator;
 use Config;
@@ -19,12 +18,12 @@ use Illuminate\Pagination\Paginator;
 use App\Service\Func;
 use App\Models\Bbs\GlobalConfig;
 use Illuminate\Support\Facades\Redis;
-use App\Service\SendAward;
 use App\Service\NetEastCheckService;
 use App\Service\Attributes;
 use App\Service\BbsSendAwardService;
 use App\Models\Bbs\CommentReply;
-use App\Models\Bbs\GroupTask;
+use Illuminate\Support\Facades\DB;
+
 
 
 
@@ -411,19 +410,67 @@ class BbsUserJsonRpc extends JsonRpc {
         $validator = Validator::make(get_object_vars($params), [
             'comment_id'=>'required|exists:bbs_comments,id',
             'to_id'=>'required|exists:bbs_users,id',
-
         ]);
+        $toUserInfo = User::where(["user_id"=>$params->user_id])->toArray();
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
-        $comReply = new CommentReply();
-        $comReply->comment_id = $params->comment_id;
-        $comReply->from_id = $this->userId;
-        $comReply->to_id = $params->to_id;
-        $comReply->content = $params->content;
-        $comReply->reply_type = "comment";
-        $comReply->is_verify =1;
-        $res = $comReply->save();
+        //回复审核
+        $inParam = array(
+            'dataId'=>time(),//设置为时间戳
+            'content' => $params->content,
+
+        );
+
+        $netCheck = new NetEastCheckService($inParam);
+        $res = $netCheck->textCheck();
+        if($res['code'] =='200'){
+            switch ($res['result']['action']){
+                case 0 ://审核通过
+                    $verifyResult = 1;
+                    $verifyMessage = '回复成功';
+                    break;
+                case 1 ://有嫌疑
+                    $verifyResult = 0;
+                    $verifyMessage = '您的回复已提交审核';
+                    break;
+                case 2 ://审核未通过
+                    throw new OmgException(OmgException::COMMENT_ERROR);
+            }
+        }else{
+            $verifyResult= 0;
+            $verifyMessage = '您的回复已提交审核';
+        }
+        DB::beginTransaction();
+            //回复表
+            $comReply = new CommentReply();
+            $comReply->comment_id = $params->comment_id;
+            $comReply->from_id = $this->userId;
+            $comReply->to_id = $params->to_id;
+            $comReply->content = $params->content;
+            $comReply->reply_type = "reply";
+            $comReply->is_verify =$verifyResult;
+            $replyRes = $comReply->save();
+            if($replyRes){
+                throw new OmgException(OmgException::DATA_ERROR);
+            }
+            $comment = new Comment();
+            $comment->user_id = $this->userId;
+            $comment->tid = $params->comment_id;
+            $comment->content = "@".$toUserInfo['nickname'].":".$params->content;//格式再定
+            $comment->isverify = $verifyResult;
+            $comment->comment_type = 1;//回复的类型 1   评论类型 0
+            $comRes = $comment->save();
+            if($comRes){
+                DB::rollBack();
+                throw new OmgException(OmgException::DATA_ERROR);
+            }
+        DB::commit();
+        return array(
+            'code' => 0,
+            'message' => $verifyMessage,
+            'data' => $comment::where(['id'=>$comment->id])->first()
+        );
     }
     /**
      *  获取用户发表的帖子 分页
@@ -715,17 +762,10 @@ class BbsUserJsonRpc extends JsonRpc {
         //用户被收藏数目
         $bbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
         $countInfo = $this->getBbsUserCountPm($param);
-        if($countInfo['data']['num']){
-            $bbsUserInfo['pmReadPoint']=1;
-        }else {
-            $bbsUserInfo['pmReadPoint'] = 0;
-        }
-        $awardInfo = $this->getBbsUserCountAward($param);
-        if($awardInfo['data']){
-            $bbsUserInfo['awardReadPoint']=1;
-        }else{
-            $bbsUserInfo['awardReadPoint']=0;
-        }
+
+        $bbsUserInfo['pmReadPoint']=$countInfo['data']['num'];
+
+
         return [
             'code'=>0,
             'message'=>'success',
