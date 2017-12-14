@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 
 
 
+
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;
@@ -146,6 +147,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public  function BbsPublishThread($params){
+
         $threadTimeLimit = Redis::GET('threadTimeLimit_'.$this->userId);
         //
         if($threadTimeLimit){
@@ -180,7 +182,9 @@ class BbsUserJsonRpc extends JsonRpc {
 
         $publishLimit = GlobalConfig::where(['key'=>'vip_level'])->first();
         //拉黑限制
+
         $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
+
         if($bbsUserInfo->isblack==1){
             throw new OmgException(OmgException::RIGHT_ERROR);
         };
@@ -279,11 +283,20 @@ class BbsUserJsonRpc extends JsonRpc {
         if($verifyResult ==0 ){
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
-        $thread->save();
+
+
         if($verifyResult ==1){
             $bbsAward = new BbsSendAwardService($this->userId);
             $bbsAward->publishThreadAward();
+            $res = $this->isNewThread();
+            if($res){
+                $thread->is_new = 0;
+            }else{
+                $this->setNewThread();
+                $thread->is_new = 1;
+            }
         }
+        $thread->save();
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
 
         $message = $verifyMessage;
@@ -1012,5 +1025,26 @@ class BbsUserJsonRpc extends JsonRpc {
      }
 
 
+
+     /*
+      *
+      * 是否是新人贴
+      * */
+     private function  isNewThread(){
+
+         $isNewThreadKey = 'bbs_newThread';
+        //判断 是否发过新帖子
+         $res = Redis::GETBIT($isNewThreadKey,$this->userId);
+         return $res;
+
+     }
+     /*
+      * 设置新人贴
+      *
+      * */
+     private function setNewThread(){
+         $isNewThreadKey = 'bbs_newThread';
+         Redis::SETBIT($isNewThreadKey,$this->userId,1);
+     }
 }
 
