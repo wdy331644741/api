@@ -106,13 +106,15 @@ trait BasicDatatables{
                 ];
                 $str ='';
                 foreach ($customSearch as $val){
-                    $str .= "AND ".$val['name']." ".$patternArr[$val['pattern']]." ".$val['value']." ";
+                    if($val['pattern'] == 'like'){
+                        $str .= "AND ".$val['name']." ".$patternArr[$val['pattern']]." '%".$val['value']."%' ";
+                    }else{
+                        $str .= "AND ".$val['name']." ".$patternArr[$val['pattern']]." '".$val['value']."' ";
+                    }
                     $whereStr = substr($str,4);
                 }
                 $items->whereRaw($whereStr);
-
             }
-
         }
         // 关联
         if ($request->has('withs')) {

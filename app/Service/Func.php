@@ -212,7 +212,7 @@ class Func
             $patternKey = $key.'_pattern';
             if(stripos($key,'_pattern') === false && isset($filter[$patternKey])){
                 $pattern = $filter[$patternKey];
-                $filterStr .= "AND ".$key." ".$patternArr[$pattern]." ".$val." ";
+                $filterStr .= "AND ".$key." ".$patternArr[$pattern]." '".$val."' ";
                 $data['filter_str'] = substr($filterStr,4);
             } elseif (stripos($key,'_pattern') === false && !isset($filter[$patternKey])){
                 $data['filter_data'][$key] = $val;
