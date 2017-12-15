@@ -332,8 +332,8 @@ class BbsThreadJsonRpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
-            ->where(['istop'=>1,'isverify'=>1])
+        $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at",'')
+            ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->type_id])
 
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
@@ -373,6 +373,15 @@ class BbsThreadJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $deleted,
         );
+    }
+    /*获取置顶的第一条帖子*/
+    private  function getBbsThreadTopOne($type_id){
+        $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at",'')
+            ->where(['istop'=>1,'isverify'=>1,'type_id'=>$type_id])
+
+            ->orderByRaw('created_at DESC')
+            ->first();
+        return $res;
     }
 
 
