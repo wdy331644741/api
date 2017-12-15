@@ -446,7 +446,11 @@ class BannerJsonRpc extends JsonRpc {
             "tcsc2",
             "tcsc3",
             "tcsc4",
-            "tcsc5"
+            "tcsc5",
+            "duokai",
+            "dkh5",
+            "zgby",
+            "spicy_wlb"
 
         ];
         if(in_array($thisChannel,$channel)){
