@@ -14,23 +14,21 @@ class SyncBbsUserController extends Controller
     //
     function postSync(Request $request)
     {
-        $requests = $request->all();
-
-        if(empty($request['user_id'])){
-
+        $userDataJson = file_get_contents("php://input");
+        $userdata = json_decode($userDataJson,true);
+        if(empty($userdata['params'][0]['user_id'])){
             return  $this->outputJson('0',["message"=>"用户id为空"]);
         }
-        //
 
         $userData =[];
-        if(!empty($request['avater'])){
-            $userData['head_img'] = $request['avater'];
+        if(!empty($userdata['params'][0]['avater'])){
+            $userdata['params'][0]['head_img'] = $userdata['params'][0]['avater'];
         }
-        if(!empty($request['nickname'])){
-            $userData['nickname'] = $request['nickname'];
+        if(!empty($userdata['params'][0]['nickname'])){
+            $userdata['params'][0]['nickname'] = $userdata['params'][0]['nickname'];
         }
 
-        $res = User::where(['nickname'=>$request['nickname']])->whereNotIn('user_id', [$request["user_id"]])->first();
+        $res = User::where(['nickname'=>$userdata['params'][0]['nickname']])->whereNotIn('user_id', [$userdata['params'][0]["user_id"]])->first();
 
 
         if($res){
@@ -38,15 +36,15 @@ class SyncBbsUserController extends Controller
             return  $this->outputJson('10001',["message"=>"昵称重复"]);
         }
         //是否登陆过社区
-        $isExitUser = User::where(['user_id'=>$request['user_id']])->first();
+        $isExitUser = User::where(['user_id'=>$userdata['params'][0]['user_id']])->first();
         if(!$isExitUser){
-            return  $this->outputJson('0',['user_id'=>$request['user_id'],"message"=>"不存在该用户"]);
+            return  $this->outputJson('0',['user_id'=>$userdata['params'][0]['user_id'],"message"=>"不存在该用户"]);
         }
 
-        $updateRes = User::where(['user_id'=>$request['user_id']])
+        $updateRes = User::where(['user_id'=>$userdata['params'][0]['user_id']])
                     ->update($userData);
         if($updateRes){
-           return  $this->outputJson('0',['user_id'=>$request['user_id'],"message"=>"更新成功"]);
+           return  $this->outputJson('0',['user_id'=>$userdata['params'][0]['user_id'],"message"=>"更新成功"]);
         }else{
             return  $this->outputJson('10002',["message"=>"更新失败"]);
 
