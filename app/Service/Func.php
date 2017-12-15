@@ -358,4 +358,48 @@ class Func
         }
         return $ret;
     }
+
+    /*
+     * 上传图片公有方法
+     *
+     *  @Request object
+     *  @key string
+     *  @path string
+     *  @ext arrry
+     *  @return string
+     */
+    static function getImageUrl(Request $request,$key="",$path="",$ext=array())
+    {
+        //图片
+        $file = '';
+        if (!isset($path)) {
+            $path = base_path() . '/storage/images/';
+        }
+        if (!isset($key)) {
+            $key = "img_path";
+        }
+        if(empty($ext)){
+            $ext = array('jpg', 'jpeg', 'png', 'bmp', 'gif');
+        }
+        if ($request->hasFile($key)) {
+            if ($request->file($key)->isValid()) {
+                $mimeTye = $request->file($key)->getClientOriginalExtension();
+                if (in_array($mimeTye, $ext)) {
+                    $fileName = date('YmdHis') . mt_rand(1000, 9999) . '.' . $mimeTye;
+                    //保存文件到路径
+                    $request->file($key)->move($path, $fileName);
+                    $file = $path . $fileName;
+                } else {
+                    return array("errorcode"=>1001,'errmsg'=>'文件格式错误');
+                }
+            } else {
+                return array('errcode'=>1002,'errmsg'=>'文件错误');
+            }
+        }
+        if (empty($file)) {
+            return array('errcode'=>1003,'errmsg'=>'文件不能为空');
+        }
+        //文件名
+        return array('errcode'=>0,'data'=>Config::get('cms.img_http_url').$fileName);
+    }
 }
