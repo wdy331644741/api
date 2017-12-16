@@ -62,8 +62,13 @@ class BbsUserJsonRpc extends JsonRpc {
 
         $res = User::where(['user_id' => $this->userId])->update(['head_img'=>$params->headImg]);
 
+        $url = env('ACCOUNT_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $updateRes = $client->async_profile(array("user_id"=>$this->userId,"nickname"=>"","avater"=>$params->headImg));
+        if($updateRes['result']['code']!=0){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
         if ($res) {
-
             $user = array(
                 'user_id' => $this->userId,
                 'head_img' => $params->headImg,
@@ -120,6 +125,13 @@ class BbsUserJsonRpc extends JsonRpc {
         $users = User::where(['nickname' => $param->nickname])->whereNotIn('user_id', ["$this->userId"])->first();
 
         if (!$users) {
+            //同步数据
+            $url = env('ACCOUNT_HTTP_URL');
+            $client = new JsonRpcClient($url);
+            $updateRes = $client->async_profile(array("user_id"=>$this->userId,"nickname"=>$param->nickname,"avater"=>""));
+            if(isset($updateRes['error']) &&$updateRes['error']['code']!=0){
+                throw new OmgException(OmgException::NICKNAME_REPEAT);
+            }
             User::where(['user_id' => $this->userId])->update(['nickname' => $param->nickname]);
 
             $userInfo = array(
@@ -735,21 +747,22 @@ class BbsUserJsonRpc extends JsonRpc {
             $User = new User();
 
             $User->user_id = $this->userInfo['id'];
-            $User->head_img = Config::get('headimg')['user'][1];//默认取第一个
+            $User->head_img = empty($this->userInfo['avater'])?Config::get('headimg')['user'][1]:$this->userInfo['avater'];//默认取第一个
+            $User->nickname = $this->userInfo['nickname'];
             $User->phone = $this->userInfo['phone'];
             $User->isblack = 0;
             $User->isadmin = 0;
             $User->save();
 
-
-            $res = $User::where(['nickname' => 'wl' . $User->id])->first();
-            if($res){
-                $randomArray = range ("a","z");
-                $random = rand(0,25);
-                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id .$randomArray["$random"]]);
-            }else {
-                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id]);
-            }
+//
+//            $res = $User::where(['nickname' => 'wl' . $User->id])->first();
+//            if($res){
+//                $randomArray = range ("a","z");
+//                $random = rand(0,25);
+//                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id .$randomArray["$random"]]);
+//            }else {
+//                $User::where(['id' => $User->id])->update(['nickname' => 'wl' . $User->id]);
+//            }
             //发送官方欢迎通知
             $Pm = new Pm();
             $Pm->user_id = $this->userInfo['id'];
