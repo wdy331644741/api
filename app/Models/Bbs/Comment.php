@@ -41,5 +41,8 @@ class Comment extends Model
         return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1,"officereply"])->orwhere(function($query)use($userId){$query->where(['from_id'=>$userId]);})->with('user');
 
     }
+    public  function replycomment(){
 
+        return $this->hasOne('App\Models\Bbs\Comment','id','reply_id');
+    }
 }

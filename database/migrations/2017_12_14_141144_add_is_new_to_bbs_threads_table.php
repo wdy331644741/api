@@ -16,7 +16,7 @@ class AddIsNewToBbsThreadsTable extends Migration
         Schema::table('bbs_threads', function (Blueprint $table) {
 
             $table->integer('is_new')->comment("是否是第一次发帖")->default(0)->index();
-            //处理业务上回复处理成评论  做数据冗余  适应评论显示效果
+            //处理业务上回复处理成评论  做数据冗余  适应评论显示效果 0 评论 1 回复
 
         });
     }

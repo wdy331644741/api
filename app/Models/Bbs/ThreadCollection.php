@@ -12,4 +12,7 @@ class ThreadCollection extends Model
     public function thread() {
         return $this->hasOne('App\Models\Bbs\Thread', 'id', 'tid')->where(['isverify'=>1]);
     }
+    public function user(){
+        return $this->hasOne('App\Models\Bbs\User','user_id','user_id');
+    }
 }

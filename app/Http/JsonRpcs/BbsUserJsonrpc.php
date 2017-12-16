@@ -435,6 +435,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $validator = Validator::make(get_object_vars($params), [
             'comment_id'=>'required|exists:bbs_comments,id',
             'to_id'=>'required|exists:bbs_users,id',
+            'thread_id'=>'required|exists:bbs_threads,id'
         ]);
         $toUserInfo = User::where(["user_id"=>$params->user_id])->toArray();
         if($validator->fails()){
@@ -481,7 +482,8 @@ class BbsUserJsonRpc extends JsonRpc {
             }
             $comment = new Comment();
             $comment->user_id = $this->userId;
-            $comment->tid = $params->comment_id;
+            $comment->tid = $params->thread_id;
+            $comment->t_user_id = $params->to_id;
             $comment->content = "@".$toUserInfo['nickname'].":".$params->content;//格式再定
             $comment->isverify = $verifyResult;
             $comment->comment_type = 1;//回复的类型 1   评论类型 0
@@ -1037,12 +1039,173 @@ class BbsUserJsonRpc extends JsonRpc {
 
      }
 
+    /**
+     *  获取用户被收藏的帖子
+     *
+     * @JsonRpcMethod
+     */
+    public function getBbsUserCollect($params)
+    {
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = ThreadCollection::select('id','user_id', 'tid','update_at')
+            ->where(['tid'=>$this->userId,'status'=>0])
+            ->with('thread')
+            ->with('user')
+            ->orderByRaw('update_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+
+    }
 
 
-     /*
-      *
-      * 是否是新人贴
-      * */
+    /**
+     *  获取用户被赞的帖子
+     *
+     * @JsonRpcMethod
+     */
+    public  function getBbsUserZanThread($params)
+    {
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = ThreadZan::select('id','user_id', 'tid','update_at')
+            ->where(['t_user_id'=>$this->userId,'status'=>0])
+            ->with('user')
+            ->orderByRaw('update_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+
+
+    }
+
+
+    /**
+     *  获取用户被赞的帖子
+     *
+     * @JsonRpcMethod
+     */
+
+
+
+    public  function  getBbsUserCommentZan($params)
+    {
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = CommentZan::select('id','user_id', 'tid','update_at')
+            ->where(['c_user_id'=>$this->userId,'status'=>0])
+            ->with('user')
+            ->orderByRaw('update_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+    }
+
+    /**
+     *  获取用户评论过的帖子
+     *
+     * @JsonRpcMethod
+     */
+    public  function getBbsUserComThread($params)
+
+    {
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = Comment::select('id','content', 'tid','update_at')
+            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
+            ->with('thread')
+            ->orderByRaw('update_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+
+
+    }
+
+    /**
+     *  获取用户评论过的帖子
+     *
+     * @JsonRpcMethod
+     */
+
+    public function getBbsUserComCommnet($params)
+    {
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $res = Comment::select('id','content', 'tid','update_at')
+            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
+            ->with('replycomment')
+            ->orderByRaw('update_at DESC')
+            ->paginate($pageNum)
+            ->toArray();
+
+        return array(
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        );
+    }
+
+    /*
+     *
+     * 是否是新人贴
+     * */
      private function  isNewThread(){
 
          $isNewThreadKey = 'bbs_newThread';
