@@ -117,6 +117,7 @@ trait BasicDatatables{
             }
         }
         // 关联
+        //echo $items->toSql();exit;
         if ($request->has('withs')) {
             $withs = $request->get('withs');
             foreach ($withs as $key => $with) {

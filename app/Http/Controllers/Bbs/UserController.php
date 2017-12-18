@@ -22,9 +22,11 @@ class UserController extends Controller
     ];
     protected $addValidates = [
         'user_id' => 'required',
+        'phone' => "required|unique:bbs_users",
+        'nickname'=>'required|unique:bbs_users'
     ];
     protected $updateValidates = [
-        'id' => 'required|exists:bbs_users,id'
+        'id' => 'required|exists:bbs_users,id',
     ];
 
     function __construct() {
@@ -74,22 +76,13 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_users,id',
             'head_img'=>'integer',
+            'phone' => "required|unique:bbs_users,phone,".$request->id,
+            'nickname'=>'required|unique:bbs_users,nickname,'.$request->id,
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $putData = [];
-        if(isset($request->head_img)){
-            $headArr = config('headimg.admin');
-            $putData['head_img'] = $headArr[$request->head_img];
-        }
-        if(isset($request->nickname)){
-            $putData['nickname'] = $request->nickname;
-        }
-        if (empty($putData)){
-            return $this->outputJson(10009,array('error_msg'=>'Not Changed'));
-        }
-        $res = User::where('id',$request->id)->update($putData);
+        $res = User::where('id',$request->id)->update($request->all());
         if($res){
             return $this->outputJson(0);
         }else{
