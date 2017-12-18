@@ -1999,17 +1999,6 @@ class SendAward
         }
         return ['msg'=>'发奖参数有误'];
     }
-    //获取应该生成的红包金额
-    static function getPaymentMoney($money){
-        if($money >= 400000){
-            $money = 500000;
-        }
-        //红包金额算法
-        $num = intval(($money*0.07)/120) * 10;
-        if($num < 5){
-            return 5;
-        }
-    }
     //获取比回款金额门槛高的
     static function getMaxThreshold($money){
         //最小值返回
