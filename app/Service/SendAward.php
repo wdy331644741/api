@@ -1012,7 +1012,7 @@ class SendAward
             //加息券
             return self::increases($info);
         } elseif ($award_type == 2) {
-            if ($info['red_type'] == 1) {
+            if ($info['red_type'] == 1 || $info['red_type'] == 3) {
                 //直抵红包
                 return self::redMoney($info);
             } elseif ($info['red_type'] == 2){
@@ -1200,6 +1200,10 @@ class SendAward
         $data['limit_desc'] = $info['limit_desc'];
 
         $data['trigger'] = $info['trigger'];
+
+        if($info['red_type'] == 3){
+            $data['is_novice'] = 1;
+        }
 
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {

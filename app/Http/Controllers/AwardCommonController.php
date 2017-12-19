@@ -180,7 +180,7 @@ class AwardCommonController extends Controller{
             //百分比例
             $data['percentage'] = $request->percentage/100;
         }
-        if($data['red_type'] == 1){
+        if($data['red_type'] == 1 || $data['red_type'] == 3){
             //红包金额
             $data['red_money'] = $request->red_money;
         }
