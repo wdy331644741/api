@@ -1967,7 +1967,7 @@ class SendAward
                 'product_id'=>'',
                 'project_type'=>null,
                 'platform_type'=>0,
-                'limit_desc'=>null,
+                'limit_desc'=>$threshold."月及以上标",
                 'trigger'=>null,
                 'mail'=>"恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。"
             ];
@@ -1991,7 +1991,7 @@ class SendAward
                 'product_id'=>'',
                 'project_type'=>null,
                 'platform_type'=>0,
-                'limit_desc'=>null,
+                'limit_desc'=>$threshold."元起投",
                 'trigger'=>null,
                 'mail'=>"恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。"
             ];
