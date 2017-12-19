@@ -1,14 +1,36 @@
 <?php
 namespace App\Service;
 
+use App\Models\Statistics;
 use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
 use Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\WechatUser;
+use App\Models\JsonRpc;
+use App\Models\Admin;
 
 class Func
 {
+    public static function checkAdmin() {
+        $jsonRpc = new JsonRpc();
+        $res = $jsonRpc->account()->profile();
+
+        if(isset($res['error'])){
+            return false;
+        }
+
+        $response['error_code']  = $res['result']['code'];
+        $data = isset($res['result']['data']) ? $res['result']['data'] : [];
+
+        $mobile = $data['phone'];
+        $admin = Admin::where('mobile', $mobile)->with('privilege')->first();
+        if($admin) {
+            return true;
+        }
+        return false;
+    }
+
     public static function GroupSearch(Request $request,$model_name){
         $data = array();
         $order_str = '';
@@ -104,6 +126,101 @@ class Func
         return $data;
     }
 
+    //搜索优化
+    public static function freeSearch(Request $request,$model_name){
+        $data = array();
+        $order_str = '';
+        $pagenum = 20;
+        $url = $request->fullUrl();
+
+        if(isset($request->data['pagenum'])){
+            $pagenum = $request->data['pagenum'];
+        }
+        if(isset($request->data['order'])){
+            foreach($request->data['order'] as $key=>$val){
+                $order_str = "$key $val";
+            }
+        }else{
+            $order_str = "id desc";
+        }
+        if(isset($request->data['like']) && isset($request->data['filter'])){
+            $like_str = self::getFilterData($request->data['like'],'like');
+            $filterData = self::getFilterData($request->data['filter']);
+            if(isset($filterData['filter_str'])){
+                $data = $model_name::where($filterData['filter_data'])
+                    ->whereRaw($filterData['filter_str'])
+                    ->whereRaw($like_str)
+                    ->orderByRaw($order_str)
+                    ->paginate($pagenum)
+                    ->setPath($url);
+            }else{
+                $data = $model_name::where($filterData['filter_data'])
+                    ->whereRaw($like_str)
+                    ->orderByRaw($order_str)
+                    ->paginate($pagenum)
+                    ->setPath($url);
+            }
+
+        }elseif (isset($request->data['like']) && !isset($request->data['filter'])){
+            $like_str = self::getFilterData($request->data['like'],'like');
+            $data = $model_name::whereRaw($like_str)
+                ->orderByRaw($order_str)
+                ->paginate($pagenum)
+                ->setPath($url);
+        }elseif (isset($request->data['filter']) && !isset($request->data['like'])){
+            $filterData = self::getFilterData($request->data['filter']);
+            if(isset($filterData['filter_str'])){
+                $data = $model_name::where($filterData['filter_data'])
+                    ->whereRaw($filterData['filter_str'])
+                    ->orderByRaw($order_str)
+                    ->paginate($pagenum)
+                    ->setPath($url);
+            }else{
+                $data = $model_name::where($filterData['filter_data'])
+                    ->orderByRaw($order_str)
+                    ->paginate($pagenum)
+                    ->setPath($url);
+            }
+
+        }else{
+            $data = $model_name::orderByRaw($order_str)
+                ->paginate($pagenum)
+                ->setPath($url);
+        }
+        return $data;
+    }
+
+    static function getFilterData($filter,$type=null){
+        $data = array();
+        $patternArr = [
+            'equal' => '=',
+            'max_equal' => '>=',
+            'min_equal' => '<=',
+            'min' => '<',
+            'max' => '>',
+            'no_equal' => '<>',
+            'like' => 'LIKE'
+        ];
+        $filterStr = '';
+        if($type == 'like'){
+            foreach ($filter as $key=>$val){
+                $filterStr .= "AND ".$key." LIKE '%".$val."%' ";
+                return substr($filterStr,4);
+            }
+        }
+        foreach ($filter as $key=>$val){
+            $patternKey = $key.'_pattern';
+            if(stripos($key,'_pattern') === false && isset($filter[$patternKey])){
+                $pattern = $filter[$patternKey];
+                $filterStr .= "AND ".$key." ".$patternArr[$pattern]." ".$val." ";
+                $data['filter_str'] = substr($filterStr,4);
+            } elseif (stripos($key,'_pattern') === false && !isset($filter[$patternKey])){
+                $data['filter_data'][$key] = $val;
+            }
+        }
+        return $data;
+    }
+
     /**
      * 根据用户id获取用户基本信息
      * @param $user_id
@@ -144,11 +261,12 @@ class Func
 
     static function randomStr($length) {
         $strArr = 'abcdefghigklmnopqrstuvwxyz0123456';
-        $str = ''; 
+        $dateStr = date("YmdHis");
+        $str = '';
         for ($i = 0; $i < $length; $i++) {
             $str .= $strArr[rand(0, strlen($strArr)-1)];
         }
-        return $str;
+        return $str."_".$dateStr;
     }
 
     /**
@@ -191,5 +309,53 @@ class Func
         }
         $data = WechatUser::where("uid",$userId)->first();
         return $data;
+    }
+
+    /**
+     * 给用户加钱
+     */
+    static function incrementAvailable($userId, $recordId, $uuid, $amount, $type) {
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        return $client->incrementAvailable(array(
+            "user_id" => $userId,
+            "record_id"  => $recordId,
+            "uuid" => $uuid,
+            "amount" => $amount,
+            "type" => $type,
+            "sign" => hash('sha256', $userId.env('INSIDE_SECRET')),
+        ));
+    }
+
+    //生成Guid
+    static function create_guid()
+    {
+        $charid = strtoupper(md5(uniqid(mt_rand(), true)));
+        $hyphen = chr(45); // "-"
+        $uuid = substr($charid, 0, 8) . $hyphen
+            . substr($charid, 8, 4) . $hyphen
+            . substr($charid, 12, 4) . $hyphen
+            . substr($charid, 16, 4) . $hyphen
+            . substr($charid, 20, 12);
+        return $uuid;
+    }
+
+    /*
+     *  统计浏览量
+     * @type 渠道号    string
+     * @ip  ip  string
+     * @remark string
+     * @return $ret  id
+     */
+    static function statistics($type, $ip, $remark='')
+    {
+        $ret = false;
+        if(!empty($type) && !empty($ip)){
+            $params['type'] = $type;
+            $params['ip'] = $ip;
+            $params['remark'] = $remark;
+            $params['created_at'] = $params['updated_at'] = date("Y-m-d H:i:s");
+            $ret = Statistics::insertGetId($params);
+        }
+        return $ret;
     }
 }

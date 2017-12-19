@@ -22,13 +22,13 @@ class Permission
         if(!env('ADMIN_AUTH', true)){
             return $next($request);
         }
-        $admin = Admin::where('mobile', $phone)->first();
-        if(!$admin || !$admin['level']) {
-            $level = 0;
+        $admin = Admin::where('mobile', $phone)->with('privilege')->first();
+        if(!$admin || !$admin['privilege']) {
+            $privilege = false;
         }else{
-            $level = $admin['level'] ? $admin['level'] : 0;
+            $privilege = $admin['privilege'] ? json_decode($admin['privilege']['privilege'], true) : false;
         }
-        $res = $this->checkPermission($request->segments(), $level);
+        $res = $this->checkPermission($request->segments(), $privilege);
         $isAdministrator = Config("administrator.{$phone}");
         if(!$res && !$isAdministrator) {
             if(!$phone) {
@@ -38,21 +38,39 @@ class Permission
         }
         return $next($request);
     }
-    
 
-    
-    private function checkPermission($segments, $level) {
-        $permission = Config::get("permission.{$level}");
-        foreach($segments as $value) {
-            if(isset($permission['items']) && isset($permission['items'][$value])) {
-                $permission = $permission['items'][$value];
-                continue;
-            }
+
+
+    private function checkPermission($segments, $privilege) {
+        $segment = $segments[0];
+        if($segment === 'account') {
+            return true;
         }
-        return($permission['default']);
+        if(empty($privilege)) {
+            return false;
+        }
+        if(isset($privilege['default']) && $privilege['default']) {
+            if(!isset($privilege['deny'])) {
+                return true;
+            }
+            if(is_array($privilege['deny']) && in_array($segment, $privilege['deny'])) {
+                return false;
+            }
+            return true;
+        }
+        if(isset($privilege['default']) && !$privilege['default']) {
+            if(!isset($privilege['allow'])) {
+                return false;
+            }
+            if(is_array($privilege['allow']) && in_array($segment, $privilege['allow'])) {
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
-    
-    /* 
+
+    /*
     private function handleRequest() {
         $action = Route::currentRouteAction();
         $actionArr = explode('@', $action);

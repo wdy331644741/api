@@ -18,9 +18,20 @@ class Attributes
        'gq_1006'=>0,
        'gq_1007'=>0
     ];
+    private $advanced = [
+        'advanced_register'=>0,
+        'advanced_real_name'=>0,
+        'advanced_target_term_1'=>0,
+        'advanced_target_term_3'=>0,
+        'advanced_target_term_6'=>0,
+        'advanced_target_term_12'=>0,
+        'advanced_signin_3'=>0,
+        'advanced_invite_3'=>0,
+        'advanced_wechat_binding_first'=>0,
+    ];
     private $user_url;
 
-   static public function increment($uid,$key,$number = 1, $string= null, $text= null){
+    static public function increment($uid,$key,$number = 1, $string= null, $text= null){
 
         $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
 
@@ -57,6 +68,49 @@ class Attributes
         $attribute->number = -$number;
         $attribute->save();
         return $number;
+    }
+    /**
+     * 根据$key递增number,每日number清空
+     *
+     * @param $key
+     * @param $num
+     * @return int
+     */
+    static public function incrementByDay($userId, $key, $num=1) {
+        $res = UserAttribute::where(['user_id' => $userId, 'key' => $key])->first();
+
+        if(!$res) {
+            $res = UserAttribute::create(['user_id' => $userId, 'key' => $key,  'number' => $num]);
+            return $res->number;
+        }
+
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
+            $res->number = $num;
+            $res->updated_at = date('Y-m-d H:i:s');
+            $res->save();
+            return $res->number;
+        }
+
+        $res->increment('number', $num);
+        return $res->number;
+    }
+
+    /**
+     * 根据$key获取number,每日number清空
+     *
+     * @param $key
+     * @return int
+     */
+    static public function getNumberByDay($userId, $key) {
+        $res = UserAttribute::where(array('user_id' => $userId, 'key' => $key))->lockforupdate()->first();
+        if(!$res) {
+            return 0;
+        }
+        // 不是今天
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
+            return 0;
+        }
+        return intval($res->number);
     }
 
     public function status($uid,$key,$status){
@@ -145,6 +199,17 @@ class Attributes
             return false;
         }
         $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        if(!$res) {
+            return false;
+        }
+        return $res;
+    }
+
+    static function getItemLock($uid, $key) {
+        if(empty($uid) || empty($key)) {
+            return false;
+        }
+        $res = UserAttribute::where(array('user_id' => $uid, 'key' => $key))->lockForUpdate()->first();
         if(!$res) {
             return false;
         }
@@ -396,5 +461,41 @@ class Attributes
                     break;
             }
         }
+    }
+
+    /**
+     * 进阶活动
+     * @param $uid
+     * @param $key
+     * @param $status
+     * @return bool|string
+     */
+    public function advanced($uid,$key,$status){
+        $attribute = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->count();
+        if($attribute >1){
+            return false;
+        }
+        $kvarr = explode(':',$status);
+        if($attribute){
+            $res = UserAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
+            $status = (array)json_decode($res->text);
+            $status[$kvarr[0]] = intval($kvarr[1]);
+            $countArr = array_count_values($status);
+            $json = json_encode($status);
+            $res->text = $json;
+            $res->number = $countArr[1];
+            $res->update();
+            if($res) return $res->text;
+        }else{
+            $this->advanced[$kvarr[0]] = intval($kvarr[1]);
+            $UserAttribute = new UserAttribute();
+            $UserAttribute->user_id = $uid;
+            $UserAttribute->key = $key;
+            $UserAttribute->number = 1;
+            $UserAttribute->text = json_encode($this->advanced);
+            $UserAttribute->save();
+            if($UserAttribute->id) return $UserAttribute->text;
+        }
+        return false;
     }
 }

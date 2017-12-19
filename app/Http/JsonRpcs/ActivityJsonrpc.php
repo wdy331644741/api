@@ -5,6 +5,8 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\Activity;
 use App\Models\ActivityJoin;
+use App\Models\AwardCash;
+use App\Models\GlobalAttribute;
 use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Service\SendAward;
@@ -13,6 +15,7 @@ use App\Service\Func;
 use App\Service\SignIn;
 use App\Models\UserAttribute;
 use Lib\JsonRpcClient;
+use Lib\HouseOwnership;
 use Validator, Config;
 
 use App\Models\Award;
@@ -22,10 +25,66 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
-use Cache;
+use App\Models\CouponCode;
+use App\Models\Statistics;
+use App\Models\DataBlackWord;
+use Cache,DB;
 use App\Service\ActivityService;
+use Lib\McQueue;
+use App\Service\GlobalAttributes;
+use App\Service\SignInSystemBasic;
 class ActivityJsonRpc extends JsonRpc {
 
+
+    /**
+     * 房产证生成
+     *
+     * @JsonRpcMethod
+     */
+    public function createImg($params) {
+        if(empty($params->city) || empty($params->realname) || empty($params->address) || empty($params->area)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $params = (array)$params;
+        $city = I('data.city/s', '北京', 'trim', $params);
+        $realname = I('data.realname/s', '小明', 'trim', $params);
+        $address = I('data.address/s', '朝阳区三元桥海南航空大厦A座7层', 'trim', $params);
+        $area = I('data.area/f', '180.00', 'trim', $params);
+
+        if (mb_strlen($city) > 5)
+            throw new OmgException(OmgException::CITY_IS_TOO_LONG);
+
+        if (mb_strlen($realname) > 20)
+            throw new OmgException(OmgException::REALNAME_IS_TOO_LONG);
+
+        if (mb_strlen($address) > 30)
+            throw new OmgException(OmgException::ADDRESS_IS_TOO_LONG);
+
+        if ($area < 0 || $area > 10000)
+            throw new OmgException(OmgException::AREA_IS_TOO_BIG);
+
+        $nums = DataBlackWord::whereRaw("locate(word,\"{$params['realname']}\")")->count();
+        if ($nums)
+            throw new OmgException(OmgException::NAME_IS_ALIVE);
+        $nums = DataBlackWord::whereRaw("locate(word,\"{$params['address']}\")")->count();
+        if ($nums)
+            throw new OmgException(OmgException::ADDRESS_IS_ALIVE);
+
+        $houseOwnTool = new HouseOwnership();
+        $cityTextPos = $houseOwnTool::CITY_TEXT_POS;
+        $cityTextPos['x'] = $cityTextPos['x'] - (mb_strlen($city) - 5) * 20;
+        $houseOwnTool->writeText($city, $cityTextPos, 16);
+        $houseOwnTool->writeText($realname, $houseOwnTool::NAME_TEXT_POS);
+        $houseOwnTool->writeText($address, $houseOwnTool::ADDRESS_TEXT_POS);
+        $houseOwnTool->writeText(date("Y年m月d日"), $houseOwnTool::RECORDTIME_TEXT_POS);
+        $houseOwnTool->writeText($area, $houseOwnTool::AREA_TEXT_POS);
+        $houseOwnTool->writeText(round(($area * 0.81), 2), $houseOwnTool::TRUEAREA_TEXT_POS);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $houseOwnTool->getBase64Png()
+        ];
+    }
     /**
      * 领取分享奖励
      *
@@ -207,7 +266,9 @@ class ActivityJsonRpc extends JsonRpc {
         $isAward = false;
         $awardName = '';
 
-        $signIn = Attributes::getItem($userId, $signInName);
+        //事务开始
+        DB::beginTransaction();
+        $signIn = Attributes::getItemLock($userId, $signInName);
         if(!$signIn) {
             throw new OmgException(OmgException::NOT_SIGNIN);
         }
@@ -223,21 +284,24 @@ class ActivityJsonRpc extends JsonRpc {
         if($signInNum !== $day) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $extra = Attributes::getItem($userId, $aliasName);
+        $extra = Attributes::getItemLock($userId, $aliasName);
         if($extra) {
             $extraLastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
             $extraLastUpdateDate = date('Y-m-d', strtotime($extraLastUpdate));
             if($extraLastUpdateDate == date('Y-m-d', time())) {
                 $isAward = true;
                 $awardName = $extra['string'];
+                $awardType = 0;
             }
         }
 
         if(!$isAward) {
             $awards = SendAward::ActiveSendAward($userId, $aliasName);
             $awardName = $awards[0]['award_name'];
+            $awardType = $awards[0]['award_type'];
             Attributes::setItem($userId, $aliasName, time(), $awardName, json_encode($awards));
         }
+        DB::commit();
 
         return array(
             'code' => 0,
@@ -245,6 +309,7 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => array(
                 'isAward' => $isAward,
                 'awards' => [$awardName],
+                'type' => $awardType,
             ),
         );
 
@@ -270,9 +335,14 @@ class ActivityJsonRpc extends JsonRpc {
         $last = $days[count($days)-1]; //最后的天数
         $isSignIn = false; //是否签到过
         $continue = 1; //连续签到天数
-        $awardName = ''; //奖励
+        $award = [
+            'name' => '',
+            'type' => 0,
+        ];
 
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
+        //事务开始
+        DB::beginTransaction();
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -287,41 +357,32 @@ class ActivityJsonRpc extends JsonRpc {
             if($lastUpdateDate == date('Y-m-d', time())) {
                 $isSignIn = true;
                 $continue = $signIn['number'] ?  $signIn['number'] : 0;
-                $awardName = $signIn['string'];
+                $award['name'] = $signIn['string'];
             }
 
             // 昨天已签到
             if($lastUpdateDate == date('Y-m-d', time() - 3600*24)) {
-                // 发奖
-                $awards = SendAward::ActiveSendAward($userId, $aliasName);
-
-
-                if(!isset($awards[0]['award_name'])) {
-                    throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-                }
-                $awardName = $awards[0]['award_name'];
-                $continue = Attributes::increment($userId, $aliasName, 1, $awardName, json_encode($awards));
+                $award = $this->signSendAward($userId);
+                $continue = Attributes::increment($userId, $aliasName, 1, $award['name'], json_encode($award));
             }
         }
 
         //未签到或非连续签到
-        if(empty($awardName)) {
+        if(empty($award['name'])) {
             $continue = 1;
-            $awards = SendAward::ActiveSendAward($userId, $aliasName);
-            if(!isset($awards[0]['award_name'])) {
-                throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-            }
-            $awardName = $awards[0]['award_name'];
-            Attributes::setItem($userId, $aliasName, $continue, $awardName, json_encode($awards));
+            $award = $this->signSendAward($userId);
+            Attributes::setItem($userId, $aliasName, $continue, $award['name'], json_encode($award));
         }
 
-        // 送积分
+        // 送积分 & 发消息
         if(!$isSignIn) {
             if($continue >=7 )  {
                 SendAward::ActiveSendAward($userId, 'signin_point7'); // 连续签到7天送2积分
             } else {
                 SendAward::ActiveSendAward($userId, 'signin_point'); // 签到送1积分
             }
+            $mcQueue = new McQueue();
+            $mcQueue->put('daylySignin', array('user_id' => $userId, 'days' => $continue));
         }
 
         // 额外奖励进度
@@ -342,6 +403,7 @@ class ActivityJsonRpc extends JsonRpc {
         $extra = $this->isExtraAwards($userId, $end);
         // 是否分享
         $shared = $this->isShared($userId);
+        DB::commit();
 
         return array(
             'code' => 0,
@@ -353,10 +415,38 @@ class ActivityJsonRpc extends JsonRpc {
                 'end' => $end,
                 'extra' => $extra,
                 'shared' => $shared,
-                'award' => [$awardName],
+                'award' => [$award['name']],
+                'type' => $award['type'],
                 'last' => $last,
             ),
         );
+    }
+
+    //签到发奖
+    private function signSendAward($userId) {
+        $aliasName = 'signin';
+        $interval = strtotime(date('Y-m-d 20:00:00')) - time();
+        $rand = rand(1, 2);
+
+        $award = [
+            'name' => '谢谢参与',
+            'type' => 0,
+        ];
+        if($interval < 0 || $rand === 1) {
+            $awards = SendAward::ActiveSendAward($userId, $aliasName);
+            if(!isset($awards[0]['award_name'])) {
+                throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+            }
+            $award['name'] = $awards[0]['award_name'];
+            $award['type'] = $awards[0]['award_type'];
+            return $award;
+        }
+
+        $multiple = rand(1,2)/10;
+        SignInSystemBasic::signInEveryDayMultiple($userId, $multiple);
+        $award['name'] = "${multiple}倍摇一摇翻倍特权";
+        $award['type'] = 8;
+        return $award;
     }
 
     // 获取额外奖励领取记录
@@ -415,6 +505,51 @@ class ActivityJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => json_decode($json)
         );
+    }
+
+    /**
+     * 麻辣H5 活动状态
+     *
+     * @JsonRpcMethod
+     */
+    function spicyAwardStatus(){
+        $where['alias_name'] = 'spicy_198';//活动别名 唯一值
+        $where['enable'] = 1;
+        //获取活动信息
+        $activity = Activity::where($where)->first();
+        if(empty($activity)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //获取奖品id
+        $activityID = isset($activity['id']) ? $activity['id'] : 0;
+        if(empty($activityID)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $awardsList = Award::where('activity_id',$activityID)->get()->toArray();
+        if(empty($awardsList)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //活动配置错误？
+        if(count($awardsList)>1 || $awardsList[0]['award_type'] != 6){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $couponCode = new CouponCode;
+        $couponStatus = $couponCode::select(DB::raw('count(*) as counts'))->where('coupon_id',$awardsList[0]['award_id'])->where('is_use',0)->get()->toArray();
+        $data = array();
+        if($couponStatus[0]['counts'] >0){
+            $data['status'] = 'effective';//failure
+            //如果活动 导入兑换码 大于200时。显示仍为200
+            $data['num'] = $couponStatus[0]['counts']>200 ? 200 : $couponStatus[0]['counts'];
+        }else{
+            $data['status'] = 'failure';
+            $data['num'] = 0;
+        }
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );    
     }
 
     /**
@@ -518,7 +653,7 @@ class ActivityJsonRpc extends JsonRpc {
      * @return Award1|Award2|Award3|Award4|Award5|Coupon|bool
      */
     function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -531,6 +666,8 @@ class ActivityJsonRpc extends JsonRpc {
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }
@@ -883,4 +1020,145 @@ class ActivityJsonRpc extends JsonRpc {
             'data'=>$return
         );
     }
+
+    /**
+     * 网贷天眼积分值是否超过预算
+     *
+     * @JsonRpcMethod
+     */
+    static function wdtyExceedLimit(){
+        $wdtyConfig = config::get("wdty");
+        if(empty($wdtyConfig)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> false
+            );
+        }
+        //判断是否超过
+        $globalKey = $wdtyConfig['alias_name']."_".date("Ymd");
+        $totalIntegral = GlobalAttributes::getItem($globalKey);
+        if(isset($totalIntegral['number']) && $totalIntegral['number']>= $wdtyConfig['max_integral']){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> false
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> true
+        );
+    }
+
+    /**
+     * 总收益账单2.5%加息券
+     *
+     * @JsonRpcMethod
+     */
+    static function incomeStatementStatus(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = ActivityService::isExistByAliasUserID('income_statement_2.5',$userId);
+        if($res >= 1){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data'=> true
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> false
+        );
+    }
+    /**
+     * 总收益账单2.5%加息券
+     *
+     * @JsonRpcMethod
+     */
+    static function incomeStatement(){
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = SendAward::ActiveSendAward($userId,'income_statement_2.5');
+        //调用发奖
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> $res
+        );
+    }
+
+    /**
+     * 新版见面会逻辑
+     *
+     * @JsonRpcMethod
+     */
+    static function jianmianhuiNew(){
+        //获取设置总人数
+        $setNum = GlobalAttribute::where('key' , 'jianmianhuiNew')->first();
+        $setNum = isset($setNum['number']) ? intval($setNum['number']) : 0;
+        if($setNum <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //返回随机中奖号码
+        $randNum = self::jianmianhuiIsHas($setNum);
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data'=> $randNum
+        );
+
+    }
+
+    /**
+     *  统计页面浏览量
+     * @params  channel string 必须
+     * @JsonRpcMethod
+     */
+    public function statisticsInfo($params) {
+        global $requestIP;
+        $type = isset($params->channel)?$params->channel:'';
+        $ret = Func::statistics($type, $requestIP);
+        $return = $ret;
+        if($ret) {
+            $return = ['id'=>$ret];
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return,
+        ];
+    }
+
+    /**
+     *获取随机数，且不重复的
+     */
+    private static function jianmianhuiIsHas($setNum){
+        $rand = mt_rand(1,$setNum);
+        //判断该key是否存在
+        $key = 'jianmianhuiNew_'.$rand;
+        $count = GlobalAttribute::where('key' , $key)->count();
+        if($count >= 1){
+            $useCount = GlobalAttribute::where('key' ,'like', "jianmianhuiNew_%")->count();
+            if($useCount >= $setNum){
+                return 0;
+            }
+            return self::jianmianhuiIsHas($setNum);
+        }
+        $insert = [];
+        $insert['key'] = $key;
+        $insert['number'] = $rand;
+        $insert['created_at'] = date("Y-m-d H:i:s");
+        $insert['updated_at'] = date("Y-m-d H:i:s");
+        GlobalAttribute::insertGetId($insert);
+        return $rand;
+    }
+
 }

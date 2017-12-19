@@ -65,6 +65,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //是否分享
+        $data['short_des'] = trim($request['short_des']);
         //简短说明
         $data['short_desc'] = $request['short_desc'];
         //类型
@@ -84,6 +86,8 @@ class ImgManageController extends Controller
         $data['updated_at'] = date("Y-m-d H:i:s");
         //是否可用
         $data['can_use'] = 0;
+        $data['tag'] = empty($request['tag']) ? null : $request['tag'];
+
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
         $id = Banner::insertGetId($data);
@@ -104,7 +108,7 @@ class ImgManageController extends Controller
             //验证文件上传中是否出错
             if ($request->file('img_path')->isValid()) {
                 $mimeTye = $request->file('img_path')->getClientOriginalExtension();
-                $types = array('jpg','jpeg','png','bmp');
+                $types = array('jpg','jpeg','png','bmp','gif');
                 if (in_array($mimeTye,$types)) {
                     //获取位置配置的宽度
                     $width = intval($request['width']);
@@ -164,7 +168,7 @@ class ImgManageController extends Controller
             'id' => 'required|integer|min:1',
             'position' => 'required|min:2|max:255',
             'img_path' => 'required|min:2|max:255',
-            'activity_time' => 'date'
+            'activity_time' => 'date',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -190,6 +194,8 @@ class ImgManageController extends Controller
         $data['end'] = empty($request['end']) ? null : $request['end'];
         //描述
         $data['desc'] = trim($request['desc']);
+        //是否分享
+        $data['short_des'] = trim($request['short_des']);
         //简短描述
         $data['short_desc'] = trim($request['short_desc']);
         //类型
@@ -198,6 +204,9 @@ class ImgManageController extends Controller
         $data['updated_at'] = date("Y-m-d H:i:s");
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
+
+        $data['tag'] = empty($request['tag']) ? null : $request['tag'];
+
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
@@ -471,7 +480,7 @@ class ImgManageController extends Controller
         $data = Func::Search($request,new AppStartpage);
         return $this->outputJson(0,$data);
     }
-    
+
     //启动页列表 通过平台id获取
     public function getAppInfoPid($platform){
         $filter = [

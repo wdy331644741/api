@@ -2,9 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\JsonRpcs\AdvancedJsonRpc;
+use App\Http\JsonRpcs\AmountShareJsonRpc;
+use App\Http\JsonRpcs\BbsCommentJsonrpc;
+use App\Http\JsonRpcs\BbsThreadJsonRpc;
+use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
+use App\Http\JsonRpcs\BbsUserJsonRpc;
+use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
+use App\Http\JsonRpcs\EndYearInvestJsonrpc;
+use App\Http\JsonRpcs\JianmianhuiJsonrpc;
+use App\Http\JsonRpcs\NetworkDramaDzpJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
+use App\Http\JsonRpcs\ScratchJsonRpc;
+use App\Http\JsonRpcs\SignInSystemJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
+use App\Models\PoBaiYi;
 use App\Service\NvshenyueService;
 use Illuminate\Http\Request;
 
@@ -29,6 +42,11 @@ use App\Http\JsonRpcs\MoneyShareJsonRpc;
 use App\Http\JsonRpcs\YaoyiyaoJsonRpc;
 use App\Http\JsonRpcs\NvshenyueJsonRpc;
 use App\Http\JsonRpcs\TzyxjJsonRpc;
+use App\Http\JsonRpcs\TreasureJsonRpc;
+use App\Http\JsonRpcs\PoBaiYiJsonRpc;
+use App\Http\JsonRpcs\FiveOneEightJsonRpc;
+use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
+use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
 
 class RpcController extends Controller
 {
@@ -67,6 +85,24 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new YaoyiyaoJsonRpc());
         $jsonRpcServer->addService(new NvshenyueJsonRpc());
         $jsonRpcServer->addService(new TzyxjJsonRpc());
+        $jsonRpcServer->addService(new AdvancedJsonRpc());
+        $jsonRpcServer->addService(new TreasureJsonRpc());
+        $jsonRpcServer->addService(new PoBaiYiJsonRpc());
+        $jsonRpcServer->addService(new AmountShareJsonRpc());
+        $jsonRpcServer->addService(new FiveOneEightJsonRpc());
+        $jsonRpcServer->addService(new DiyIncreasesJsonRpc());
+        $jsonRpcServer->addService(new BbsUserJsonRpc());
+        $jsonRpcServer->addService(new BbsThreadJsonRpc());
+        $jsonRpcServer->addService(new BbsThreadSectionJsonRpc());
+        $jsonRpcServer->addService(new BbsCommentJsonRpc());
+        $jsonRpcServer->addService(new JianmianhuiJsonRpc());
+        $jsonRpcServer->addService(new SignInSystemJsonRpc());
+        $jsonRpcServer->addService(new DaZhuanPanJsonRpc());
+        $jsonRpcServer->addService(new ScratchJsonRpc());
+        $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
+        $jsonRpcServer->addService(new NetworkDramaDzpJsonRpc());
+        $jsonRpcServer->addService(new EndYearInvestJsonrpc());
+
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }

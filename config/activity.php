@@ -370,6 +370,38 @@ return [
         16=>[
             'name'=>'回款期限',
             'model_name'=>'Paymentdate'
+        ],
+        17=>[
+            'name'=>'签到天数',
+            'model_name'=>'Signday'
+        ],
+        18=>[
+            'name'=>'投资次数',
+            'model_name'=>'Castnum'
+        ],
+        19=>[
+            'name'=>'回款次数',
+            'model_name'=>'Paymentnum'
+        ],
+        20=>[
+            'name'=>'发帖数量',
+            'model_name'=>'Postnum'
+        ],
+        21=>[
+            'name'=>'点赞数量',
+            'model_name'=>'Zannum'
+        ],
+        22=>[
+            'name'=>'评论获得点赞数量',
+            'model_name'=>'Commentzannum'
+        ],
+        23=>[
+            'name'=>'帖子获得点赞数量',
+            'model_name'=>'Threadzannum'
+        ],
+        24=>[
+            'name'=>'加精数量',
+            'model_name'=>'Greatnum'
         ]
     ],
     'activity_type'=>[
@@ -437,5 +469,6 @@ return [
     ],
     'money_share_batch'=>10000000, // 红包分享批次id
     'award_batch'=>20000000, // 奖品补发
-    'award_batch_other'=>30000000 // 运营成本核算,其它费用
+    'award_batch_other'=>30000000, // 运营成本核算,其它费用
+    'invite_send_award_limit'=>200,//全民淘金活动邀请人数最多200，为了防止恶意刷
 ];

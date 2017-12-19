@@ -91,6 +91,22 @@ class GlobalAttributes
         return $attribute->save();
     }
 
+    static public function getText($key, $default = '') {
+        if(empty($key)) {
+            return false;
+        }
+        $res = GlobalAttribute::where(array('key' => $key))->first();
+        if(!$res) {
+            $attribute = new GlobalAttribute();
+            $attribute->key = $key;
+            $attribute->text = $default;
+            $attribute->save();
+            return $default;
+        }
+
+        return $res['text'] ? $res['text'] : '';
+    }
+
     // 按json格式获取text字段
     static public function getJsonText($uid, $key, $default = array()) {
         if(empty($uid) || empty($key)) {

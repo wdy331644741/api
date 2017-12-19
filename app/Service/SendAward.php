@@ -14,6 +14,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Award6;
+use App\Models\AwardCash;
 use App\Models\Coupon;
 use App\Models\CouponCode;
 use Lib\JsonRpcClient;
@@ -32,6 +33,9 @@ use App\Service\Func;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
 use App\Service\Open;
+use App\Service\AfterSendAward;
+use App\Service\PoBaiYiService;
+
 class SendAward
 {
     static private $userID;
@@ -78,13 +82,14 @@ class SendAward
         $status = self::addAwardByActivity($userID, $activityID,$triggerData);
 
         //******给邀请人发奖励*****
-        $invite_status = self::InviteSendAward($userID, $activityID);
+        $invite_status = self::InviteSendAward($userID, $activityID,$triggerData);
+
+        //发奖后操作
+        AfterSendAward::afterSendAward($activityInfo,$triggerData);
 
         //拼接状态
         if(!empty($additional_status)){
-            if(!empty($status)) {
-                $status[] = $additional_status;
-            }
+            $status[] = $additional_status;
             if(isset($invite_status['awards']) && !empty($invite_status['awards'])) {
                 $invite_status['awards'][] = $additional_status;
             }
@@ -111,7 +116,7 @@ class SendAward
         }
         //获取该主动触发活动信息
         $where = array();
-        $where['alias_name'] = $aliasName;
+        $where['alias_name'] = trim($aliasName);
         $where['trigger_type'] = 0;
         $where['enable'] = 1;
         $list = Activity::where(
@@ -148,7 +153,7 @@ class SendAward
      * @param $activityID
      * @return array
      */
-    static function InviteSendAward($userID, $activityID)
+    static function InviteSendAward($userID, $activityID,$triggerData = array())
     {
         $url = Config::get('award.reward_http_url');
         $client = new JsonRpcClient($url);
@@ -159,7 +164,11 @@ class SendAward
             $inviteUserID = isset($res['result']['data']['id']) ? $res['result']['data']['id'] : 0;
             if (!empty($inviteUserID)) {
                 //调用发奖接口
-                $status = self::addAwardToInvite($inviteUserID, $activityID);
+                //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+                if(isset($triggerData['tag']) && $triggerData['tag'] == "register"){
+                    $triggerData['child_user_id'] = $userID;
+                }
+                $status = self::addAwardToInvite($inviteUserID, $activityID,$triggerData);
                 $invite_status['inviteUserID'] = $inviteUserID;
                 $invite_status['awards'] = $status;
             }
@@ -182,6 +191,171 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /**龙吟虎啸活动 start**/
+                //注册
+            case 'longyinhuxiao_register':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
+                    Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+                //签到
+            case 'longyinhuxiao_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+            //投资
+            case 'longyinhuxiao_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000);
+                            Attributes::increment($triggerData['user_id'],"longyinhuxiao_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            //邀请人投资
+            case 'longyinhuxiao_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"longyinhuxiao_drew_user",1);
+                }
+                break;
+            /**龙吟虎啸活动 end**/
+            /** 网剧活动 start */
+            //投资
+            case 'network_drama_invest':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12 && $amount >= 600){
+                        $config = Config::get('networkdrama');
+                        //判断是否生产数据
+                        $isHas = Attributes::getItem($triggerData['user_id'],$config['key']);
+                        if($isHas == false){
+                            //不存在就添加
+                            Attributes::setItem($triggerData['user_id'],$config['key']);
+                        }
+                    }
+                }
+                break;
+            /** 网剧活动 end */
+
+            /** 刮刮乐活动 start */
+            //投资
+            case 'scratch_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //根据标的不同添加抽奖次数
+                    Scratch::addScratchNum($triggerData);
+                }
+                break;
+            /** 刮刮乐活动 end */
+            
+            /** 七月大转盘活动 start */
+            //签到
+            case 'dazhuanpan_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",1);
+                }
+                break;
+            //投资
+            case 'dazhuanpan_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000)*3;
+                            Attributes::increment($triggerData['user_id'],"dazhuanpan_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            //邀请人投资
+            case 'dazhuanpan_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"dazhuanpan_drew_user",1);
+                }
+                break;
+            /** 七月大转盘活动 end */
+
+            /** 签到系统活动 start */
+            //投资就给该用户添加48小时摇红包时间
+            case 'sign_in_system_threshold':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $config = Config::get('signinsystem');
+                    $expiredTime = time() + 3600 * $config['expired_hour'];
+                    Attributes::setItem($triggerData['user_id'],"sign_in_system_threshold",$expiredTime);
+                }
+                break;
+            //投资给邀请人增加倍数
+            case 'sign_in_system_invite_first':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    if(isset($triggerData['is_first']) && $triggerData['is_first'] == 1){
+                        Attributes::setNyBiao($triggerData['from_user_id'],'sign_in_system_invite_first',$triggerData['user_id']);
+                    }
+                }
+                break;
+            /** 签到系统活动 end */
+            /** DIY加息券活动 start */
+            //绑卡
+            case 'diy_increases_bind_bank_card':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $fromUserId = Func::getUserBasicInfo($triggerData['user_id']);
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$fromUserId['from_user_id'],'注册并绑卡',1);
+                }
+                break;
+            //投资
+            case 'diy_increases_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    //这里的$num为投资金额
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    DiyIncreasesBasic::_DIYIncreasesAdd($triggerData['user_id'],$triggerData['from_user_id'],'投资',$num);
+                }
+                break;
+            /** DIY加息券活动 end */
+            /** 网贷天眼首投送积分 start */
+            case 'wdty_investment_first':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    self::_wdtyIsSendAward($triggerData);
+                }
+                break;
+            /** 网贷天眼首投送积分 end */
+            /** 现金分享 start */
+            case 'amount_share_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $return['amount_share_status'] = AmountShareBasic::amountShareCreate($triggerData);
+                }
+                break;
+            /** 现金分享 end */
+            /** 破百亿 start **/
+            case 'pobaiyi':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
+                    //非新手标
+                    if(!(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1)){
+                        PoBaiYiService::addMoneyByInvestment($triggerData);
+                    }
+                }
+                break;
+            /** 破百亿 end **/
+            /* 现金宝箱 start */
+            case 'treasure_num':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    $num = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']/1000) : 0;
+                    if($num > 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        Attributes::increment($triggerData['user_id'],"treasure_num",$num);
+                    }
+                }
+                break;
+            case 'treasure_invite':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    Attributes::increment($triggerData['from_user_id'],"treasure_num",1);
+                }
+                break;
+            /* 现金宝箱 end */
             /* 投资赢现金 start */
             case 'tzyxj_invest':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])){
@@ -383,6 +557,41 @@ class SendAward
                     }
                 }
                 break;
+            //投资12月及以上标送直抵红包2017.11.6-11.17 start
+            case"investment_send_zdhb":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是12个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        $nowtimeStamp = time();
+                        if($nowtimeStamp >= strtotime($activityInfo['start_at']) && $nowtimeStamp <= strtotime($activityInfo['end_at'])){
+                            $num = bcmul($amount,0.005,2);
+                            //直抵红包相关参数
+                            $info = [
+                                'id'=>0,
+                                'user_id'=>$triggerData['user_id'],
+                                'source_id'=>$activityInfo['id'],
+                                'name'=>$num."元直抵红包",
+                                'source_name'=>'清空购物车',
+                                'red_money'=>$num,
+                                'effective_time_type'=>2,
+                                'effective_time_start'=>date('Y-m-d H:i:s'),
+                                'effective_time_end'=>'2017-11-18 00:00:00',
+                                'investment_threshold'=>0,
+                                'project_duration_type'=>1,
+                                'product_id'=>'',
+                                'project_type'=>null,
+                                'platform_type'=>0,
+                                'limit_desc'=>null,
+                                'trigger'=>null,
+                                'mail'=>"恭喜您在'{{sourcename}}'活动中获得{{awardname}}"
+                            ];
+                            self::redMoney($info);
+                        }
+                    }
+                }
+                break;
+            //投资12月及以上标送直抵红包2017.11.6-11.17 end
             //实名送100M流量
             case "gdyidong_flow_100M":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
@@ -699,14 +908,47 @@ class SendAward
      * @param $activityId
      * @return array
      */
-    static function addAwardToInvite($userId, $activityId) {
+    static function addAwardToInvite($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('award_invite')->first();
         $awardInvite = $activity['award_invite'];
         $res = [];
+        //判断用户是否超过邀请发奖次数200
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit'){
+            $status = self::inviteNumLimit($userId);
+            if($status === false){
+                return [];
+            }
+        }
+
         foreach($awardInvite as $award) {
-            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] );
+            $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] ,'',0,0,$triggerData);
         }
         return $res;
+    }
+    /**
+     * @需要提出去
+     * @param $userID ，$award_type,$award_id
+     *
+     */
+    static function inviteNumLimit($userId){
+        if($userId < 0){
+            return false;
+        }
+        $num = Attributes::increment($userId,'invite_send_award_limit',1);
+        $limit = Config::get("activity.invite_send_award_limit");
+        if($num == $limit+1){
+            $message = "系统检测到您可能正通过技术手段获取体验金奖励，故不继续发放邀请注册体验金，其他邀请奖励不受影响，如有疑问请联系客服，感谢您对网利宝的支持！";
+            //发送站内信
+            SendMessage::Mail($userId,$message,[]);
+            //发送短信
+            SendMessage::Message($userId,$message,[]);
+            return false;
+        }
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
     }
     /**
      * @需要提出去
@@ -762,6 +1004,10 @@ class SendAward
             }
         } elseif ($award_type == 3) {
             //体验金
+            //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+            if(isset($triggerData['child_user_id'])){
+                $info['child_user_id'] = $triggerData['child_user_id'];
+            }
             return self::experience($info);
         } elseif ($award_type == 4) {
             //用户积分
@@ -769,6 +1015,9 @@ class SendAward
         } elseif ($award_type == 6) {
             //优惠券
             return self::coupon($info);
+        } elseif ($award_type == 7) {
+            //现金
+            return self::cash($info);
         }
     }
     //加息券
@@ -778,7 +1027,7 @@ class SendAward
         $info['uuid'] = null;
         $info['status'] = 0;
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
@@ -871,12 +1120,12 @@ class SendAward
         $info['uuid'] = null;
         $info['status'] = 0;
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'name' => 'required|min:2|max:255',
             'source_name' => 'required|min:2|max:255',
-            'red_money' => 'required|integer|min:1',
+            'red_money' => 'required|numeric|min:0',
             'effective_time_type' => 'required|integer|min:1',
             'investment_threshold' => 'required|integer|min:0',
             'project_duration_type' => 'required|integer|min:1'
@@ -906,8 +1155,11 @@ class SendAward
         $data['user_id'] = $info['user_id'];
         $data['uuid'] = $uuid;
         $data['source_id'] = $info['source_id'];
+
         $data['project_ids'] = str_replace(";", ",", $info['product_id']);//产品id
+
         $data['project_type'] = $info['project_type'];//项目类型
+
         $data['project_duration_type'] = $info['project_duration_type'];//项目期限类型
         //项目期限时间
         if($data['project_duration_type'] > 1){
@@ -925,9 +1177,13 @@ class SendAward
         }
         $data['investment_threshold'] = $info['investment_threshold'];
         $data['source_name'] = $info['name'];
+
         $data['platform'] = $info['platform_type'];
+
         $data['limit_desc'] = $info['limit_desc'];
+
         $data['trigger'] = $info['trigger'];
+
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {
             //发送接口
@@ -1073,6 +1329,10 @@ class SendAward
         $uuid = self::create_guid();
         //体验金
         $data['user_id'] = $info['user_id'];
+        //如果是注册触发就添加一个下级id，刘奇那边全民淘金用到
+        if(isset($info['child_user_id'])){
+            $data['child_user_id'] = $info['child_user_id'];
+        }
         $data['uuid'] = $uuid;
         $data['source_id'] = $info['source_id'];
         $data['name'] = $info['name'];
@@ -1096,7 +1356,7 @@ class SendAward
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
-                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['status'] = 1;
                 $info['uuid'] = $uuid;
                 $info['remark'] = json_encode($arr);
@@ -1104,7 +1364,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -1198,7 +1458,7 @@ class SendAward
         $data = CouponCode::where($where)->lockForUpdate()->first();
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
             //发送消息
-            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true);
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true,'code'=>$data['code']);
             $info['code'] = $data['code'];
             $info['remark'] = json_encode($err);
             $info['status'] = 1;
@@ -1217,13 +1477,54 @@ class SendAward
         }
 
     }
+    //用户现金
+    static public function cash($info){
+        //添加info里添加日志需要的参数
+        $info['award_type'] = 7;
+        $info['uuid'] = null;
+        $info['status'] = 0;
+        //验证必填
+        $validator = Validator::make($info, [
+            'id' => 'required|integer|min:1',
+            'user_id' => 'required|integer|min:1',
+            'source_id' => 'required|integer|min:0',
+            'source_name' => 'required|min:2|max:255',
+            'money' => 'required|numeric|min:0.01',
+            'type' => 'required|min:1|max:64',
+        ]);
+        if($validator->fails()){
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'params_fail'.$validator->errors()->first());
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+        $uuid = self::create_guid();
+        //发送接口
+        $result = Func::incrementAvailable($info['user_id'],$info['id'],$uuid,$info['money'],$info['type']);
+        //发送消息&存储到日志
+        if (isset($result['result']['code']) && $result['result']['code'] == 0) {//成功
+            //发送消息&存储日志
+            $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+            $info['status'] = 1;
+            $info['uuid'] = $uuid;
+            $info['remark'] = json_encode($arr);
+            self::sendMessage($info);
+            return $arr;
+        }else{//失败
+            //记录错误日志
+            $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result);
+            $info['remark'] = json_encode($err);
+            self::addLog($info);
+            return $err;
+        }
+    }
     /**
      * 获取表对象
      * @param $awardType
      * @return Award1|Award2|Award3|Award4|Award5|Award6|bool
      */
     static function _getAwardTable($awardType){
-        if($awardType >= 1 && $awardType <= 6) {
+        if($awardType >= 1 && $awardType <= 7) {
             if ($awardType == 1) {
                 return new Award1;
             } elseif ($awardType == 2) {
@@ -1236,6 +1537,8 @@ class SendAward
                 return new Award5;
             } elseif ($awardType == 6){
                 return new Coupon;
+            } elseif ($awardType == 7){
+                return new AwardCash;
             }else{
                 return false;
             }
@@ -1276,6 +1579,23 @@ class SendAward
         return $uuid;
     }
 
+    //由基础信息 获取到用户尊称
+    static function setUserRespectedName($userBasicInfo){
+        $respected = '';
+        if(isset($userBasicInfo['realname']) && !empty($userBasicInfo['realname']) )
+            $last_name = mb_substr($userBasicInfo['realname'] ,0,1,'utf-8');
+        if(isset($userBasicInfo['gender']) && $userBasicInfo['gender'] != 0 ){
+            $gender = $userBasicInfo['gender'] == 1?'先生':'女士';
+        }
+        //如果都存在，生成尊称
+        if(isset($last_name) && isset($gender)){
+            $respected = $last_name.$gender;
+        }else{
+            $respected = '网利宝用户';
+        }
+        return $respected;
+    }
+
     /**
      * 发送站内信及添加日志
      * @param $info
@@ -1286,6 +1606,9 @@ class SendAward
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
         $message['code'] = isset($info['code']) ? $info['code'] : '';
+
+        $userBasicInfo = Func::getUserBasicInfo($info['user_id']);//获取用户基本信息
+        $message['respecteduname'] = self::setUserRespectedName($userBasicInfo);//用户尊称key：respecteduname
         $return = array();
         $info['message_status'] = 0;
         $info['mail_status'] = 0;
@@ -1494,5 +1817,45 @@ class SendAward
             $yearMoney = ceil(($amount*$time)/12);
         }
         return $yearMoney;
+    }
+
+    /**
+     * 网贷天眼首投送积分活动是否发奖
+     * @param $triggerData
+     * @return bool
+     */
+    static function _wdtyIsSendAward($triggerData){
+        $wdtyConfig = config::get("wdty");
+        if(empty($wdtyConfig)){
+            return false;
+        }
+        $money = isset($triggerData['Investment_amount']) ? $triggerData['Investment_amount'] : 0;
+        if($money < 1000){
+            return false;
+        }
+        //判断是否超过
+        $globalKey = $wdtyConfig['alias_name']."_".date("Ymd");
+        $totalIntegral = GlobalAttributes::getItem($globalKey);
+        if(isset($totalIntegral['number']) && $totalIntegral['number']>= $wdtyConfig['max_integral']){
+            return false;
+        }
+        $integral = 0;
+        foreach($wdtyConfig['integral_list'] as $key => $item){
+            if($money >= $item['min'] && $money <= $item['max']){
+                $integral = $key;
+            }
+        }
+        if($integral <= 0){
+            return false;
+        }
+        //发奖
+        $status = self::ActiveSendAward($triggerData['user_id'],'wdty_'.$integral);
+        //如果发奖成功才累加
+        if($status[0]['status'] === true){
+            //累加
+            GlobalAttributes::increment($globalKey,$integral);
+            return true;
+        }
+        return true;
     }
 }

@@ -101,13 +101,19 @@ class OpenController extends Controller
     public function getUserInfo(Request $request){
         $session = new Session();
         $wxSession= $session->get('weixin');
+        $userinfo_callback = '';
+        if(isset($wxSession['userinfo_callback'])){
+            $userinfo_callback = $wxSession['userinfo_callback'];
+        }else{
+            return "跳转地址不正确，点击 <a href=\"/\">返回首页</a>";
+        }
         if(!$request->code){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40001');//用户未授权或者授权失败
+            return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40001');//用户未授权或者授权失败
         }
         $weixin = new Weixin();
         $data = $weixin->get_web_access_token($request->code);
         if(!$data){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40002');//获取access_token失败
+            return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40002');//获取access_token失败
         }
         $this->_openid =  $data['openid'];
         $wxSession = $session->get('weixin');
@@ -121,7 +127,7 @@ class OpenController extends Controller
             if(!$userData){
                 $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
                 if(!$userData){
-                    return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40003');//拉取用户信息失败
+                    return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40003');//拉取用户信息失败
                 }
                 //存储微信用户数据
                 $wxModel = new WechatUser();
@@ -140,14 +146,14 @@ class OpenController extends Controller
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
         if(isset($res['error'])){
-            return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40004');//接口出错
+            return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40004');//接口出错
         }
         if($res['result']['data']){
             $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
             WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
-            return redirect($wxSession['userinfo_callback']);
+            return redirect($userinfo_callback);
         }
-        return redirect($this->convertUrlQuery($wxSession['userinfo_callback']).'wlerrcode=40005');//用户未绑定
+        return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40005');//用户未绑定
     }
 
     //绑定用户
@@ -181,7 +187,12 @@ class OpenController extends Controller
     //获取响应事件
     public function getEvent(Request $request)
     {
-        $this->valid($request);
+        if(isset($request->echostr)){
+            $this->valid($request);
+        }else{
+            $resStr = $this->responseMsg();
+            echo $resStr;
+        }
     }
 
     public function postEvent(Request $request)
@@ -197,10 +208,16 @@ class OpenController extends Controller
             $fromUsername = $postObj->FromUserName;
             $toUsername = $postObj->ToUserName;
             $type = $postObj->MsgType;
-            //$keyword = trim($postObj->Content);
-            $time = time();
             $textTpl = config('open.weixin.xml_template.textTpl');
+            $time = time();
             $msgType = "text";
+            $typeArr = array('text','image','voice','video','shortvideo','link');
+            if(in_array($type,$typeArr)){
+                $content="点击<a href='http://wanglibao.udesk.cn/im_client/'>【在线客服】</a>，可以随时向客服MM咨询问题哦，等你~/亲亲\n\n您也可以致电4008-588-066进行咨询哦，点击下方菜单了解更多~";
+                echo  sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType,$content);
+                exit;
+            }
+
             if($type == 'event'){
                 $content = $this->receiveEvent($postObj,$fromUsername);
                 if($content['error']){
@@ -629,10 +646,10 @@ class OpenController extends Controller
                 $content = '恭喜您在活动中获取到'.$request->spec.'MB全国通用流量，请拨打运营商客服查询，感谢您对网利宝的支持。';
                 $res = SendMessage::Mail($user_id,$content);
                 if(!$res)
-                file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【站内信发送失败】'.PHP_EOL,FILE_APPEND);
+                    file_put_contents(storage_path('logs/flow-error-'.date('Y-m-d')).'.log',date('Y-m-d H:i:s').'=>【站内信发送失败】'.PHP_EOL,FILE_APPEND);
                 exit;
             }
-            
+
         }
     }
 
@@ -708,5 +725,5 @@ class OpenController extends Controller
             return false;
         }
     }
-    
+
 }
