@@ -117,6 +117,56 @@ class OpenJsonRpc extends JsonRpc {
     }
 
     /**
+     * 微信PC解除绑定
+     *
+     * @JsonRpcMethod
+     */
+    public function wechatPcUnbind() {
+        global $userId;
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $openid = '';
+        $data = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$userId));
+        if(isset($data['result'])){
+            if (!$data['result']['data']){
+                return $data['result'];
+            }
+            $openid = $data['result']['openid'];
+        }
+        $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
+        if(isset($res['error'])){
+            return $res['error'];
+        }
+        $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
+        $userBase = $client->userBasicInfo(array('userId'=>$userId));
+        if(isset($userBase['result'])){
+            $data = array(
+                'first'=>array(
+                    'value'=>'尊敬的客户您好，您的账户已经解绑！',
+                    'color'=>'#173177'
+                ),
+                'keyword1'=>array(
+                    'value'=>$userBase['result']['data']['username'],
+                    'color'=>'#173177'
+                ),
+                'keyword2'=>array(
+                    'value'=>date('Y年m月d日 H:i'),
+                    'color'=>'#173177'
+                ),
+                'remark'=>array(
+                    'value'=>'',
+                    'color'=>''
+                )
+            );
+            $wxObj = new Weixin();
+            $status = $wxObj->send_template_msg($openid,Config::get('open.weixin.msg_template.wechat_unbind'),$data);
+            if($status['errcode'] == 40001){
+                $status = $wxObj->send_template_msg($openid,Config::get('open.weixin.msg_template.wechat_bind'),$data,null,true);
+            }
+        }
+        return $res['result'];
+    }
+
+    /**
      * 获取微信签名认证
      *
      * @JsonRpcMethod
