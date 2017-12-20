@@ -249,7 +249,7 @@ class SendAwardBatch
         $data['platform'] = $info['platform_type'];
         $data['limit_desc'] = $info['limit_desc'];
         $data['trigger'] = $info['trigger'];
-        if($info['red_type'] == 3){
+        if(isset($info['red_type']) && $info['red_type'] == 3){
             $data['is_novice'] = 1;
         }
         $data['remark'] = '';
