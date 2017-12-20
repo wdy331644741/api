@@ -51,7 +51,7 @@ class BbsThreadJsonRpc extends JsonRpc
             return $page;
         });
         //自定义分页  查找一个月内view最多的帖子  剔除 管理员发的置顶贴
-        $monthTime = date("Y-m-d", strtotime("-1 month"));
+        $monthTime = date("Y-m-d", strtotime("-3 month"));
         $thread = new Thread(['userId' => $userId]);
         $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
             ->where(['istop' => 0,'isgreat'=>1])
@@ -210,7 +210,7 @@ class BbsThreadJsonRpc extends JsonRpc
         });
         //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
 
-        $monthTime = date("Y-m-d", strtotime("-1 month"));
+        $monthTime = date("Y-m-d", strtotime("-3 month"));
 
         $thread = new Thread(['userId' => $userId]);
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
