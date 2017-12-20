@@ -253,6 +253,7 @@ class SendAwardBatch
             $data['is_novice'] = 1;
         }
         $data['remark'] = '';
+        $info['postData'] = $data;//记录post参数
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->redpacket($data);
