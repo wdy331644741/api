@@ -13,6 +13,7 @@ Route::group(['middleware' => 'internal'], function() {
     Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口
     Route::controller('mc', 'MessageCenterController');
     Route::controller('wsm', 'WechatSendmsgController'); //微信模板消息发送
+    Route::controller('su', 'SyncBbsUserController'); //
 });
 
 // admin接口
