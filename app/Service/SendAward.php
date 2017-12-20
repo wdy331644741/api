@@ -1201,7 +1201,7 @@ class SendAward
 
         $data['trigger'] = $info['trigger'];
 
-        if($info['red_type'] == 3){
+        if(isset($info['red_type']) && $info['red_type'] == 3){
             $data['is_novice'] = 1;
         }
 
