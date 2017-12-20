@@ -75,7 +75,7 @@ class UserController extends Controller
     public function postPut(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_users,id',
-            'head_img'=>'integer',
+            'head_img'=>'required',
             'phone' => "required|unique:bbs_users,phone,".$request->id,
             'nickname'=>'required|unique:bbs_users,nickname,'.$request->id,
         ]);

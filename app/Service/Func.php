@@ -126,16 +126,19 @@ class Func
         return $data;
     }
 
-    //搜索优化
-    public static function freeSearch(Request $request,$model_name){
+
+    //搜索优化   #TODO  待优化
+    public static function freeSearch(Request $request,$modelObj,$fileds,$withs=[]){
         $data = array();
         $order_str = '';
         $pagenum = 20;
         $url = $request->fullUrl();
-
         if(isset($request->data['pagenum'])){
             $pagenum = $request->data['pagenum'];
         }
+
+        $items = $modelObj->select($fileds);
+
         if(isset($request->data['order'])){
             foreach($request->data['order'] as $key=>$val){
                 $order_str = "$key $val";
@@ -143,18 +146,24 @@ class Func
         }else{
             $order_str = "id desc";
         }
+        if(!empty($withs)){
+            foreach ($withs as $key => $with){
+                $items->with($with);
+            }
+
+        }
         if(isset($request->data['like']) && isset($request->data['filter'])){
             $like_str = self::getFilterData($request->data['like'],'like');
             $filterData = self::getFilterData($request->data['filter']);
             if(isset($filterData['filter_str'])){
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->whereRaw($filterData['filter_str'])
                     ->whereRaw($like_str)
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
                     ->setPath($url);
             }else{
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->whereRaw($like_str)
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
@@ -163,27 +172,27 @@ class Func
 
         }elseif (isset($request->data['like']) && !isset($request->data['filter'])){
             $like_str = self::getFilterData($request->data['like'],'like');
-            $data = $model_name::whereRaw($like_str)
+            $data = $items->whereRaw($like_str)
                 ->orderByRaw($order_str)
                 ->paginate($pagenum)
                 ->setPath($url);
         }elseif (isset($request->data['filter']) && !isset($request->data['like'])){
             $filterData = self::getFilterData($request->data['filter']);
             if(isset($filterData['filter_str'])){
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->whereRaw($filterData['filter_str'])
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
                     ->setPath($url);
             }else{
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
                     ->setPath($url);
             }
 
         }else{
-            $data = $model_name::orderByRaw($order_str)
+            $data = $items->orderByRaw($order_str)
                 ->paginate($pagenum)
                 ->setPath($url);
         }
