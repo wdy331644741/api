@@ -167,6 +167,23 @@ class OpenJsonRpc extends JsonRpc {
     }
 
     /**
+     * 微信PC是否绑定
+     *
+     * @JsonRpcMethod
+     */
+    public function wechatIsBind() {
+        global $userId;
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $data = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$userId));
+        if(isset($data['result'])){
+            if (!$data['result']['data']){
+                return $data['result'];
+            }
+        }
+        return $data['result'];
+    }
+
+    /**
      * 获取微信签名认证
      *
      * @JsonRpcMethod
