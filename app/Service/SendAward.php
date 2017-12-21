@@ -191,6 +191,23 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /**回款活动 start**/
+            case 'payment_activity':
+                if(
+                    isset($triggerData['tag']) && $triggerData['tag'] == 'payment'&&
+                    isset($triggerData['principal']) && $triggerData['principal'] >= 100 &&
+                    isset($triggerData['scatter_type']) && $triggerData['scatter_type'] >= 1 &&
+                    isset($triggerData['user_id']) && $triggerData['user_id'] > 0
+                ){
+                    //根据天数发奖
+                    $return[0] = self::paymentSendByDay($activityInfo,$triggerData);
+                    //根据回款次数和回款金额发奖
+                    $return[1] = self::paymentSendByMoney($activityInfo,$triggerData);
+                    return $return;
+                }
+                break;
+            /**回款活动 end**/
+
             /**龙吟虎啸活动 start**/
                 //注册
             case 'longyinhuxiao_register':
@@ -1857,5 +1874,150 @@ class SendAward
             return true;
         }
         return true;
+    }
+
+    /**
+     * 根据回款天数发奖
+     */
+    static function paymentSendByDay($activityInfo,$triggerData){
+        $config = Config::get('payment');
+        if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] >= 1){
+            //根据项目期限获得天数
+            if($triggerData['scatter_type'] == 1){
+                $payment_date = intval($triggerData['period_day']);
+            }elseif ($triggerData['scatter_type'] == 2){
+                $payment_date = intval($triggerData['period'] * 30);
+            }else{
+                return array('send'=>false,'errmsg'=>'回款期限不正确');
+            }
+            //根据规则判断应得到的奖品
+            if($payment_date <= 10){
+                return array('send'=>false,'errmsg'=>'回款期限不能小于10');
+            }
+            $dayRule = isset($config['day_rule']) ? $config['day_rule'] : [] ;
+            if(empty($dayRule)){
+                return array('send'=>false,'errmsg'=>'回款期限规则不能为空');
+            }
+            foreach($dayRule as $item){
+                //符合规则
+                if($payment_date > $item['min'] && $payment_date <= $item['max']){
+                    //发送奖品
+                    foreach($item['award'] as $award){
+                        $msg[] = self::sendPaymentIncrease($activityInfo,$triggerData['user_id'],$award['num'],$award['period']);
+                    }
+                    return $msg;
+                }
+            }
+        }
+    }
+    /**
+     * 根据回款次数和金额发奖
+     */
+    static function paymentSendByMoney($activityInfo,$triggerData){
+        //获取回款次数
+        if(isset($triggerData['principal']) && $triggerData['principal'] >= 100 && isset($triggerData['user_id']) && $triggerData['user_id'] > 0){
+            $paymentMoney = ceil(floatval($triggerData['principal']));
+            if($paymentMoney >= 400000){
+                $paymentMoney = 400000;
+            }
+            //根据用户id获得回款次数
+            $res = ActivityService::getTradeAndRepamentTimes($triggerData['user_id']);
+            //回款次数
+            $paymentNum = isset($res['result']['repaymentTimes']) ? intval($res['result']['repaymentTimes']) : 0;
+            //匹配规则&发奖
+            if($paymentNum <= 3){
+                //符合规则
+                if($paymentMoney >= 100){
+                    //回款生成高门槛金额
+                    $maxThreshold = self::getMaxThreshold($paymentMoney);
+                    //小额红包金额
+                    $num = intval(($paymentMoney*0.07)/120) * 10;
+                    if($num < 5){
+                        $num = 5;
+                    }
+                    //大额红包金额
+                    $maxNum = intval(($maxThreshold*0.07)/120) * 10;
+                    if($maxNum < 5){
+                        $maxNum = 5;
+                    }
+                    //发送奖品
+                    $msg[0] = self::sendPaymentRed($activityInfo,$triggerData['user_id'],$num,$paymentMoney);
+                    $msg[1] = self::sendPaymentRed($activityInfo,$triggerData['user_id'],$maxNum,$maxThreshold);
+                    return $msg;
+                }
+            }
+            return array('send'=>false,'errmsg'=>'回款超过3次');
+        }
+    }
+    static function sendPaymentIncrease($activityInfo,$user_id,$num,$threshold){
+        if($user_id > 0 && $num > 0){
+            $info = [
+                'id'=>0,
+                'user_id'=>$user_id,
+                'source_id'=>$activityInfo['id'],
+                'name'=>"回款".($num*100)."%加息券(".$threshold."月及以上标)",
+                'source_name'=>$activityInfo['name'],
+                'rate_increases_type'=>1,
+                'rate_increases'=>$num,
+                'effective_time_type'=>1,
+                'effective_time_day'=>5,
+                'investment_threshold'=>0,
+                'project_duration_type'=>3,
+                'project_duration_time'=>$threshold,
+                'product_id'=>'',
+                'project_type'=>null,
+                'platform_type'=>0,
+                'limit_desc'=>$threshold."月及以上标",
+                'trigger'=>null,
+                'mail'=>"恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。"
+            ];
+            return self::increases($info);
+        }
+        return ['msg'=>'发奖参数有误'];
+    }
+    static function sendPaymentRed($activityInfo,$user_id,$num,$threshold){
+        if($user_id > 0 && $num > 0){
+            $info = [
+                'id'=>0,
+                'user_id'=>$user_id,
+                'source_id'=>$activityInfo['id'],
+                'name'=>"新用户".$num."元红包",
+                'source_name'=>$activityInfo['name'],
+                'red_money'=>$num,
+                'effective_time_type'=>1,
+                'effective_time_day'=>3,
+                'investment_threshold'=>$threshold,
+                'project_duration_type'=>1,
+                'product_id'=>'',
+                'project_type'=>null,
+                'platform_type'=>0,
+                'limit_desc'=>$threshold."元起投",
+                'trigger'=>null,
+                'mail'=>"恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。"
+            ];
+            return self::redMoney($info);
+        }
+        return ['msg'=>'发奖参数有误'];
+    }
+    //获取比回款金额门槛高的
+    static function getMaxThreshold($money){
+        //最小值返回
+        if($money < 5000){
+            return 5000;
+        }
+        if($money >= 5000 && $money < 9999){
+            return 10000;
+        }
+        //最大值返回
+        if($money >= 400000){
+            return 500000;
+        }
+        $first = mb_substr($money,0,1);
+        $len = strlen(intval($money));
+        $max = $first + 1;
+        for($i=1;$i<=$len-1;$i++){
+            $max .= 0;
+        }
+        return $max;
     }
 }
