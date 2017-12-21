@@ -123,14 +123,8 @@ class OpenJsonRpc extends JsonRpc {
     public function wechatPcUnbind() {
         global $userId;
         $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $openid = '';
         $data = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$userId));
-        if(isset($data['result'])){
-            if (!$data['result']['data']){
-                return $data['result'];
-            }
-            $openid = $data['result']['openid'];
-        }
+        $openid = $data['result']['openid'];
         $res = $client->accountUnbind(array('channel'=>$this->_weixin,'userId'=>$userId));
         if(isset($res['error'])){
             return $res['error'];
