@@ -3,10 +3,19 @@ namespace App\Service;
 
 use App\Models\UserAttribute;
 use App\Models\GanenInfo;
+use App\Models\Ganen;
 
 class GanenService
 {
 
+    /**
+     *
+     */
+    static function getMyReward($userId){
+        //$config = config('ganen');
+        $result = Ganen::select('award_name')->where(['user_id' => $userId ])->get();
+        return $result;
+    }
     /**
      * 投资送次数
      *
@@ -47,7 +56,7 @@ class GanenService
      * @return boolean
      */
     static function minusChance($userId, $number = 1) {
-        $config = config('Ganen');
+        $config = config('ganen');
         $item  = UserAttribute::where(['user_id' => $userId, 'key' => $config['key'] ])->first();
         if(!$item) {
             return false;
@@ -93,7 +102,7 @@ class GanenService
      * @return array
      */
     static function getChance($userId) {
-        $config = config('Ganen');
+        $config = config('ganen');
         $item  = UserAttribute::where(['user_id' => $userId, 'key' => $config['key'] ])->first();
         $resultWords = [];
         if(!$item) {
@@ -134,7 +143,7 @@ class GanenService
      *
      */
     static function getExchangeNum($userId) {
-        $config = config('Ganen');
+        $config = config('ganen');
         $item  = UserAttribute::where(['user_id' => $userId, 'key' => $config['key'] ])->first();
         if(!$item) {
             return 0;

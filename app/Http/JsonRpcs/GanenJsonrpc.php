@@ -15,6 +15,7 @@ use App\Service\GanenService;
 
 class GanenJsonRpc extends JsonRpc
 {
+
     /**
      * 获取当前的文字数量
      *
@@ -40,6 +41,7 @@ class GanenJsonRpc extends JsonRpc
             $user['login'] = 1;
             $user['exchange_num'] = GanenService::getExchangeNum($userId);
             $user['words'] = GanenService::getChance($userId);
+            $user['my_reward'] = GanenService::getMyReward($userId);
         }
         return array(
             'code' => 0,
@@ -62,8 +64,8 @@ class GanenJsonRpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'list' => $this->getExchangeList($config),
-                'rank' => $this->getExchangeRank($config)
+                'list' => $this->getExchangeList($config),//最近兑换数据
+                'rank' => $this->getExchangeRank($config)//总排名
             ]
         );
     }
@@ -106,17 +108,9 @@ class GanenJsonRpc extends JsonRpc
                 'type' => 7,
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
-
-            $client = new JsonRpcClient(env('INSIDE_HTTP_URL'));
-            $purchaseRes = $client->goddessIncrement([
-                'userId' => $userId,
-                'id' => $res->id,
-                'uuid' => $uuid,
-                'amount' => $award['size'],
-                'sign' => hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft")
-            ]);
-
-            $remark['addMoneyRes'] = $result;
+            //需要用户中心 定义一个流水 标记
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'dragon_tiger');
+            $remark['addMoneyRes'] = $purchaseRes;
             // 成功
             if(isset($purchaseRes['result'])) {
                 $res->update(['status' => 1, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
@@ -158,69 +152,6 @@ class GanenJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $result,
         ];
-    }
-
-    /**
-     * 购买
-     *
-     * @JsonRpcMethod
-     */
-    public function ganenBuy($params) {
-        global $userId;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-
-        if (!isset($params->tradePassword) || !isset($params->word) || !isset($params->number)) {
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
-        }
-
-        $tradePassword = strval($params->tradePassword);
-        $number = abs(intval($params->number));
-        $word = trim($params->word);
-        if($number > $this->getWordBuyNum($word)) {
-            throw new OmgException(OmgException::NUMBER_IS_NULL);
-        }
-
-        $uuid = SendAward::create_guid();
-
-        //调用孙峰接口余额购买次数
-        $url = env('INSIDE_HTTP_URL');
-        $client = new JsonRpcClient($url);
-        $param['userId'] = $userId;
-        $param['id'] = 0;
-        $param['uuid'] = $uuid;
-        $param['amount'] = $number * 2;
-        $param['trade_pwd'] = $tradePassword;
-        $param['sign'] = hash('sha256',$userId."3d07dd21b5712a1c221207bf2f46e4ft");
-        $result = $client->wordPurchase($param);
-
-        // 成功
-        if(isset($result['result']) && !empty($result['result'])) {
-            $words = GanenService::addChanceByBuy($userId, $word, $number);
-            $this->decrementNum($word, $number);
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => [
-                    'status' => 1,
-                    'words' => $words,
-                ]
-            );
-        }
-
-        if(isset($result['error']['code'])) {
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => [
-                    'status' => 0,
-                    'result' => $result['error'],
-                ]
-            );
-        }
-
-        throw new OmgException(OmgException::API_FAILED);
     }
 
     /**
@@ -266,7 +197,7 @@ class GanenJsonRpc extends JsonRpc
     private function getExchangeList($config) {
         $key = $config['key'] . '_list';
         return Cache::remember($key, 2, function() use($config) {
-            $number = 80;
+            $number = 90;
             $result = [];
             $data = ganen::select('user_id', 'award_name')->orderBy('id', 'desc')->take($number)->get();
             foreach ($data as &$item){
@@ -279,9 +210,9 @@ class GanenJsonRpc extends JsonRpc
                 }
             }
 
-            if(count($result) !== $number) {
-                return $result;
-            }
+            // if(count($result) !== $number) {
+            //     return $result;
+            // }
 
             foreach($config['fake_user'] as $user) {
                 $award = [];
