@@ -208,7 +208,8 @@ class Func
             'min' => '<',
             'max' => '>',
             'no_equal' => '<>',
-            'like' => 'LIKE'
+            'like' => 'LIKE',
+            'min_equal_max'=>'<=>'
         ];
         $filterStr = '';
         if($type == 'like'){
@@ -217,11 +218,20 @@ class Func
                 return substr($filterStr,4);
             }
         }
+        if(isset($filter['end_at'])){
+            $end_at = $filter['end_at'];
+            unset($filter['end_at']);
+        }
         foreach ($filter as $key=>$val){
             $patternKey = $key.'_pattern';
             if(stripos($key,'_pattern') === false && isset($filter[$patternKey])){
-                $pattern = $filter[$patternKey];
-                $filterStr .= "AND ".$key." ".$patternArr[$pattern]." '".$val."' ";
+                if($filter[$patternKey] == "min_equal_max"){
+                    $filterStr .= "AND ".$key." >= '".$val."' AND ".$key." <= '".$end_at."' ";
+
+                }else{
+                    $pattern = $filter[$patternKey];
+                    $filterStr .= "AND ".$key." ".$patternArr[$pattern]." '".$val."' ";
+                }
                 $data['filter_str'] = substr($filterStr,4);
             } elseif (stripos($key,'_pattern') === false && !isset($filter[$patternKey])){
                 $data['filter_data'][$key] = $val;

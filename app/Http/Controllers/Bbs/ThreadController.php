@@ -23,7 +23,6 @@ class ThreadController extends Controller
     use BasicDataTables;
     protected $model = null;
     protected $fileds = ['id','user_id','title','content', 'type_id','video_code','created_at', 'istop', 'isgreat', 'ishot','isofficial','isverify', 'comment_num','zan_num','collection_num'];
-    protected $withs = ['user','section'];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_threads,id'
     ];
@@ -39,14 +38,8 @@ class ThreadController extends Controller
 
     //帖子为审核列表
     public function getList(Request $request){
-        $res = Func::freeSearch($request,new Thread(),$this->fileds);
+        $res = Func::freeSearch($request,new Thread(),$this->fileds,['section','user']);
         return $this->outputJson(0,$res);
-        /*if(!in_array($isverify,[0,1,2])){
-            $res = Thread::where('type_id',$sid)->onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
-            return $this->outputJson(0,$res);
-        }
-        $res = Thread::where(['type_id'=>$sid,'isverify'=>$isverify])->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
-        return $this->outputJson(0,$res);*/
     }
 
     //帖子搜索
