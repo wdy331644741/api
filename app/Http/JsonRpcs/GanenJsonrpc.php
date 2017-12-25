@@ -109,7 +109,7 @@ class GanenJsonRpc extends JsonRpc
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
             //需要用户中心 定义一个流水 标记
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'dragon_tiger');
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'gratitude_and_feedback');
             $remark['addMoneyRes'] = $purchaseRes;
             // 成功
             if(isset($purchaseRes['result'])) {
