@@ -154,25 +154,6 @@ class GanenJsonRpc extends JsonRpc
         ];
     }
 
-    /**
-     * 查询剩余数量
-     *
-     * @JsonRpcMethod
-     */
-    public function ganenBuyNum() {
-        $config = config('ganen');
-        $prefix = $config['key'];
-        $words = [];
-        foreach($config['probability'] as $key => $value) {
-            $ident = $prefix . '_' . $key;
-            $words[$key] = GlobalAttributes::getNumberByTodaySeconds($ident, $config['buy_number'], $config['fresh_time']);
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $words
-        );
-    }
 
     /**
      * 获取兑换排行
@@ -197,7 +178,7 @@ class GanenJsonRpc extends JsonRpc
     private function getExchangeList($config) {
         $key = $config['key'] . '_list';
         return Cache::remember($key, 2, function() use($config) {
-            $number = 90;
+            $number = 80;
             $result = [];
             $data = ganen::select('user_id', 'award_name')->orderBy('id', 'desc')->take($number)->get();
             foreach ($data as &$item){
@@ -228,24 +209,6 @@ class GanenJsonRpc extends JsonRpc
         });
     }
 
-    /**
-     * @param $word
-     * @return int
-     */
-    private function getWordBuyNum($word) {
-        $config = config('ganen');
-        $prefix = $config['key'];
-        if(isset($config['probability'][$word])) {
-            $ident = $prefix . '_' . $word;
-            $num = GlobalAttributes::getNumberByTodaySeconds($ident, $config['buy_number'], $config['fresh_time']);
-            if($num < 0) {
-                return 0;
-            }else{
-                return $num;
-            }
-        }
-        return 0;
-    }
 
     /**
      * @param $word
