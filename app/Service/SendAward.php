@@ -401,6 +401,26 @@ class SendAward
                 }
                 break;
             /**女神月活动*****结束****/
+
+            /**感恩活动*****开始****/
+            //投资送次数(满一千送一次)
+            case "ganen_invest":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])) {
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $num = intval($amount/1000);
+                    if(!empty($num)){
+                        GanenService::addChanceByInvest($triggerData['user_id'], $num);
+                    }
+                }
+                break;
+            //邀请人首投（给邀请人）
+            case "ganen_invite":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    GanenService::addChanceByInvite($triggerData['from_user_id']);
+                }
+                break;
+            /**感恩活动*****结束****/
+
             //流量包渠道首投触发
             case "channel_liuliangbao":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
