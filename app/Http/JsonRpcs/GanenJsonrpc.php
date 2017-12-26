@@ -100,7 +100,7 @@ class GanenJsonRpc extends JsonRpc
             $result['awardType'] = 7;
             $res = ganen::create([
                 'user_id' => $userId,
-                'award_name' => $result['awardName'],
+                'award_name' => $result['amount'],
                 'uuid' => $uuid,
                 'ip' => Request::getClientIp(),
                 'user_agent' => Request::header('User-Agent'),
@@ -134,7 +134,7 @@ class GanenJsonRpc extends JsonRpc
                 $remark['awards'] = $awards;
                 ganen::create([
                     'user_id' => $userId,
-                    'award_name' => $result['awardName'],
+                    'award_name' => $result['amount'],
                     'uuid' => '',
                     'ip' => Request::getClientIp(),
                     'user_agent' => Request::header('User-Agent'),
@@ -178,14 +178,15 @@ class GanenJsonRpc extends JsonRpc
     private function getExchangeList($config) {
         $key = $config['key'] . '_list';
         return Cache::remember($key, 2, function() use($config) {
-            $number = 80;
+            $number = 90;
             $result = [];
-            $data = ganen::select('user_id', 'award_name')->orderBy('id', 'desc')->take($number)->get();
+            $data = ganen::select('user_id', 'award_name','type')->orderBy('id', 'desc')->take($number)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                     $award = [];
                     $phone = Func::getUserPhone($item['user_id']);
-                    $award['award_name'] = $item['award_name'];
+                    // $award['award_name'] = $item['award_name'];
+                    $award['award_name'] = $this->makeAwardName($item['award_name'],$item['type']);
                     $award['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
                     $result[] = $award;
                 }
@@ -194,21 +195,46 @@ class GanenJsonRpc extends JsonRpc
             // if(count($result) !== $number) {
             //     return $result;
             // }
-
+            
             foreach($config['fake_user'] as $user) {
                 $award = [];
                 for($i=0; $i < $user['number']; $i++) {
                     $award['award_name'] = $user['award_name'];
                     $randIndex = array_rand($config['phone_prefix_list']);
                     $award['phone'] = $config['phone_prefix_list'][$randIndex] . '******' . rand(00, 99);
-                    $result[] = $award;
+                    $fakeArr = $award;
                 }
             }
+            $fakeNum = count($result)%9; //按9:1 掺入数据
+            $fakeResult = array_slice($fakeArr,0,$fakeNum);
+            $result[] = $fakeResult;
+
             shuffle($result);
             return $result;
         });
     }
 
+    /**
+     *拼接 奖品名称
+     */
+    private function makeAwardName($value,$type){
+        switch ($type) {
+            case 7:
+                $res = $value.'元现金';
+                break;
+            case 2:
+                $res = $value.'元红包';
+                break;
+            case 1:
+                $res = $value.'%加息券';
+                break;
+            default:
+                $res = 'unType';
+                break;
+        }
+
+        return $res;
+    }
 
     /**
      * @param $word

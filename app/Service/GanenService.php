@@ -9,11 +9,14 @@ class GanenService
 {
 
     /**
+     * "我的奖励"
+     * key => 2
      *
      */
     static function getMyReward($userId){
         //$config = config('ganen');
-        $result = Ganen::select('award_name')->where(['user_id' => $userId ])->get();
+        $result = Ganen::select('award_name as value','type')->where(['user_id' => $userId ])->get();
+        //type：2红包 1加息券 7现金
         return $result;
     }
     /**
