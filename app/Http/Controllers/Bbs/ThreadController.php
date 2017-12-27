@@ -42,12 +42,6 @@ class ThreadController extends Controller
         return $this->outputJson(0,$res);
     }
 
-    //帖子搜索
-    public function getSearch(Request $request){
-        $res = Func::freeSearch($request,new Thread());
-        return $this->outputJson(0,$res);
-    }
-
     //还原帖子
     public function postRestore(Request $request){
         $validator = Validator::make($request->all(), [
