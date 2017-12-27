@@ -205,11 +205,16 @@ class GanenJsonRpc extends JsonRpc
                     $fakeArr = $award;
                 }
             }
-            $fakeNum = count($result)%9; //按9:1 掺入数据
-            $fakeResult = array_slice($fakeArr,0,$fakeNum);
-            $result[] = $fakeResult;
-
-            shuffle($result);
+            $fakeNum = floor(count($result)/9); //按9:1 掺入数据
+            // if(empty($result) && $fakeNum == 0){
+            //     return [];
+            // } else{
+            if($fakeNum != 0){
+                $fakeResult = array_slice($fakeArr,0,$fakeNum);
+                $result[] = $fakeResult;
+                shuffle($result);
+            }
+            
             return $result;
         });
     }
