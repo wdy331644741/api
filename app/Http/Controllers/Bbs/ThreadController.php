@@ -74,7 +74,6 @@ class ThreadController extends Controller
         $thread->cover = isset($request->cover) ? $request->cover : NULL;
         $thread->title = isset($request->title) ? $request->title : NULL;
         $thread->content = isset($request->content) ? $request->content : NULL;
-        $thread->isinside = 1;
         $thread->istop = $request->istop ? $request->istop : 0;
         $thread->isverify = 1;
         $thread->verify_time = date('Y-m-d H:i:s');

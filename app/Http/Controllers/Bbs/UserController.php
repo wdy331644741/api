@@ -96,6 +96,11 @@ class UserController extends Controller
         return $this->outputJson(0,$data);
     }
 
+    //获取马甲账号列表
+    public function getVestList(){
+        $data = User::where('isadmin',2)->get();
+        return $this->outputJson(0,$data);
+    }
 
     //黑名单列表
     public function getBlackList(){
