@@ -132,6 +132,31 @@ class CommentController extends Controller
 
     }*/
 
+    //评论帖子
+    public function postAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'tid'=>'required|exists:bbs_threads,id',
+            'content'=>'required'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $commentReply = new Comment();
+        $commentReply->user_id = $request->user_id;
+        $commentReply->content = $request->content;
+        $commentReply->tid = $request->tid;
+        $commentReply->comment_type = $request->comment_type ? 2 : 0;
+        $commentReply->isverify = 1;
+        $commentReply->verify_time = date('Y-m-d H:i:s');
+        $res = $commentReply->save();
+        if($res){
+            return $this->outputJson(0,array('id'=>$commentReply->id));
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+
+    }
+
     //审核状态修改
     public function postVerifyPut(Request $request){
         $validator = Validator::make($request->all(), [
