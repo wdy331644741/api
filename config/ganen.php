@@ -12,13 +12,13 @@ return [
         'kui' => 35
     ],
     'awards' => [
-        ['alias_name' => 'ganen_20', 'size' => 20, 'num' => 20, 'is_rmb' => 1],
+        //['alias_name' => 'ganen_20', 'size' => 20, 'num' => 20, 'is_rmb' => 1],
         ['alias_name' => 'ganen_10', 'size' => 10, 'num' => 100, 'is_rmb' => 1],
         ['alias_name' => 'ganen_5', 'size' => 5, 'num' => 200, 'is_rmb' => 1],
         ['alias_name' => 'ganen_2', 'size' => 2, 'num' => 500, 'is_rmb' => 1],
         ['alias_name' => 'ganen_1', 'size' => 1, 'num' => 1000, 'is_rmb' => 1],
-        ['alias_name' => 'ganen_2', 'size' => 0, 'num' => 200, 'is_rmb' => 0],
-        ['alias_name' => 'ganen_100', 'size' => 0, 'num' => 200, 'is_rmb' => 0],
+        ['alias_name' => 'ganen_unlimited_2', 'size' => 2, 'num' => 200, 'is_rmb' => 0],
+        ['alias_name' => 'ganen_unlimited_100', 'size' => 100, 'num' => 200, 'is_rmb' => 0],
     ],
     'max' => 1.4,  // 按概率分配时最大浮动范围
     'min' => 0.6,  // 按概率分配时最小浮动范围
