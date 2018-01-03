@@ -130,7 +130,7 @@ class GanenJsonRpc extends JsonRpc
             if(isset($awards[0]['award_name']) && $awards[0]['status']) {
                 $result['awardName'] = $awards[0]['award_name'];
                 $result['awardType'] = $awards[0]['award_type'];
-                $result['amount'] = strval(intval($result['awardName']));
+                $result['amount'] = strval($award['size']);
                 $remark['awards'] = $awards;
                 ganen::create([
                     'user_id' => $userId,
