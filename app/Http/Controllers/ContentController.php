@@ -9,6 +9,9 @@ use App\Models\Cms\ContentType;
 use App\Models\Cms\Content;
 use App\Models\Cms\Notice;
 use Illuminate\Pagination\Paginator;
+use App\Models\Bbs\Comment;
+
+use Excel;
 
 class ContentController extends Controller
 {
