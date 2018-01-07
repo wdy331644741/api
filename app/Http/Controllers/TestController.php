@@ -372,6 +372,15 @@ class TestController extends Controller
         $typeName = "xls";
         Excel::create($fileName,function($excel) use ($cellData,$fileName){
             $excel->sheet($fileName, function($sheet) use ($cellData){
+                $sheet->cells("A1:C1",function ($cells){
+                    $cells->setBackground('#C5E1BA');
+                    $cells->setFontWeight('bold');
+                });
+                $sheet->setWidth(array(
+                    'A'=>10,
+                    'B'=>20,
+                    'C'=>20,
+                ));
                 $sheet->rows($cellData);
             });
         })->export($typeName);
