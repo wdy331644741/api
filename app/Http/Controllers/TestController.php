@@ -23,6 +23,7 @@ use App\Service\NvshenyueService;
 use Lib\MqClient;
 use App\Service\TzyxjService;
 use App\Service\PoBaiYiService;
+use App\Models\Bbs\Comment;
 
 use Excel;
 
@@ -350,6 +351,40 @@ class TestController extends Controller
         }
         return;
         $res = Cqssc::where('opentime', '>=',$date )->orderBy('expect', 'asc')->first();
+    }
+
+    //导出帖子评论
+    public function getExportGxfcExecl($tid,$date){
+        $start_date = date('Y-m-d 00:00:00',strtotime($date));
+        $end_date = date('Y-m-d 00:00:00',strtotime($date."+ 1 day"));
+        $data = Comment::select('user_id','content','created_at')->where(['tid'=>$tid,'isverify'=>1])
+            ->where('created_at','>=',$start_date)
+            ->where('created_at','<',$end_date)
+            ->orderBy('created_at','desc')
+            ->get()
+            ->toArray();
+        foreach($data as $key => $item){
+            if($key == 0){
+                $cellData[$key] = array('用户ID','评论内容','创建时间');
+            }
+            $cellData[$key+1] = array($item['user_id'],$item['content'],$item['created_at']);
+        }
+        $fileName = $date.'-评论列表';
+        $typeName = "xls";
+        Excel::create($fileName,function($excel) use ($cellData,$fileName){
+            $excel->sheet($fileName, function($sheet) use ($cellData){
+                $sheet->cells("A1:C1",function ($cells){
+                    $cells->setBackground('#C5E1BA');
+                    $cells->setFontWeight('bold');
+                });
+                $sheet->setWidth(array(
+                    'A'=>10,
+                    'B'=>20,
+                    'C'=>20,
+                ));
+                $sheet->rows($cellData);
+            });
+        })->export($typeName);
     }
 
     public function getUserInfo() {
