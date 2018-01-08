@@ -161,7 +161,7 @@ class GanenJsonRpc extends JsonRpc
     private function getExchangeRank($config) {
         $key = $config['key'] . '_rank';
         return Cache::remember($key, 5, function() use($config) {
-            $data = UserAttribute::select('user_id', 'number')->where(['key' => $config['key']])->where('number', '!=', 0)->orderBy('number', 'desc')->take(10)->get();
+            $data = UserAttribute::select('user_id', 'number')->where(['key' => $config['key']])->where('number', '!=', 0)->orderBy('number', 'desc')->take(3)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                     $phone = Func::getUserPhone($item['user_id']);
