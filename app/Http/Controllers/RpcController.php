@@ -47,6 +47,7 @@ use App\Http\JsonRpcs\PoBaiYiJsonRpc;
 use App\Http\JsonRpcs\FiveOneEightJsonRpc;
 use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
 use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
+use App\Http\JsonRpcs\GanenJsonrpc;
 
 class RpcController extends Controller
 {
@@ -102,6 +103,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new BbsUserCollectZanJsonrpc());
         $jsonRpcServer->addService(new NetworkDramaDzpJsonRpc());
         $jsonRpcServer->addService(new EndYearInvestJsonrpc());
+        $jsonRpcServer->addService(new GanenJsonrpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
