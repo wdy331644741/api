@@ -217,11 +217,11 @@ class OpenController extends Controller
                 if($type == 'text' && ($fromcontent == '1' || $fromcontent == '投资军师')){
                         $content = "查看【投资军师】相关信息，查看往期内容<a href='http://mp.weixin.qq.com/mp/homepage?__biz=MzA5NzE4NTIzMQ==&hid=2&sn=ee5d18c471d2761ddd63d36309345254#wechat_redirect'>点击这里</a>即可！";
                 }elseif ($type == 'text' && ($fromcontent == '2' || $fromcontent == '见面会')){
-                        $content="查看往期见面会信息，查看往期内容<a href='http://mp.weixin.qq.com/mp/homepage?__biz=MzA5NzE4NTIzMQ==&hid=3&sn=167284bb8f6721c5461bff4e93a79179#wechat_redirect'>点击这里</a>即可！";
+                        $content="查看【往期见面会】信息，查看往期内容<a href='http://mp.weixin.qq.com/mp/homepage?__biz=MzA5NzE4NTIzMQ==&hid=3&sn=167284bb8f6721c5461bff4e93a79179#wechat_redirect'>点击这里</a>即可！";
                 }elseif ($type == 'text' && ($fromcontent == '3' || $fromcontent == '最新动态')){
-                        $content="查看网利最新动态<a href='http://mp.weixin.qq.com/s/nkGlgFC_JZlbBJ2626Gevg'>点击这里</a>即可！";
+                        $content="查看【网利最新动态】<a href='http://mp.weixin.qq.com/s/nkGlgFC_JZlbBJ2626Gevg'>点击这里</a>即可！";
                 }elseif ($type == 'text' && ($fromcontent == '4' || $fromcontent == '联系我们')){
-                        $content="官方微博：@网利宝\n服务热线：4008-588-066工作时间 9:00 - 20:00（法定节假日除外）\n地址：北京市朝阳区三元桥海南航空大厦A座7层";
+                        $content="官方微博：@网利宝\n服务热线：4008-588-066\n工作时间 9:00 - 20:00（法定节假日除外）\n地址：北京市朝阳区三元桥海南航空大厦A座7层";
                 }else{
                     $content="回复【1】查看投资军师相关信息\n回复【2】查看往期见面会信息\n回复【3】了解网利宝最新动态\n回复【4】联系我们\n\n点击<a href='http://wanglibao.udesk.cn/im_client/'>【在线客服】</a>，可以随时向客服MM咨询问题哦，等你~/亲亲\n\n您也可以致电4008-588-066进行咨询哦，点击下方菜单了解更多~";
                 }
