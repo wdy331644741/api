@@ -35,7 +35,8 @@ class Advanced
      * @return array
      */
     static function getUserStatus($userId){
-        $return = ['advanced_register'=>0,'advanced_real_name'=>0,'advanced_wechat_binding_first'=>0];
+        $return = ['advanced_register'=>0,'advanced_wechat_binding_first'=>0];
+//        $return = ['advanced_register'=>0,'advanced_real_name'=>0,'advanced_wechat_binding_first'=>0];
         if(empty($userId)){
             return $return;
         }
@@ -46,9 +47,12 @@ class Advanced
         if(isset($userInfo['id']) && !empty($userInfo['id'])){
             $return['advanced_register'] = 1;
         }
+        //实名认证取消 20180109
+        /*
         if(isset($userInfo['realname']) && !empty($userInfo['realname'])){
             $return['advanced_real_name'] = 1;
         }
+        */
         //查询用户是否绑定
         $url = env("ACCOUNT_HTTP_URL");
         $client = new JsonRpcClient($url);

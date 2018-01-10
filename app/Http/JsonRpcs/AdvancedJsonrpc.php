@@ -55,6 +55,12 @@ class AdvancedJsonRpc extends JsonRpc {
         //终极大奖
         $res3 = ActivityService::isExistByAliasUserID("advanced_big_prize",$userId);
         $text['advanced_big_prize'] = empty($res3) ? 0 : 1;
+
+        /********实名认证取消**************/
+        if(key_exists('advanced_real_name', $text)) {
+            unset($text['advanced_real_name']);
+        }
+        /**********************/
         $result['statusList'] = $text;
         return array(
             'code' => 0,

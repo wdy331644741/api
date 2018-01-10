@@ -31,9 +31,12 @@ class AfterSendAward
                 $Attributes->advanced($triggerData['user_id'],'advanced','advanced_register:1');
                 break;
             //实名
+            //进阶活动实名取消  20180110
+            /*
             case "advanced_real_name":
                 $Attributes->advanced($triggerData['user_id'],'advanced','advanced_real_name:1');
                 break;
+            */
             //投资
             case "advanced_target_term":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment') {
