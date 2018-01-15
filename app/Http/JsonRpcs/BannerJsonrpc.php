@@ -40,14 +40,14 @@ class BannerJsonRpc extends JsonRpc {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
 				->orderByRaw('sort DESC')->get()->toArray();
-			$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+			/*$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
 				->where($where)
 				->where(function ($query) {
 					$query->whereNull('start')->orWhereRaw('start < now()');
 				})
 				->whereRaw('end < now()')
-				->orderByRaw('sort DESC')->get()->toArray();
-			$data = array_merge($data1, $data2);
+				->orderByRaw('sort DESC')->get()->toArray();*/
+			$data = $data1;
 			break;
 		// 大事记 增加分页
 		case 'memorabilia':
