@@ -19,6 +19,7 @@ class InsideJsonrpc extends JsonRpc {
         if(empty($userId) || empty($awardType) || empty($awardId) || empty($sourceName)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
+        file_put_contents(storage_path('logs/wechat_access_token_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>[".$userId."-".$awardType."-".$awardId."-".$sourceName."]".PHP_EOL,FILE_APPEND);
         $userIdArray = explode(',',$userId);
         if(empty($userIdArray)){
             throw new OmgException(OmgException::VALID_USERID_FAIL);
