@@ -20,7 +20,7 @@ class Attributes
     ];
     private $advanced = [
         'advanced_register'=>0,
-        'advanced_real_name'=>0,
+//        'advanced_real_name'=>0,
         'advanced_target_term_1'=>0,
         'advanced_target_term_3'=>0,
         'advanced_target_term_6'=>0,
