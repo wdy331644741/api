@@ -1209,15 +1209,11 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getRegisterAwardInfo() {
 
-        $register_key = 'register_hongbao_880';
-        $text = GlobalAttributes::getText($register_key);
-        if(!empty($text)) {
-            $text = json_decode($text, true);
-        }
+        $data = Config::get('registerstr');
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $text,
+            'data' => $data
         ];
     }
 }
