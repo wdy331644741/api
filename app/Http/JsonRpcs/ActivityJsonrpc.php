@@ -1200,4 +1200,20 @@ class ActivityJsonRpc extends JsonRpc {
             'data' => $data,
         ];
     }
+
+    /**
+     *  注册送红包文案
+     *
+     * @JsonRpcMethod
+     */
+    public function getRegisterAwardInfo() {
+        $aliasName = "register_hongbao_880";
+        $data = GlobalAttributes::getText($aliasName);
+        $data = json_decode($data, true);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        ];
+    }
 }
