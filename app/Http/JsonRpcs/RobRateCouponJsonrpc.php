@@ -4,7 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\Activity;
-use App\Models\HdRatecouponFirendhelp;
+use App\Models\HdRatecouponFriendhelp;
 use App\Models\HdRatecouponFriend;
 use App\Models\UserAttribute;
 use App\Models\WechatUser;
@@ -96,7 +96,7 @@ class RobRateCouponJsonRpc extends JsonRpc
             $amount = $this->getUserRateCoupon($p_userid, $config);//当前加息券值
             $return = ['rate_coupon'=>0, 'flag'=> false];
             $award = $this->getAward($amount, $config);//获取加息的力度值
-            dd($award);die;
+            var_dump('1555');die;
             if ($award > 0) {
                 $addAmount = $amount + $award;
                 if ($addAmount > $config['limit']) {
@@ -107,16 +107,17 @@ class RobRateCouponJsonRpc extends JsonRpc
                 $return['flag'] = true;
             }
             //
-            $friendParams['f_userid'] = $params['f_userid'] = $userId;
-            $friendParams['p_userid'] = $params['p_userid'] = $p_userid;
-            $params['amount'] = $return['rate_coupon'];
-            $params['alias_name'] = $return['rate_coupon'] ."%";
+            $friendParams['f_userid'] = $fhParams['f_userid'] = $userId;
+            $friendParams['p_userid'] = $fhParams['p_userid'] = $p_userid;
+            $fhParams['amount'] = $return['rate_coupon'];
+            $fhParams['alias_name'] = $return['rate_coupon'] ."%";
             //好友加息日志表
-            HdRatecouponFirendhelp::insertGetId($params);
+            HdRatecouponFriendhelp::insertGetId($fhParams);
             //好友总加息表
             if($return['flag']) {   //加息不为0时，好友总加息+加上当前抽到的加息值
                 $friendCoupon = HdRatecouponFriend::where('f_userid', $userId)->where('p_userid', $p_userid)->first();
                 $friendParams['total_amount'] = $return['rate_coupon'];
+                die('aaa');
                 if(!$friendCoupon) {
                     HdRatecouponFriend::insertGetId($friendParams);
                 } else{
@@ -301,7 +302,7 @@ class RobRateCouponJsonRpc extends JsonRpc
         $totalWeight = $config['weight'];
         $target = mt_rand(1, $totalWeight);
         foreach($rateList as $rate) {
-            if( $amount >= $rate['min'] && $$amount < $rate['max'] ) {
+            if( $amount >= $rate['min'] && $amount < $rate['max'] ) {
                 $target = $target - $rate['weight'];
                 if($target <= 0) {
                         $round = mt_rand(1,3);
