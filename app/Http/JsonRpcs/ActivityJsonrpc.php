@@ -1203,13 +1203,14 @@ class ActivityJsonRpc extends JsonRpc {
     }
 
     /**
-     *  签到记录(配文后台)
-     * @params  channel string 必须
+     *  注册送红包文案
+     *
      * @JsonRpcMethod
      */
     public function getRegisterAwardInfo() {
-
-        $data = Config::get('registerstr');
+        $aliasName = "register_hongbao_880";
+        $data = GlobalAttributes::getText($aliasName);
+        $data = json_decode($data, true);
         return [
             'code' => 0,
             'message' => 'success',
