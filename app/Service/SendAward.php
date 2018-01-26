@@ -191,7 +191,33 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
-
+            /**快本欢乐大转盘 start**/
+            case 'kb_dazhuanpan_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"kb_dazhuanpan_drew_user",1);
+                }
+                break;
+            //投资
+            case 'kb_dazhuanpan_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000);
+                            Attributes::increment($triggerData['user_id'],"kb_dazhuanpan_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            //邀请用户添加次数
+            case 'kb_dazhuanpan_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first']){
+                    Attributes::increment($triggerData['from_user_id'],"kb_dazhuanpan_drew_user",1);
+                }
+                break;
+            /**快本欢乐大转盘 end**/
             /**回款活动 start**/
             case 'payment_activity':
                 if(
@@ -211,15 +237,15 @@ class SendAward
             /** 网剧活动 start */
             //投资
             case 'network_drama_invest':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])) {
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12 && $amount >= 600){
+                    if (isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 12 && $amount >= 600) {
                         $config = Config::get('networkdrama');
                         //判断是否生产数据
-                        $isHas = Attributes::getItem($triggerData['user_id'],$config['key']);
-                        if($isHas == false){
+                        $isHas = Attributes::getItem($triggerData['user_id'], $config['key']);
+                        if ($isHas == false) {
                             //不存在就添加
-                            Attributes::setItem($triggerData['user_id'],$config['key']);
+                            Attributes::setItem($triggerData['user_id'], $config['key']);
                         }
                     }
                 }
