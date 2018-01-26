@@ -4,7 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\Activity;
-use App\Models\DaZhuanPan;
+use App\Models\KbDaZhuanPan;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
@@ -27,7 +27,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
     public function dazhuanpanInfo() {
         global $userId;
 
-        $config = Config::get('dazhuanpan');
+        $config = Config::get('kbdazhuanpan');
         $result = ['login' => false, 'available' => 0, 'number' => 0];
 
         // 用户是否登录
@@ -102,7 +102,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         if($num != 1){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $config = Config::get('dazhuanpan');
+        $config = Config::get('kbdazhuanpan');
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
@@ -128,6 +128,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         */
         //只能一次一次抽奖
         $award = $this->getAward($config);
+
         //放入队列
         $this->dispatch(new DazhuanpanBatch($userId,$config,$award));
         //格式化后返回
@@ -168,7 +169,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = DaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')
+        $data = KbDaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')
             ->where('type', '!=', 'empty')
             ->where('user_id',$userId)
             ->orderBy('id', 'desc')->paginate($num)->toArray();
@@ -203,8 +204,8 @@ class DaZhuanPanJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function dazhuanpanList() {
-        $list = Cache::remember('longyinhuxiao_list', 2, function() {
-            $data = DaZhuanPan::select('user_id', 'award_name')->where('type', '!=', 'empty')->orderBy('id', 'desc')->take(20)->get();
+        $list = Cache::remember('kb_dazhuanpan_list', 2, function() {
+            $data = KbDaZhuanPan::select('user_id', 'award_name')->where('type', '!=', 'empty')->orderBy('id', 'desc')->groupBy('user_id')->take(20)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                     $phone = Func::getUserPhone($item['user_id']);
@@ -233,6 +234,10 @@ class DaZhuanPanJsonRpc extends JsonRpc
     //获取奖品
     private function getAward($config) {
         $awardList = $config['awards'];
+        $KbTotalMoney = GlobalAttributes::getItem('kb_dazhuanpan_total_money');
+        if($KbTotalMoney >= 62000){
+            return $awardList[0];
+        }
         // 获取权重总值
         $weight = 0;
         foreach($awardList as $award) {
@@ -248,16 +253,17 @@ class DaZhuanPanJsonRpc extends JsonRpc
                 // 单个奖品送完
                 if($usedNumber >= $award['num']) {
                     //谢谢参与&100元红包
-                    $round = mt_rand(0,1);
-                    return $awardList[$round];
+                    return $awardList[0];
                 }
-                GlobalAttributes::incrementByDay($globalKey);
+
+                if($award['type'] !== 'activity'){
+                    GlobalAttributes::incrementByDay($globalKey);
+                }
                 return $award;
             }
         }
         //谢谢参与&100元红包
-        $round = mt_rand(0,1);
-        return $awardList[$round];
+        return $awardList[0];
     }
 
     //获取用户的剩余次数
@@ -283,7 +289,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
 
     //获取每5天加入的奖品和每2天加入的奖品
     private function joinData(){
-        $config = Config::get('dazhuanpan');
+        $config = Config::get('kbdazhuanpan');
         //获取活动开始时间&计算活动开始的天数
         $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
         $activityDay = isset($activityInfo->start_at) ? strtotime($activityInfo->start_at) : strtotime('2017-07-03 00:00:00');
