@@ -12,7 +12,7 @@ class CreateHdRatecouponFriendhelp extends Migration
      */
     public function up()
     {
-        Schema::create('hd_ratecoupon_firendhelp', function (Blueprint $table) {
+        Schema::create('hd_ratecoupon_friendhelp', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('f_userid')->comment('助力好友用户id');
             $table->integer('p_userid')->default(0)->comment('用户id');
@@ -33,6 +33,6 @@ class CreateHdRatecouponFriendhelp extends Migration
      */
     public function down()
     {
-        Schema::drop('hd_ratecoupon_firendhelp');
+        Schema::drop('hd_ratecoupon_friendhelp');
     }
 }

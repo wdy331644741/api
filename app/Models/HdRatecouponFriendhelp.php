@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class HdRatecouponFriendhelp extends Model
 {
     public $table = 'hd_ratecoupon_friendhelp';
-    protected $guarded = ['created_at', 'update_at'];
+    protected $guarded = ['created_at', 'updated_at'];
 }
