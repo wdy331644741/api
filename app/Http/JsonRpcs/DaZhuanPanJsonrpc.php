@@ -234,7 +234,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
     //获取奖品
     private function getAward($config) {
         $awardList = $config['awards'];
-        $KbTotalMoney = GlobalAttributes::getItem('kb_dazhuanpan_total_money');
+        $KbTotalMoney = GlobalAttributes::getString('kb_dazhuanpan_total_money');
         if($KbTotalMoney >= 62000){
             return $awardList[0];
         }

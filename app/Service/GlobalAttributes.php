@@ -106,6 +106,22 @@ class GlobalAttributes
         return $res['text'] ? $res['text'] : '';
     }
 
+    static public function getString($key, $default = '') {
+        if(empty($key)) {
+            return false;
+        }
+        $res = GlobalAttribute::where(array('key' => $key))->first();
+        if(!$res) {
+            $attribute = new GlobalAttribute();
+            $attribute->key = $key;
+            $attribute->string = $default;
+            $attribute->save();
+            return $default;
+        }
+
+        return $res['string'] ? $res['string'] : '';
+    }
+
     // 按json格式获取text字段
     static public function getJsonText($uid, $key, $default = array()) {
         if(empty($uid) || empty($key)) {
