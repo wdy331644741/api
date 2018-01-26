@@ -31,7 +31,15 @@ class RobRateCouponJsonRpc extends JsonRpc
      */
     public function robratecouponInfo() {
         global $userId;
-        $result = ['login' => false, 'available' => 0, 'rate_coupon'=> 0, 'invite_code'=>'', 'status'=>0, 'alias_name'=> '0%'];
+        $result = [
+                'login' => false,
+                'available' => 0,
+                'rate_coupon'=> 0,
+                'invite_code'=>'',
+                'status'=>0,
+                'alias_name'=> '0%',
+                'shareurl'=> '',
+                ];
         // 用户是否登录
         if(!empty($userId)) {
             $result['login'] = true;
@@ -46,8 +54,14 @@ class RobRateCouponJsonRpc extends JsonRpc
             $rateCoupon = $this->getUserRateCoupon($userId,$config);
             $result['rate_coupon'] = $rateCoupon;
             $result['alias_name'] = $rateCoupon . "%";
-            //分享链接
             $result['invite_code'] = base64_encode($userId);
+            //分享链接
+            $userInfo = Func::getUserBasicInfo($userId);
+            $baseUrl = 'https://' . env('ACCOUNT_BASE_HOST');
+            $scallback = urlencode($baseUrl . '/active/help/receive.html?invitecode=' . $result['invite_code']);
+            $fcallback = urlencode($baseUrl . '/active/help/share_again.html?invite_code=' . $userInfo['invite_code']);
+            $shareurl =  $baseUrl .'/yunying/open/help-login?scallback='.$scallback .'&fcallback='.$fcallback;
+            $result['shareurl'] = $shareurl;
             if(Attributes::getItem($userId, $config['drew_total_key'])) {
                 $result['status'] = 1;//已兑换
             }
