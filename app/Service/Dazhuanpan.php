@@ -46,11 +46,14 @@ class DazhuanpanService
                 'type' => 'rmb',
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
-            $globalMoney = GlobalAttributes::getItem('kb_dazhuanpan_total_money');
-            $addMoney = bcadd($globalMoney['string'],$award['size']);
+            $globalMoney = GlobalAttributes::getString('kb_dazhuanpan_total_money');
+            if(empty($globalMoney)){
+                $addMoney = $award['size'];
+            }else{
+                $addMoney = bcadd($globalMoney,$award['size'],2);
+            }
             GlobalAttributes::setItem('kb_dazhuanpan_total_money',null,$addMoney);
             $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'kb_dazhuanpan');
-
             $remark['addMoneyRes'] = $purchaseRes;
             // 成功
             if(isset($purchaseRes['result'])) {
