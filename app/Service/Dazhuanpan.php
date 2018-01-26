@@ -48,7 +48,7 @@ class DazhuanpanService
             ]);
             $globalMoney = GlobalAttributes::getItem('kb_dazhuanpan_total_money');
             $addMoney = bcadd($globalMoney['string'],$award['size']);
-            GlobalAttributes::setItem($userId,'kb_dazhuanpan_total_money',null,$addMoney);
+            GlobalAttributes::setItem('kb_dazhuanpan_total_money',null,$addMoney);
             $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'dragon_tiger');
 
             $remark['addMoneyRes'] = $purchaseRes;
