@@ -217,6 +217,11 @@ class SendAward
                     Attributes::increment($triggerData['from_user_id'],"kb_dazhuanpan_drew_user",1);
                 }
                 break;
+            case 'kb_dazhuanpan_register':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
+                    Attributes::increment($triggerData['user_id'],"kb_dazhuanpan_drew_user",1);
+                }
+                break;
             /**快本欢乐大转盘 end**/
             /**回款活动 start**/
             case 'payment_activity':
