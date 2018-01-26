@@ -13,6 +13,7 @@ use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\NetworkDramaDzpJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
+use App\Http\JsonRpcs\RobRateCouponJsonRpc;
 use App\Http\JsonRpcs\ScratchJsonRpc;
 use App\Http\JsonRpcs\SignInSystemJsonRpc;
 use App\Models\AppUpdateConfig;
@@ -114,6 +115,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new NetworkDramaDzpJsonRpc());
         $jsonRpcServer->addService(new EndYearInvestJsonrpc());
         $jsonRpcServer->addService(new GanenJsonrpc());
+        $jsonRpcServer->addService(new RobRateCouponJsonRpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
