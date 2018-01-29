@@ -59,7 +59,7 @@ class RobRateCouponJsonRpc extends JsonRpc
             $userInfo = Func::getUserBasicInfo($userId);
             $baseUrl = 'https://' . env('ACCOUNT_BASE_HOST');
             $scallback = urlencode($baseUrl . '/active/help/receive.html?invitecode=' . $result['invite_code']);
-            $fcallback = urlencode($baseUrl . '/active/help/share_again.html?invite_code=' . $userInfo['invite_code']);
+            $fcallback = urlencode($baseUrl . '/active/help/share_again.html?invite_code=' . $userInfo['invite_code'] .'&invitecode='.$result['invite_code']);
             $shareurl =  $baseUrl .'/yunying/open/help-login?scallback='.$scallback .'&fcallback='.$fcallback;
             $result['shareurl'] = $shareurl;
             if(Attributes::getItem($userId, $config['drew_total_key'])) {
