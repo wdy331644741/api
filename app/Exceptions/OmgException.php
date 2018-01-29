@@ -106,6 +106,9 @@ class OmgException extends BasicException
 
 
 
+    const HELP_ERROR = 4326;
+    const EXCHANGE_ERROR = 4327;
+
     protected static $errorArray = array(
         //接口调用错误
         self::API_MIS_PARAMS => "缺少必要参数",
@@ -182,6 +185,9 @@ class OmgException extends BasicException
         self::COMMENT_ERROR=>"抱歉，评论失败，因含有敏感词等",
         self::THREAD_LIMIT=>"今日发贴已达上限，明天再来吧！",
         self::COMMENT_LIMIT=>"今日评论已达上限，明天再来吧！",
+
+        self::HELP_ERROR=>"今日已助力",
+        self::EXCHANGE_ERROR=>"已经兑换",
     );
 
     public function __construct($code, $data = array())
