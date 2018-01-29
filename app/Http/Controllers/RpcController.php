@@ -50,6 +50,7 @@ use App\Http\JsonRpcs\DiyIncreasesJsonRpc;
 use App\Http\JsonRpcs\FeeAndFlowJsonRpc;
 use App\Http\JsonRpcs\BbsUserCollectZanJsonrpc;
 use App\Http\JsonRpcs\GanenJsonrpc;
+use App\Http\JsonRpcs\YearEndJsonRpc;
 
 class RpcController extends Controller
 {
@@ -116,6 +117,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new EndYearInvestJsonrpc());
         $jsonRpcServer->addService(new GanenJsonrpc());
         $jsonRpcServer->addService(new RobRateCouponJsonRpc());
+        $jsonRpcServer->addService(new YearEndJsonRpc());//年终 直接送2%加息 活动结束后 可以直接删除。
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
