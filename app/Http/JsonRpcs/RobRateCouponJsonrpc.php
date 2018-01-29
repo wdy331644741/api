@@ -97,13 +97,26 @@ class RobRateCouponJsonRpc extends JsonRpc
         if(!$p_userid) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
+        //一天只能助力一次
+        $where['f_userid'] = $userId;
+        $where['p_userid'] = $p_userid;
+        $startTime = date('Y-m-d 00:00:00', time());
+        $endTime = date('Y-m-d 23:59:59', time());
+        $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
+        if($hasHelp) {
+            throw new OmgException(OmgException::HELP_ERROR);
+        }
         //是否已兑换加息券，只能兑换一次
         $hasRateFlag = UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_total_key'])->first();
         if($hasRateFlag) {
-            throw new OmgException(OmgException::MALL_IS_HAS);
+            throw new OmgException(OmgException::EXCHANGE_ERROR);
         }
+        //获取用户微信昵称和头像
+        $wechatInfo = WechatUser::where('uid', $userId)->first();
+        $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
+        $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
+        $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl];
         $amount = $this->getUserRateCoupon($p_userid, $config);//当前加息券值
-        $return = ['rate_coupon'=>0, 'flag'=> false];
         //事务开始
         DB::beginTransaction();
         UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_user_key'])->lockForUpdate()->get();
