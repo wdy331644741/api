@@ -97,15 +97,6 @@ class RobRateCouponJsonRpc extends JsonRpc
         if(!$p_userid) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        //一天只能助力一次
-        $where['f_userid'] = $userId;
-//        $where['p_userid'] = $p_userid;
-        $startTime = date('Y-m-d 00:00:00', time());
-        $endTime = date('Y-m-d 23:59:59', time());
-        $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
-        if($hasHelp) {
-            throw new OmgException(OmgException::HELP_ERROR);
-        }
         //是否已兑换加息券，只能兑换一次
         $hasRateFlag = UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_total_key'])->first();
         if($hasRateFlag) {
@@ -116,39 +107,47 @@ class RobRateCouponJsonRpc extends JsonRpc
         $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
         $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
         $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl];
-        $amount = $this->getUserRateCoupon($p_userid, $config);//当前加息券值
-        //事务开始
-        DB::beginTransaction();
-        UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_user_key'])->lockForUpdate()->get();
-        $award = $this->getAward($amount, $config);//获取加息的力度值
-        if ($award > 0) {
-            $addAmount = $amount + $award;
-            if ($addAmount > $config['limit']) {
-                Attributes::increment($p_userid, $config['drew_user_key']);
+        //一天只能助力一次
+        $where['f_userid'] = $userId;
+//        $where['p_userid'] = $p_userid;
+        $startTime = date('Y-m-d 00:00:00', time());
+        $endTime = date('Y-m-d 23:59:59', time());
+        $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
+        if(!$hasHelp) {
+            $amount = $this->getUserRateCoupon($p_userid, $config);//当前加息券值
+            //事务开始
+            DB::beginTransaction();
+            UserAttribute::where('user_id', $p_userid)->where('key', $config['drew_user_key'])->lockForUpdate()->get();
+            $award = $this->getAward($amount, $config);//获取加息的力度值
+            if ($award > 0) {
+                $addAmount = $amount + $award;
+                if ($addAmount > $config['limit']) {
+                    Attributes::increment($p_userid, $config['drew_user_key']);
+                }
+                $this->setUserRateCoupon($p_userid, $config, $addAmount);
+                $return['rate_coupon'] = $award;
+                $return['flag'] = true;
             }
-            $this->setUserRateCoupon($p_userid,$config,$addAmount);
-            $return['rate_coupon'] = $award;
-            $return['flag'] = true;
+            //
+            $friendParams['f_userid'] = $fhParams['f_userid'] = $userId;
+            $friendParams['p_userid'] = $fhParams['p_userid'] = $p_userid;
+            $fhParams['amount'] = $return['rate_coupon'];
+            $fhParams['alias_name'] = $return['rate_coupon'] . "%";
+            //好友加息日志表
+            HdRatecouponFriendhelp::create($fhParams);
+            //好友总加息表
+            $friendCoupon = HdRatecouponFriend::where('f_userid', $userId)->where('p_userid', $p_userid)->first();
+            if (empty($friendCoupon)) {
+                $friendCoupon = HdRatecouponFriend::create($friendParams);
+            }
+            if ($return['flag']) {
+                //加息不为0时，好友总加息+加上当前抽到的加息值
+                $friendCoupon->total_amount += $return['rate_coupon'];
+                $friendCoupon->save();
+            }
+            //事务提交结束
+            DB::commit();
         }
-        //
-        $friendParams['f_userid'] = $fhParams['f_userid'] = $userId;
-        $friendParams['p_userid'] = $fhParams['p_userid'] = $p_userid;
-        $fhParams['amount'] = $return['rate_coupon'];
-        $fhParams['alias_name'] = $return['rate_coupon'] ."%";
-        //好友加息日志表
-        HdRatecouponFriendhelp::create($fhParams);
-        //好友总加息表
-        $friendCoupon = HdRatecouponFriend::where('f_userid', $userId)->where('p_userid', $p_userid)->first();
-        if(empty($friendCoupon)) {
-            $friendCoupon = HdRatecouponFriend::create($friendParams);
-        }
-        if($return['flag']) {
-            //加息不为0时，好友总加息+加上当前抽到的加息值
-            $friendCoupon->total_amount += $return['rate_coupon'];
-            $friendCoupon->save();
-        }
-        //事务提交结束
-        DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
