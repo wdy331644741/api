@@ -99,7 +99,7 @@ class RobRateCouponJsonRpc extends JsonRpc
         }
         //一天只能助力一次
         $where['f_userid'] = $userId;
-        $where['p_userid'] = $p_userid;
+//        $where['p_userid'] = $p_userid;
         $startTime = date('Y-m-d 00:00:00', time());
         $endTime = date('Y-m-d 23:59:59', time());
         $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
