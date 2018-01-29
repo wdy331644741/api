@@ -148,7 +148,7 @@ class RobRateCouponJsonRpc extends JsonRpc
             $friendCoupon->save();
         }
         //事务提交结束
-//        DB::commit();
+        DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
