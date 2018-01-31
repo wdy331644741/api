@@ -107,57 +107,73 @@ class RobRateCouponJsonRpc extends JsonRpc
         $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
         $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
         $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl, 'myself'=>false];
+        $returnMess = ['code' => 0,'message' => 'success'];
         //自己不能给自己加息
         if($userId == $p_userid) {
             $return['myself'] = true;
-        } else {
-            //一天只能助力一次
-            $where['f_userid'] = $userId;
-//        $where['p_userid'] = $p_userid;
-            $startTime = date('Y-m-d 00:00:00', time());
-            $endTime = date('Y-m-d 23:59:59', time());
-            $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
-            if (!$hasHelp) {
-                $amount = $this->getUserRateCoupon($p_userid, $config);//当前加息券值
-                //事务开始
-                DB::beginTransaction();
-                UserAttribute::where('user_id', $p_userid)->where('key', $config['drew_user_key'])->lockForUpdate()->get();
-                $award = $this->getAward($amount, $config);//获取加息的力度值
-                if ($award > 0) {
-                    $addAmount = $amount + $award;
-                    if ($addAmount > $config['limit']) {
-                        Attributes::increment($p_userid, $config['drew_user_key']);
-                    }
-                    $this->setUserRateCoupon($p_userid, $config, $addAmount);
-                    $return['rate_coupon'] = $award;
-                    $return['flag'] = true;
-                }
-                //
-                $friendParams['f_userid'] = $fhParams['f_userid'] = $userId;
-                $friendParams['p_userid'] = $fhParams['p_userid'] = $p_userid;
-                $fhParams['amount'] = $return['rate_coupon'];
-                $fhParams['alias_name'] = $return['rate_coupon'] . "%";
-                //好友加息日志表
-                HdRatecouponFriendhelp::create($fhParams);
-                //好友总加息表
-                $friendCoupon = HdRatecouponFriend::where('f_userid', $userId)->where('p_userid', $p_userid)->first();
-                if (empty($friendCoupon)) {
-                    $friendCoupon = HdRatecouponFriend::create($friendParams);
-                }
-                if ($return['flag']) {
-                    //加息不为0时，好友总加息+加上当前抽到的加息值
-                    $friendCoupon->total_amount += $return['rate_coupon'];
-                    $friendCoupon->save();
-                }
-                //事务提交结束
-                DB::commit();
+            $returnMess['data'] = $return;
+            return $returnMess;
+        }
+        //一天只能助力一次
+        $where['f_userid'] = $userId;
+        $startTime = date('Y-m-d 00:00:00', time());
+        $endTime = date('Y-m-d 23:59:59', time());
+        $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
+        if($hasHelp) {
+            $returnMess['data'] = $return;
+            return $returnMess;
+        }
+        //事务开始
+        DB::beginTransaction();
+        $amount = $this->getUserRateCoupon($p_userid, $config);//当前加息券值
+        $userAttr = UserAttribute::where('user_id', $p_userid)->where('key', $config['drew_user_key'])->lockForUpdate()->first();
+        if(!$userAttr) {
+            $userAttr = new UserAttribute();
+            $userAttr->user_id = $userId;
+            $userAttr->key = $config['drew_user_key'];
+            $userAttr->string = "0.0";
+            $userAttr->number = 0;
+        }
+        $success = true;
+        if($userAttr->number > $config['draw_number']) {
+            $success = false;//超过2.4只能加息一次，一次加息完，成功率为0;
+        }
+        $award = $this->getAward($amount, $config, $success);//获取加息的力度值
+        $addAmount = $amount + $award;
+        //加息值 >= 2.4, 标记一次,(标记两次后，成功率为0)
+        if ($addAmount >= $config['limit']) {
+            if($userAttr->number <= $config['draw_number']) {
+                $userAttr->number += 1;
             }
         }
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $return,
-        ];
+        if ($award > 0) {
+            $userAttr->string = $addAmount;
+            $return['rate_coupon'] = $award;
+            $return['flag'] = true;
+        }
+        $userAttr->updated_at = date('Y-m-d H:i:s');
+        $userAttr->save();
+        //好友总加息表
+        $friendCoupon = HdRatecouponFriend::where('f_userid', $userId)->where('p_userid', $p_userid)->first();
+        if (empty($friendCoupon)) {
+            $friendParams['f_userid'] = $userId;
+            $friendParams['p_userid'] = $p_userid;
+            $friendCoupon = HdRatecouponFriend::create($friendParams);
+        }
+        //加息不为0时，好友总加息+加上当前抽到的加息值
+        $friendCoupon->total_amount += $award;
+        $friendCoupon->updated_at = date('Y-m-d H:i:s');
+        $friendCoupon->save();
+        $fhParams['f_userid'] = $userId;
+        $fhParams['p_userid'] = $p_userid;
+        $fhParams['amount'] = $award;
+        $fhParams['alias_name'] = $award . "%";
+        //好友加息日志表
+        HdRatecouponFriendhelp::create($fhParams);
+        //事务提交结束
+       DB::commit();
+       $returnMess['data'] = $return;
+       return $returnMess;
     }
 
     /**
@@ -283,7 +299,10 @@ class RobRateCouponJsonRpc extends JsonRpc
 
     }
     //获取加息券的增加值
-    private function getAward($amount, $config) {
+    private function getAward($amount, $config, $success=true) {
+        if(!$success) {
+            return 0;
+        }
         $rateList = $config['rate'];
         // 获取权重总值
         $totalWeight = $config['weight'];
@@ -308,14 +327,6 @@ class RobRateCouponJsonRpc extends JsonRpc
             Attributes::setItem($userId, $config['drew_user_key'], 0, "0.0");
         }
         return isset($item->string) ? floor($item->string * 10) / 10 : $default;
-    }
-
-    private function setUserRateCoupon($userId,$config,$string){
-        if(!$string){
-            return false;
-        }
-        Attributes::setItem($userId, $config['drew_user_key'], 0, $string);
-        return true;
     }
 }
 
