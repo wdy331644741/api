@@ -148,7 +148,8 @@ class GanenService
     static function getExchangeNum($userId) {
         $config = config('ganen');
         $dateToday = date("Y-m-d")." 00:00:00";
-        $item  = Ganen::where(['user_id' => $userId,'status' => 1])->where('created_at','>',$dateToday)->count();
+        $dateTodayEnd = date("Y-m-d")." 23:59:59";
+        $item  = Ganen::where(['user_id' => $userId,'status' => 1])->where('created_at','>',$dateToday)->where('created_at','<',$dateTodayEnd)->count();
         if(!$item) {
             return 0;
         }else{
