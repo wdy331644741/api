@@ -142,7 +142,7 @@ class GanenService
         return $resultWords;
     }
     /**
-     * 获取兑换套数
+     * 获取兑换套数 //超过时间清空
      *
      */
     static function getExchangeNum($userId) {
@@ -151,7 +151,17 @@ class GanenService
         if(!$item) {
             return 0;
         }else{
-            return intval($item->number);
+            $seconds = strtotime(date('Y-m-d 00:00:00')) + $config['fresh_time'];
+            $lastSeconds = strtotime($item->updated_at);
+            $nowSeconds = time();
+
+            $todayNumber = $item->number;
+            if($lastSeconds < $seconds && $nowSeconds > $seconds) {
+                $item->number = 0;
+                $item->save();
+                $todayNumber = 0;
+            }
+            return intval($todayNumber);
         }
     }
 
