@@ -147,21 +147,13 @@ class GanenService
      */
     static function getExchangeNum($userId) {
         $config = config('ganen');
-        $item  = UserAttribute::where(['user_id' => $userId, 'key' => $config['key'] ])->first();
+        $dateToday = date("Y-m-d")." 00:00:00";
+        $item  = Ganen::where(['user_id' => $userId])->where('created_at','>',$dateToday)->count();
+        
         if(!$item) {
             return 0;
         }else{
-            $seconds = strtotime(date('Y-m-d 00:00:00')) + $config['fresh_time'];
-            $lastSeconds = strtotime($item->updated_at);
-            $nowSeconds = time();
-
-            $todayNumber = $item->number;
-            if($lastSeconds < $seconds && $nowSeconds > $seconds) {
-                $item->number = 0;
-                $item->save();
-                $todayNumber = 0;
-            }
-            return intval($todayNumber);
+            return intval($item);
         }
     }
 
