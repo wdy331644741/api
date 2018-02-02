@@ -265,6 +265,14 @@ class GanenService
                 $diffValue = 0;
             }
         }
+        //避免  投多笔  一个字都没有的情况
+        if($num >= 30){
+            foreach($result as $val){
+                if($val <= 0){
+                    return self::getRandomRes($num);
+                }
+            }
+        }
         return $result;
 
     }
