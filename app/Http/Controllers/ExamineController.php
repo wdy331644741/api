@@ -10,7 +10,7 @@ use Validator;
 class ExamineController extends Controller
 {
     function getConfigList(){
-        $data = Examine::first();
+        $data = Examine::paginate(1);
         return $this->outputJson(0,$data);
     }
     public function postAdd(Request $request) {
@@ -25,39 +25,39 @@ class ExamineController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         //版本号
-        $data['versions'] = $request['position'];
+        $data['versions'] = trim($request['versions']);
         //现公司名称显示
-        $data['company_name'] = $request['name'];
+        $data['company_name'] = trim($request['company_name']);
         //信息披露是否可点击0否，1是
-        $data['disclosure_click'] = trim($request['img_path']);
+        $data['disclosure_click'] = intval($request['disclosure_click']);
         //底部信息区是否可点击0否，1是
-        $data['bottom_click'] = trim($request['url']);
+        $data['bottom_click'] = intval($request['bottom_click']);
         //新手指引图标是否可点0否，1是
-        $data['novice_click'] = trim($request['short_des']);
+        $data['novice_click'] = intval($request['novice_click']);
         //首页上线活动图
-        $data['home_banner'] = $request['short_desc'];
+        $data['home_banner'] = trim($request['home_banner']);
         //发现页上线活动图
-        $data['discover_banner'] = $request['type'];
+        $data['discover_banner'] = trim($request['discover_banner']);
         //状态0禁用1启用
-        $data['can_use'] = 0;
-        //添加时间
-        $data['created_at'] = date("Y-m-d H:i:s");
-        //修改时间
-        $data['updated_at'] = date("Y-m-d H:i:s");
+        $data['status'] = intval($request['status']);
         if(isset($request->id) && $request->id > 0){
+            //修改时间
+            $data['updated_at'] = date("Y-m-d H:i:s");
             $res = Examine::where('id',$request->id)->update($data);
             return $this->outputJson(0, $res);
         }
         //判断已经添加多少条
         $count = Examine::count();
         if($count >= 1){
-            return $this->outputJson();
+            return $this->outputJson(10001,array('error_msg'=>'最多添加一条'));
         }
+        //添加时间
+        $data['created_at'] = date("Y-m-d H:i:s");
         $id = Examine::insertGetId($data);
         return $this->outputJson(0, $id);
     }
 
-    public function getUpdateStatus(Request $request) {
+    public function postUpdateStatus(Request $request) {
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
             'status' => 'required|integer|min:0'
