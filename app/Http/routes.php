@@ -67,6 +67,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('money', 'MoneyShareController');
     // 花费&流量
     Route::controller('feeflow', 'FeeAndFlowController');
+    // ios审核设置
+    Route::controller('examine', 'ExamineController');
 });
 
 // 对外接口
