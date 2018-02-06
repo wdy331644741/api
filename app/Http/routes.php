@@ -65,6 +65,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
+    // ios审核设置
+    Route::controller('money', 'MoneyShareController');
 
 });
 
