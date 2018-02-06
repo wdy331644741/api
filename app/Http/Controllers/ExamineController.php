@@ -9,13 +9,8 @@ use Validator;
 
 class ExamineController extends Controller
 {
-    function getConfigList(Request $request){
-        $type = isset($request->type) ? $request->type : 1;
-        $data = LifePrivilegeConfig::where("type",$type)
-            ->orderBy('status', 'desc')
-            ->orderBy('operator_type', 'asc')
-            ->orderBy('price', 'asc')
-            ->paginate(10);
+    function getConfigList(){
+        $data = Examine::first();
         return $this->outputJson(0,$data);
     }
     public function postAdd(Request $request) {
