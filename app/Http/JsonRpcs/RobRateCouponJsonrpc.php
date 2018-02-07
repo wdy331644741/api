@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\HdRatecouponFriendhelp;
 use App\Models\HdRatecouponFriend;
 use App\Models\HdRatecoupon;
+use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Models\WechatUser;
 use App\Service\Attributes;
@@ -18,6 +19,7 @@ use App\Service\SendAward;
 use FastDFS\Exception;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Pagination\Paginator;
+use Lib\JsonRpcClient;
 
 use Config, Request, Cache,DB;
 
@@ -64,6 +66,13 @@ class RobRateCouponJsonRpc extends JsonRpc
             $result['shareurl'] = $shareurl;
             if(Attributes::getItem($userId, $config['drew_total_key'])) {
                 $result['status'] = 1;//已兑换
+            }
+
+            //加息券是否已使用
+            $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
+            $sendRewardLog = SendRewardLog::where(['user_id'=> $userId, 'activity_id'=> $activityInfo->id, 'status'=> 1])->first();
+            if( !empty($sendRewardLog->uuid) && $this->couponUseStatus($sendRewardLog->uuid)) {
+                    $result['status'] = 2; //已使用
             }
         }
         return [
@@ -328,5 +337,20 @@ class RobRateCouponJsonRpc extends JsonRpc
         }
         return isset($item->string) ? floor($item->string * 10) / 10 : $default;
     }
+
+    private function couponUseStatus($uuid) {
+        if(!$uuid) {
+            return false;
+        }
+        $url = env('ACCOUNT_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $params['uuid'] = $uuid;
+        $result = $client->couponUseStatus($params);
+        if (isset($result['result']) && $result['result'] && $result['result']['status'] == 1) {//成功
+            return true;
+        }
+        return false;
+    }
+
 }
 
