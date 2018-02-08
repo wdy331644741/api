@@ -5,11 +5,11 @@ return [
     'fresh_time' => 0*3600,
     'buy_number' => 500,
     'probability' => [
-        'gan' => 10,
-        'en' => 5,
-        'da' => 40,
-        'hui' => 10,
-        'kui' => 35
+        'gan' => 15,
+        'en' => 15,
+        'da' => 30,
+        'hui' => 15,
+        'kui' => 25
     ],
     'awards' => [
         //['alias_name' => 'ganen_20', 'size' => 20, 'num' => 20, 'is_rmb' => 1],
