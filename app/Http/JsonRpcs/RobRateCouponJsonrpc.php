@@ -112,7 +112,7 @@ class RobRateCouponJsonRpc extends JsonRpc
             throw new OmgException(OmgException::EXCHANGE_ERROR);
         }
         //获取用户微信昵称和头像
-        $wechatInfo = WechatUser::where('uid', $userId)->first();
+        $wechatInfo = WechatUser::where('uid', $p_userid)->first();
         $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
         $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
         $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl, 'myself'=>false];
@@ -227,14 +227,14 @@ class RobRateCouponJsonRpc extends JsonRpc
                 $item['headimgurl'] = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
                 $item['alias_name'] = $item['total_amount'] . "%";
             }
-            $rData['total'] = $data['total'];
-            $rData['per_page'] = $data['per_page'];
-            $rData['current_page'] = $data['current_page'];
-            $rData['last_page'] = $data['last_page'];
-            $rData['from'] = $data['from'];
-            $rData['to'] = $data['to'];
-            $rData['list'] = $data['data'];
         }
+        $rData['total'] = $data['total'];
+        $rData['per_page'] = $data['per_page'];
+        $rData['current_page'] = $data['current_page'];
+        $rData['last_page'] = $data['last_page'];
+        $rData['from'] = $data['from'];
+        $rData['to'] = $data['to'];
+        $rData['list'] = $data['data'];
 
         return [
             'code' => 0,
