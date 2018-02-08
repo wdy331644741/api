@@ -114,7 +114,6 @@ class OpenController extends Controller
         $wxSession= $session->get('wechat_help');
         $fcallback = '';
         $scallback ='';
-        print_r($wxSession);
         if(isset($wxSession['fcallback']) || isset($wxSession['scallback'])){
             $fcallback = $wxSession['fcallback'];
             $scallback = $wxSession['scallback'];
@@ -130,7 +129,6 @@ class OpenController extends Controller
             return redirect($this->convertUrlQuery($scallback).'wlerrcode=40002');//获取access_token失败
         }
         $this->_openid =  $data['openid'];
-        $wxSession = $session->get('wechat_help');
         $new_weixin = array();
         if(is_array($wxSession)){
             $new_weixin = array_merge($wxSession,array('openid'=>$this->_openid));
@@ -165,6 +163,7 @@ class OpenController extends Controller
         if($res['result']['data']){
             $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
             WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
+            file_put_contents(storage_path('logs/scallback_his_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>".$scallback."".PHP_EOL,FILE_APPEND);
             return redirect($scallback);
         }
         return redirect($this->convertUrlQuery($fcallback).'wlerrcode=40005');//用户未绑定

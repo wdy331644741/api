@@ -129,8 +129,9 @@ class RobRateCouponJsonRpc extends JsonRpc
         $endTime = date('Y-m-d 23:59:59', time());
         $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
         if($hasHelp) {
-            $returnMess['data'] = $return;
-            return $returnMess;
+            throw new OmgException(OmgException::HELP_ERROR);
+//            $returnMess['data'] = $return;
+//            return $returnMess;
         }
         //事务开始
         DB::beginTransaction();
