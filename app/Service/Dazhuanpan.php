@@ -1,7 +1,8 @@
 <?php
 namespace App\Service;
 
-use App\Models\DaZhuanPan;
+use App\Models\KbDaZhuanPan;
+use App\Service\GlobalAttributes;
 use Request;
 
 class DazhuanpanService
@@ -17,7 +18,7 @@ class DazhuanpanService
         $remark = [];
         //谢谢参与
         if (!$award || $award['type'] == 'empty') {
-            DaZhuanPan::create([
+            KbDaZhuanPan::create([
                 'user_id' => $userId,
                 'award_name' => 'empty',
                 'alias_name' => $award['alias_name'],
@@ -34,7 +35,7 @@ class DazhuanpanService
         if($award['type'] === 'rmb') {
             $uuid = SendAward::create_guid();
             // 创建记录
-            $res = DaZhuanPan::create([
+            $res = KbDaZhuanPan::create([
                 'user_id' => $userId,
                 'award_name' => $award['name'],
                 'alias_name' => $award['alias_name'],
@@ -45,9 +46,14 @@ class DazhuanpanService
                 'type' => 'rmb',
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
-
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'dragon_tiger');
-
+            $globalMoney = GlobalAttributes::getString('kb_dazhuanpan_total_money');
+            if(empty($globalMoney)){
+                $addMoney = $award['size'];
+            }else{
+                $addMoney = bcadd($globalMoney,$award['size'],2);
+            }
+            GlobalAttributes::setItem('kb_dazhuanpan_total_money',null,$addMoney);
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'kb_dazhuanpan');
             $remark['addMoneyRes'] = $purchaseRes;
             // 成功
             if(isset($purchaseRes['result'])) {
@@ -65,10 +71,10 @@ class DazhuanpanService
         // 根据别名发活动奖品
         if($award['type'] === 'activity' ) {
             $aliasName = $award['alias_name'];
-            $awards = SendAward::ActiveSendAward($userId, 'longyinhuxiao_' . $aliasName);
+            $awards = SendAward::ActiveSendAward($userId, 'kb_dazhuanpan_' . $aliasName);
             $remark['award'] = $awards;
             if(isset($awards[0]['award_name']) && $awards[0]['status']) {
-                DaZhuanPan::create([
+                KbDaZhuanPan::create([
                     'user_id' => $userId,
                     'award_name' => $award['name'],
                     'alias_name' => $award['alias_name'],
@@ -81,7 +87,7 @@ class DazhuanpanService
                 ]);
                 return true;
             }else{
-                DaZhuanPan::create([
+                KbDaZhuanPan::create([
                     'user_id' => $userId,
                     'award_name' => $award['name'],
                     'alias_name' => $award['alias_name'],
@@ -97,7 +103,7 @@ class DazhuanpanService
         }
         //实物商品
         if ($award['type'] == 'shop') {
-            DaZhuanPan::create([
+            KbDaZhuanPan::create([
                 'user_id' => $userId,
                 'award_name' => $award['name'],
                 'alias_name' => $award['alias_name'],
