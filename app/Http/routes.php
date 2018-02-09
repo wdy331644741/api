@@ -65,6 +65,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
+    //后台用户记录日志
+    Route::controller('log', 'LogController'); //微信相关
 
 });
 
