@@ -65,10 +65,15 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
+
     // 花费&流量
     Route::controller('feeflow', 'FeeAndFlowController');
     // ios审核设置
     Route::controller('examine', 'ExamineController');
+
+    //后台用户记录日志
+    Route::controller('log', 'LogController'); //微信相关
+
 });
 
 // 对外接口
