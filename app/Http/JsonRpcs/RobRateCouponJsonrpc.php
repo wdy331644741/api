@@ -106,17 +106,19 @@ class RobRateCouponJsonRpc extends JsonRpc
         if(!$p_userid) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        //是否已兑换加息券，只能兑换一次
-        $hasRateFlag = UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_total_key'])->first();
-        if($hasRateFlag) {
-            throw new OmgException(OmgException::EXCHANGE_ERROR);
-        }
         //获取用户微信昵称和头像
         $wechatInfo = WechatUser::where('uid', $p_userid)->first();
         $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
         $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
-        $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl, 'myself'=>false];
+        $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl, 'myself'=>false, 'message'=>''];
         $returnMess = ['code' => 0,'message' => 'success'];
+        //是否已兑换加息券，只能兑换一次
+        $hasRateFlag = UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_total_key'])->first();
+        if($hasRateFlag) {
+//            throw new OmgException(OmgException::EXCHANGE_ERROR);
+//            $return['message'] = '一天只能为一名好友助力一次呦～';
+            $returnMess['data'] = $return;
+        }
         //自己不能给自己加息
         if($userId == $p_userid) {
             $return['myself'] = true;
@@ -129,9 +131,10 @@ class RobRateCouponJsonRpc extends JsonRpc
         $endTime = date('Y-m-d 23:59:59', time());
         $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
         if($hasHelp) {
-            throw new OmgException(OmgException::HELP_ERROR);
-//            $returnMess['data'] = $return;
-//            return $returnMess;
+//            throw new OmgException(OmgException::HELP_ERROR);
+            $return['message'] = '一天只能为一名好友助力一次呦～';
+            $returnMess['data'] = $return;
+            return $returnMess;
         }
         //事务开始
         DB::beginTransaction();
