@@ -115,10 +115,9 @@ class RobRateCouponJsonRpc extends JsonRpc
         //是否已兑换加息券，只能兑换一次
         $hasRateFlag = UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_total_key'])->first();
         if($hasRateFlag) {
-//            throw new OmgException(OmgException::EXCHANGE_ERROR);
-//            $return['message'] = '一天只能为一名好友助力一次呦～';
-            $returnMess['data'] = $return;
-            return $returnMess;
+            throw new OmgException(OmgException::EXCHANGE_ERROR);
+//            $returnMess['data'] = $return;
+//            return $returnMess;
         }
         //自己不能给自己加息
         if($userId == $p_userid) {
