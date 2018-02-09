@@ -118,10 +118,12 @@ class RobRateCouponJsonRpc extends JsonRpc
 //            throw new OmgException(OmgException::EXCHANGE_ERROR);
 //            $return['message'] = '一天只能为一名好友助力一次呦～';
             $returnMess['data'] = $return;
+            return $returnMess;
         }
         //自己不能给自己加息
         if($userId == $p_userid) {
             $return['myself'] = true;
+            $return['message'] = '自己不能为自己加息呦！';
             $returnMess['data'] = $return;
             return $returnMess;
         }
@@ -142,7 +144,7 @@ class RobRateCouponJsonRpc extends JsonRpc
         $userAttr = UserAttribute::where('user_id', $p_userid)->where('key', $config['drew_user_key'])->lockForUpdate()->first();
         if(!$userAttr) {
             $userAttr = new UserAttribute();
-            $userAttr->user_id = $userId;
+            $userAttr->user_id = $p_userid;
             $userAttr->key = $config['drew_user_key'];
             $userAttr->string = "0.0";
             $userAttr->number = 0;
