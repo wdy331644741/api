@@ -62,10 +62,12 @@ class OpenController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $session = new Session();
-        $wxSession = $session->get('wechat_help');
-        if(empty($wxSession)){
+        /*$wxSession = $session->get('wechat_help');
+        if(empty($wxSession)){*/
             $session->set('wechat_help',array('fcallback'=>$request->fcallback,'scallback'=>$request->scallback));
-        }
+        /*}else{
+            $session->set('wechat_help',array_merge($wxSession,array('fcallback'=>$request->fcallback,'scallback'=>$request->scallback)));
+        }*/
         $weixin = new Weixin();
         $oauth_url = $weixin->get_authorize_url('snsapi_userinfo',env('WECHAT_HELP_REDIRECT_URI'));
         return redirect($oauth_url);
@@ -163,7 +165,7 @@ class OpenController extends Controller
         if($res['result']['data']){
             $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
             WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
-            file_put_contents(storage_path('logs/scallback_his_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>".$scallback."".PHP_EOL,FILE_APPEND);
+            //file_put_contents(storage_path('logs/scallback_his_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>".$scallback."".PHP_EOL,FILE_APPEND);
             return redirect($scallback);
         }
         return redirect($this->convertUrlQuery($fcallback).'wlerrcode=40005');//用户未绑定
