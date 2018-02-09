@@ -164,7 +164,7 @@ class OmgException extends BasicException
         self::THREAD_LIMIT=>"今日发贴已达上限，明天再来吧！",
         self::COMMENT_LIMIT=>"今日评论已达上限，明天再来吧！",
 
-        self::HELP_ERROR=>"今日已助力",
+        self::HELP_ERROR=>"一天只能为一名好友助力一次呦～",
         self::EXCHANGE_ERROR=>"已经兑换",
     );
 
