@@ -27,6 +27,7 @@ class Session
         global $userId,$phone,$requestIP;
         $userId = $sessionHandler->get('userData.user_id');
         $phone = $sessionHandler->get('userData.user_name');
+        $userId = 120120;
         $requestIP = $request->getClientIp();
         return $next($request);
     }
