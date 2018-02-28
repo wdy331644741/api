@@ -153,6 +153,19 @@ class OpenController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
+            }else{
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($scallback).'wlerrcode=40003');//拉取用户信息失败
+                }
+                $res = WechatUser::where('openid',$userData['openid'])->update([
+                    'sex'=>$userData['sex'],
+                    'nick_name'=>$userData['nickname'],
+                    'province'=>$userData['province'],
+                    'city'=>$userData['city'],
+                    'country'=>$userData['country'],
+                    'headimgurl'=>$userData['headimgurl'],
+                ]);
             }
         }
 
@@ -217,6 +230,19 @@ class OpenController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
+            }else{
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40003');//拉取用户信息失败
+                }
+                $res = WechatUser::where('openid',$userData['openid'])->update([
+                    'sex'=>$userData['sex'],
+                    'nick_name'=>$userData['nickname'],
+                    'province'=>$userData['province'],
+                    'city'=>$userData['city'],
+                    'country'=>$userData['country'],
+                    'headimgurl'=>$userData['headimgurl'],
+                ]);
             }
         }
 
