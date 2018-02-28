@@ -62,10 +62,12 @@ class OpenController extends Controller
             return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
         }
         $session = new Session();
-        $wxSession = $session->get('wechat_help');
-        if(empty($wxSession)){
+        /*$wxSession = $session->get('wechat_help');
+        if(empty($wxSession)){*/
             $session->set('wechat_help',array('fcallback'=>$request->fcallback,'scallback'=>$request->scallback));
-        }
+        /*}else{
+            $session->set('wechat_help',array_merge($wxSession,array('fcallback'=>$request->fcallback,'scallback'=>$request->scallback)));
+        }*/
         $weixin = new Weixin();
         $oauth_url = $weixin->get_authorize_url('snsapi_userinfo',env('WECHAT_HELP_REDIRECT_URI'));
         return redirect($oauth_url);
@@ -114,7 +116,6 @@ class OpenController extends Controller
         $wxSession= $session->get('wechat_help');
         $fcallback = '';
         $scallback ='';
-        print_r($wxSession);
         if(isset($wxSession['fcallback']) || isset($wxSession['scallback'])){
             $fcallback = $wxSession['fcallback'];
             $scallback = $wxSession['scallback'];
@@ -130,7 +131,6 @@ class OpenController extends Controller
             return redirect($this->convertUrlQuery($scallback).'wlerrcode=40002');//获取access_token失败
         }
         $this->_openid =  $data['openid'];
-        $wxSession = $session->get('wechat_help');
         $new_weixin = array();
         if(is_array($wxSession)){
             $new_weixin = array_merge($wxSession,array('openid'=>$this->_openid));
@@ -153,6 +153,19 @@ class OpenController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
+            }else{
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($scallback).'wlerrcode=40003');//拉取用户信息失败
+                }
+                $res = WechatUser::where('openid',$userData['openid'])->update([
+                    'sex'=>$userData['sex'],
+                    'nick_name'=>$userData['nickname'],
+                    'province'=>$userData['province'],
+                    'city'=>$userData['city'],
+                    'country'=>$userData['country'],
+                    'headimgurl'=>$userData['headimgurl'],
+                ]);
             }
         }
 
@@ -165,6 +178,7 @@ class OpenController extends Controller
         if($res['result']['data']){
             $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
             WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
+            //file_put_contents(storage_path('logs/scallback_his_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>".$scallback."".PHP_EOL,FILE_APPEND);
             return redirect($scallback);
         }
         return redirect($this->convertUrlQuery($fcallback).'wlerrcode=40005');//用户未绑定
@@ -216,6 +230,19 @@ class OpenController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
+            }else{
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40003');//拉取用户信息失败
+                }
+                $res = WechatUser::where('openid',$userData['openid'])->update([
+                    'sex'=>$userData['sex'],
+                    'nick_name'=>$userData['nickname'],
+                    'province'=>$userData['province'],
+                    'city'=>$userData['city'],
+                    'country'=>$userData['country'],
+                    'headimgurl'=>$userData['headimgurl'],
+                ]);
             }
         }
 

@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\HdRatecouponFriendhelp;
 use App\Models\HdRatecouponFriend;
 use App\Models\HdRatecoupon;
+use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Models\WechatUser;
 use App\Service\Attributes;
@@ -18,6 +19,7 @@ use App\Service\SendAward;
 use FastDFS\Exception;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Pagination\Paginator;
+use Lib\JsonRpcClient;
 
 use Config, Request, Cache,DB;
 
@@ -65,6 +67,13 @@ class RobRateCouponJsonRpc extends JsonRpc
             if(Attributes::getItem($userId, $config['drew_total_key'])) {
                 $result['status'] = 1;//已兑换
             }
+
+            //加息券是否已使用
+            $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
+            $sendRewardLog = SendRewardLog::where(['user_id'=> $userId, 'activity_id'=> $activityInfo->id, 'status'=> 1])->first();
+            if( !empty($sendRewardLog->uuid) && $this->couponUseStatus($sendRewardLog->uuid)) {
+                    $result['status'] = 2; //已使用
+            }
         }
         return [
             'code' => 0,
@@ -97,20 +106,23 @@ class RobRateCouponJsonRpc extends JsonRpc
         if(!$p_userid) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
+        //获取用户微信昵称和头像
+        $wechatInfo = WechatUser::where('uid', $p_userid)->first();
+        $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
+        $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
+        $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl, 'myself'=>false, 'message'=>''];
+        $returnMess = ['code' => 0,'message' => 'success'];
         //是否已兑换加息券，只能兑换一次
         $hasRateFlag = UserAttribute::where('user_id',$p_userid)->where('key',$config['drew_total_key'])->first();
         if($hasRateFlag) {
             throw new OmgException(OmgException::EXCHANGE_ERROR);
+//            $returnMess['data'] = $return;
+//            return $returnMess;
         }
-        //获取用户微信昵称和头像
-        $wechatInfo = WechatUser::where('uid', $userId)->first();
-        $inick_name = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
-        $headimgurl = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
-        $return = ['rate_coupon'=>0, 'flag'=> false, 'nick_name'=>$inick_name, 'headimgurl'=>$headimgurl, 'myself'=>false];
-        $returnMess = ['code' => 0,'message' => 'success'];
         //自己不能给自己加息
         if($userId == $p_userid) {
             $return['myself'] = true;
+            $return['message'] = '自己不能为自己加息呦！';
             $returnMess['data'] = $return;
             return $returnMess;
         }
@@ -120,6 +132,8 @@ class RobRateCouponJsonRpc extends JsonRpc
         $endTime = date('Y-m-d 23:59:59', time());
         $hasHelp = HdRatecouponFriendhelp::where($where)->whereBetween('created_at', [$startTime, $endTime])->first();
         if($hasHelp) {
+//            throw new OmgException(OmgException::HELP_ERROR);
+            $return['message'] = '一天只能为一名好友助力一次呦～';
             $returnMess['data'] = $return;
             return $returnMess;
         }
@@ -129,7 +143,7 @@ class RobRateCouponJsonRpc extends JsonRpc
         $userAttr = UserAttribute::where('user_id', $p_userid)->where('key', $config['drew_user_key'])->lockForUpdate()->first();
         if(!$userAttr) {
             $userAttr = new UserAttribute();
-            $userAttr->user_id = $userId;
+            $userAttr->user_id = $p_userid;
             $userAttr->key = $config['drew_user_key'];
             $userAttr->string = "0.0";
             $userAttr->number = 0;
@@ -218,14 +232,14 @@ class RobRateCouponJsonRpc extends JsonRpc
                 $item['headimgurl'] = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
                 $item['alias_name'] = $item['total_amount'] . "%";
             }
-            $rData['total'] = $data['total'];
-            $rData['per_page'] = $data['per_page'];
-            $rData['current_page'] = $data['current_page'];
-            $rData['last_page'] = $data['last_page'];
-            $rData['from'] = $data['from'];
-            $rData['to'] = $data['to'];
-            $rData['list'] = $data['data'];
         }
+        $rData['total'] = $data['total'];
+        $rData['per_page'] = $data['per_page'];
+        $rData['current_page'] = $data['current_page'];
+        $rData['last_page'] = $data['last_page'];
+        $rData['from'] = $data['from'];
+        $rData['to'] = $data['to'];
+        $rData['list'] = $data['data'];
 
         return [
             'code' => 0,
@@ -328,5 +342,20 @@ class RobRateCouponJsonRpc extends JsonRpc
         }
         return isset($item->string) ? floor($item->string * 10) / 10 : $default;
     }
+
+    private function couponUseStatus($uuid) {
+        if(!$uuid) {
+            return false;
+        }
+        $url = env('ACCOUNT_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $params['uuid'] = $uuid;
+        $result = $client->couponUseStatus($params);
+        if (isset($result['result']) && $result['result'] && $result['result']['status'] == 1) {//成功
+            return true;
+        }
+        return false;
+    }
+
 }
 
