@@ -142,16 +142,18 @@ class GanenService
         return $resultWords;
     }
     /**
-     * 获取兑换套数
+     * 获取今日兑换套数
      *
      */
     static function getExchangeNum($userId) {
         $config = config('ganen');
-        $item  = UserAttribute::where(['user_id' => $userId, 'key' => $config['key'] ])->first();
+        $dateToday = date("Y-m-d")." 00:00:00";
+        $dateTodayEnd = date("Y-m-d")." 23:59:59";
+        $item  = Ganen::where(['user_id' => $userId,'status' => 1])->where('created_at','>',$dateToday)->where('created_at','<',$dateTodayEnd)->count();
         if(!$item) {
             return 0;
         }else{
-            return intval($item->number);
+            return intval($item);
         }
     }
 
@@ -261,6 +263,14 @@ class GanenService
                 $result[$key] = 0;
             }else{
                 $diffValue = 0;
+            }
+        }
+        //避免  投多笔  一个字都没有的情况
+        if($num >= 30){
+            foreach($result as $val){
+                if($val <= 0){
+                    return self::getRandomRes($num);
+                }
             }
         }
         return $result;

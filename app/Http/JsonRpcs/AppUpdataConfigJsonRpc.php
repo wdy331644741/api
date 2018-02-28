@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\AppUpdateConfig;
+use App\Models\Examine;
 use Validator;
 
 
@@ -31,4 +32,17 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
         );
     }
 
+    /**
+     * 获取当前升级包配置信息
+     *
+     * @JsonRpcMethod
+     */
+    public function examineConfig() {
+        $config = Examine::where('status',1)->first();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $config,
+        );
+    }
 }
