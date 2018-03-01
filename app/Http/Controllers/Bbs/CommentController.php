@@ -39,17 +39,30 @@ class CommentController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        if(isset($request->comment_type)){
+            $commentType = $request->comment_type ? 3 : 1;
+        }
         $comment = Comment::find($request->comment_id);
         $commentReply = new CommentReply();
         $commentReply->comment_id = $request->comment_id;
         $commentReply->from_id = $request->from_id;
         $commentReply->to_id = $comment->user_id;
         $commentReply->content = $request->content;
-        $commentReply->reply_type = 'comment';
+        $commentReply->reply_type = $commentType === 1 ? "comment" : "official";
+        $commentReply->t_user_id = $comment->t_user_id;
         $commentReply->is_verify = 1;
+        $commentObj = new Comment();
+        $commentObj->user_id = $request->from_id;
+        $commentObj->tid = $comment->tid;
+        $commentObj->content = $request->content;
+        $commentObj->isverify = 1;
+        $commentObj->verify_time = date('Y-m-d H:i:s');
+        $commentObj->comment_type = $commentType;
+        $commentObj->t_user_id = $comment->t_user_id;
+        $res1 = $commentObj->save();
         $res = $commentReply->save();
-        if($res){
-            return $this->outputJson(0,array('id'=>$commentReply->id));
+        if($res && $res1){
+            return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
@@ -131,6 +144,33 @@ class CommentController extends Controller
         }
 
     }*/
+
+    //评论帖子
+    public function postAdd(Request $request){
+        $validator = Validator::make($request->all(), [
+            'tid'=>'required|exists:bbs_threads,id',
+            'content'=>'required'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $t_user_id = Thread::where('id',$request->tid)->value('user_id');
+        $commentReply = new Comment();
+        $commentReply->user_id = $request->user_id;
+        $commentReply->content = $request->content;
+        $commentReply->tid = $request->tid;
+        $commentReply->comment_type = $request->comment_type ? 2 : 0;
+        $commentReply->t_user_id = $t_user_id;
+        $commentReply->isverify = 1;
+        $commentReply->verify_time = date('Y-m-d H:i:s');
+        $res = $commentReply->save();
+        if($res){
+            return $this->outputJson(0,array('id'=>$commentReply->id));
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+
+    }
 
     //审核状态修改
     public function postVerifyPut(Request $request){

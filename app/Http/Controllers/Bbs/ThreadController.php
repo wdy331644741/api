@@ -22,7 +22,7 @@ class ThreadController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','user_id','title','content', 'type_id','video_code','created_at', 'istop', 'isgreat', 'ishot','isofficial','isverify', 'comment_num','zan_num','collection_num'];
+    protected $fileds = ['id','user_id','title','content', 'type_id','video_code','cover','created_at', 'istop', 'isgreat', 'ishot','isofficial','isverify', 'comment_num','zan_num','collection_num'];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_threads,id'
     ];
@@ -37,19 +37,16 @@ class ThreadController extends Controller
     }
 
     //帖子为审核列表
-    public function getList($sid,$isverify=0){
-        if(!in_array($isverify,[0,1,2])){
-            $res = Thread::where('type_id',$sid)->onlyTrashed()->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
-            return $this->outputJson(0,$res);
-        }
-        $res = Thread::where(['type_id'=>$sid,'isverify'=>$isverify])->with('user','section')->orderBy('id','desc')->paginate(20)->toArray();
-        return $this->outputJson(0,$res);
+    public function getList(Request $request){
+        $res = Func::freeSearch($request,new Thread(),$this->fileds,['section','user']);
+        $res['app_url'] = env('APP_URL');
+        return response()->json(array('error_code'=> 0, 'data'=>$res));
+
     }
 
-    //帖子搜索
-    public function getSearch(Request $request){
-        $res = Func::Search($request,new Thread());
-        return $this->outputJson(0,$res);
+    public function getImgList($id){
+        $res = Thread::where('id',$id)->value('cover');
+        return view('static.thread_img',array('imgLists'=>json_decode($res)));
     }
 
     //还原帖子
@@ -84,7 +81,6 @@ class ThreadController extends Controller
         $thread->cover = isset($request->cover) ? $request->cover : NULL;
         $thread->title = isset($request->title) ? $request->title : NULL;
         $thread->content = isset($request->content) ? $request->content : NULL;
-        $thread->isinside = 1;
         $thread->istop = $request->istop ? $request->istop : 0;
         $thread->isverify = 1;
         $thread->verify_time = date('Y-m-d H:i:s');
@@ -140,15 +136,23 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $thread = Thread::find($request->id);
         $putData = [];
         if(isset($request->istop)){
-            $putData['istop'] = $request->istop;
+            $istop = $thread->istop ? 0 : 1;
+            $putData['istop'] = $istop;
+        }
+        if(isset($request->is_special)){
+            $is_special = $thread->is_special ? 0 : 1;
+            $putData['is_special'] = $is_special;
         }
         if(isset($request->isgreat)){
-            $putData['isgreat'] = $request->isgreat;
+            $isgreat = $thread->isgreat ? 0 : 1;
+            $putData['isgreat'] = $isgreat;
         }
         if(isset($request->ishot)){
-            $putData['ishot'] = $request->ishot;
+            $ishot = $thread->ishot ? 0 : 1;
+            $putData['ishot'] = $ishot;
         }
         $res = Thread::where('id',$request->id)->update($putData);
         if($res){

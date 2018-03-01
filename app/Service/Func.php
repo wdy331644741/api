@@ -126,16 +126,19 @@ class Func
         return $data;
     }
 
-    //搜索优化
-    public static function freeSearch(Request $request,$model_name){
+
+    //搜索优化   #TODO  待优化
+    public static function freeSearch(Request $request,$modelObj,$fileds,$withs=[]){
         $data = array();
         $order_str = '';
         $pagenum = 20;
         $url = $request->fullUrl();
-
         if(isset($request->data['pagenum'])){
             $pagenum = $request->data['pagenum'];
         }
+
+        $items = $modelObj->select($fileds);
+
         if(isset($request->data['order'])){
             foreach($request->data['order'] as $key=>$val){
                 $order_str = "$key $val";
@@ -143,49 +146,55 @@ class Func
         }else{
             $order_str = "id desc";
         }
+        if(!empty($withs)){
+            foreach ($withs as $key => $with){
+                $items->with($with);
+            }
+
+        }
         if(isset($request->data['like']) && isset($request->data['filter'])){
             $like_str = self::getFilterData($request->data['like'],'like');
             $filterData = self::getFilterData($request->data['filter']);
             if(isset($filterData['filter_str'])){
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->whereRaw($filterData['filter_str'])
                     ->whereRaw($like_str)
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }else{
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->whereRaw($like_str)
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }
 
         }elseif (isset($request->data['like']) && !isset($request->data['filter'])){
             $like_str = self::getFilterData($request->data['like'],'like');
-            $data = $model_name::whereRaw($like_str)
+            $data = $items->whereRaw($like_str)
                 ->orderByRaw($order_str)
                 ->paginate($pagenum)
-                ->setPath($url);
+                ->setPath($url)->toArray();
         }elseif (isset($request->data['filter']) && !isset($request->data['like'])){
             $filterData = self::getFilterData($request->data['filter']);
             if(isset($filterData['filter_str'])){
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->whereRaw($filterData['filter_str'])
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }else{
-                $data = $model_name::where($filterData['filter_data'])
+                $data = $items->where($filterData['filter_data'])
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }
 
         }else{
-            $data = $model_name::orderByRaw($order_str)
+            $data = $items->orderByRaw($order_str)
                 ->paginate($pagenum)
-                ->setPath($url);
+                ->setPath($url)->toArray();
         }
         return $data;
     }
@@ -199,7 +208,8 @@ class Func
             'min' => '<',
             'max' => '>',
             'no_equal' => '<>',
-            'like' => 'LIKE'
+            'like' => 'LIKE',
+            'min_equal_max'=>'<=>'
         ];
         $filterStr = '';
         if($type == 'like'){
@@ -208,11 +218,20 @@ class Func
                 return substr($filterStr,4);
             }
         }
+        if(isset($filter['end_at'])){
+            $end_at = $filter['end_at'];
+            unset($filter['end_at']);
+        }
         foreach ($filter as $key=>$val){
             $patternKey = $key.'_pattern';
             if(stripos($key,'_pattern') === false && isset($filter[$patternKey])){
-                $pattern = $filter[$patternKey];
-                $filterStr .= "AND ".$key." ".$patternArr[$pattern]." ".$val." ";
+                if($filter[$patternKey] == "min_equal_max"){
+                    $filterStr .= "AND ".$key." >= '".$val."' AND ".$key." <= '".$end_at."' ";
+
+                }else{
+                    $pattern = $filter[$patternKey];
+                    $filterStr .= "AND ".$key." ".$patternArr[$pattern]." '".$val."' ";
+                }
                 $data['filter_str'] = substr($filterStr,4);
             } elseif (stripos($key,'_pattern') === false && !isset($filter[$patternKey])){
                 $data['filter_data'][$key] = $val;
@@ -381,5 +400,49 @@ class Func
             $ret = Statistics::insertGetId($params);
         }
         return $ret;
+    }
+
+    /*
+     * 上传图片公有方法
+     *
+     *  @Request object
+     *  @key string
+     *  @path string
+     *  @ext arrry
+     *  @return string
+     */
+    static function getImageUrl(Request $request,$key="",$path="",$ext=array())
+    {
+        //图片
+        $file = '';
+        if (!isset($path)) {
+            $path = base_path() . '/storage/images/';
+        }
+        if (!isset($key)) {
+            $key = "img_path";
+        }
+        if(empty($ext)){
+            $ext = array('jpg', 'jpeg', 'png', 'bmp', 'gif');
+        }
+        if ($request->hasFile($key)) {
+            if ($request->file($key)->isValid()) {
+                $mimeTye = $request->file($key)->getClientOriginalExtension();
+                if (in_array($mimeTye, $ext)) {
+                    $fileName = date('YmdHis') . mt_rand(1000, 9999) . '.' . $mimeTye;
+                    //保存文件到路径
+                    $request->file($key)->move($path, $fileName);
+                    $file = $path . $fileName;
+                } else {
+                    return array("errorcode"=>1001,'errmsg'=>'文件格式错误');
+                }
+            } else {
+                return array('errcode'=>1002,'errmsg'=>'文件错误');
+            }
+        }
+        if (empty($file)) {
+            return array('errcode'=>1003,'errmsg'=>'文件不能为空');
+        }
+        //文件名
+        return array('errcode'=>0,'data'=>Config::get('cms.img_http_url').$fileName);
     }
 }

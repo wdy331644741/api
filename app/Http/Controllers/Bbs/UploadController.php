@@ -49,7 +49,7 @@ class UploadController extends Controller
         try{
             //上传初始图片
             $aliyunOssClient = new AliyunOSSService();
-            $object = $user_id.time().rand(0,25).".".$request->file('img')->getClientOriginalExtension();
+            $object = $user_id.time().rand(0,50).".".$request->file('img')->getClientOriginalExtension();
             $res = $aliyunOssClient->uploadFile($object,$request->file('img')->getRealPath());
 
             $imgManager = new ImageManager();
