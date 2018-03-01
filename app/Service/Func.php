@@ -161,13 +161,13 @@ class Func
                     ->whereRaw($like_str)
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }else{
                 $data = $items->where($filterData['filter_data'])
                     ->whereRaw($like_str)
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }
 
         }elseif (isset($request->data['like']) && !isset($request->data['filter'])){
@@ -175,7 +175,7 @@ class Func
             $data = $items->whereRaw($like_str)
                 ->orderByRaw($order_str)
                 ->paginate($pagenum)
-                ->setPath($url);
+                ->setPath($url)->toArray();
         }elseif (isset($request->data['filter']) && !isset($request->data['like'])){
             $filterData = self::getFilterData($request->data['filter']);
             if(isset($filterData['filter_str'])){
@@ -183,18 +183,18 @@ class Func
                     ->whereRaw($filterData['filter_str'])
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }else{
                 $data = $items->where($filterData['filter_data'])
                     ->orderByRaw($order_str)
                     ->paginate($pagenum)
-                    ->setPath($url);
+                    ->setPath($url)->toArray();
             }
 
         }else{
             $data = $items->orderByRaw($order_str)
                 ->paginate($pagenum)
-                ->setPath($url);
+                ->setPath($url)->toArray();
         }
         return $data;
     }
