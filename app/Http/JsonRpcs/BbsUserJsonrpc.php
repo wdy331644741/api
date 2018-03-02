@@ -434,10 +434,11 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $validator = Validator::make(get_object_vars($params), [
             'comment_id'=>'required|exists:bbs_comments,id',
-            'to_id'=>'required|exists:bbs_users,id',
+            'to_id'=>'required|exists:bbs_users,user_id',
             'thread_id'=>'required|exists:bbs_threads,id'
         ]);
-        $toUserInfo = User::where(["user_id"=>$params->user_id])->toArray();
+        $toUserInfo = User::where(["user_id"=>$params->to_id])->first();
+
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
@@ -467,6 +468,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $verifyResult= 0;
             $verifyMessage = '您的回复已提交审核';
         }
+
         DB::beginTransaction();
             //回复表
             $comReply = new CommentReply();
@@ -477,7 +479,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $comReply->reply_type = "reply";
             $comReply->is_verify =$verifyResult;
             $replyRes = $comReply->save();
-            if($replyRes){
+            if(!$replyRes){
                 throw new OmgException(OmgException::DATA_ERROR);
             }
             $comment = new Comment();
@@ -488,7 +490,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $comment->isverify = $verifyResult;
             $comment->comment_type = 1;//回复的类型 1   评论类型 0
             $comRes = $comment->save();
-            if($comRes){
+            if(!$comRes){
                 DB::rollBack();
                 throw new OmgException(OmgException::DATA_ERROR);
             }
@@ -1146,6 +1148,7 @@ class BbsUserJsonRpc extends JsonRpc {
     public  function getBbsUserComThread($params)
 
     {
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
