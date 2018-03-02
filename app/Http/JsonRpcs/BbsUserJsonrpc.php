@@ -434,11 +434,10 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $validator = Validator::make(get_object_vars($params), [
             'comment_id'=>'required|exists:bbs_comments,id',
-            'to_id'=>'required|exists:bbs_users,user_id',
             'thread_id'=>'required|exists:bbs_threads,id'
         ]);
-        $toUserInfo = User::where(["user_id"=>$params->to_id])->first();
-
+        $commentInfo = Comment::where(["id"=>$params->comment_id])->first();
+        $toUserInfo = User::where(["user_id"=>$commentInfo->user_id])->first();
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
@@ -448,7 +447,6 @@ class BbsUserJsonRpc extends JsonRpc {
             'content' => $params->content,
 
         );
-
         $netCheck = new NetEastCheckService($inParam);
         $res = $netCheck->textCheck();
         if($res['code'] =='200'){
