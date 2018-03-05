@@ -45,4 +45,7 @@ class Comment extends Model
 
         return $this->hasOne('App\Models\Bbs\Comment','id','reply_id');
     }
+    public function eplyUser(){
+        return $this->hasOne('App\Models\Bbs\User','user_id','t_user_id');
+    }
 }

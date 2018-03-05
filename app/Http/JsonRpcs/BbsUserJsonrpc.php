@@ -472,7 +472,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $comReply = new CommentReply();
             $comReply->comment_id = $params->comment_id;
             $comReply->from_id = $this->userId;
-            $comReply->to_id = $params->to_id;
+            $comReply->to_id = $toUserInfo->userId;
             $comReply->content = $params->content;
             $comReply->reply_type = "reply";
             $comReply->is_verify =$verifyResult;
@@ -483,8 +483,8 @@ class BbsUserJsonRpc extends JsonRpc {
             $comment = new Comment();
             $comment->user_id = $this->userId;
             $comment->tid = $params->thread_id;
-            $comment->t_user_id = $params->to_id;
-            $comment->content = "@".$toUserInfo['nickname'].":".$params->content;//格式再定
+            $comment->t_user_id = $toUserInfo->userId;
+            $comment->content = $params->content;//格式再定
             $comment->isverify = $verifyResult;
             $comment->comment_type = 1;//回复的类型 1   评论类型 0
             $comRes = $comment->save();
@@ -1173,7 +1173,7 @@ class BbsUserJsonRpc extends JsonRpc {
     }
 
     /**
-     *  获取用户评论过的帖子
+     *  获取用户回复过的评论
      *
      * @JsonRpcMethod
      */
@@ -1190,7 +1190,7 @@ class BbsUserJsonRpc extends JsonRpc {
         });
 
         $res = Comment::select('id','content', 'tid','update_at')
-            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
+            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>1])//0 代表评论  1 代表回复
             ->with('replycomment')
             ->orderByRaw('update_at DESC')
             ->paginate($pageNum)
