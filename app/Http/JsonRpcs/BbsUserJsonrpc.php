@@ -472,7 +472,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $comReply = new CommentReply();
             $comReply->comment_id = $params->comment_id;
             $comReply->from_id = $this->userId;
-            $comReply->to_id = $params->to_id;
+            $comReply->to_id = $toUserInfo->userId;
             $comReply->content = $params->content;
             $comReply->reply_type = "reply";
             $comReply->is_verify =$verifyResult;
@@ -483,10 +483,11 @@ class BbsUserJsonRpc extends JsonRpc {
             $comment = new Comment();
             $comment->user_id = $this->userId;
             $comment->tid = $params->thread_id;
-            $comment->t_user_id = $params->to_id;
-            $comment->content = "@".$toUserInfo['nickname'].":".$params->content;//格式再定
+            $comment->t_user_id = $toUserInfo->userId;
+            $comment->content = $params->content;//格式再定
             $comment->isverify = $verifyResult;
             $comment->comment_type = 1;//回复的类型 1   评论类型 0
+            $comment->reply_id = $params->comment_id;
             $comRes = $comment->save();
             if(!$comRes){
                 DB::rollBack();
@@ -1055,11 +1056,11 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = ThreadCollection::select('id','user_id', 'tid','update_at')
+        $res = ThreadCollection::select('id','user_id', 'tid','updated_at')
             ->where(['tid'=>$this->userId,'status'=>0])
             ->with('thread')
             ->with('user')
-            ->orderByRaw('update_at DESC')
+            ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -1088,10 +1089,10 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = ThreadZan::select('id','user_id', 'tid','update_at')
+        $res = ThreadZan::select('id','user_id', 'tid','updated_at')
             ->where(['t_user_id'=>$this->userId,'status'=>0])
             ->with('user')
-            ->orderByRaw('update_at DESC')
+            ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -1124,10 +1125,10 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = CommentZan::select('id','user_id', 'tid','update_at')
+        $res = CommentZan::select('id','user_id', 'tid','updated_at')
             ->where(['c_user_id'=>$this->userId,'status'=>0])
             ->with('user')
-            ->orderByRaw('update_at DESC')
+            ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -1156,10 +1157,10 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = Comment::select('id','content', 'tid','update_at')
+        $res = Comment::select('id','content', 'tid','updated_at')
             ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
             ->with('thread')
-            ->orderByRaw('update_at DESC')
+            ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -1173,13 +1174,14 @@ class BbsUserJsonRpc extends JsonRpc {
     }
 
     /**
-     *  获取用户评论过的帖子
+     *  获取用户回复过的评论
      *
      * @JsonRpcMethod
      */
 
     public function getBbsUserComCommnet($params)
     {
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -1189,10 +1191,10 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = Comment::select('id','content', 'tid','update_at')
-            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
+        $res = CommentReply::select('id','comment_id','content','updated_at')
+            ->where(['to_id'=>$this->userId,'is_verify'=>1,'reply_type'=>'reply'])//0 代表评论  1 代表回复
             ->with('replycomment')
-            ->orderByRaw('update_at DESC')
+            ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
 

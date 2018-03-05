@@ -41,8 +41,8 @@ class Comment extends Model
         return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1,"reply_type"=>"official"]);
 
     }
-    public  function replycomment(){
 
-        return $this->hasOne('App\Models\Bbs\Comment','id','reply_id');
+    public function replyUser(){
+        return $this->hasOne('App\Models\Bbs\User','user_id','t_user_id');
     }
 }
