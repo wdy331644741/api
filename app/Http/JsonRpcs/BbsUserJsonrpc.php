@@ -1125,7 +1125,7 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
 
-        $res = CommentZan::select('id','user_id', 'tid','updated_at')
+        $res = CommentZan::select('id','user_id', 'cid','updated_at')
             ->where(['c_user_id'=>$this->userId,'status'=>0])
             ->with('user')
             ->orderByRaw('updated_at DESC')
