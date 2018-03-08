@@ -15,4 +15,7 @@ class CommentZan extends Model
         return $this->hasOne('App\Models\Bbs\User','user_id','user_id');
 
     }
+    public  function comment(){
+        return $this->hasOne('App\Models\Bbs\Comment','id','cid');
+    }
 }

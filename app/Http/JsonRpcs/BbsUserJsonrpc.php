@@ -1116,6 +1116,7 @@ class BbsUserJsonRpc extends JsonRpc {
 
     public  function  getBbsUserCommentZan($params)
     {
+        
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -1128,6 +1129,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $res = CommentZan::select('id','user_id', 'cid','updated_at')
             ->where(['c_user_id'=>$this->userId,'status'=>0])
             ->with('user')
+            ->with('comment')
             ->orderByRaw('updated_at DESC')
             ->paginate($pageNum)
             ->toArray();
