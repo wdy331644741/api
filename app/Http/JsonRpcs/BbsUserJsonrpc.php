@@ -1057,7 +1057,7 @@ class BbsUserJsonRpc extends JsonRpc {
         });
 
         $res = ThreadCollection::select('id','user_id', 'tid','updated_at')
-            ->where(['tid'=>$this->userId,'status'=>0])
+            ->where(['t_user_id'=>$this->userId,'status'=>0])
             ->with('thread')
             ->with('user')
             ->orderByRaw('updated_at DESC')
