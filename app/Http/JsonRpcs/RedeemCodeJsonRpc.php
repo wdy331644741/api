@@ -71,8 +71,8 @@ class RedeemCodeJsonRpc extends JsonRpc {
                 if($list['award_type'] == 1){
                     $status = SendAward::increases($info);
                 }elseif($list['award_type'] == 2){
-                    //直抵红包
-                    if(isset($info['red_type']) && $info['red_type'] == 1){
+                    //直抵红包&&新手直抵红包
+                    if(isset($info['red_type']) && ($info['red_type'] == 1 || $info['red_type'] == 3)){
                         $status = SendAward::redMoney($info);
                     }
                     //百分比红包
