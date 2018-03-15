@@ -144,7 +144,7 @@ class OpenController extends Controller
                 return redirect($this->convertUrlQuery($scallback).'wlerrcode=40004');//接口出错
             }
             if(!$res['result']['data'] && $res['result']['message'] == "未绑定"){
-                return redirect($this->convertUrlQuery($scallback).'wlerrcode=40005');//用户未绑定
+                return redirect($this->convertUrlQuery($fcallback).'wlerrcode=40005');//用户未绑定
             }
             $user_id = intval($res['result']['data']);
             $userData = WechatUser::where('openid',$this->_openid)->first();
