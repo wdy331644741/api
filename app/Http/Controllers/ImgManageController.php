@@ -25,7 +25,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('can_use','DESC')->orderBy('sort','DESC')->paginate(20);
+        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('can_use','DESC')->orderBy('sort','DESC')->paginate(100);
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
