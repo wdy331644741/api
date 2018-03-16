@@ -36,6 +36,7 @@ class CarnivalSendListRedMoney extends Job implements ShouldQueue
     {
         // var_dump($this->userIdList);exit;
         $actInfo = ActivityService::GetActivityInfoByAlias($this->activity);
+        
         CarnivalRedMoneyService::sendListAward($this->userIdList,$actInfo);
     }
 }

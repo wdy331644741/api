@@ -113,8 +113,8 @@ class CarnivalJsonRpc extends JsonRpc
     }
 
     /**
-     * 活动进行中的相关数据
-     * 当前战队出借表现/活动倒计时
+     * 
+     * 当前战队出借表现/活动倒计时/活动状态
      *
      * @JsonRpcMethod
      */
@@ -128,9 +128,40 @@ class CarnivalJsonRpc extends JsonRpc
         $activityTime = ActivityService::GetActivityInfoByAlias($activityName);
         //活动倒计时
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
+        
+        //活动结束，请求产品中心接口  活动是否成功
+        $requestData = [];
+        $requestData['startTime'] = $activityTime['statt_at'];
+        $requestData['endTime'] = $activityTime['end_at'];
+        $requestData['o'] = 'CarnivalActivity';
 
-        $key = "carnivalTeamImmediate";//活动进行中战队即时数据 数据每半小时更新一次
-        $teamData = Cache::remember($key, 30, function(){
+        $url = env("MARK_HTTP_URL");
+        $client = new JsonRpcClient($url);
+        $res = $client->isValid($requestData);
+        $activityStatus = $res['result'];
+        $teamData = '';
+        if($activityStatus == 2){
+            $teamData = $this->processingDisplay();
+        }elseif($activityStatus == 1 || $activityStatus == 3){
+            $teamData = $this->endDisplay();
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'teamData' => $teamData,
+                'timeing' => $diffTime,
+                'end_at' => $activityTime['end_at'],
+                'status' => $activityStatus
+            ]
+        ];
+
+    }
+
+    private function endDisplay(){
+        //获取redis 中的活动结束信息
+        $key = "carnivalEndTeamDisplay";
+        return Cache::rememberForever($key, function(){
             $item  = UserAttribute::where(['key' => 'carnival' ])->get();
             if($item){
                 $item = $item->toArray();
@@ -144,7 +175,32 @@ class CarnivalJsonRpc extends JsonRpc
 
             $client = new JsonRpcClient($url);
             $data = $newArray;
-            $data['o'] = 'CarnivalActivity2';
+            $data['o'] = 'CarnivalActivity';
+            $result = $client->getTermLendTotalAmount($data);
+            if(!isset($result['result'])){
+                throw new OmgException(OmgException::API_FAILED);
+            }
+            return $result['result']['data'];
+        });
+    }
+
+    private function processingDisplay(){
+        $key = "carnivalTeamImmediate";//活动进行中战队即时数据 数据每半小时更新一次
+        return Cache::remember($key, 30, function(){
+            $item  = UserAttribute::where(['key' => 'carnival' ])->get();
+            if($item){
+                $item = $item->toArray();
+            }
+            $newArray = [];
+            foreach ($item as $key => $value) {
+                $newArray[$value['string']][] = $value['user_id'];
+            }
+            //每个战队出借总金额
+            $url = env("MARK_HTTP_URL");
+
+            $client = new JsonRpcClient($url);
+            $data = $newArray;
+            $data['o'] = 'CarnivalActivity';
             $result = $client->getTermLendTotalAmount($data);
             // //记录日志
             // if (config('DEBUG', false) || isset($result['error'])) {
@@ -155,7 +211,7 @@ class CarnivalJsonRpc extends JsonRpc
             }
             
             $sign = 0;
-            $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 2174,"huanle"=>213332);
+            // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 21174,"huanle"=>213332);
             foreach ($result['result']['data'] as $key => &$value) {
                 if($value > 10000){
                     $value = "??".substr((string)$value, -3);
@@ -164,28 +220,14 @@ class CarnivalJsonRpc extends JsonRpc
             }
             if($sign<3){
                 return [
-                    'data' => [
                         "xingfu"=>"待揭晓",
                         "kuaile"=>"待揭晓",
                         "huanle"=>"待揭晓"
-                    ]
                 ];
             }else{
-                return [
-                    'data' => $result['result']['data']
-                ];
+                return $result['result']['data'];
             }
         });
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => [
-                'teamData' => $teamData,
-                'timeing' => $diffTime,
-                'end_at' => $activityTime['end_at']
-            ]
-        ];
-
     }
 
     /**
@@ -283,40 +325,15 @@ class CarnivalJsonRpc extends JsonRpc
      * @JsonRpcMethod
     */
     public function receiveActivityData($params){
-        $test = array(
-            "allotAmount"=>7000000,
-            "allotTotalNum"=>2,
-            "allotUserInfoList"=>
-                array(
-                    array(
-                    "user_id"=>"2348732",
-                    "mobile"=>"15701262172",
-                    "total_amount"=>"171000.00",
-                    "allot_amount"=>997
-                    ),
-                    array(
-                    "user_id"=>"5101436",
-                    "mobile"=>"15701262174",
-                    "total_amount"=>"20000.00",
-                    "allot_amount"=>116
-                    )
-                ),
-            "lendTotalAmount"=>1200000000,
-            "termLendTotalAmount"=>
-                array(
-                "kuaile"=>171000,
-                "xingfu"=>20000,
-                "huanle"=>0
-                )
-            );
-        
+        $temp = json_encode($params);
+        $params = json_decode($temp,true);
         //保存到redis
         $key = "receiveActivityData";
-        Cache::rememberForever($key, function() use($test){
+        Cache::rememberForever($key, function() use($params){
             $dataForFe = [];
-            $dataForFe['allotAmount'] = $test['allotAmount'];
-            $dataForFe['allotTotalNum'] = $test['allotTotalNum'];
-            $dataForFe['termLendTotalAmount'] = $test['termLendTotalAmount'];
+            $dataForFe['allotAmount'] = $params['allotAmount'];
+            $dataForFe['allotTotalNum'] = $params['allotTotalNum'];
+            $dataForFe['termLendTotalAmount'] = $params['termLendTotalAmount'];
             return $dataForFe;
         });
         return 1;
@@ -342,6 +359,11 @@ class CarnivalJsonRpc extends JsonRpc
         //循环发奖
         $temp = json_encode($params);
         $params = json_decode($temp,true);
+        //保存到redis
+        $key = "runActivityAwardData";
+        Cache::rememberForever($key, function() use($params){
+            return $params;
+        });
         $this->sendDivideRedpack($params);
         return true;
     }
@@ -351,8 +373,10 @@ class CarnivalJsonRpc extends JsonRpc
         foreach ($data as $value) {
             //放入队列
             // yield $value;
-            $this->dispatch(new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']));
-            // $this->dispatch((new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']))->onQueue('lazy'));
+            if($value['allot_amount'] > 0){
+                // $this->dispatch(new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']));
+                $this->dispatch((new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']))->onQueue('lazy'));
+            }
         }
     }
     //记录日志
