@@ -136,7 +136,17 @@ class OpenController extends Controller
             $new_weixin = array_merge($wxSession,array('openid'=>$this->_openid));
         }
         $session->set('wechat_help',$new_weixin);
+        //判断微信用户是否绑定
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         if(isset($this->_openid)){
+            $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
+            if(isset($res['error'])){
+                return redirect($this->convertUrlQuery($scallback).'wlerrcode=40004');//接口出错
+            }
+            if(!$res['result']['data'] && $res['result']['message'] == "未绑定"){
+                return redirect($this->convertUrlQuery($fcallback).'wlerrcode=40005');//用户未绑定
+            }
+            $user_id = intval($res['result']['data']);
             $userData = WechatUser::where('openid',$this->_openid)->first();
             if(!$userData){
                 $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
@@ -146,6 +156,7 @@ class OpenController extends Controller
                 //存储微信用户数据
                 $wxModel = new WechatUser();
                 $wxModel->openid = $userData['openid'];
+                $wxModel->uid  = $user_id;
                 $wxModel->sex = $userData['sex'];
                 $wxModel->nick_name = $userData['nickname'];
                 $wxModel->province = $userData['province'];
@@ -153,22 +164,28 @@ class OpenController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
+            }else{
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($scallback).'wlerrcode=40003');//拉取用户信息失败
+                }
+                $upres = WechatUser::where('openid',$userData['openid'])->update([
+                    'sex'=>$userData['sex'],
+                    'nick_name'=>$userData['nickname'],
+                    'province'=>$userData['province'],
+                    'city'=>$userData['city'],
+                    'country'=>$userData['country'],
+                    'headimgurl'=>$userData['headimgurl'],
+                ]);
             }
         }
 
-        //判断微信用户是否绑定
-        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
-        if(isset($res['error'])){
-            return redirect($this->convertUrlQuery($scallback).'wlerrcode=40004');//接口出错
+
+        $signData = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
+        if(!isset($signData['error'])){
+            WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($signData['result']['data']['id'])));
         }
-        if($res['result']['data']){
-            $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
-            WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
-            //file_put_contents(storage_path('logs/scallback_his_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>".$scallback."".PHP_EOL,FILE_APPEND);
-            return redirect($scallback);
-        }
-        return redirect($this->convertUrlQuery($fcallback).'wlerrcode=40005');//用户未绑定
+        return redirect($scallback);
     }
 
     /**
@@ -200,7 +217,17 @@ class OpenController extends Controller
             $new_weixin = array_merge($wxSession,array('openid'=>$this->_openid));
         }
         $session->set('weixin',$new_weixin);
+        //判断微信用户是否绑定
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
         if(isset($this->_openid)){
+            $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
+            if(isset($res['error'])){
+                return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40004');//接口出错
+            }
+            if(!$res['result']['data'] && $res['result']['message'] == "未绑定"){
+                return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40005');//用户未绑定
+            }
+            $user_id = intval($res['result']['data']);
             $userData = WechatUser::where('openid',$this->_openid)->first();
             if(!$userData){
                 $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
@@ -210,6 +237,7 @@ class OpenController extends Controller
                 //存储微信用户数据
                 $wxModel = new WechatUser();
                 $wxModel->openid = $userData['openid'];
+                $wxModel->uid = $user_id;
                 $wxModel->sex = $userData['sex'];
                 $wxModel->nick_name = $userData['nickname'];
                 $wxModel->province = $userData['province'];
@@ -217,21 +245,27 @@ class OpenController extends Controller
                 $wxModel->country = $userData['country'];
                 $wxModel->headimgurl = $userData['headimgurl'];
                 $wxModel->save();
+            }else{
+                $userData = $weixin->get_web_user_info($data['access_token'],$data['openid']);
+                if(!$userData){
+                    return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40003');//拉取用户信息失败
+                }
+                $upres = WechatUser::where('openid',$userData['openid'])->update([
+                    'sex'=>$userData['sex'],
+                    'nick_name'=>$userData['nickname'],
+                    'province'=>$userData['province'],
+                    'city'=>$userData['city'],
+                    'country'=>$userData['country'],
+                    'headimgurl'=>$userData['headimgurl'],
+                ]);
             }
         }
 
-        //判断微信用户是否绑定
-        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
-        $res = $client->accountIsBind(array('channel'=>$this->_weixin,'key'=>$this->_openid));
-        if(isset($res['error'])){
-            return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40004');//接口出错
+        $signData = $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
+        if(!isset($signData['error'])){
+            WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($signData['result']['data']['id'])));
         }
-        if($res['result']['data']){
-            $client->accountSignIn(array('channel'=>$this->_weixin,'openId'=>$this->_openid));
-            WechatUser::where('openid',$this->_openid)->update(array('uid'=>intval($res['result']['data'])));
-            return redirect($userinfo_callback);
-        }
-        return redirect($this->convertUrlQuery($userinfo_callback).'wlerrcode=40005');//用户未绑定
+        return redirect($userinfo_callback);
     }
 
     //绑定用户
