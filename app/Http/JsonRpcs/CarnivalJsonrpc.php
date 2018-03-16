@@ -191,7 +191,9 @@ class CarnivalJsonRpc extends JsonRpc
             if($item){
                 $item = $item->toArray();
             }
-            $newArray = [];
+            $newArray['kuaile'] = [];
+            $newArray['huanle'] = [];
+            $newArray['xingfu'] = [];
             foreach ($item as $key => $value) {
                 $newArray[$value['string']][] = $value['user_id'];
             }
