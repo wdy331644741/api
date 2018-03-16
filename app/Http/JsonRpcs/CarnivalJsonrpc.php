@@ -33,6 +33,23 @@ class CarnivalJsonRpc extends JsonRpc
         if(ActivityService::isExistByAlias($activityName)) {
             $game['available'] = 1;
         }
+        //请求产品中心 用户是否可以加入战队
+        $url = env("MARK_HTTP_URL");
+        $client = new JsonRpcClient($url);
+        $data['user_id'] = $userId;
+        $data['o'] = 'CarnivalActivity';
+        $result = $client->userWhetherIsPaid($data);
+        if(!isset($result['result'])){
+                throw new OmgException(OmgException::API_FAILED);
+        }
+        if(!$result['result']){
+            //不可加入战队
+            return [
+                'code' => 2,
+                'message' => '加入战队失败',
+                'data' =>  "回款未完成"
+            ];
+        }
 
         switch ($params->team) {
             case 1:
@@ -66,16 +83,23 @@ class CarnivalJsonRpc extends JsonRpc
             
         }else{
             //已经加入战队
-            throw new OmgException(OmgException::ALREADY_EXIST);
+            return [
+                'code' => 1,
+                'message' => '已经加入战队',
+                'data' => $item['string']
+            ];
         }
 
         if($res){
             return [
                 'code' => 0,
                 'message' => '成功',
-                'data' => [
-                    'team' => $jionTeam,
-                ],
+                'data' => $jionTeam
+            ];
+        }else{
+            return [
+                'code' => -1,
+                'message' => '响应超时，请重新加入',
             ];
         }
         
@@ -134,28 +158,70 @@ class CarnivalJsonRpc extends JsonRpc
         $requestData['startTime'] = $activityTime['statt_at'];
         $requestData['endTime'] = $activityTime['end_at'];
         $requestData['o'] = 'CarnivalActivity';
-
         $url = env("MARK_HTTP_URL");
         $client = new JsonRpcClient($url);
         $res = $client->isValid($requestData);
+        if(!isset($res['result'])){
+            throw new OmgException(OmgException::API_FAILED);
+        }
         $activityStatus = $res['result'];
+
+        //各战队表现
         $teamData = '';
+        //当前全民出借总金额
+        $allAmount = 0;
+        //瓜分总金额
+        $fragment = 0;
+        //瓜分人数
+        $fragmentPeople = 0;
         if($activityStatus == 2){
             $teamData = $this->processingDisplay();
-        }elseif($activityStatus == 1 || $activityStatus == 3){
+            $allAmount = $this->getAllInvestment();
+        }elseif($activityStatus == 1 || $activityStatus == 3){//活动 成功 结束
             $teamData = $this->endDisplay();
+            $cacheData = $this->endAllInvestment();
+            $allAmount = $cacheData['termLendTotalAmount'];
+            $fragment = $cacheData['allotAmount'];
+            $fragmentPeople = $cacheData['allotTotalNum'];
         }
+        
         return [
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'teamData' => $teamData,
-                'timeing' => $diffTime,
-                'end_at' => $activityTime['end_at'],
-                'status' => $activityStatus
+                'allAmount' => $allAmount;//出借总金额
+                'fragment' => $fragment;//瓜分金额
+                'fragmentPeople' => $fragmentPeople;//瓜分人数
+                'teamData'  => $teamData,//战队表现
+                'timeing'   => $diffTime, //倒计时
+                'end_at'    => $activityTime['end_at'],
+                'status'    => $activityStatus //1 活动结束成功 2 活动未结束 3 活动结束失败 4 用户未登陆
             ]
         ];
 
+    }
+
+    private function endAllInvestment(){
+        $key = "receiveActivityData";
+        return Cache::get($key,'开奖统计发奖中');
+    }
+    //获取 当前全民出借总金额
+    private function getAllInvestment($activityTime){
+        $key = "carnivalAllInvestment";
+        return Cache::remember($key,10, function() use($activityTime){
+            $requestData = [];
+            $requestData['startTime'] = $activityTime['statt_at'];
+            $requestData['endTime'] = $activityTime['end_at'];
+            $requestData['o'] = 'CarnivalActivity';
+
+            $url = env("MARK_HTTP_URL");
+            $client = new JsonRpcClient($url);
+            $res = $client->getLendTotalAmount($requestData);
+            if(!isset($res['result'])){
+                    throw new OmgException(OmgException::API_FAILED);
+            }
+            return $result['result']['data']['total_amount'];
+        });
     }
 
     private function endDisplay(){
