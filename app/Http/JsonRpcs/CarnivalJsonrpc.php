@@ -111,6 +111,15 @@ class CarnivalJsonRpc extends JsonRpc
         $isLogin = ($userId)?true:false;
         $team = null;
         $jiontime = null;
+        $allowJion = false;
+
+        if($userId){
+            $data['user_id'] = $userId;
+            $data['o'] = 'CarnivalActivity';
+            $result = self::jsonRpcApiCall((object)$data, 'userWhetherIsPaid', env("MARK_HTTP_URL"));
+            $allowJion = $result['result'];
+                //不可加入战队
+        }
 
         $item  = UserAttribute::where(['user_id' => $userId, 'key' => 'carnival' ])->first();
         if($item){
@@ -121,7 +130,8 @@ class CarnivalJsonRpc extends JsonRpc
         return [
             'isLogin' => $isLogin,
             'team' => $team,
-            'jiontime' => $jiontime
+            'jiontime' => $jiontime,
+            'allowJion' => $allowJion
         ];
     }
 
