@@ -33,6 +33,18 @@ class CarnivalJsonRpc extends JsonRpc
         if(ActivityService::isExistByAlias($activityName)) {
             $game['available'] = 1;
         }
+        //请求产品中心 用户是否可以加入战队
+        $data['user_id'] = $userId;
+        $data['o'] = 'CarnivalActivity';
+        $result = self::jsonRpcApiCall((object)$data, 'userWhetherIsPaid', env("MARK_HTTP_URL"));
+        if(!$result['result']){
+            //不可加入战队
+            return [
+                'code' => 2,
+                'message' => '加入战队失败',
+                'data' =>  "回款未完成"
+            ];
+        }
 
         switch ($params->team) {
             case 1:
@@ -66,16 +78,23 @@ class CarnivalJsonRpc extends JsonRpc
             
         }else{
             //已经加入战队
-            throw new OmgException(OmgException::ALREADY_EXIST);
+            return [
+                'code' => 1,
+                'message' => '已经加入战队',
+                'data' => $item['string']
+            ];
         }
 
         if($res){
             return [
                 'code' => 0,
                 'message' => '成功',
-                'data' => [
-                    'team' => $jionTeam,
-                ],
+                'data' => $jionTeam
+            ];
+        }else{
+            return [
+                'code' => -1,
+                'message' => '响应超时，请重新加入',
             ];
         }
         
@@ -85,31 +104,25 @@ class CarnivalJsonRpc extends JsonRpc
     /**
      * 查询加入战队 By userid
      *
-     * @JsonRpcMethod
      */
-    public function carnivalTeamByUser() {
+    private function carnivalTeamByUser() {
         global $userId;
 
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
+        $isLogin = ($userId)?true:false;
+        $team = null;
+        $jiontime = null;
 
         $item  = UserAttribute::where(['user_id' => $userId, 'key' => 'carnival' ])->first();
-
-        if($item['string']){
+        if($item){
             $item = $item->toArray();
-            return [
-                'code' => 0,
-                'message' => 'success',
-                'data' => [
-                    'team' => $item['string'],
-                    'user' => $userId,
-                    'jiontime' => $item['created_at']
-                ],
-            ];
-        }else {
-            throw new OmgException(OmgException::NO_DATA);
+            $team = $item['string'];
+            $jiontime = $item['created_at'];
         }
+        return [
+            'isLogin' => $isLogin,
+            'team' => $team,
+            'jiontime' => $jiontime
+        ];
     }
 
     /**
@@ -125,6 +138,7 @@ class CarnivalJsonRpc extends JsonRpc
         if(!ActivityService::isExistByAlias($activityName)) {
             throw new OmgException(OmgException::ACTIVITY_IS_END);
         }
+        $userInfo = $this->carnivalTeamByUser();
         $activityTime = ActivityService::GetActivityInfoByAlias($activityName);
         //活动倒计时
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
@@ -134,81 +148,104 @@ class CarnivalJsonRpc extends JsonRpc
         $requestData['startTime'] = $activityTime['statt_at'];
         $requestData['endTime'] = $activityTime['end_at'];
         $requestData['o'] = 'CarnivalActivity';
-
-        $url = env("MARK_HTTP_URL");
-        $client = new JsonRpcClient($url);
-        $res = $client->isValid($requestData);
+        $res = self::jsonRpcApiCall((object)$requestData, 'isValid', env("MARK_HTTP_URL"));
         $activityStatus = $res['result'];
+        //各战队表现
         $teamData = '';
+        //当前全民出借总金额
+        $allAmount = 0;
+        //瓜分总金额
+        $fragment = 0;
+        //瓜分人数
+        $fragmentPeople = 0;
         if($activityStatus == 2){
             $teamData = $this->processingDisplay();
-        }elseif($activityStatus == 1 || $activityStatus == 3){
+            $allAmount = $this->getAllInvestment($activityTime);
+        }elseif($activityStatus == 1 || $activityStatus == 3){//活动 成功 结束
             $teamData = $this->endDisplay();
+            $cacheData = $this->endAllInvestment();
+            $allAmount = $cacheData['termLendTotalAmount'];
+            $fragment = $cacheData['allotAmount'];
+            $fragmentPeople = $cacheData['allotTotalNum'];
         }
+        
         return [
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'teamData' => $teamData,
-                'timeing' => $diffTime,
-                'end_at' => $activityTime['end_at'],
-                'status' => $activityStatus
+                'allAmount' => $allAmount,//出借总金额
+                'fragment' => $fragment,//瓜分金额
+                'fragmentPeople' => $fragmentPeople,//瓜分人数
+                'teamData'  => $teamData,//战队表现
+                'timeing'   => $diffTime, //倒计时
+                'end_at'    => $activityTime['end_at'],
+                'status'    => $activityStatus, //1 活动结束成功 2 活动未结束 3 活动结束失败 4 用户未登陆
+                'userInfo'  => $userInfo
             ]
         ];
 
     }
 
+    private function endAllInvestment(){
+        $key = "receiveActivityData";
+        return Cache::get($key,'开奖统计发奖中');
+    }
+    //获取 当前全民出借总金额
+    private function getAllInvestment($activityTime){
+        $key = "carnivalAllInvestment";
+        return Cache::remember($key,10, function() use($activityTime){
+            $requestData = [];
+            $requestData['startTime'] = $activityTime['statt_at'];
+            $requestData['endTime'] = $activityTime['end_at'];
+            $requestData['o'] = 'CarnivalActivity';
+
+            $result = self::jsonRpcApiCall((object)$requestData, 'getLendTotalAmount', env("MARK_HTTP_URL"));
+            return $result['result']['data'];
+        });
+    }
+
+    //获取redis 中的活动结束信息
     private function endDisplay(){
-        //获取redis 中的活动结束信息
         $key = "carnivalEndTeamDisplay";
         return Cache::rememberForever($key, function(){
             $item  = UserAttribute::where(['key' => 'carnival' ])->get();
             if($item){
                 $item = $item->toArray();
             }
-            $newArray = [];
+            $newArray['kuaile'] = [];
+            $newArray['huanle'] = [];
+            $newArray['xingfu'] = [];
             foreach ($item as $key => $value) {
                 $newArray[$value['string']][] = $value['user_id'];
             }
             //每个战队出借总金额
-            $url = env("MARK_HTTP_URL");
-
-            $client = new JsonRpcClient($url);
             $data = $newArray;
             $data['o'] = 'CarnivalActivity';
-            $result = $client->getTermLendTotalAmount($data);
-            if(!isset($result['result'])){
-                throw new OmgException(OmgException::API_FAILED);
-            }
+
+            $result = self::jsonRpcApiCall((object)$data, 'getTermLendTotalAmount', env("MARK_HTTP_URL"));
             return $result['result']['data'];
         });
     }
 
+    //活动进行中战队即时数据 数据每半小时更新一次
     private function processingDisplay(){
-        $key = "carnivalTeamImmediate";//活动进行中战队即时数据 数据每半小时更新一次
+        $key = "carnivalTeamImmediate";
         return Cache::remember($key, 30, function(){
             $item  = UserAttribute::where(['key' => 'carnival' ])->get();
             if($item){
                 $item = $item->toArray();
             }
-            $newArray = [];
+            $newArray['kuaile'] = [];
+            $newArray['huanle'] = [];
+            $newArray['xingfu'] = [];
             foreach ($item as $key => $value) {
                 $newArray[$value['string']][] = $value['user_id'];
             }
             //每个战队出借总金额
-            $url = env("MARK_HTTP_URL");
-
-            $client = new JsonRpcClient($url);
             $data = $newArray;
             $data['o'] = 'CarnivalActivity';
-            $result = $client->getTermLendTotalAmount($data);
-            // //记录日志
-            // if (config('DEBUG', false) || isset($result['error'])) {
-            //     self::debugTrace($data, $method, $result);
-            // }
-            if(!isset($result['result'])){
-                throw new OmgException(OmgException::API_FAILED);
-            }
+            // $result = $client->getTermLendTotalAmount($data);
+            $result = self::jsonRpcApiCall((object)$data, 'getTermLendTotalAmount', env("MARK_HTTP_URL"));
             
             $sign = 0;
             // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 21174,"huanle"=>213332);
@@ -397,7 +434,7 @@ class CarnivalJsonRpc extends JsonRpc
     {
 
         $logName = $logName ? $logName : 'wanglibao';//日志名称
-        $fp = fopen(__DIR__ . '/' . $logName . '.log.' . date('Ymd'), 'a');
+        $fp = fopen(storage_path('logs/carnival_'.$logName.date('Y-m-d').'.log'), 'a');//缤纷嘉年华活动相关日志。活动过后日志可删除
 
         $traces = debug_backtrace();
         $logMsg = 'FILE:' . basename($traces[0]['file']) . PHP_EOL;
@@ -413,6 +450,27 @@ class CarnivalJsonRpc extends JsonRpc
 
         fwrite($fp, $logMsg);
         fclose($fp);
+    }
+
+    public static function jsonRpcApiCall(
+        $data, $method, $url, $debug = true, $config = array('timeout' => 40)
+    )
+    {
+        $rpcClient = new JsonRpcClient($url, $config);
+        if (is_array($data)) {
+            $result = call_user_func_array(array($rpcClient, $method), $data);
+        } else {
+            $result = call_user_func(array($rpcClient, $method), $data);
+        }
+
+        //记录日志
+        self::debugTrace($data, $method, $result);
+
+        if(isset($result['error'])){
+            throw new OmgException(OmgException::API_FAILED);
+        }
+
+        return $result;
     }
 
 
