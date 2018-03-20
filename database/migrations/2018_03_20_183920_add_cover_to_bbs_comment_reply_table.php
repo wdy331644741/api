@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddCoverToBbsCommentsTable extends Migration
+class AddCoverToBbsCommentReplyTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class AddCoverToBbsCommentsTable extends Migration
     public function up()
     {
         //
-        Schema::table('bbs_comments', function (Blueprint $table) {
+        Schema::table('bbs_comment_reply', function (Blueprint $table) {
             $table->text('cover');
         });
     }
@@ -26,7 +26,7 @@ class AddCoverToBbsCommentsTable extends Migration
     public function down()
     {
         //
-        Schema::table('bbs_comments', function (Blueprint $table) {
+        Schema::table('bbs_comment_reply', function (Blueprint $table) {
             $table->dropColumn('cover');
         });
     }

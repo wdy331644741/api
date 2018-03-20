@@ -426,15 +426,15 @@ class BbsUserJsonRpc extends JsonRpc {
         switch ($resMaxCode){
             case 0 ://有嫌疑
                 $verifyResult = 0;
-                $verifyMessage = '您的发贴已提交审核';
+                $verifyMessage = '您的评论已提交审核';
                 break;
             case 1 ://有嫌疑
                 $verifyResult = 0;
-                $verifyMessage = '您的发贴已提交审核';
+                $verifyMessage = '您的评论已提交审核';
                 break;
             case 2 ://审核未通过
                 $verifyResult = 1;
-                $verifyMessage = '发贴成功';
+                $verifyMessage = '评论成功';
         }
 
         $comment = new Comment();
@@ -487,7 +487,8 @@ class BbsUserJsonRpc extends JsonRpc {
         }
         $validator = Validator::make(get_object_vars($params), [
             'comment_id'=>'required|exists:bbs_comments,id',
-            'thread_id'=>'required|exists:bbs_threads,id'
+            'thread_id'=>'required|exists:bbs_threads,id',
+            'content'=>'required'
         ]);
         $commentInfo = Comment::where(["id"=>$params->comment_id])->first();
         $toUserInfo = User::where(["user_id"=>$commentInfo->user_id])->first();
@@ -519,16 +520,71 @@ class BbsUserJsonRpc extends JsonRpc {
             $verifyResult= 0;
             $verifyMessage = '您的回复已提交审核';
         }
+        $picArrays=[];
+        if(!empty($params->imgs)){
+            foreach ($params->imgs as $key=> $value){
+                $picArrays[$key]['name'] = $value;
+                $picArrays[$key]['type'] = 1;
+                $picArrays[$key]['data'] = $value;
+            }
+            $inParamImg = array(
+                "images"=>json_encode($picArrays),
+            );
+
+            $imgCheck = new NetEastCheckService($inParamImg);
+            $resImg = $imgCheck->imgCheck();
+
+            if($resImg['code'] =='200'){
+
+                $result = $resImg["result"];
+
+                foreach($result as $index => $image_ret){
+
+                    $maxLevel=-1;
+                    foreach($image_ret["labels"] as $index=>$label){
+                        $maxLevel=$label["level"]>$maxLevel?$label["level"]:$maxLevel;
+                    }
+                    if($maxLevel==0){
+                        $resImgCode = 1;
+                    }else if($maxLevel==1){
+                        $resImgCode = 0;
+
+                    }else if($maxLevel==2){
+                        throw new OmgException(OmgException::THREAD_ERROR);
+                    }
+
+                }
+            }else{
+                $resImgCode= 0;
+            }
+        }
+        $resMaxCode = $resImgCode+$verifyResult;
+        switch ($resMaxCode){
+            case 0 ://有嫌疑
+                $verifyResult = 0;
+                $verifyMessage = '您的回复已提交审核';
+                break;
+            case 1 ://有嫌疑
+                $verifyResult = 0;
+                $verifyMessage = '您的回复已提交审核';
+                break;
+            case 2 ://审核未通过
+                $verifyResult = 1;
+                $verifyMessage = '回复成功';
+        }
+
+
 
         DB::beginTransaction();
             //回复表
             $comReply = new CommentReply();
             $comReply->comment_id = $params->comment_id;
             $comReply->from_id = $this->userId;
-            $comReply->to_id = $toUserInfo->userId;
+            $comReply->to_id = $toUserInfo->user_id;
             $comReply->content = $params->content;
             $comReply->reply_type = "reply";
             $comReply->is_verify =$verifyResult;
+            $comReply->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
             $replyRes = $comReply->save();
             if(!$replyRes){
                 throw new OmgException(OmgException::DATA_ERROR);
@@ -536,11 +592,12 @@ class BbsUserJsonRpc extends JsonRpc {
             $comment = new Comment();
             $comment->user_id = $this->userId;
             $comment->tid = $params->thread_id;
-            $comment->t_user_id = $toUserInfo->userId;
+            $comment->t_user_id = $toUserInfo->user_id;
             $comment->content = $params->content;//格式再定
             $comment->isverify = $verifyResult;
             $comment->comment_type = 1;//回复的类型 1   评论类型 0
             $comment->reply_id = $params->comment_id;
+            $comment->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
             $comRes = $comment->save();
             if(!$comRes){
                 DB::rollBack();
