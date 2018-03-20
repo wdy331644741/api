@@ -43,6 +43,16 @@ class ActivityService
         return $res;
     }
     /**
+     * 根据活动别名获取活动id-/去掉时间限制
+     *
+     * @param $aliasName
+     * @return boolean
+     */
+    static function GetActivityedInfoByAlias($aliasName) {
+        $res = Activity::where(['enable' => 1, 'alias_name' => $aliasName])->first();
+        return $res;
+    }
+    /**
      * 活动是否参与过
      *
      * @param $aliasName
