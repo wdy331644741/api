@@ -101,8 +101,21 @@ class CarnivalJsonRpc extends JsonRpc
         
     }
 
+
+    private function getRedisUserData($userId){
+        $key = "runActivityAwardData";
+        $allData = Cache::get($key);
+        // $tempArray = json_decode($allData,true);
+        $tempArray = array_column($allData, 'allot_amount','user_id');
+        if(isset($tempArray[$userId])){
+            return $tempArray[$userId];
+        }else{
+            return null;
+        }
+    }
+
     /**
-     * 查询加入战队 By userid
+     * 用户相关信息
      *
      */
     private function carnivalTeamByUser() {
@@ -112,13 +125,14 @@ class CarnivalJsonRpc extends JsonRpc
         $team = null;
         $jiontime = null;
         $allowJion = false;
+        $userAllotMount = null;
 
         if($userId){
             $data['user_id'] = $userId;
             $data['o'] = 'CarnivalActivity';
             $result = self::jsonRpcApiCall((object)$data, 'userWhetherIsPaid', env("MARK_HTTP_URL"));
             $allowJion = $result['result'];
-                //不可加入战队
+            $userAllotMount = $this->getRedisUserData($userId);
         }
 
         $item  = UserAttribute::where(['user_id' => $userId, 'key' => 'carnival' ])->first();
@@ -131,7 +145,8 @@ class CarnivalJsonRpc extends JsonRpc
             'isLogin' => $isLogin,
             'team' => $team,
             'jiontime' => $jiontime,
-            'allowJion' => $allowJion
+            'allowJion' => $allowJion,
+            'userAllotMount' => $userAllotMount
         ];
     }
 
@@ -145,11 +160,11 @@ class CarnivalJsonRpc extends JsonRpc
         //倒计时
         $activityName = "carnival";
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($activityName)) {
-            throw new OmgException(OmgException::ACTIVITY_IS_END);
-        }
+        // if(!ActivityService::isExistByAlias($activityName)) {
+        //     throw new OmgException(OmgException::ACTIVITY_IS_END);
+        // }
         $userInfo = $this->carnivalTeamByUser();
-        $activityTime = ActivityService::GetActivityInfoByAlias($activityName);
+        $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
         //活动倒计时
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
         
@@ -306,7 +321,7 @@ class CarnivalJsonRpc extends JsonRpc
         //是否已经开过奖
         $isEnd = $this->isSetSelectUser();
         $key = "carnivalEndData";
-        $endData = Cache::rememberForever($key, function() use($params,$isEnd){
+        // $endData = Cache::rememberForever($key, function() use($params,$isEnd){
             //if已经开过奖，并且cache丢了
             if($isEnd){
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
@@ -331,16 +346,22 @@ class CarnivalJsonRpc extends JsonRpc
             $newArray = [];
             //随机抽出 三个战队中奖的人
             foreach ($resArray as $k => $v) {
+                $random_keys_array = [];
                 $random_keys=array_rand($v,$params->$k);//抽出的随机中奖名单
+                if(!is_array($random_keys)){
+                    array_push($random_keys_array, $random_keys);
+                }else{
+                    $random_keys_array = $random_keys;
+                }
                 foreach ($v as $key => $value) {
-                    if(in_array($key, $random_keys)){
+                    if(in_array($key, $random_keys_array) ){
                         $newArray[$k][$key] = $value;
                         $this->setSelectUser($key);
                     }
                 }
             }
             return $newArray;
-        });
+        // });
 
         return $endData;
     }
