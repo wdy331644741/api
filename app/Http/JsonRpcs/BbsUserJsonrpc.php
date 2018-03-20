@@ -384,12 +384,65 @@ class BbsUserJsonRpc extends JsonRpc {
             $verifyResult= 0;
             $verifyMessage = '您的评论已提交审核';
         }
+        $picArrays=[];
+        if(!empty($params->imgs)){
+            foreach ($params->imgs as $key=> $value){
+                $picArrays[$key]['name'] = $value;
+                $picArrays[$key]['type'] = 1;
+                $picArrays[$key]['data'] = $value;
+            }
+            $inParamImg = array(
+                "images"=>json_encode($picArrays),
+            );
+
+            $imgCheck = new NetEastCheckService($inParamImg);
+            $resImg = $imgCheck->imgCheck();
+
+            if($resImg['code'] =='200'){
+
+                $result = $resImg["result"];
+
+                foreach($result as $index => $image_ret){
+
+                    $maxLevel=-1;
+                    foreach($image_ret["labels"] as $index=>$label){
+                        $maxLevel=$label["level"]>$maxLevel?$label["level"]:$maxLevel;
+                    }
+                    if($maxLevel==0){
+                        $resImgCode = 1;
+                    }else if($maxLevel==1){
+                        $resImgCode = 0;
+
+                    }else if($maxLevel==2){
+                        throw new OmgException(OmgException::THREAD_ERROR);
+                    }
+
+                }
+            }else{
+                $resImgCode= 0;
+            }
+        }
+        $resMaxCode = $resImgCode+$verifyResult;
+        switch ($resMaxCode){
+            case 0 ://有嫌疑
+                $verifyResult = 0;
+                $verifyMessage = '您的发贴已提交审核';
+                break;
+            case 1 ://有嫌疑
+                $verifyResult = 0;
+                $verifyMessage = '您的发贴已提交审核';
+                break;
+            case 2 ://审核未通过
+                $verifyResult = 1;
+                $verifyMessage = '发贴成功';
+        }
 
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
         $comment->content = $params->content;
         $comment->isverify = $verifyResult;
+        $comment->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
         if($verifyResult ==0){
             $comment->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
