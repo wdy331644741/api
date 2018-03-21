@@ -389,12 +389,13 @@ class Func
      * @remark string
      * @return $ret  id
      */
-    static function statistics($type, $ip, $remark='')
+    static function statistics($type, $ip, $userId, $remark='')
     {
         $ret = false;
         if(!empty($type) && !empty($ip)){
             $params['type'] = $type;
             $params['ip'] = $ip;
+            $params['user_id'] = $userId ? $userId : 0;
             $params['remark'] = $remark;
             $params['created_at'] = $params['updated_at'] = date("Y-m-d H:i:s");
             $ret = Statistics::insertGetId($params);

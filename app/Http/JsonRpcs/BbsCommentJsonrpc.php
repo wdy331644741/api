@@ -42,6 +42,7 @@ class BbsCommentJsonRpc extends JsonRpc {
        }
        $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
        $page = isset($params->page) ? $params->page : 1;
+       $sort = isset($params->sort) ? $params->sort : 'asc';
        Paginator::currentPageResolver(function () use ($page) {
            return $page;
        });
@@ -55,7 +56,7 @@ class BbsCommentJsonRpc extends JsonRpc {
            ->with('zan')
            ->with('replyUser')
            ->with('officeReply')
-           ->orderByRaw('created_at')
+           ->orderBy('created_at',$sort)
            ->paginate($pageNum)
            ->toArray();
 
