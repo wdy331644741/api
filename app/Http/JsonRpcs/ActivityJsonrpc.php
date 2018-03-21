@@ -1185,7 +1185,7 @@ class ActivityJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         //根据活动别名获取活动id
-        $activityId = ActivityService::GetActivityInfoByAlias('advanced_signin');
+        $activityId = ActivityService::GetActivityInfoByAlias('signin_record');
         $activityId = isset($activityId['id']) ? $activityId['id'] : 0;
         if($activityId <= 0) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
