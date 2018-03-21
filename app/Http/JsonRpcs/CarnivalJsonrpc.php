@@ -192,9 +192,9 @@ class CarnivalJsonRpc extends JsonRpc
         }elseif($activityStatus == 1 || $activityStatus == 3){//活动 成功 结束
             $teamData = $this->endDisplay();
             $cacheData = $this->endAllInvestment();
-            $allAmount = $cacheData['termLendTotalAmount'];
-            $fragment = $cacheData['allotAmount'];
-            $fragmentPeople = $cacheData['allotTotalNum'];
+            $allAmount = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:0;
+            $fragment = isset($cacheData['allotAmount'])?$cacheData['allotAmount']:0;
+            $fragmentPeople = isset($cacheData['allotTotalNum'])?$cacheData['allotTotalNum']:0;
         }
         
         return [
@@ -206,7 +206,7 @@ class CarnivalJsonRpc extends JsonRpc
                 'fragmentPeople' => $fragmentPeople,//瓜分人数
                 'teamData'  => $teamData,//战队表现
                 'timeing'   => $diffTime, //倒计时
-                'end_at'    => $activityTime['end_at'],
+                'end_at'    => strtotime($activityTime['end_at']),
                 'status'    => $activityStatus, //1 活动结束成功 2 活动未结束 3 活动结束失败 4 用户未登陆
                 'userInfo'  => $userInfo
             ]
