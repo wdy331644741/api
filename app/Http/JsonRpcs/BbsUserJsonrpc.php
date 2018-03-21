@@ -385,6 +385,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $verifyMessage = '您的评论已提交审核';
         }
         $picArrays=[];
+        $resImgCode = 1;
         if(!empty($params->imgs)){
             foreach ($params->imgs as $key=> $value){
                 $picArrays[$key]['name'] = $value;
@@ -521,6 +522,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $verifyMessage = '您的回复已提交审核';
         }
         $picArrays=[];
+        $resImgCode = 1;
         if(!empty($params->imgs)){
             foreach ($params->imgs as $key=> $value){
                 $picArrays[$key]['name'] = $value;
