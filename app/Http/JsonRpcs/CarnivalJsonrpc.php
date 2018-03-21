@@ -106,6 +106,9 @@ class CarnivalJsonRpc extends JsonRpc
         $key = "runActivityAwardData";
         $allData = Cache::get($key);
         // $tempArray = json_decode($allData,true);
+        if(!$allData){
+            return null;
+        }
         $tempArray = array_column($allData, 'allot_amount','user_id');
         if(isset($tempArray[$userId])){
             return $tempArray[$userId];
@@ -321,7 +324,7 @@ class CarnivalJsonRpc extends JsonRpc
         //是否已经开过奖
         $isEnd = $this->isSetSelectUser();
         $key = "carnivalEndData";
-        // $endData = Cache::rememberForever($key, function() use($params,$isEnd){
+        $endData = Cache::rememberForever($key, function() use($params,$isEnd){
             //if已经开过奖，并且cache丢了
             if($isEnd){
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
@@ -361,7 +364,7 @@ class CarnivalJsonRpc extends JsonRpc
                 }
             }
             return $newArray;
-        // });
+        });
 
         return $endData;
     }
