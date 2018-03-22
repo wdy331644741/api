@@ -251,6 +251,7 @@ class CarnivalJsonRpc extends JsonRpc
             $data['o'] = 'CarnivalActivity';
 
             $result = self::jsonRpcApiCall((object)$data, 'getTermLendTotalAmount', env("MARK_HTTP_URL"));
+            arsort($result['result']['data']);
             return $result['result']['data'];
         });
     }
@@ -321,6 +322,9 @@ class CarnivalJsonRpc extends JsonRpc
      * @JsonRpcMethod
     */
     public function carnivalEndRandUserlist($params){
+        $teamListAward = config('carnival');
+        $teamListAward = $teamListAward['team_awards'];
+        
         //是否已经开过奖
         $isEnd = $this->isSetSelectUser();
         $key = "carnivalEndData";
@@ -350,7 +354,8 @@ class CarnivalJsonRpc extends JsonRpc
             //随机抽出 三个战队中奖的人
             foreach ($resArray as $k => $v) {
                 $random_keys_array = [];
-                $random_keys=array_rand($v,$params->$k);//抽出的随机中奖名单
+                $randNum = (count($v) > $teamListAward[$params->$k])?$teamListAward[$params->$k]:count($v);//抽出的随机中奖名单
+                $random_keys=array_rand($v,$randNum);//抽出的随机中奖名单
                 if(!is_array($random_keys)){
                     array_push($random_keys_array, $random_keys);
                 }else{
