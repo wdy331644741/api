@@ -332,7 +332,7 @@ class CarnivalJsonRpc extends JsonRpc
         //是否已经开过奖
         $isEnd = $this->isSetSelectUser();
         $key = "carnivalEndData";
-        $endData = Cache::rememberForever($key, function() use($params,$isEnd){
+        $endData = Cache::rememberForever($key, function() use($params,$isEnd,$teamListAward){
             //if已经开过奖，并且cache丢了
             if($isEnd){
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
