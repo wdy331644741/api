@@ -23,5 +23,6 @@ return [
                 ['alias_name' => 'carnivalRank','num' => 18,'amount' => 100],
                 ['alias_name' => 'carnivalRank','num' => 19,'amount' => 100],
                 ['alias_name' => 'carnivalRank','num' => 20,'amount' => 100]
-            ]
+            ],
+    'team_awards' =>[1=>20,2=>15,3=>10]//排名第一抽20个   排名第二抽15个  排名第三抽10个
 ];
