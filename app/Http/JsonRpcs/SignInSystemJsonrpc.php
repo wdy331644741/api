@@ -41,7 +41,7 @@ class SignInSystemJsonRpc extends JsonRpc
         if($user['login']) {
             $user['multiple'] = $this->getMultiple($userId, $config);
             //获取加倍卡
-            $multipleCard = SignInSystemBasic::signInEveryDayMultiple($userId);
+            $multipleCard = $this->signInEveryDayMultipleCache($userId);
             if($multipleCard > 0){
                 $user['multiple_card'] = $multipleCard;
             }
@@ -53,7 +53,7 @@ class SignInSystemJsonRpc extends JsonRpc
 
 
         // 活动是否存在
-        if(ActivityService::isExistByAlias($config['alias_name'])) {
+        if($this->activityIsEnd($config['alias_name'])) {
             $game['available'] = true;
         }
 
@@ -62,7 +62,7 @@ class SignInSystemJsonRpc extends JsonRpc
         if($game['available']) {
             $item = $this->selectList($config['lists']);
             $game['awardNum'] = $this->getLastGlobalNum($item);
-            $game['nextSeconds'] = $item['endTimestamps'] - time() + rand(0,3);
+            $game['nextSeconds'] = $item['endTimestamps'] - time() + rand(0,5);
         }
 
 
@@ -111,7 +111,7 @@ class SignInSystemJsonRpc extends JsonRpc
         $remark = [];
 
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($config['alias_name'])) {
+        if(!$this->activityIsEnd($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
 
@@ -130,7 +130,7 @@ class SignInSystemJsonRpc extends JsonRpc
         //获取倍数
         $result['multiple'] = $this->getMultiple($userId, $config);
         //获取加倍卡
-        $multipleCard = SignInSystemBasic::signInEveryDayMultiple($userId);
+        $multipleCard = $this->signInEveryDayMultipleCache($userId);
         if($multipleCard > 0){
             $result['multiple_card'] = $multipleCard;
         }
@@ -152,7 +152,7 @@ class SignInSystemJsonRpc extends JsonRpc
                 'multiple' => $result['multiple'],
                 'multiple_card' => $multipleCard,
                 'user_agent' => Request::header('User-Agent'),
-                'status' => 0,
+                'status' => 1,//默认是成功，失败会修改为0
                 'type' => 7,
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
@@ -161,11 +161,6 @@ class SignInSystemJsonRpc extends JsonRpc
             $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, 'shake');
 
             $remark['addMoneyRes'] = $result;
-            // 成功
-            if(isset($purchaseRes['result'])) {
-                $res->update(['status' => 1, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
-            }
-
             // 失败
             if(!isset($purchaseRes['result'])) {
                 $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
@@ -355,6 +350,31 @@ class SignInSystemJsonRpc extends JsonRpc
             return true;
         }
         return false;
+    }
+
+    /**
+     * 活动是否存在加缓存
+     */
+    private function activityIsEnd($alias_name){
+        $cacheKey = "activity_is_end".$alias_name;
+        if(!Cache::has($cacheKey)){
+            $status = ActivityService::isExistByAlias($alias_name);
+            if($status){
+                Cache::put($cacheKey,$status,5);
+            }
+        }
+        return Cache::get($cacheKey);
+    }
+    /**
+     * 获取加倍卡加缓存
+     */
+    private function signInEveryDayMultipleCache($userId){
+        $cacheKey = "sign_in_every_day_multiple".$userId;
+        if(!Cache::has($cacheKey)){
+            $num = SignInSystemBasic::signInEveryDayMultiple($userId);
+            Cache::put($cacheKey,$num,5);
+        }
+        return Cache::get($cacheKey);
     }
 }
 
