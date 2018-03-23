@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 
+
 class CarnivalSendRedMoney extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
@@ -36,5 +37,6 @@ class CarnivalSendRedMoney extends Job implements ShouldQueue
     {
         $actInfo = ActivityService::GetActivityInfoByAlias($this->activity);
         CarnivalRedMoneyService::sendAward($this->amount, $this->userId,$actInfo);
+
     }
 }

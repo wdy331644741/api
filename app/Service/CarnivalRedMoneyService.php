@@ -8,7 +8,7 @@ use App\Service\ActivityService;
 
 class CarnivalRedMoneyService
 {
-    private $awardConfig = [
+    private static $awardConfig = [
         'id'=>0,//无奖品配置
         'red_type'=>1,
         'red_money'=>null,//红包金额
@@ -49,13 +49,13 @@ class CarnivalRedMoneyService
         //*****活动参与人数加1*****
         Activity::where('id',$activity['id'])->increment('join_num');
         //直抵红包相关参数
-        $this->awardConfig['red_money'] = $amount;
-        $this->awardConfig['source_id'] = $activity['id'];
-        $this->awardConfig['name'] = $amount."元直抵红包";
-        $this->awardConfig['source_name'] = $activity['name'];
-        $this->awardConfig['user_id'] = $userId;
+        self::$awardConfig['red_money'] = $amount;
+        self::$awardConfig['source_id'] = $activity['id'];
+        self::$awardConfig['name'] = $amount."元直抵红包";
+        self::$awardConfig['source_name'] = $activity['name'];
+        self::$awardConfig['user_id'] = $userId;
 
-        $result = SendAward::redMoney($this->awardConfig);
+        $result = SendAward::redMoney(self::$awardConfig);
         //添加活动参与记录
         if($result['status']){
             SendAward::addJoins($userId,$activity,3);

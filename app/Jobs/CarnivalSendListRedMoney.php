@@ -14,6 +14,7 @@ class CarnivalSendListRedMoney extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
     private $userIdList;
+    private $amount;
     private $activity = 'carnivalRank';//排行榜前20红包
     private $_awardConfig = [];
     /**
@@ -21,9 +22,10 @@ class CarnivalSendListRedMoney extends Job implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($userIdList)
+    public function __construct($amount,$userIdList)
     {   
         $this->_awardConfig = config('carnival');
+        $this->amount = $amount;
         $this->userIdList = $userIdList;
     }
 
@@ -37,6 +39,6 @@ class CarnivalSendListRedMoney extends Job implements ShouldQueue
         // var_dump($this->userIdList);exit;
         $actInfo = ActivityService::GetActivityInfoByAlias($this->activity);
         
-        CarnivalRedMoneyService::sendListAward($this->userIdList,$actInfo);
+        CarnivalRedMoneyService::sendAward($this->amount,$this->userIdList,$actInfo);
     }
 }

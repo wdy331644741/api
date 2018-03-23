@@ -11,6 +11,7 @@ use App\Models\UserAttribute;
 use App\Jobs\CarnivalSendRedMoney;
 use App\Jobs\CarnivalSendListRedMoney;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Support\Facades\Redis;
 use Validator, Config, Request, Cache, DB, Session;
 
 class CarnivalJsonRpc extends JsonRpc
@@ -30,8 +31,8 @@ class CarnivalJsonRpc extends JsonRpc
 
         $activityName = 'carnival';
         // 活动是否存在
-        if(ActivityService::isExistByAlias($activityName)) {
-            $game['available'] = 1;
+        if(!ActivityService::isExistByAlias($activityName)) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //请求产品中心 用户是否可以加入战队
         $data['user_id'] = $userId;
@@ -103,18 +104,12 @@ class CarnivalJsonRpc extends JsonRpc
 
 
     private function getRedisUserData($userId){
-        $key = "runActivityAwardData";
-        $allData = Cache::get($key);
-        // $tempArray = json_decode($allData,true);
-        if(!$allData){
-            return null;
-        }
-        $tempArray = array_column($allData, 'allot_amount','user_id');
-        if(isset($tempArray[$userId])){
-            return $tempArray[$userId];
-        }else{
-            return null;
-        }
+        $key = "carnivalActivityAwardData";
+        $redisData = redis::hget($key,$userId);
+        // if(!$redisData){
+        //     return null;
+        // }
+        return $redisData;
     }
 
     /**
@@ -173,7 +168,7 @@ class CarnivalJsonRpc extends JsonRpc
         
         //活动结束，请求产品中心接口  活动是否成功
         $requestData = [];
-        $requestData['startTime'] = $activityTime['statt_at'];
+        $requestData['startTime'] = $activityTime['start_at'];
         $requestData['endTime'] = $activityTime['end_at'];
         $requestData['o'] = 'CarnivalActivity';
         $res = self::jsonRpcApiCall((object)$requestData, 'isValid', env("MARK_HTTP_URL"));
@@ -191,11 +186,15 @@ class CarnivalJsonRpc extends JsonRpc
         if($activityStatus == 2){
             $teamData = $this->processingDisplay();
             $allAmount = $this->getAllInvestment($activityTime);
-        }elseif($activityStatus == 1 || $activityStatus == 3){//活动 成功 结束
-            $teamData = $this->endDisplay();
-            $teamSort = array_keys($teamData);
+        }elseif($activityStatus == 1 || $activityStatus == 3 || $activityStatus == 4){//活动 成功 结束 从缓存里面取数据
             $cacheData = $this->endAllInvestment();
-            $allAmount = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:0;
+            // $teamData = $this->endDisplay();
+            $teamData = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:null;
+            if($teamData){
+                arsort($teamData);//战队排名  排序
+                $teamSort = array_keys($teamData);
+            }
+            $allAmount = isset($cacheData['lendTotalAmount'])?$cacheData['lendTotalAmount']:0;
             $fragment = isset($cacheData['allotAmount'])?$cacheData['allotAmount']:0;
             $fragmentPeople = isset($cacheData['allotTotalNum'])?$cacheData['allotTotalNum']:0;
         }
@@ -236,7 +235,7 @@ class CarnivalJsonRpc extends JsonRpc
         });
     }
 
-    //获取redis 中的活动结束信息
+    //获取redis 中的活动结束信息 ******************
     private function endDisplay(){
         $key = "carnivalEndTeamDisplay";
         return Cache::rememberForever($key, function(){
@@ -327,7 +326,7 @@ class CarnivalJsonRpc extends JsonRpc
     */
     public function carnivalEndRandUserlist($params){
         $teamListAward = config('carnival');
-        $teamListAward = $teamListAward['team_awards'];
+        $teamListAward = $teamListAward['team_awards'];//每个排名 抽多少人
         
         //是否已经开过奖
         $isEnd = $this->isSetSelectUser();
@@ -411,24 +410,42 @@ class CarnivalJsonRpc extends JsonRpc
         $key = "receiveActivityData";
         Cache::rememberForever($key, function() use($params){
             $dataForFe = [];
-            $dataForFe['allotAmount'] = $params['allotAmount'];
-            $dataForFe['allotTotalNum'] = $params['allotTotalNum'];
-            $dataForFe['termLendTotalAmount'] = $params['termLendTotalAmount'];
+            $dataForFe['allotAmount'] = $params['allotAmount'];//瓜分金额
+            $dataForFe['allotTotalNum'] = $params['allotTotalNum'];//瓜分人数
+            $dataForFe['termLendTotalAmount'] = $params['termLendTotalAmount'];//活动结束后各战队表现
+            $dataForFe['lendTotalAmount'] = $params['lendTotalAmount'];//全民出借总金额
             return $dataForFe;
         });
         return 1;
     }
 
     /**
-     * 投资排行榜发奖
+     * 投资排行榜发奖 -活动结束后手动触发接口
      * @JsonRpcMethod
     */
-    public function runRandListAward($params){
-        $temp = json_encode($params);
-        $params = json_decode($temp,true);
-        $this->dispatch(new CarnivalSendListRedMoney($params));
-        // $this->dispatch((new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']))->onQueue('lazy'));
-        return true;
+    public function runRandListAward(){
+        $key = "carnivalActivity_rankingList";
+        if(!Redis::exists($key)){
+            return "key undefind";
+        }
+        $randList = Redis::get($key);
+        $randList = json_decode($randList,true);
+        //活动是否结束
+        if(ActivityService::isExistByAlias('carnival')) {
+            return "活动正在进行中";
+        }
+        $awardList = config('carnival');
+        $userList = array_column($randList, 'user_id');
+        if(count($userList) >= count($awardList['awards'])){
+            return "排行榜大于20人";
+        }
+        $sendData = [];
+        for ($i=0; $i < count($userList); $i++) { 
+            $sendData[$userList[$i]] = $awardList['awards'][$i]['amount'];
+            $this->dispatch(new CarnivalSendListRedMoney($awardList['awards'][$i]['amount'],$userList[$i]));
+        }
+        return $sendData;
+        // // $this->dispatch((new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']))->onQueue('lazy'));
     }
 
     /**
@@ -439,11 +456,6 @@ class CarnivalJsonRpc extends JsonRpc
         //循环发奖
         $temp = json_encode($params);
         $params = json_decode($temp,true);
-        //保存到redis
-        $key = "runActivityAwardData";
-        Cache::rememberForever($key, function() use($params){
-            return $params;
-        });
         $this->sendDivideRedpack($params);
         return true;
     }
@@ -453,6 +465,7 @@ class CarnivalJsonRpc extends JsonRpc
         foreach ($data as $value) {
             //放入队列
             // yield $value;
+            Redis::hSet('carnivalActivityAwardData',$value['user_id'],$value['allot_amount']);
             if($value['allot_amount'] > 0){
                 // $this->dispatch(new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']));
                 $this->dispatch((new CarnivalSendRedMoney($value['allot_amount'],$value['user_id']))->onQueue('lazy'));
