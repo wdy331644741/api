@@ -65,6 +65,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //ios跳转url
+        $data['url_ios'] = trim($request['url_ios']);
         //是否分享
         $data['short_des'] = trim($request['short_des']);
         //简短说明
