@@ -14,7 +14,7 @@ class ChannelController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','name', 'alias_name', 'created_at'];
+    protected $fileds = ['id','name', 'alias_name', 'created_at','is_disable'];
     function __construct() {
         $this->model = new Channel;
     }
