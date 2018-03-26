@@ -71,8 +71,8 @@ class AppUpdateConfigController extends Controller
             'update_time' => 'required|date',
             'force' =>'required|in:0,1',
             'description'=>'required',
-            'url'=>'required_if:platform,1|url',
-            'version'=>array('required','regex:/^\d{1,3}\.\d{1,3}\.\d{1,3}$/'),
+            'url'=>'required:url',
+            'version'=> 'required',
             'size'=>'required',
             'platform'=>'required|in:1,2,3',
         ]);
