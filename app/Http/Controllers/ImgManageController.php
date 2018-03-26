@@ -66,7 +66,7 @@ class ImgManageController extends Controller
         //跳转url
         $data['url'] = trim($request['url']);
         //ios跳转url
-        $data['url_ios'] = trim($request['url_ios']);
+        $data['url_ios'] = isset($request['url_ios']) ? trim($request['url_ios']) : '';
         //是否分享
         $data['short_des'] = trim($request['short_des']);
         //简短说明
@@ -191,7 +191,7 @@ class ImgManageController extends Controller
         //跳转url
         $data['url'] = trim($request['url']);
         //ios跳转url
-        $data['url_ios'] = trim($request['url_ios']);
+        $data['url_ios'] = isset($request['url_ios']) ? trim($request['url_ios']) : '';
         //开始时间
         $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
