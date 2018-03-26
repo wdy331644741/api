@@ -374,7 +374,7 @@ class BannerJsonRpc extends JsonRpc {
 		if (isset($status['result']['code']) && $status['result']['code'] == 0) {
 			if ($status['result']['active_status'] == 0) {
 				$bindStatus = false;
-			} elseif ($status['result']['active_status'] == 1) {
+			} elseif ($status['result']['active_status'] == 2) {
 				$bindStatus = true;
 			} else {
 				return array(
