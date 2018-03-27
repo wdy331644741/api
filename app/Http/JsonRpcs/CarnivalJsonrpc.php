@@ -280,10 +280,9 @@ class CarnivalJsonRpc extends JsonRpc
             $result = self::jsonRpcApiCall((object)$data, 'getTermLendTotalAmount', env("MARK_HTTP_URL"));
             
             $sign = 0;
-            // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 21174,"huanle"=>213332);
+            // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 2102274,"huanle"=>213332);
             foreach ($result['result']['data'] as $key => &$value) {
                 if($value > 10000){
-                    $value = "??".substr((string)$value, -3);
                     $sign++;
                 }
             }
@@ -294,9 +293,26 @@ class CarnivalJsonRpc extends JsonRpc
                         "huanle"=>"待揭晓"
                 ];
             }else{
-                return $result['result']['data'];
+                return $this->arrangeData($result['result']['data']);
             }
         });
+    }
+
+    /*
+     * 整理战队表现数据
+     *
+    */
+    private function arrangeData($array){
+        $newArr = [];
+        $headStr = '';
+        $headCount = strlen(max($array)) - 3;
+        for ($i=0; $i < $headCount; $i++) { 
+            $headStr .= '?';
+        }
+        foreach ($array as $key => $value) {
+            $newArr[$key] = $headStr.substr((string)$value, -3);
+        }
+        return $newArr;
     }
 
     /**
