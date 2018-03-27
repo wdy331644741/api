@@ -424,6 +424,7 @@ class CarnivalJsonRpc extends JsonRpc
         $params = json_decode($temp,true);
         //保存到redis
         $key = "receiveActivityData";
+        Cache::forget($key);
         Cache::rememberForever($key, function() use($params){
             $dataForFe = [];
             $dataForFe['allotAmount'] = $params['allotAmount'];//瓜分金额
