@@ -51,9 +51,9 @@ class SendAward extends Command
         while ($length >0){
             //主循环取队列数据
                 $info = json_decode(REDIS::RPOP($awardKey));
-
-
-
+                if(!$info){
+                    break;
+                }
                 switch ($info['is_rmb']){ //分类发奖
                     case 1://现金奖励
                         $amount = bcmul($info['size'], $info['multiple'] + $info['multipleCard'], 2);
@@ -99,7 +99,7 @@ class SendAward extends Command
 //                if($httpFalut/$http >0.5) {
 //                }
             }
-            $length = REDIS::LLEN($awardKey);
+            $length--;
             sleep(100);
         }
 
