@@ -66,7 +66,7 @@ class BbsCommentJsonRpc extends JsonRpc {
            'data'=>$data,
        );
    }
-    /**
+      /**
      *
      *
      * 删除帖子
@@ -74,32 +74,61 @@ class BbsCommentJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-   public  function delBbsComment($params){
+    public  function delBbsComment($params){
 
-       if (empty($this->userId)) {
-           throw  new OmgException(OmgException::NO_LOGIN);
-       }
-       $validator = Validator::make(get_object_vars($params), [
-           'ids' => 'required'
-       ]);
-       if($validator->fails()){
-           throw new OmgException(OmgException::DATA_ERROR);
-       }
-       $resNum =0;
-       foreach ($params->ids as $value) {
-           $commentInfo = Comment::where(["id" => $value])->first();
-           $res = Comment::where(["id" => $value, "user_id" => $this->userId])->delete();
-           if ($res) {
-               Thread::where(["id" => $commentInfo['tid']])->decrement('comment_num');
-               $resNum++;
-           }
-       }
-       return[
-           'code'=>0,
-           'message'=>'success',
-           'data'=>$resNum,
-       ];
-   }
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+            'ids' => 'required'
+        ]);
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $resNum =0;
+        foreach ($params->ids as $value) {
+            $commentInfo = Comment::where(["id" => $value])->first();
+            $res = Comment::where(["id" => $value, "user_id" => $this->userId])->delete();
+            if ($res) {
+                Thread::where(["id" => $commentInfo['tid']])->decrement('comment_num');
+                $resNum++;
+            }
+        }
+        return[
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$resNum,
+        ];
+    }
+
+
+    /**
+     *
+     *
+     *获取帖子详情
+     *
+     *
+     *
+     * @JsonRpcMethod
+     */
+    public  function getBbsCommentDetail($params){
+
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $validator = Validator::make(get_object_vars($params), [
+             'id'=>'required|exists:bbs_comments,id'
+        ]);
+        if($validator->fails()){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $res = Comment::where(["id"=>$params->id,"isverify"=>1])->first();
+        return[
+            'code'=>0,
+            'message'=>'success',
+            'data'=>$res,
+        ];
+    }
 
 
 

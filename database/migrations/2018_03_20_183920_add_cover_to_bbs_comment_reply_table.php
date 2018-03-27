@@ -14,7 +14,7 @@ class AddCoverToBbsCommentReplyTable extends Migration
     {
         //
         Schema::table('bbs_comment_reply', function (Blueprint $table) {
-            $table->text('cover');
+            $table->text('cover')->default(NULL);
         });
     }
 
