@@ -305,14 +305,14 @@ class BannerJsonRpc extends JsonRpc {
 			'can_use' => 1,
 			'position' => 'pop',
 		);
-		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'url_ios', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
 			->where(function ($query) {
 				$query->whereNull('start')->orWhereRaw('start < now()');
 			})
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -396,7 +396,7 @@ class BannerJsonRpc extends JsonRpc {
 		} else {
 			$where['name'] = '存管弹窗立即开通';
 		}
-		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'url_ios', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
 			->where(function ($query) {
 				$query->whereNull('start')->orWhereRaw('start < now()');
 			})
