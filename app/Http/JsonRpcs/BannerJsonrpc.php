@@ -312,7 +312,7 @@ class BannerJsonRpc extends JsonRpc {
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
