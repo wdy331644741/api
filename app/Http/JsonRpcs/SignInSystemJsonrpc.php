@@ -11,6 +11,7 @@ use App\Service\SignInSystemBasic;
 use App\Service\Func;
 use App\Service\SendAward;
 use Config, Request, Cache;
+use Illuminate\Support\Facades\Redis;
 
 class SignInSystemJsonRpc extends JsonRpc
 {
@@ -136,10 +137,25 @@ class SignInSystemJsonRpc extends JsonRpc
         }
 
         // 发送现金
+        $uuid = SendAward::create_guid();
+        $redisData = [
+            'user_id' => $userId,
+            'award_name' => $result['awardName'],
+            'uuid' => $uuid,
+            'ip' => Request::getClientIp(),
+            'amount' => $award['size'],
+            'multiple' => $result['multiple'],
+            'multiple_card' => $multipleCard,
+            'user_agent' => Request::header('User-Agent'),
+            'status' => 1,//默认是成功，失败会修改为0
+            'type' => 7,
+            'is_rmb'=>$award['is_rmb']
+        ];
         if($award['is_rmb']) {
             $uuid = SendAward::create_guid();
 
             // 创建记录
+
             $result['awardName'] = $award['size'] . '元';
             $result['amount'] = strval($award['size']);
             $result['awardType'] = 7;
@@ -158,7 +174,8 @@ class SignInSystemJsonRpc extends JsonRpc
             ]);
 
             $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, 'shake');
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, '
+            ');
 
             $remark['addMoneyRes'] = $result;
             // 失败
