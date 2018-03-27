@@ -23,7 +23,7 @@
         <div class="about_sidebar_div">
             {{--<a href="/theme/about/" class="about_sidebar_a">关于我们</a>--}}
             <a href="{!! action('ContentController@getList',['type'=>'report']) !!}" class="about_sidebar_a active">媒体报道</a>
-            <a href="{!! action('ContentController@getList',['type'=>'trends']) !!}" class="about_sidebar_a">网利动态</a>
+            <a href="{!! action('ContentController@getList',['type'=>'trends']) !!}" class="">网利动态</a>
             {{--<a href="{!! action('ContentController@getList',['type'=>'notice']) !!}" class="about_sidebar_a">网站公告</a>
             <a href="{!! action('ContentController@getList',['type'=>'classroom']) !!}" class="about_sidebar_a">网贷课堂</a>
             <a href="/theme/runreports/" class="">运营报告</a>--}}
