@@ -282,7 +282,7 @@ class CarnivalJsonRpc extends JsonRpc
             $sign = 0;
             // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 210222724,"huanle"=>213332);
             foreach ($result['result']['data'] as $key => &$value) {
-                if($value > 10000){
+                if($value >= 10000){
                     $sign++;
                 }
             }
