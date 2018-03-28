@@ -43,7 +43,7 @@ class SendAwards extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public static  function handle()
     {
         //
         $awardKey ='shakeSendRewardList';
@@ -53,9 +53,11 @@ class SendAwards extends Command
         $httpFalut =0 ;
         $httpSuccess =0;
         $isSuccess =false;
+        $sign =new SignInSystem();
+
         while ($length >0){
             //主循环取队列数据
-                $info = json_decode(REDIS::RPOP($awardKey));
+                $info = json_decode(REDIS::RPOP($awardKey),true);
                 if(!$info){
                     break;
                 }
@@ -69,8 +71,8 @@ class SendAwards extends Command
                         }
 
                     break;
-                    case 0 ://体验金
-                        $res = SendAward::ActiveSendAward($info['user_id'], $info['awardName']);
+                    case 0 ://红包
+                        $res = SendAward::ActiveSendAward($info['user_id'], $info['alias_name']);
                         $remark['awards'] = $res;
                         if(isset($awards[0]['award_name']) && !$awards[0]['status']){
                             $isSuccess = true;
@@ -82,19 +84,20 @@ class SendAwards extends Command
                 //如果失败 压回队列 继续发送
                 if(!$isSuccess) {
                     //REDIS::LPUSH($awardKey,json_encode($info));
-                    SignInSystem::update(['status'=>0,'remark'=>json_encode($remark, JSON_UNESCAPED_UNICODE)])->where(['id'=>$info['rec_id']]);
+                    $sign->where(['id'=>$info['rec_id']])->update(['status'=>0,'remark'=>json_encode($remark, JSON_UNESCAPED_UNICODE)]);
                     $httpFalut++;
                 }else {
                     //本地留存记录
-                    SignInSystem::update(['status'=>1,'remark'=>json_encode($remark, JSON_UNESCAPED_UNICODE)])->where(['id'=>$info['rec_id']]);
+                    $sign->where(['id'=>$info['rec_id']])->update(['status'=>1,'remark'=>json_encode($remark, JSON_UNESCAPED_UNICODE)]);
                     $httpSuccess++;
                 }
+                $remark=[];
                 $http++;
+
 //                if($httpFalut/$http >0.5) {
 //                }
             }
             $length--;
-            sleep(100);
         }
 
 
