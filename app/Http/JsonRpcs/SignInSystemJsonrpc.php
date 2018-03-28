@@ -165,7 +165,7 @@ class SignInSystemJsonRpc extends JsonRpc
             'amount_type'=>"shake",//现金类型（摇一摇现金奖励）
             'alias_name' =>$award['alias_name']//100元红包活动别名
         ];
-        Redis::LPUSH("shakeSendRewardList",$redisData);
+        Redis::LPUSH("shakeSendRewardList",json_encode($redisData));
         return [
             'code' => 0,
             'message' => 'success',
