@@ -41,7 +41,7 @@ class SendAward extends Command
     public function handle()
     {
         //
-        $awardKey ='awardList';
+        $awardKey ='shakeSendRewardList';
 
         $length = REDIS::LLEN($awardKey);//获取队列长度
         $http = 0;
