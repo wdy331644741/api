@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Redis;
 
 use App\Models\SignInSystem;
 
-class SendAward extends Command
+use App\Service\Func;
+
+use App\Service\SendAward;
+
+class SendAwards extends Command
 {
     /**
      * The name and signature of the console command.
