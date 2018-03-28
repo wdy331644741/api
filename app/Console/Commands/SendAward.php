@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 
 use Illuminate\Support\Facades\Redis;
 
+use App\Models\SignInSystem;
 
 class SendAward extends Command
 {
@@ -56,8 +57,8 @@ class SendAward extends Command
                 }
                 switch ($info['is_rmb']){ //分类发奖
                     case 1://现金奖励
-                        $amount = bcmul($info['size'], $info['multiple'] + $info['multipleCard'], 2);
-                        $res = Func::incrementAvailable($info['user_id'], '', $info['uuid'], $amount, '');
+
+                        $res = Func::incrementAvailable($info['user_id'], $info['rec_id'], $info['uuid'], $info['amount'],$info['amount_type']);
                         $remark['addMoneyRes'] = $res;
                         if(isset($res['result'])){
                             $isSuccess = true;
@@ -76,23 +77,12 @@ class SendAward extends Command
 
                 //如果失败 压回队列 继续发送
                 if(!$isSuccess) {
-                    REDIS::LPUSH($awardKey,json_encode($info));
+                    //REDIS::LPUSH($awardKey,json_encode($info));
+                    SignInSystem::update(['status'=>0,'remark'=>json_encode($remark, JSON_UNESCAPED_UNICODE)])->where(['id'=>$info['rec_id']]);
                     $httpFalut++;
                 }else {
                     //本地留存记录
-                    SignInSystem::create([
-                        'user_id' => $info['user_id'],
-                        'award_name' => $info['award_name'],
-                        'uuid' => $info['uuid'],
-                        'ip' => $info['ip'],
-                        'amount' => $info['size'],
-                        'multiple' => $info['multiple'],
-                        'multiple_card' => $info['multiple_card'],
-                        'user_agent' => $info['user_agent'],
-                        'status' => $info['status'],//默认是成功，失败会修改为0
-                        'type' => $info['type'],
-                        'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-                    ]);
+                    SignInSystem::update(['status'=>1,'remark'=>json_encode($remark, JSON_UNESCAPED_UNICODE)])->where(['id'=>$info['rec_id']]);
                     $httpSuccess++;
                 }
                 $http++;
