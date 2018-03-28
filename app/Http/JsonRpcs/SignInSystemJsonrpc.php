@@ -136,9 +136,12 @@ class SignInSystemJsonRpc extends JsonRpc
             $result['multiple_card'] = $multipleCard;
         }
 
-        // 发送现金
+        // 创建记录
+        $result['awardName'] = $award['is_rmb'] ? $award['size'] . '元' : "100元摇一摇红包";
+        $result['amount'] = $award['is_rmb'] ? strval($award['size']) : 100;
+        $result['awardType'] = $award['is_rmb'] ? 7 : 2;
         $uuid = SendAward::create_guid();
-        $redisData = [
+        $res = SignInSystem::create([
             'user_id' => $userId,
             'award_name' => $result['awardName'],
             'uuid' => $uuid,
@@ -148,68 +151,21 @@ class SignInSystemJsonRpc extends JsonRpc
             'multiple_card' => $multipleCard,
             'user_agent' => Request::header('User-Agent'),
             'status' => 1,//默认是成功，失败会修改为0
-            'type' => 7,
-            'is_rmb'=>$award['is_rmb']
+            'type' => $result['awardType'],
+            'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
+        ]);
+        $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
+        //放到redis
+        $redisData = [
+            'is_rmb'=>$award['is_rmb'],//是否是现金类型true是，false否
+            'user_id'=>$userId,//用户id
+            'uuid'=>$uuid,//唯一ID
+            'rec_id'=>$res->id,//记录id
+            'amount'=>$amount,//现金金额
+            'amount_type'=>"shake",//现金类型（摇一摇现金奖励）
+            'alias_name' =>$award['alias_name']//100元红包活动别名
         ];
-        if($award['is_rmb']) {
-            $uuid = SendAward::create_guid();
-
-            // 创建记录
-
-            $result['awardName'] = $award['size'] . '元';
-            $result['amount'] = strval($award['size']);
-            $result['awardType'] = 7;
-            $res = SignInSystem::create([
-                'user_id' => $userId,
-                'award_name' => $result['awardName'],
-                'uuid' => $uuid,
-                'ip' => Request::getClientIp(),
-                'amount' => $award['size'],
-                'multiple' => $result['multiple'],
-                'multiple_card' => $multipleCard,
-                'user_agent' => Request::header('User-Agent'),
-                'status' => 1,//默认是成功，失败会修改为0
-                'type' => 7,
-                'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-            ]);
-
-            $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $amount, '
-            ');
-
-            $remark['addMoneyRes'] = $result;
-            // 失败
-            if(!isset($purchaseRes['result'])) {
-                $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
-                throw new OmgException(OmgException::API_FAILED);
-            }
-        }
-
-        // 根据别名发活动奖品
-        if(!$award['is_rmb']) {
-            $aliasName = $award['alias_name'];
-            $awards = SendAward::ActiveSendAward($userId, $aliasName);
-            if(isset($awards[0]['award_name']) && $awards[0]['status']) {
-                $result['awardName'] = $awards[0]['award_name'];
-                $result['awardType'] = $awards[0]['award_type'];
-                $result['amount'] = strval(intval($result['awardName']));
-                $remark['awards'] = $awards;
-                SignInSystem::create([
-                    'user_id' => $userId,
-                    'amount' => $award['size'],
-                    'award_name' => $result['awardName'],
-                    'uuid' => '',
-                    'ip' => Request::getClientIp(),
-                    'user_agent' => Request::header('User-Agent'),
-                    'status' => 1,
-                    'type' => $result['awardType'],
-                    'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-                ]);
-            }else{
-                throw new OmgException(OmgException::API_FAILED);
-            }
-        }
-
+        Redis::LPUSH("shakeSendRewardList",$redisData);
         return [
             'code' => 0,
             'message' => 'success',
