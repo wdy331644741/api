@@ -280,7 +280,7 @@ class CarnivalJsonRpc extends JsonRpc
             $result = self::jsonRpcApiCall((object)$data, 'getTermLendTotalAmount', env("MARK_HTTP_URL"));
             
             $sign = 0;
-            // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 2102274,"huanle"=>213332);
+            // $result['result']['data'] = array("xingfu"=> 23455,"kuaile"=> 210222724,"huanle"=>213332);
             foreach ($result['result']['data'] as $key => &$value) {
                 if($value > 10000){
                     $sign++;
@@ -305,12 +305,12 @@ class CarnivalJsonRpc extends JsonRpc
     private function arrangeData($array){
         $newArr = [];
         $headStr = '';
-        $headCount = strlen(max($array)) - 3;
+        $headCount = strlen(max($array)) - 4;
         for ($i=0; $i < $headCount; $i++) { 
             $headStr .= '?';
         }
         foreach ($array as $key => $value) {
-            $newArr[$key] = $headStr.substr((string)$value, -3);
+            $newArr[$key] = $headStr.substr((string)$value, -4);
         }
         return $newArr;
     }
@@ -424,6 +424,7 @@ class CarnivalJsonRpc extends JsonRpc
         $params = json_decode($temp,true);
         //保存到redis
         $key = "receiveActivityData";
+        Cache::forget($key);
         Cache::rememberForever($key, function() use($params){
             $dataForFe = [];
             $dataForFe['allotAmount'] = $params['allotAmount'];//瓜分金额
