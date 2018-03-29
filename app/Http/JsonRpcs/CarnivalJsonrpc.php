@@ -12,6 +12,7 @@ use App\Jobs\CarnivalSendRedMoney;
 use App\Jobs\CarnivalSendListRedMoney;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Support\Facades\Redis;
+use App\Service\SendMessage;
 use Validator, Config, Request, Cache, DB, Session;
 
 class CarnivalJsonRpc extends JsonRpc
@@ -341,13 +342,14 @@ class CarnivalJsonRpc extends JsonRpc
      * @JsonRpcMethod
     */
     public function carnivalEndRandUserlist($params){
-        $teamListAward = config('carnival');
-        $teamListAward = $teamListAward['team_awards'];//每个排名 抽多少人
-        
+        $teamListAwardInfo = config('carnival');
+        $teamListAward = $teamListAwardInfo['team_awards'];//每个排名 抽多少人
+        $msgTemp = $teamListAwardInfo['jdCard'];//京东卡站内信 短信
+
         //是否已经开过奖
         $isEnd = $this->isSetSelectUser();
         $key = "carnivalEndData";
-        $endData = Cache::rememberForever($key, function() use($params,$isEnd,$teamListAward){
+        $endData = Cache::rememberForever($key, function() use($params,$isEnd,$teamListAward,$msgTemp){
             //if已经开过奖，并且cache丢了
             if($isEnd){
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
@@ -380,10 +382,11 @@ class CarnivalJsonRpc extends JsonRpc
                 }else{
                     $random_keys_array = $random_keys;
                 }
+                // return $msgTemp[$params->$k];
                 foreach ($v as $key => $value) {
                     if(in_array($key, $random_keys_array) ){
                         $newArray[$k][$key] = $value;
-                        $this->setSelectUser($key);
+                        $this->setSelectUser($key,$msgTemp[$params->$k]);
                     }
                 }
             }
@@ -397,9 +400,16 @@ class CarnivalJsonRpc extends JsonRpc
      * 设置中奖人记录
      *
     */
-    private function setSelectUser($userId){
-        $text = "中奖";
-        $attribute = Attributes::setText($userId,'carnival',$text);
+    private function setSelectUser($userId,$text){
+        $resMail = SendMessage::Mail($userId,$text);//站内信
+        $resMessage = SendMessage::Message($userId, $text,[]);
+        $mark = '';
+        if($resMail)
+            $mark .= '站内信发送成功';
+        if($resMessage)
+            $mark .= '短信发送成功';
+
+        $attribute = Attributes::setText($userId,'carnival',$mark);
     }
 
     /**
