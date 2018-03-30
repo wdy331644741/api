@@ -207,10 +207,10 @@ class CarnivalJsonRpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'allAmount' => ($allAmount !== 0)?number_format($allAmount,2):$allAmount,//出借总金额
-                'fragment' => ($fragment !== 0)?number_format($fragment,2):$fragment,//瓜分金额
-                'fragmentPeople' => $fragmentPeople,//瓜分人数
-                'teamData'  => $teamData,//战队表现
+                'allAmount' => $allAmount,//出借总金额 
+                'fragment' => $fragment,//瓜分金额 
+                'fragmentPeople' => $fragmentPeople,//瓜分人数 
+                'teamData'  => $teamData,//战队表现 
                 'teamSort'  => $teamSort,//战队排名 
                 'timeing'   => $diffTime, //倒计时
                 'end_at'    => strtotime($activityTime['end_at']),
