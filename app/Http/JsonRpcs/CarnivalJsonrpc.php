@@ -190,11 +190,17 @@ class CarnivalJsonRpc extends JsonRpc
         }elseif($activityStatus == 1 || $activityStatus == 3 || $activityStatus == 4){//活动 成功 结束 从缓存里面取数据
             $cacheData = $this->endAllInvestment();
             // $teamData = $this->endDisplay();
-            $teamData = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:null;
-            if($teamData){
-                arsort($teamData);//战队排名  排序
-                $teamSort = array_keys($teamData);
+            $teamDataT = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:null;
+            if($teamDataT){
+                arsort($teamDataT);//战队排名  排序
+                $teamSort = array_keys($teamDataT);
+            }else{
+                //随便给一个 默认顺序
+                $teamSort = ['xingfu','kuaile','huanle'];
             }
+            $teamData['kuaile'] = number_format($teamDataT['kuaile']);
+            $teamData['huanle'] = number_format($teamDataT['huanle']);
+            $teamData['xingfu'] = number_format($teamDataT['xingfu']);
             $allAmount = isset($cacheData['lendTotalAmount'])?$cacheData['lendTotalAmount']:0;
             $fragment = isset($cacheData['allotAmount'])?$cacheData['allotAmount']:0;
             $fragmentPeople = isset($cacheData['allotTotalNum'])?$cacheData['allotTotalNum']:0;
@@ -204,8 +210,8 @@ class CarnivalJsonRpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'allAmount' => $allAmount,//出借总金额
-                'fragment' => $fragment,//瓜分金额
+                'allAmount' => number_format($allAmount,2),//出借总金额
+                'fragment' => number_format($fragment,2),//瓜分金额
                 'fragmentPeople' => $fragmentPeople,//瓜分人数
                 'teamData'  => $teamData,//战队表现
                 'teamSort'  => $teamSort,//战队排名 
@@ -352,10 +358,11 @@ class CarnivalJsonRpc extends JsonRpc
         $endData = Cache::rememberForever($key, function() use($params,$isEnd,$teamListAward,$msgTemp){
             //if已经开过奖，并且cache丢了
             if($isEnd){
+                //where条件  text !=【】 ????
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
                 $databaseInfo = [];
                 foreach ($item as $key => $value) {
-                    if($value['text'] == '中奖'){
+                    if($value['text'] != '[]'){
                         $databaseInfo[$value['string']][$value['user_id']] = $value['created_at'];
                     }
                 }
@@ -463,7 +470,7 @@ class CarnivalJsonRpc extends JsonRpc
         }
         $awardList = config('carnival');
         $userList = array_column($randList, 'user_id');
-        if(count($userList) >= count($awardList['awards'])){
+        if(count($userList) > count($awardList['awards'])){
             return "排行榜大于20人";
         }
         $sendData = [];
