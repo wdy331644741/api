@@ -355,6 +355,7 @@ class CarnivalJsonRpc extends JsonRpc
         $endData = Cache::rememberForever($key, function() use($params,$isEnd,$teamListAward,$msgTemp){
             //if已经开过奖，并且cache丢了
             if($isEnd){
+                //where条件  text !=【】 ????
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
                 $databaseInfo = [];
                 foreach ($item as $key => $value) {
@@ -405,12 +406,12 @@ class CarnivalJsonRpc extends JsonRpc
     */
     private function setSelectUser($userId,$text){
         $resMail = SendMessage::Mail($userId,$text);//站内信
-        $resMessage = SendMessage::Message($userId, $text,[]);
+        //$resMessage = SendMessage::Message($userId, $text,[]);
         $mark = '';
         if($resMail)
             $mark .= '站内信发送成功';
-        if($resMessage)
-            $mark .= '短信发送成功';
+        // if($resMessage)
+        //     $mark .= '短信发送成功';
 
         $attribute = Attributes::setText($userId,'carnival',$mark);
     }
