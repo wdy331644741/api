@@ -190,13 +190,16 @@ class CarnivalJsonRpc extends JsonRpc
         }elseif($activityStatus == 1 || $activityStatus == 3 || $activityStatus == 4){//活动 成功 结束 从缓存里面取数据
             $cacheData = $this->endAllInvestment();
             // $teamData = $this->endDisplay();
-            $teamData = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:null;
-            if($teamData){
-                arsort($teamData);//战队排名  排序
-                $teamSort = array_keys($teamData);
+            $teamDataT = isset($cacheData['termLendTotalAmount'])?$cacheData['termLendTotalAmount']:null;
+            if($teamDataT){
+                arsort($teamDataT);//战队排名  排序
+                $teamSort = array_keys($teamDataT);
             }
-            $allAmount = isset($cacheData['lendTotalAmount'])?$cacheData['lendTotalAmount']:0;
-            $fragment = isset($cacheData['allotAmount'])?$cacheData['allotAmount']:0;
+            $teamData['kuaile'] = number_format((int)$teamDataT['kuaile']);
+            $teamData['huanle'] = number_format((int)$teamDataT['huanle']);
+            $teamData['xingfu'] = number_format((int)$teamDataT['xingfu']);
+            $allAmount = isset($cacheData['lendTotalAmount'])?number_format((int)$cacheData['lendTotalAmount'],2):0;
+            $fragment = isset($cacheData['allotAmount'])?number_format((int)$cacheData['allotAmount'],2):0;
             $fragmentPeople = isset($cacheData['allotTotalNum'])?$cacheData['allotTotalNum']:0;
         }
         
@@ -355,7 +358,7 @@ class CarnivalJsonRpc extends JsonRpc
                 $item = UserAttribute::select('user_id','string','text','created_at')->where(['key' => 'carnival' ])->get()->toArray();
                 $databaseInfo = [];
                 foreach ($item as $key => $value) {
-                    if($value['text'] == '中奖'){
+                    if($value['text'] != '[]'){
                         $databaseInfo[$value['string']][$value['user_id']] = $value['created_at'];
                     }
                 }
