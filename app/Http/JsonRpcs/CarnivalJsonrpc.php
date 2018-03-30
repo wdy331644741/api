@@ -467,7 +467,7 @@ class CarnivalJsonRpc extends JsonRpc
         }
         $awardList = config('carnival');
         $userList = array_column($randList, 'user_id');
-        if(count($userList) >=  count($awardList['awards'])){
+        if(count($userList) > count($awardList['awards'])){
             return "排行榜大于20人";
         }
         $sendData = [];
