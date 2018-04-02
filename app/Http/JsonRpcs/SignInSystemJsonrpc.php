@@ -7,6 +7,7 @@ use App\Models\SignInSystem;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
+use App\Service\SendMessage;
 use App\Service\SignInSystemBasic;
 use App\Service\Func;
 use App\Service\SendAward;
@@ -22,7 +23,7 @@ class SignInSystemJsonRpc extends JsonRpc
      */
     public function signInSystemInfo() {
         global $userId;
-
+        $userId = 1716707;
         $config = Config::get('signinsystem');
         $user = ['invested' => false, 'login' => false, 'multiple' => 1, 'multiple_card' => 0,'user_end_time' => 0];
         $game = ['available' => false, 'awardNum' => 0, 'nextSeconds' => 0];
@@ -85,7 +86,7 @@ class SignInSystemJsonRpc extends JsonRpc
      */
     public function signInSystemDraw() {
         global $userId;
-
+        $userId = 1716707;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -97,9 +98,9 @@ class SignInSystemJsonRpc extends JsonRpc
         }
 
         // 是否触发间隔限制
-        if($this->isTooOften($userId, $config)) {
-            throw new OmgException(OmgException::API_BUSY);
-        }
+//        if($this->isTooOften($userId, $config)) {
+//            throw new OmgException(OmgException::API_BUSY);
+//        }
 
         $result = [
             'awardName' => '',
@@ -150,21 +151,46 @@ class SignInSystemJsonRpc extends JsonRpc
             'multiple' => $result['multiple'],
             'multiple_card' => $multipleCard,
             'user_agent' => Request::header('User-Agent'),
-            'status' => 1,//默认是成功，失败会修改为0
-            'type' => $result['awardType'],
-            'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
+            'status' => 1,//默认是成功
+            'type' => $result['awardType']
         ]);
         $amount = bcmul($award['size'], $result['multiple'] + $multipleCard, 2);
         //放到redis
-        $redisData = [
-            'is_rmb'=>$award['is_rmb'],//是否是现金类型true是，false否
-            'user_id'=>$userId,//用户id
-            'uuid'=>$uuid,//唯一ID
-            'rec_id'=>$res->id,//记录id
-            'amount'=>$amount,//现金金额
-            'amount_type'=>"shake",//现金类型（摇一摇现金奖励）
-            'alias_name' =>$award['alias_name']//100元红包活动别名
-        ];
+        if($award['is_rmb']){
+            $redisData = [
+                'send_type'=> 7,//发送类型7是现金2是红包
+                'user_id'=> $userId,//用户id
+                'record_id'=> $res->id,//记录id
+                'uuid'=> $uuid,//唯一ID
+                'amount'=> $amount,//现金金额金额
+                'type'=> "shake",//现金类型（摇一摇现金奖励）
+                'sign' => hash('sha256', $userId.env('INSIDE_SECRET')),
+            ];
+        }else{
+            $redisData = [
+                'send_type'=>2,//发送类型7是现金2是红包
+                'user_id' => $userId,
+                'uuid' => $uuid,
+                'source_id' => 0,
+                'project_ids' =>'',
+                'project_type' => 0,
+                'project_duration_type' => 3,
+                'project_duration_time' => 6,
+                'name' => "100元摇一摇红包",
+                'type' => 1,
+                'amount' => 100,
+                'effective_start' => date("Y-m-d H:i:s"),
+                'effective_end' => date("Y-m-d H:i:s", strtotime("+7 days")),
+                'investment_threshold' => 10000,
+                'source_name' => "签到摇一摇",
+                'platform' => 0,
+                'limit_desc' => "10000元起投，限6月及以上标",
+                'remark' => '',
+            ];
+            $message = ["sourcename"=>"签到摇一摇","awardname"=>"100元摇一摇红包"];
+            SendMessage::Mail($userId,"恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。",$message);
+        }
+        //放到队列
         Redis::LPUSH("shakeSendRewardList",json_encode($redisData));
         return [
             'code' => 0,
@@ -180,9 +206,9 @@ class SignInSystemJsonRpc extends JsonRpc
      */
     private function getLastGlobalNum($item) {
         // 活动开始一段时间后强制结束
-        if(time() - $item['startTimestamps'] > $item['times']) {
-            return 0;
-        }
+//        if(time() - $item['startTimestamps'] > $item['times']) {
+//            return 0;
+//        }
 
         $globalKey = Config::get('signinsystem.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
         $awardNumberMultiple = Config::get('signinsystem.award_number_multiple');
