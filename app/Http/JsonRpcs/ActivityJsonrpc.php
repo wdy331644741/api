@@ -25,6 +25,7 @@ use App\Models\Award3;
 use App\Models\Award4;
 use App\Models\Award5;
 use App\Models\Coupon;
+use App\Models\CouponCode;
 use App\Models\Statistics;
 use App\Models\DataBlackWord;
 use Cache,DB;
@@ -32,6 +33,7 @@ use App\Service\ActivityService;
 use Lib\McQueue;
 use App\Service\GlobalAttributes;
 use App\Service\SignInSystemBasic;
+use Illuminate\Pagination\Paginator;
 class ActivityJsonRpc extends JsonRpc {
 
 
@@ -504,6 +506,51 @@ class ActivityJsonRpc extends JsonRpc {
             'message' => 'success',
             'data' => json_decode($json)
         );
+    }
+
+    /**
+     * 麻辣H5 活动状态
+     *
+     * @JsonRpcMethod
+     */
+    function spicyAwardStatus(){
+        $where['alias_name'] = 'spicy_198';//活动别名 唯一值
+        $where['enable'] = 1;
+        //获取活动信息
+        $activity = Activity::where($where)->first();
+        if(empty($activity)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //获取奖品id
+        $activityID = isset($activity['id']) ? $activity['id'] : 0;
+        if(empty($activityID)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $awardsList = Award::where('activity_id',$activityID)->get()->toArray();
+        if(empty($awardsList)){
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        //活动配置错误？
+        if(count($awardsList)>1 || $awardsList[0]['award_type'] != 6){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $couponCode = new CouponCode;
+        $couponStatus = $couponCode::select(DB::raw('count(*) as counts'))->where('coupon_id',$awardsList[0]['award_id'])->where('is_use',0)->get()->toArray();
+        $data = array();
+        if($couponStatus[0]['counts'] >0){
+            $data['status'] = 'effective';//failure
+            //如果活动 导入兑换码 大于200时。显示仍为200
+            $data['num'] = $couponStatus[0]['counts']>200 ? 200 : $couponStatus[0]['counts'];
+        }else{
+            $data['status'] = 'failure';
+            $data['num'] = 0;
+        }
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );    
     }
 
     /**
@@ -1115,4 +1162,58 @@ class ActivityJsonRpc extends JsonRpc {
         return $rand;
     }
 
+    /**
+     *  签到记录(配文后台)
+     * @params  channel string 必须
+     * @JsonRpcMethod
+     */
+    public function getSignInList($params){
+        $userId = isset($params->user_id) && $params->user_id > 0 ? $params->user_id : 0 ;
+        if($userId <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $num = isset($params->num) ? $params->num : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+        if($num <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        if($page <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //根据活动别名获取活动id
+        $activityId = ActivityService::GetActivityInfoByAlias('signin_record');
+        $activityId = isset($activityId['id']) ? $activityId['id'] : 0;
+        if($activityId <= 0) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        $data = ActivityJoin::select('created_at', 'user_id')
+            ->where('user_id', $userId)
+            ->where('activity_id', $activityId)
+            ->where('status',3)
+            ->orderBy('id', 'desc')->paginate($num)->toArray();
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
+
+    /**
+     *  注册送红包文案
+     *
+     * @JsonRpcMethod
+     */
+    public function getRegisterAwardInfo() {
+        $aliasName = "register_hongbao_880";
+        $data = GlobalAttributes::getText($aliasName);
+        $data = json_decode($data, true);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        ];
+    }
 }

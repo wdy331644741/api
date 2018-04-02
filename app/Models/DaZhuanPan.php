@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class DaZhuanPan extends Model
 {
-    public $table = 'dazhuanpan';
+    public $table = 'longyinhuxiao';
     protected $guarded = ['created_at', 'update_at'];
 }

@@ -4,7 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\Activity;
-use App\Models\DaZhuanPan;
+use App\Models\KbDaZhuanPan;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
@@ -27,7 +27,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
     public function dazhuanpanInfo() {
         global $userId;
 
-        $config = Config::get('dazhuanpan');
+        $config = Config::get('kbdazhuanpan');
         $result = ['login' => false, 'available' => 0, 'number' => 0];
 
         // 用户是否登录
@@ -36,7 +36,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
         }
 
         // 活动是否存在
-        $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();;
+        $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();
         if(isset($activityInfo->id) && $activityInfo->id > 0) {
             $startTime = isset($activityInfo->start_at) && !empty($activityInfo->start_at) ? strtotime($activityInfo->start_at) : 0;
             $endTime = isset($activityInfo->end_at) && !empty($activityInfo->end_at) ? strtotime($activityInfo->end_at) : 0;
@@ -93,17 +93,16 @@ class DaZhuanPanJsonRpc extends JsonRpc
      */
     public function dazhuanpanDraw($params) {
         global $userId;
-
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
         //获取抽奖次数
         $num = isset($params->num) ? $params->num : 0;
-        if($num != 1 && $num != 10){
+        if($num != 1){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $config = Config::get('dazhuanpan');
+        $config = Config::get('kbdazhuanpan');
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
@@ -111,7 +110,6 @@ class DaZhuanPanJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         UserAttribute::where('user_id',$userId)->where('key',$config['drew_total_key'])->lockForUpdate()->get();
-
         $number = $this->getUserNum($userId,$config);
         if($number <= 0) {
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
@@ -120,28 +118,31 @@ class DaZhuanPanJsonRpc extends JsonRpc
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
 
+        /*
         // 循环获取奖品
         $awardArr = [];
         for($i = 1;$i <= $num; $i++){
             $award = $this->getAward($config);
             $awardArr[] = $award;
         }
+        */
+        //只能一次一次抽奖
+        $award = $this->getAward($config);
+
         //放入队列
-        $this->dispatch(new DazhuanpanBatch($userId,$config,$awardArr));
+        $this->dispatch(new DazhuanpanBatch($userId,$config,$award));
         //格式化后返回
-        foreach($awardArr  as &$item){
-            unset($item['num']);
-            unset($item['weight']);
-        }
+        unset($award['num']);
+        unset($award['weight']);
         //减少用户抽奖次数
-        $this->reduceUserNum($userId,$config,count($awardArr));
+        $this->reduceUserNum($userId,$config,1);
 
         //事务提交结束
         DB::commit();
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $awardArr,
+            'data' => $award,
         ];
     }
 
@@ -168,16 +169,22 @@ class DaZhuanPanJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = DaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')
+        $data = KbDaZhuanPan::select('user_id', 'type', 'award_name', 'alias_name', 'created_at')
             ->where('type', '!=', 'empty')
             ->where('user_id',$userId)
             ->orderBy('id', 'desc')->paginate($num)->toArray();
-        foreach ($data as &$item){
-            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+        foreach ($data['data'] as &$item){
+//            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+            if(!empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
+            $item['effective_time_day'] = '';
+            if($item['type'] == 'activity'){
+                $item['effective_time_day'] = date('Y-m-d H:i:s', strtotime($item['created_at']) + 7 * 24 * 3600);
+            }
         }
+        
         $rData['total'] = $data['total'];
         $rData['per_page'] = $data['per_page'];
         $rData['current_page'] = $data['current_page'];
@@ -197,8 +204,8 @@ class DaZhuanPanJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function dazhuanpanList() {
-        $list = Cache::remember('dazhuanpan_list', 2, function() {
-            $data = DaZhuanPan::select('user_id', 'award_name')->where('type', '!=', 'empty')->orderBy('id', 'desc')->take(20)->get();
+        $list = Cache::remember('kb_dazhuanpan_list', 2, function() {
+            $data = KbDaZhuanPan::select('user_id', 'award_name')->where('type', '!=', 'empty')->orderBy('id', 'desc')->groupBy('user_id')->take(20)->get();
             foreach ($data as &$item){
                 if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                     $phone = Func::getUserPhone($item['user_id']);
@@ -206,14 +213,14 @@ class DaZhuanPanJsonRpc extends JsonRpc
                 }
             }
             //获取随机加入的奖品
-            $joinData = $this->joinData();
-            if(!empty($joinData)){
-                $newData[0] = $joinData;
-                for($i=1;$i<=count($data);$i++){
-                    $newData[$i] = $data[$i-1];
-                }
-                $data = $newData;
-            }
+//            $joinData = $this->joinData();
+//            if(!empty($joinData)){
+//                $newData[0] = $joinData;
+//                for($i=1;$i<=count($data);$i++){
+//                    $newData[$i] = $data[$i-1];
+//                }
+//                $data = $newData;
+//            }
             return $data;
         });
 
@@ -227,6 +234,10 @@ class DaZhuanPanJsonRpc extends JsonRpc
     //获取奖品
     private function getAward($config) {
         $awardList = $config['awards'];
+        $KbTotalMoney = GlobalAttributes::getString('kb_dazhuanpan_total_money');
+        if(intval($KbTotalMoney) >= 62000){
+            return $awardList[0];
+        }
         // 获取权重总值
         $weight = 0;
         foreach($awardList as $award) {
@@ -242,16 +253,17 @@ class DaZhuanPanJsonRpc extends JsonRpc
                 // 单个奖品送完
                 if($usedNumber >= $award['num']) {
                     //谢谢参与&100元红包
-                    $round = mt_rand(0,1);
-                    return $awardList[$round];
+                    return $awardList[0];
                 }
-                GlobalAttributes::incrementByDay($globalKey);
+
+                if($award['type'] !== 'activity'){
+                    GlobalAttributes::incrementByDay($globalKey);
+                }
                 return $award;
             }
         }
         //谢谢参与&100元红包
-        $round = mt_rand(0,1);
-        return $awardList[$round];
+        return $awardList[0];
     }
 
     //获取用户的剩余次数
@@ -277,7 +289,7 @@ class DaZhuanPanJsonRpc extends JsonRpc
 
     //获取每5天加入的奖品和每2天加入的奖品
     private function joinData(){
-        $config = Config::get('dazhuanpan');
+        $config = Config::get('kbdazhuanpan');
         //获取活动开始时间&计算活动开始的天数
         $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
         $activityDay = isset($activityInfo->start_at) ? strtotime($activityInfo->start_at) : strtotime('2017-07-03 00:00:00');

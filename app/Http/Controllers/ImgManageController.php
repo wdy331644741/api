@@ -25,7 +25,7 @@ class ImgManageController extends Controller
         if(!empty($position)){
             $where['position'] = $position;
         }
-        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('can_use','DESC')->orderBy('sort','DESC')->paginate(20);
+        $data = Banner::where('can_use','>=','0')->where('can_use','<=','1')->where($where)->orderBy('can_use','DESC')->orderBy('sort','DESC')->paginate(100);
         return $this->outputJson(0,$data);
     }
     //获取某个位置的附件列表
@@ -65,6 +65,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //ios跳转url
+        $data['url_ios'] = isset($request['url_ios']) ? trim($request['url_ios']) : '';
         //是否分享
         $data['short_des'] = trim($request['short_des']);
         //简短说明
@@ -168,7 +170,7 @@ class ImgManageController extends Controller
             'id' => 'required|integer|min:1',
             'position' => 'required|min:2|max:255',
             'img_path' => 'required|min:2|max:255',
-            'activity_time' => 'date'
+            'activity_time' => 'date',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -188,6 +190,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //ios跳转url
+        $data['url_ios'] = isset($request['url_ios']) ? trim($request['url_ios']) : '';
         //开始时间
         $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
@@ -204,6 +208,9 @@ class ImgManageController extends Controller
         $data['updated_at'] = date("Y-m-d H:i:s");
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
+
+        $data['tag'] = empty($request['tag']) ? null : $request['tag'];
+
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));

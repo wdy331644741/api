@@ -143,6 +143,25 @@ class ChannelController extends Controller
         }
     }
 
+    //渠道禁用1 & 启用0
+    public function postUpdateStatus(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|min:1',
+            'status' => 'required|integer|min:0'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
+        }
+        $upData = [];
+        $upData['is_disable'] = $request->status;
+        $upData['updated_at'] = date("Y-m-d H:i:s");
+        if(isset($request->id) && $request->id > 0){
+            $res = Channel::where('id',$request->id)->update($upData);
+            return $this->outputJson(0, $res);
+        }
+        return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+    }
+
     //统计用的渠道数据
     public function getCountJson(){
         $data = Channel::orderBy('id','desc')->get();

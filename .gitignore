@@ -10,3 +10,6 @@ composer.lock
 storage/images
 storage/coupon
 storage
+composer.phar
+composer-setup.php
+

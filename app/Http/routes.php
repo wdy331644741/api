@@ -13,6 +13,7 @@ Route::group(['middleware' => 'internal'], function() {
     Route::post('rpc/inside', 'RpcController@postInside'); // 内部rpc接口
     Route::controller('mc', 'MessageCenterController');
     Route::controller('wsm', 'WechatSendmsgController'); //微信模板消息发送
+    Route::controller('su', 'SyncBbsUserController'); //
 });
 
 // admin接口
@@ -65,6 +66,13 @@ Route::group(['middleware' => 'admin'], function(){
     // 红包分享
     Route::controller('money', 'MoneyShareController');
 
+    // ios审核设置
+    Route::controller('examine', 'ExamineController');
+
+    //后台用户记录日志
+    Route::controller('log', 'LogController');
+
+
 });
 
 // 对外接口
@@ -91,4 +99,5 @@ Route::controller('media', 'MediaController');
 Route::get('content/help','ContentController@getHelp');
 Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
 Route::get('content/{type?}/{page?}','ContentController@getList');
+Route::get('content/export-gxfc-execl/{tid?}/{date?}','ContentController@getExportGxfcExecl');
 //上传文件
