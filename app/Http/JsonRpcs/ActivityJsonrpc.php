@@ -33,6 +33,7 @@ use App\Service\ActivityService;
 use Lib\McQueue;
 use App\Service\GlobalAttributes;
 use App\Service\SignInSystemBasic;
+use Illuminate\Pagination\Paginator;
 class ActivityJsonRpc extends JsonRpc {
 
 
@@ -1161,4 +1162,58 @@ class ActivityJsonRpc extends JsonRpc {
         return $rand;
     }
 
+    /**
+     *  签到记录(配文后台)
+     * @params  channel string 必须
+     * @JsonRpcMethod
+     */
+    public function getSignInList($params){
+        $userId = isset($params->user_id) && $params->user_id > 0 ? $params->user_id : 0 ;
+        if($userId <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $num = isset($params->num) ? $params->num : 10;
+        $page = isset($params->page) ? $params->page : 1;
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+        if($num <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        if($page <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //根据活动别名获取活动id
+        $activityId = ActivityService::GetActivityInfoByAlias('signin_record');
+        $activityId = isset($activityId['id']) ? $activityId['id'] : 0;
+        if($activityId <= 0) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        $data = ActivityJoin::select('created_at', 'user_id')
+            ->where('user_id', $userId)
+            ->where('activity_id', $activityId)
+            ->where('status',3)
+            ->orderBy('id', 'desc')->paginate($num)->toArray();
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
+
+    /**
+     *  注册送红包文案
+     *
+     * @JsonRpcMethod
+     */
+    public function getRegisterAwardInfo() {
+        $aliasName = "register_hongbao_880";
+        $data = GlobalAttributes::getText($aliasName);
+        $data = json_decode($data, true);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        ];
+    }
 }

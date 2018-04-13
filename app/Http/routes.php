@@ -65,6 +65,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
+    // ios审核设置
+    Route::controller('examine', 'ExamineController');
 
 });
 
@@ -92,6 +94,9 @@ Route::controller('media', 'MediaController');
 Route::get('content/help','ContentController@getHelp');
 Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
 Route::get('content/{type?}/{page?}','ContentController@getList');
+
 //帖子查看图片
 Route::get('thread/img/{id?}','bbs\ThreadController@getImgList');
 //上传文件
+Route::get('content/export-gxfc-execl/{tid?}/{date?}','ContentController@getExportGxfcExecl');
+

@@ -1,8 +1,8 @@
 <?php
 namespace App\Service;
-use App\Models\HdAmountShareRich;
+use App\Models\HdAmountShareMaster;
 use App\Models\Activity;
-use App\Models\HdAmountShareRichInfo;
+use App\Models\HdAmountShareMasterInfo;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
@@ -72,7 +72,7 @@ class AmountShareBasic
         $param['investment_amount'] = $triggerData['Investment_amount'];
         $param['period'] = $triggerData['period'];
         $param['multiple'] = $multiple;
-        $param['level'] = $level;
+        $param['level'] = $level > 5 ? 5 : $level;
         return self::addAmountShare($param);
     }
     /**
@@ -118,11 +118,11 @@ class AmountShareBasic
         $inviteCode = Func::getUserBasicInfo($param['user_id'],true);
         $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
         $data['uri'] = self::getAmountShareURI($data['identify'],$inviteCode);
-        $id = HdAmountShareRich::insertGetId($data);
+        $id = HdAmountShareMaster::insertGetId($data);
         return array('id'=>$id,'result'=>$data);
     }
     static function getAmountShareURI($identify,$inviteCode){
-        $callbackURI = urlencode(env("APP_URL")."/active/share_rich/receive.html?k=".$identify."&invite_code=".$inviteCode);
+        $callbackURI = urlencode(env("APP_URL")."/active/red_master/receive.html?k=".$identify."&invite_code=".$inviteCode);
         return env("MONEY_SHARE_WECHAT_URL").$callbackURI;
     }
 
@@ -183,7 +183,7 @@ class AmountShareBasic
         $registerTime = isset($userInfo['create_time']) && !empty($userInfo['create_time']) ? strtotime($userInfo['create_time']) : 0;
         $thisFromUserId = isset($userInfo['from_user_id']) && !empty($userInfo['from_user_id']) ? intval($userInfo['from_user_id']) : 0;
         if($thisFromUserId == $fromUserId){
-            $count = HdAmountShareRichInfo::where('user_id',$userId)->where('is_new',1)->count();
+            $count = HdAmountShareMasterInfo::where('user_id',$userId)->where('is_new',1)->count();
             if($count >= 1){
                 return 0;
             }
@@ -198,7 +198,7 @@ class AmountShareBasic
     }
     //获取新用户应该注册应该获取的金额
     static function getNewUserMoney($mallInfo){
-        $myNewUserCount = HdAmountShareRichInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
+        $myNewUserCount = HdAmountShareMasterInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
         if($mallInfo['period'] == 1){
             $multiple = 0.0003;
         }elseif($mallInfo['period'] == 3){

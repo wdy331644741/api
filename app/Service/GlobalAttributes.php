@@ -72,8 +72,8 @@ class GlobalAttributes
         return $res;
     }
 
-    static function setItem($uid, $key, $number=null, $string=null, $text=null) {
-        $res = GlobalAttribute::where(['user_id'=>$uid,'key'=>$key])->first();
+    static function setItem($key, $number=null, $string=null, $text=null) {
+        $res = GlobalAttribute::where(['key'=>$key])->first();
 
         if($res){
             $res->string = $string;
@@ -83,7 +83,6 @@ class GlobalAttributes
         }
 
         $attribute = new GlobalAttribute();
-        $attribute->user_id = $uid;
         $attribute->key = $key;
         $attribute->string = $string;
         $attribute->number = $number;
@@ -105,6 +104,22 @@ class GlobalAttributes
         }
 
         return $res['text'] ? $res['text'] : '';
+    }
+
+    static public function getString($key, $default = '') {
+        if(empty($key)) {
+            return false;
+        }
+        $res = GlobalAttribute::where(array('key' => $key))->first();
+        if(!$res) {
+            $attribute = new GlobalAttribute();
+            $attribute->key = $key;
+            $attribute->string = $default;
+            $attribute->save();
+            return $default;
+        }
+
+        return $res['string'] ? $res['string'] : '';
     }
 
     // 按json格式获取text字段

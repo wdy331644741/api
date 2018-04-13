@@ -191,6 +191,37 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /**快本欢乐大转盘 start**/
+            case 'kb_dazhuanpan_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //签到加1次抽奖机会
+                    Attributes::increment($triggerData['user_id'],"kb_dazhuanpan_drew_user",1);
+                }
+                break;
+            //投资
+            case 'kb_dazhuanpan_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
+                    //判断是否是6个月以上标
+                    if(isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6){
+                        $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                        if($amount >= 1000){
+                            $num = intval($amount/1000);
+                            Attributes::increment($triggerData['user_id'],"kb_dazhuanpan_drew_user",$num);
+                        }
+                    }
+                }
+                break;
+            case 'kb_dazhuanpan_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first']){
+                    Attributes::increment($triggerData['from_user_id'],"kb_dazhuanpan_drew_user",1);
+                }
+                break;
+            case 'kb_dazhuanpan_register':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
+                    Attributes::increment($triggerData['user_id'],"kb_dazhuanpan_drew_user",1);
+                }
+                break;
+            /**快本欢乐大转盘 end**/
             /**龙吟虎啸活动 start**/
                 //注册
             case 'longyinhuxiao_register':
@@ -384,6 +415,26 @@ class SendAward
                 }
                 break;
             /**女神月活动*****结束****/
+
+            /**感恩活动*****开始****/
+            //投资送次数(满一千送一次)
+            case "ganen_invest":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id'])) {
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $num = intval($amount/1000);
+                    if(!empty($num)){
+                        GanenService::addChanceByInvest($triggerData['user_id'], $num);
+                    }
+                }
+                break;
+            //邀请人首投（给邀请人）
+            case "ganen_invite":
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && !empty($triggerData['user_id']) && !empty($triggerData['from_user_id'])){
+                    GanenService::addChanceByInvite($triggerData['from_user_id']);
+                }
+                break;
+            /**感恩活动*****结束****/
+
             //流量包渠道首投触发
             case "channel_liuliangbao":
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'){
@@ -995,7 +1046,7 @@ class SendAward
             //加息券
             return self::increases($info);
         } elseif ($award_type == 2) {
-            if ($info['red_type'] == 1) {
+            if ($info['red_type'] == 1 || $info['red_type'] == 3) {
                 //直抵红包
                 return self::redMoney($info);
             } elseif ($info['red_type'] == 2){
@@ -1183,6 +1234,10 @@ class SendAward
         $data['limit_desc'] = $info['limit_desc'];
 
         $data['trigger'] = $info['trigger'];
+
+        if(isset($info['red_type']) && $info['red_type'] == 3){
+            $data['is_novice'] = 1;
+        }
 
         $data['remark'] = '';
         if (!empty($data) && !empty($url)) {

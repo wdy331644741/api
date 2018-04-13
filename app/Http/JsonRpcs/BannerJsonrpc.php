@@ -40,14 +40,19 @@ class BannerJsonRpc extends JsonRpc {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
 				->orderByRaw('sort DESC')->get()->toArray();
-			$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+			/*$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+
 				->where($where)
 				->where(function ($query) {
 					$query->whereNull('start')->orWhereRaw('start < now()');
 				})
 				->whereRaw('end < now()')
+
 				->orderByRaw('sort DESC')->get()->toArray();
 			$data = array_merge($data1, $data2);
+
+				->orderByRaw('sort DESC')->get()->toArray();*/
+			$data = $data1;
 			break;
 		// 大事记 增加分页
 		case 'memorabilia':
@@ -82,6 +87,8 @@ class BannerJsonRpc extends JsonRpc {
 				})
 				->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
 			$data = $this->addChannelImg($data, 'mobile');
+			$data = $this->specialChannelImg($data, 'mobile');
+
 			break;
 		case "annualreport":
 			Paginator::currentPageResolver(function () use ($page) {
@@ -150,6 +157,9 @@ class BannerJsonRpc extends JsonRpc {
 				->orderByRaw('id + sort DESC')->get()->toArray();
 			if ($position == 'pc') {
 				$data = $this->addChannelImg($data, 'pc');
+
+				$data = $this->specialChannelImg($data, 'pc');
+
 			}
 		}
 
@@ -447,6 +457,10 @@ class BannerJsonRpc extends JsonRpc {
 			"tcsc3",
 			"tcsc4",
 			"tcsc5",
+			"duokai",
+			"dkh5",
+			"zgby",
+			"spicy_wlb",
 
 		];
 		if (in_array($thisChannel, $channel)) {
@@ -470,4 +484,59 @@ class BannerJsonRpc extends JsonRpc {
 		}
 		return $data;
 	}
+
+    //特定渠道添加图片 2
+    private function specialChannelImg($data, $position) {
+        global $userId;
+        $userInfo = Func::getUserBasicInfo($userId, true);
+        $thisChannel = isset($userInfo['from_channel']) ? $userInfo['from_channel'] : '';
+        if (empty($thisChannel) || empty($position)) {
+            return $data;
+        }
+        $channel = [
+            'wanglibao1',
+            'APPStore',
+            'sogou',
+            'samsung',
+            'leshi',
+            'huawei',
+            'm360',
+            'meizu',
+            'vivo',
+            'baidu',
+            'ali',
+            'lenovo',
+            'qq',
+            'oppo',
+            'xiaomi',
+            'chuizi',
+            'wenzhoulouyu',
+            'baidupz',
+            'mbaidupz',
+            'gbcxyd4',
+            'mbaidujj',
+            'baidujj',
+            'mdsp',
+        ];
+        if (in_array($thisChannel, $channel)) {
+            $where = ['position' => $position, 'can_use' => 0, 'name' => "特定渠道显示，快乐大本营送芒果月卡"];
+            $arr = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                ->where($where)
+                ->where(function ($query) {
+                    $query->whereNull('start')->orWhereRaw('start < now()');
+                })
+                ->where(function ($query) {
+                    $query->whereNull('end')->orWhereRaw('end > now()');
+                })
+                ->take(1)->get()->toArray();
+            if (empty($arr)) {
+                return $data;
+            }
+            foreach ($data as $key => $item) {
+                $arr[$key + 1] = $item;
+            }
+            return $arr;
+        }
+        return $data;
+    }
 }
