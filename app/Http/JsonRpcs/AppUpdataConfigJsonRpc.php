@@ -33,12 +33,33 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
     }
 
     /**
-     * 获取当前升级包配置信息
+     * 获取当前升级包配置信息（h5用）
      *
      * @JsonRpcMethod
      */
     public function examineConfig() {
         $config = Examine::where('status',1)->first();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $config,
+        );
+    }
+    /**
+     * 获取当前升级包配置信息（移动端专用）
+     *
+     * @JsonRpcMethod
+     */
+    public function examineConfigApp($params) {
+        $versions = $params->versions;
+        if(empty($versions)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => [],
+            );
+        }
+        $config = Examine::where('status',1)->where('versions',$versions)->first();
         return array(
             'code' => 0,
             'message' => 'success',
