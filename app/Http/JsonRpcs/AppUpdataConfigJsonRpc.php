@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\AppUpdateConfig;
 use App\Models\Examine;
 use Validator;
+use Request;
 
 
 class AppUpdateConfigJsonRpc extends JsonRpc {
@@ -38,6 +39,16 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function examineConfig() {
+        //获取请求头
+        @$header = Request::header();
+        $userAgent = isset($header['user-agent'][0]) ? $header['user-agent'][0] : "";
+        if(strpos($userAgent, 'iPhone')||strpos($userAgent, 'iPad')){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => null,
+            );
+        }
         $config = Examine::where('status',1)->first();
         return array(
             'code' => 0,
@@ -56,7 +67,7 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => [],
+                'data' => null,
             );
         }
         $config = Examine::where('status',1)->where('versions',$versions)->first();
