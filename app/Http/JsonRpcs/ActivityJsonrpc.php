@@ -1124,9 +1124,9 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function statisticsInfo($params) {
-        global $requestIP;
+        global $requestIP, $userId;
         $type = isset($params->channel)?$params->channel:'';
-        $ret = Func::statistics($type, $requestIP);
+        $ret = Func::statistics($type, $requestIP, $userId);
         $return = $ret;
         if($ret) {
             $return = ['id'=>$ret];
