@@ -112,15 +112,11 @@ Route::controller('media', 'MediaController');
 Route::get('content/help','ContentController@getHelp');
 Route::get('content/{type?}/detail/{id?}','ContentController@getDetail');
 Route::get('content/{type?}/{page?}','ContentController@getList');
-
+//获取社区数据
 Route::get('content/export-gxfc-execl/{tid?}/{date?}','ContentController@getExportGxfcExecl');
-
 //帖子查看图片
 Route::get('thread/img/{id?}','bbs\ThreadController@getImgList');
-
-//上传文件
-
-
 //充话费和冲流量回调方法
 Route::post("wl/fee_flow_callback",'CallbackController@postFeeAndFlowCallback');
+
 

@@ -68,6 +68,7 @@ class ThreadController extends Controller
 
     //内部发帖
     public function postAdd(Request $request){
+
         $validator = Validator::make($request->all(), [
             'user_id'=>'required|exists:bbs_users,user_id',
             'type_id'=>'required|exists:bbs_thread_sections,id',
@@ -75,12 +76,18 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $cover = NULL;
+        if(count(array_filter(explode(',',$request->imgdata)))>0){
+            $cover = json_encode(explode(',',$request->imgdata));
+        }
         $thread = new Thread();
         $thread->user_id = $request->user_id;
         $thread->type_id = $request->type_id;
-        $thread->cover = isset($request->cover) ? $request->cover : NULL;
+        $thread->cover = $cover;
+        $thread->video_code = isset($request->video_code) ? $request->video_code : NULL;
         $thread->title = isset($request->title) ? $request->title : NULL;
         $thread->content = isset($request->content) ? $request->content : NULL;
+        $thread->isofficial = $request->isofficial ? $request->isofficial : 0;
         $thread->istop = $request->istop ? $request->istop : 0;
         $thread->isverify = 1;
         $thread->verify_time = date('Y-m-d H:i:s');
@@ -93,7 +100,7 @@ class ThreadController extends Controller
     }
 
     //编辑帖子
-    public function postPut(Request $request){
+    public function postUpdate(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required|exists:bbs_threads,id',
             'user_id'=>'exists:bbs_users,user_id',
@@ -101,6 +108,10 @@ class ThreadController extends Controller
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $cover = NULL;
+        if(count(array_filter(explode(',',$request->imgdata)))>0){
+            $cover = json_encode(explode(',',$request->imgdata));
         }
         $putData = [
             'istop'=>$request->istop ? $request->istop : 0
@@ -111,14 +122,18 @@ class ThreadController extends Controller
         if(isset($request->type_id)){
             $putData['type_id'] = $request->type_id;
         }
-        if(isset($request->cover)){
-            $putData['cover'] = $request->cover;
-        }
+        $putData['cover'] = $cover;
         if(isset($request->title)){
             $putData['title'] = $request->title;
         }
+        if(isset($request->isofficial)){
+            $putData['isofficial'] = $request->isofficial ? $request->isofficial : 0;
+        }
         if(isset($request->content)) {
             $putData['content'] = $request->content;
+        }
+        if(isset($request->video_code)) {
+            $putData['video_code'] = isset($request->video_code) ? $request->video_code : NULL;
         }
         $res = Thread::where('id',$request->id)->update($putData);
         if($res){
