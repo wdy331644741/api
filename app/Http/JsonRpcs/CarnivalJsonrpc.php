@@ -230,7 +230,7 @@ class CarnivalJsonRpc extends JsonRpc
         $key = "carnivalAllInvestment";
         return Cache::remember($key,10, function() use($activityTime){
             $requestData = [];
-            $requestData['startTime'] = $activityTime['statt_at'];
+            $requestData['startTime'] = $activityTime['start_at'];
             $requestData['endTime'] = $activityTime['end_at'];
             $requestData['o'] = 'CarnivalActivity';
 
