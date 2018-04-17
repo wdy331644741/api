@@ -892,13 +892,15 @@ class BbsUserJsonRpc extends JsonRpc {
         $userThreadZanNum = ThreadZan::where(["t_user_id"=>$this->userId,"status"=>0])->count();
         //用户评论被点赞数目
         $userCommentZanNum = CommentZan::where(["c_user_id"=>$this->userId,"status"=>0])->count();
-        //用户被评论数数目
-
         $bbsUserInfo['userZanNum'] = $userCommentZanNum+$userThreadZanNum;
-        $bbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
+        //用户被评论数数目
+        $bbsUserInfo['userCommentNum'] = Comment::select('id')
+            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
+            ->count();
+        /*$bbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
             ->leftJoin('bbs_threads', 'tid', '=', 'bbs_threads.id')
             ->where(["bbs_threads.user_id"=>$this->userId,"bbs_threads.isverify"=>1])
-           ->count();
+           ->count();*/
 
 
         //用户被收藏数目

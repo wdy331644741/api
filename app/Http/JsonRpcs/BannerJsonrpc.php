@@ -10,153 +10,157 @@ use Illuminate\Pagination\Paginator;
 use Lib\JsonRpcClient;
 
 class BannerJsonRpc extends JsonRpc {
+	/**
+	 *  banner列表
+	 *
+	 * @JsonRpcMethod
+	 */
+	public function bannerList($params) {
+		$where = array(
+			'can_use' => 1,
+		);
+		$position = $params->position;
+		$pageNum = isset($params->pageNum) ? $params->pageNum : 5;
+		$page = isset($params->page) ? $params->page : 1;
+		if (empty($position)) {
+			throw new OmgException(OmgException::VALID_POSITION_FAIL);
+		} else {
+			$where['position'] = $position;
+		}
+		switch ($position) {
+		// 发现页 不做时间限制
+		case 'discover':
+			$data1 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+				->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('sort DESC')->get()->toArray();
+			/*$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
 
-    /**
-     *  banner列表
-     *
-     * @JsonRpcMethod
-     */
-    public function bannerList($params) {
-        $where = array(
-            'can_use' => 1,
-        );
-        $position = $params->position;
-        $pageNum = isset($params->pageNum) ? $params->pageNum : 5;
-        $page = isset($params->page) ? $params->page : 1;
-        if (empty($position)) {
-            throw new OmgException(OmgException::VALID_POSITION_FAIL);
-        } else {
-            $where['position'] = $position;
-        }
-        switch ($position) {
-            // 发现页 不做时间限制
-            case 'discover':
-                $data1 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
-                    ->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('sort DESC')->get()->toArray();
+				->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->whereRaw('end < now()')
 
-                /*$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
-                    ->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->whereRaw('end < now()')
-                    ->orderByRaw('sort DESC')->get()->toArray();*/
-                $data = $data1;
+				->orderByRaw('sort DESC')->get()->toArray();
+			$data = array_merge($data1, $data2);
 
-                break;
-            // 大事记 增加分页
-            case 'memorabilia':
-                Paginator::currentPageResolver(function () use ($page) {
-                    return $page;
-                });
+				->orderByRaw('sort DESC')->get()->toArray();*/
+			$data = $data1;
+			break;
+		// 大事记 增加分页
+		case 'memorabilia':
+			Paginator::currentPageResolver(function () use ($page) {
+				return $page;
+			});
 
-                $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
-                $data = $res['data'];
-                $rData['total'] = $res['total'];
-                $rData['per_page'] = $res['per_page'];
-                $rData['current_page'] = $res['current_page'];
-                $rData['last_page'] = $res['last_page'];
-                $rData['from'] = $res['from'];
-                $rData['to'] = $res['to'];
-                break;
-            // 移动端banner限制只显示前5张图
-            case 'mobile':
-                $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
-                $data = $this->addChannelImg($data, 'mobile');
-                $data = $this->specialChannelImg($data, 'mobile');
-                break;
-            case "annualreport":
-                Paginator::currentPageResolver(function () use ($page) {
-                    return $page;
-                });
-                $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
-                $data = $res['data'];
-                $rData['total'] = $res['total'];
-                $rData['per_page'] = $res['per_page'];
-                $rData['current_page'] = $res['current_page'];
-                $rData['last_page'] = $res['last_page'];
-                $rData['from'] = $res['from'];
-                $rData['to'] = $res['to'];
-                break;
-            case "annualreport_app":
-                Paginator::currentPageResolver(function () use ($page) {
-                    return $page;
-                });
-                $res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
-                $data = $res['data'];
-                $rData['total'] = $res['total'];
-                $rData['per_page'] = $res['per_page'];
-                $rData['current_page'] = $res['current_page'];
-                $rData['last_page'] = $res['last_page'];
-                $rData['from'] = $res['from'];
-                $rData['to'] = $res['to'];
-                break;
-            case "index_icon":
-                if (empty($params->tag)) {
-                    throw new OmgException(OmgException::VALID_POSITION_FAIL);
-                } else {
-                    $where['tag'] = $params->tag;
-                }
-                $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'desc', 'tag', 'short_des', 'short_desc', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('id + sort DESC')->get()->toArray();
-                break;
-            // 默认
-            default:
-                $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
-                    ->where(function ($query) {
-                        $query->whereNull('start')->orWhereRaw('start < now()');
-                    })
-                    ->where(function ($query) {
-                        $query->whereNull('end')->orWhereRaw('end > now()');
-                    })
-                    ->orderByRaw('id + sort DESC')->get()->toArray();
-                if ($position == 'pc') {
-                    $data = $this->addChannelImg($data, 'pc');
-                    $data = $this->specialChannelImg($data, 'pc');
-                }
-        }
+			$res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
+			$data = $res['data'];
+			$rData['total'] = $res['total'];
+			$rData['per_page'] = $res['per_page'];
+			$rData['current_page'] = $res['current_page'];
+			$rData['last_page'] = $res['last_page'];
+			$rData['from'] = $res['from'];
+			$rData['to'] = $res['to'];
+			break;
+		// 移动端banner限制只显示前5张图
+		case 'mobile':
+			$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
+			$data = $this->addChannelImg($data, 'mobile');
+			$data = $this->specialChannelImg($data, 'mobile');
 
+			break;
+		case "annualreport":
+			Paginator::currentPageResolver(function () use ($page) {
+				return $page;
+			});
+			$res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
+			$data = $res['data'];
+			$rData['total'] = $res['total'];
+			$rData['per_page'] = $res['per_page'];
+			$rData['current_page'] = $res['current_page'];
+			$rData['last_page'] = $res['last_page'];
+			$rData['from'] = $res['from'];
+			$rData['to'] = $res['to'];
+			break;
+		case "annualreport_app":
+			Paginator::currentPageResolver(function () use ($page) {
+				return $page;
+			});
+			$res = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
+			$data = $res['data'];
+			$rData['total'] = $res['total'];
+			$rData['per_page'] = $res['per_page'];
+			$rData['current_page'] = $res['current_page'];
+			$rData['last_page'] = $res['last_page'];
+			$rData['from'] = $res['from'];
+			$rData['to'] = $res['to'];
+			break;
+		case "index_icon":
+			if (empty($params->tag)) {
+				throw new OmgException(OmgException::VALID_POSITION_FAIL);
+			} else {
+				$where['tag'] = $params->tag;
+			}
+			$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'desc', 'tag', 'short_des', 'short_desc', 'created_at', 'updated_at', 'release_time')->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('id + sort DESC')->get()->toArray();
+			break;
+		// 默认
+		default:
+			$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+				->where(function ($query) {
+					$query->whereNull('start')->orWhereRaw('start < now()');
+				})
+				->where(function ($query) {
+					$query->whereNull('end')->orWhereRaw('end > now()');
+				})
+				->orderByRaw('id + sort DESC')->get()->toArray();
+			if ($position == 'pc') {
+				$data = $this->addChannelImg($data, 'pc');
+
+				$data = $this->specialChannelImg($data, 'pc');
+
+			}
+		}
         $rData['list'] = $data;
         $rData['Utag'] = md5(json_encode($data));
         $rData['Etag'] = isset($data[0]['release_time']) && !empty($data[0]['release_time']) ? $data[0]['release_time'] : '';
@@ -200,7 +204,6 @@ class BannerJsonRpc extends JsonRpc {
             'data' => $data,
         );
     }
-
 
     /**
      * 渠道落地页
@@ -573,3 +576,4 @@ class BannerJsonRpc extends JsonRpc {
         return $data;
     }
 }
+
