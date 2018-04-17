@@ -4,14 +4,15 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use DB;
-class hotThreadIcon extends Command
+ use App\Models\Bbs\Thread;
+class newThreadIcon extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'hotThreadIcon';
+    protected $signature = 'newThreadIcon';
 
     /**
      * The console command description.
@@ -35,9 +36,16 @@ class hotThreadIcon extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public static  function handle()
     {
         //
        //DB::
+        //处理最热贴
+        Thread::where(["new"=>1,"isverify"=>1])->update(["new"=>0]);
+        $res = Thread::where(["isverify"=>1])->orderBy('updated_at','desc')->limit(1,1)->first();
+        Thread::where(["id"=>$res->id])->update(["new"=>1]);
+
+
+
     }
 }
