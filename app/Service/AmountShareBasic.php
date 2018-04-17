@@ -1,12 +1,11 @@
 <?php
 namespace App\Service;
-use App\Models\HdAmountShareMaster;
+use App\Models\HdAmountShareMasterNew;
 use App\Models\Activity;
-use App\Models\HdAmountShareMasterInfo;
+use App\Models\HdAmountShareMasterNewInfo;
 use App\Models\UserAttribute;
 use App\Service\Func;
 use Lib\JsonRpcClient;
-use Config;
 use Validator;
 use DB;
 
@@ -21,7 +20,7 @@ class AmountShareBasic
         $multiple = 0;
         if(isset($triggerData['user_id']) && isset($triggerData['Investment_amount']) && isset($triggerData['scatter_type']) && isset($triggerData['period'])){
             //新手标不生成红包
-            if(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1){
+            /*if(isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] == 1){
                 return 'not create';
             }
             if(($triggerData['scatter_type'] == 1 && $triggerData['period'] == 30) || ($triggerData['scatter_type'] == 2 && $triggerData['period'] == 1)){
@@ -36,7 +35,14 @@ class AmountShareBasic
             }
             if($triggerData['user_id'] <= 0 || $triggerData['Investment_amount'] < 100 || $multiple == 0){
                 return 'params error';
+            }*/
+            if($triggerData['scatter_type'] == 2 && $triggerData['period'] >= 12){
+                $multiple = 0.0015;
             }
+            if($triggerData['user_id'] <= 0 || $triggerData['Investment_amount'] < 100 || $multiple == 0){
+                return 'params error';
+            }
+
         }else{
             return 'params error';
         }
@@ -118,7 +124,7 @@ class AmountShareBasic
         $inviteCode = Func::getUserBasicInfo($param['user_id'],true);
         $inviteCode = !empty($inviteCode) && isset($inviteCode['invite_code']) ? $inviteCode['invite_code'] : "";
         $data['uri'] = self::getAmountShareURI($data['identify'],$inviteCode);
-        $id = HdAmountShareMaster::insertGetId($data);
+        $id = HdAmountShareMasterNew::insertGetId($data);
         return array('id'=>$id,'result'=>$data);
     }
     static function getAmountShareURI($identify,$inviteCode){
@@ -183,7 +189,7 @@ class AmountShareBasic
         $registerTime = isset($userInfo['create_time']) && !empty($userInfo['create_time']) ? strtotime($userInfo['create_time']) : 0;
         $thisFromUserId = isset($userInfo['from_user_id']) && !empty($userInfo['from_user_id']) ? intval($userInfo['from_user_id']) : 0;
         if($thisFromUserId == $fromUserId){
-            $count = HdAmountShareMasterInfo::where('user_id',$userId)->where('is_new',1)->count();
+            $count = HdAmountShareMasterNewInfo::where('user_id',$userId)->where('is_new',1)->count();
             if($count >= 1){
                 return 0;
             }
@@ -198,7 +204,7 @@ class AmountShareBasic
     }
     //获取新用户应该注册应该获取的金额
     static function getNewUserMoney($mallInfo){
-        $myNewUserCount = HdAmountShareMasterInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
+        $myNewUserCount = HdAmountShareMasterNewInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
         if($mallInfo['period'] == 1){
             $multiple = 0.0003;
         }elseif($mallInfo['period'] == 3){
