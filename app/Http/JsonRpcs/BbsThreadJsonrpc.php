@@ -53,7 +53,7 @@ class BbsThreadJsonRpc extends JsonRpc
         //自定义分页  查找一个月内view最多的帖子  剔除 管理员发的置顶贴
         $monthTime = date("Y-m-d", strtotime("-3 month"));
         $thread = new Thread(['userId' => $userId]);
-        $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0,'isgreat'=>1])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -69,7 +69,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->get()
             ->toArray();
         
-        $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -86,7 +86,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->get()
             ->toArray();
 
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
 
             ->Where(function ($query) use ($typeId, $userId) {
@@ -163,7 +163,7 @@ class BbsThreadJsonRpc extends JsonRpc
             $hotThreadId[] = $value['id'];
         }
 
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
             ->Where(function ($query) use ($typeId, $userId) {
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
@@ -213,7 +213,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $monthTime = date("Y-m-d", strtotime("-3 month"));
 
         $thread = new Thread(['userId' => $userId]);
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0,'isgreat'=>1])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -264,7 +264,7 @@ class BbsThreadJsonRpc extends JsonRpc
 
         $thread = new Thread(['userId' => $userId]);
 
-        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
             ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
@@ -310,7 +310,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread =  new Thread(['userId'=>$this->userId]);
         $id = $params->id;
 
-        $thread_info =  $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot","cover", "title","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special")
+        $thread_info =  $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot","cover", "title","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
 
             ->where(['isverify'=>1,'id'=>$id])
                ->orWhere(function($query)use($userId,$id){

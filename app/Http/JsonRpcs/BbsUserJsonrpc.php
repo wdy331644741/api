@@ -810,14 +810,11 @@ class BbsUserJsonRpc extends JsonRpc {
         $nowTime = date("Y-m-d",time());
 
         $dayTask =  Tasks::where(["group_id"=>1])->get()->toArray();
+        $counter = 0;
         foreach ($dayTask as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->where('created_at','>',$nowTime)->first();
-            if(!$res){
-                return [
-                    'code'=>0,
-                    'message'=>'success',
-                    'data'=>1,
-                ];
+            if($res){
+                $counter++;
             }
         }
 
@@ -826,22 +823,11 @@ class BbsUserJsonRpc extends JsonRpc {
 
         foreach ($achieveTask  as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->first();
-            if(!$res){
-
-                return [
-                    'code'=>0,
-                    'message'=>'success',
-                    'data'=>1,
-                ];
-
+            if($res){
+                $counter++;
             }
         }
-            return [
-                'code'=>0,
-                'message'=>'success',
-                'data'=>0,
-            ];
-
+        return $counter;
 
 
     }
@@ -905,10 +891,10 @@ class BbsUserJsonRpc extends JsonRpc {
 
         //用户被收藏数目
         $bbsUserInfo['userThreadCollectionNum'] = ThreadCollection::where(["t_user_id"=>$this->userId,"status"=>0])->count();
-        $countInfo = $this->getBbsUserCountPm($param);
-
-        $bbsUserInfo['pmReadPoint']=$countInfo['data']['num'];
-
+        $countPmInfo = $this->getBbsUserCountPm($param);
+        $countTaskInfo = $this->getBbsUserCountTask($param);
+        $bbsUserInfo['pmPoint']=$countPmInfo['data']['num'];
+        $bbsUserInfo['taskPoint'] = $countTaskInfo;
 
         return [
             'code'=>0,
