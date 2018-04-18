@@ -34,6 +34,7 @@ class Comment extends Model
 
     public function zan(){
         $userId = $this->userId;
+
         return $this->hasOne('App\Models\Bbs\CommentZan','cid','id')->where(['status'=>0,'user_id'=>$userId]);
     }
     public function officeReply(){
