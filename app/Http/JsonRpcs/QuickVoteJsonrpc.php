@@ -110,6 +110,28 @@ class QuickVoteJsonRpc extends JsonRpc
      */
     public function voteInfo() {
         global $userId;
+        //是否登录
+        $isLogin = ($userId)?true:false;
+
+        $activityName = "vote_time";
+        $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
+        //活动倒计时
+        $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
+
+        //获取两个平台的播放量
+        //固定死格式
+        $moveData = explode(',', $activityTime['des']);
+        $mangguoTV = explode(':', $moveData[0]);
+        $kuaileTV = explode(':', $moveData[1]);
+
+        //今天是否 投票
+        $isTodayVote = '';
+        if($isLogin){
+            $dayBegin = date('Y-m-d')." 00:00:00";
+            // $dayEnd = date('Y-m-d')." 24:00:00";
+            $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId])->first();
+            $isTodayVote = ($isTodayVote)?true:false;
+        }
         $planA = Redis::get('planA_vote_counts');
         $planB = Redis::get('planB_vote_counts');
 
@@ -126,7 +148,10 @@ class QuickVoteJsonRpc extends JsonRpc
                     'isLogin' => true,
                     'planA' => $planA,
                     'planB' => $planB,
-                    //'lastVote' => 'planA'
+                    'todayVote' => $isTodayVote,
+                    'lastTiming'=> $diffTime,
+                    'mangguoTV'=> $mangguoTV[1],
+                    'kuaileTV'=> $kuaileTV[1],
                 ]
             ];
     }
