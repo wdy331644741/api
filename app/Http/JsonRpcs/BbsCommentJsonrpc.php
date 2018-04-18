@@ -113,16 +113,14 @@ class BbsCommentJsonRpc extends JsonRpc {
      */
     public  function getBbsCommentDetail($params){
 
-        if (empty($this->userId)) {
-            throw  new OmgException(OmgException::NO_LOGIN);
-        }
+
         $validator = Validator::make(get_object_vars($params), [
              'id'=>'required|exists:bbs_comments,id'
         ]);
         if($validator->fails()){
             throw new OmgException(OmgException::DATA_ERROR);
         }
-        $res = Comment::where(["id"=>$params->id,"isverify"=>1])->first();
+        $res = Comment::where(["id"=>$params->id,"isverify"=>1])->with('zan')->first();
         return[
             'code'=>0,
             'message'=>'success',
