@@ -53,6 +53,7 @@ use App\Http\JsonRpcs\GanenJsonrpc;
 use App\Http\JsonRpcs\YearEndJsonRpc;
 use App\Http\JsonRpcs\ChannelJsonrpc;
 use App\Http\JsonRpcs\CarnivalJsonRpc;
+use App\Http\JsonRpcs\QuickVoteJsonRpc;
 
 class RpcController extends Controller
 {
@@ -122,6 +123,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new YearEndJsonRpc());//年终 直接送2%加息 活动结束后 可以直接删除。
         $jsonRpcServer->addService(new ChannelJsonrpc());
         $jsonRpcServer->addService(new CarnivalJsonRpc());//嘉年华战队 活动
+        $jsonRpcServer->addService(new QuickVoteJsonRpc());//加急投票
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
