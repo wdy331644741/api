@@ -428,10 +428,11 @@ class OpenController extends Controller
                         $url = env('WECHAT_BASE_HOST').'/app/check';
                         if($res['result']['data']){
                             $userId = intval($res['result']['data']);
-                            $actRpcObj = new ActivityJsonRpc();
-                            $res = $actRpcObj->innerSignin($userId);
-                            if(!$res['code']){
-                                $is_sign = $res['data']['isSignin'];
+                            $yunying2_client  = new JsonRpcClient(env('YUNYING2_RPC_URL'));
+                            $res = $yunying2_client->signinWechat(array('userId'=>$userId));
+
+                            if(isset($res['result']['code']) && !$res['result']['code']){
+                                $is_sign = $res['result']['data']['isSignin'];
                                 if($is_sign){
                                     $content['error'] = 0;
                                     $content['content'] = "今日你已签到，连续签到可获得更多奖励，记得明天再来哦！";
@@ -442,7 +443,7 @@ class OpenController extends Controller
                                             'color'=>'#000000'
                                         ),
                                         'keyword1'=>array(
-                                            'value'=>$res['data']['award'][0],
+                                            'value'=>$res['result']['data']['award'][0],
                                             'color'=>'#000000'
                                         ),
                                         'keyword2'=>array(
@@ -450,7 +451,7 @@ class OpenController extends Controller
                                             'color'=>'#000000'
                                         ),
                                         'keyword3'=>array(
-                                            'value'=>$res['data']['current'],
+                                            'value'=>$res['result']['data']['current'],
                                             'color'=>'#00000'
                                         ),
                                         'remark'=>array(
