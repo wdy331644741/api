@@ -7,6 +7,7 @@ use App\Models\ActivityVote;
 use Illuminate\Support\Facades\Redis;
 use App\Service\ActivityService;
 use App\Models\Activity;
+use App\Exceptions\OmgException;
 use App\Service\SendAward;
 
 class VoteAward extends Command
@@ -146,6 +147,8 @@ class VoteAward extends Command
         //添加活动参与记录
         if($result['status']){
             SendAward::addJoins($userId,$activity,3);
+            ActivityVote::where(['user_id' => $userId])->update(['status' => 1 ,'remark'=> json_encode($result)]);
+
             
         }
     }
