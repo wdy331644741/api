@@ -14,10 +14,12 @@ use App\Jobs\CarnivalSendListRedMoney;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Support\Facades\Redis;
 use App\Service\SendMessage;
+use App\Service\GlobalAttributes;
 use Validator, Config, Request, Cache, DB, Session;
 
 class QuickVoteJsonRpc extends JsonRpc
 {
+
     //use DispatchesJobs;
     /**
      * 参加投票
@@ -74,7 +76,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'code' => $update,
                     'message' => '投票成功',
                     'data' => $voteData,
-                    'rank' => $rank
+                    'rank' => $this-getPRdate($rank)
                 ];
             }
             
@@ -95,7 +97,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'code' => 0,
                     'message' => '投票成功',
                     'data' => $voteData,
-                    'rank' => $rank
+                    'rank' => $this-getPRdate($rank)
                 ];
             }else{
                 return [
@@ -165,7 +167,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'planB' => $planB,
                     'todayVote' => $isTodayVote,
                     'lastVote' => $lastVote,
-                    'rank' => $lastRank,
+                    'rank' => $this->getPRdate($lastRank),
                     'lastTiming'=> $diffTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
@@ -235,10 +237,10 @@ class QuickVoteJsonRpc extends JsonRpc
             if(!$planB){
                 $planB = ActivityVote::where(['vote'=> 'planB'])->count();
             }
-            $victoryOptioin = ($planA>$planB)?'planA':'planB';
-            $list = Redis::zRange($victoryOptioin."_list" , 0 ,-1);
+            $victoryOption = ($planA>$planB)?'planA':'planB';
+            $list = Redis::zRange($victoryOption."_list" , 0 ,-1);
             return [
-                'victoryOptioin' => $victoryOptioin,
+                'victoryOption' => $victoryOption,
                 'victoryPeople' =>$this->getUserName($list),
             ];
         }
@@ -272,8 +274,34 @@ class QuickVoteJsonRpc extends JsonRpc
        return $msectime;
     }
 
-    public static function sendAward(){
-        DB::table('cron')->increment('cron');
+    /**
+     * 公关数据
+     *
+     * @JsonRpcMethod
+     */
+    private function getPRdate($real = 0){
+        $key = 'LeiJiHuoYue';
+        $dateHours = date('Y-m-d H:00:00');//当前小时
+        $beforeHours = date('Y-m-d H:00:00',strtotime("-1 hours"));//上一个小时
+        // $dateHours = '2018-04-19 18:00:00';
+        // $beforeHours = '2018-04-19 17:00:00';
+        $item = GlobalAttributes::getItem($dateHours);
+
+        if(!$item['string']){
+            $stat = Func::getStatSport();
+            //上一个小时的活跃量
+            $beforeItem = GlobalAttributes::getItem($beforeHours);
+            $beforeStat = !empty($beforeItem['number'])?$beforeItem['number']:0;
+            GlobalAttributes::setItem($dateHours,$stat+$beforeStat,$key,$dateHours."活跃量：".$stat);
+            $add =  $stat+$beforeStat;
+        }else{
+            $add = $item['number'];
+        }
+
+        $res = ($real+$add)*0.3;
+        //（真实数据+累计日活量）*0.3
+        return round($res);
+
     }
 
 }
