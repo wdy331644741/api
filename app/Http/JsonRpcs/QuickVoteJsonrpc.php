@@ -281,8 +281,16 @@ class QuickVoteJsonRpc extends JsonRpc
      */
     private function getPRdate($real = 0){
         $key = 'LeiJiHuoYue';
-        $dateHours = date('Y-m-d H:00:00');//当前小时
-        $beforeHours = date('Y-m-d H:00:00',strtotime("-1 hours"));//上一个小时
+        $PRconf = config('prdate');
+        //获取活动开始时间  取真实数据
+        $activityTime = ActivityService::GetActivityedInfoByAlias('vote_time');
+        $timeDiff = time() - strtotime($activityTime['start_at']);
+        if($timeDiff <= $PRconf['afterAdd'] * 60){
+            return $real;
+        }
+
+        $dateHours = date($PRconf['dateFormat']);//当前小时
+        $beforeHours = date($PRconf['dateFormat'],strtotime($PRconf['split']));//上一个小时
         // $dateHours = '2018-04-19 18:00:00';
         // $beforeHours = '2018-04-19 17:00:00';
         $item = GlobalAttributes::getItem($dateHours);
@@ -298,8 +306,7 @@ class QuickVoteJsonRpc extends JsonRpc
             $add = $item['number'];
         }
 
-        // $res = ($real+$add)*0.3;
-        $res = $real+$add*0.3;
+        $res = $real+$add*1.3;
         //（真实数据+累计日活量）*0.3
         return round($res);
 
