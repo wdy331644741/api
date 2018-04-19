@@ -135,12 +135,16 @@ class QuickVoteJsonRpc extends JsonRpc
         //今天是否 投票
         $isTodayVote = '';
         $lastVote = '';
+        //最后一次投票排名
+        $lastRank = '';
         if($isLogin){
             $dayBegin = date('Y-m-d')." 00:00:00";
             // $dayEnd = date('Y-m-d')." 24:00:00";
             $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId])->first();
             $lastVote = $isTodayVote['vote'];
+            $lastRank = $isTodayVote['rank'];
             $isTodayVote = ($isTodayVote)?true:false;
+
             
         }
         $planA = Redis::zCard('planA_list');
@@ -161,10 +165,11 @@ class QuickVoteJsonRpc extends JsonRpc
                     'planB' => $planB,
                     'todayVote' => $isTodayVote,
                     'lastVote' => $lastVote,
+                    'rank' => $lastRank,
                     'lastTiming'=> $diffTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
-                    'victoryData' => $this->victory(-2)
+                    'victoryData' => $this->victory($diffTime)
                 ]
             ];
     }
