@@ -163,8 +163,8 @@ class QuickVoteJsonRpc extends JsonRpc
                 'message' => '成功',
                 'data' => [
                     'isLogin' => $isLogin,
-                    'planA' => $planA,
-                    'planB' => $planB,
+                    'planA' => $this->getPRdate($planA),
+                    'planB' => $this->getPRdate($planB),
                     'todayVote' => $isTodayVote,
                     'lastVote' => $lastVote,
                     'rank' => $this->getPRdate($lastRank),
