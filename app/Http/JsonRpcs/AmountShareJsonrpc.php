@@ -209,7 +209,7 @@ class AmountShareJsonRpc extends JsonRpc
 
             //给用户加金额
             $uuid = Func::create_guid();
-            $res = Func::incrementAvailable($userId, $mallInfo->id, $uuid, $money, 'redpack_genius');
+            $res = Func::incrementAvailable($userId, $mallInfo->id, $uuid, $money, 'share');
             if (!isset($res['result']['code'])) {
                 throw new OmgException(OmgException::API_FAILED);
             }
@@ -280,7 +280,7 @@ class AmountShareJsonRpc extends JsonRpc
                 $sendMoney = AmountShareBasic::getNewUserMoney($isFinish);
                 //发奖
                 $uuid = Func::create_guid();
-                $res = Func::incrementAvailable($userId, $isFinish->id, $uuid, $sendMoney, 'redpack_genius');
+                $res = Func::incrementAvailable($userId, $isFinish->id, $uuid, $sendMoney, 'share');
                 if (!isset($res['result']['code'])) {
                     throw new OmgException(OmgException::API_FAILED);
                 }
