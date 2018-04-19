@@ -258,8 +258,8 @@ class QuickVoteJsonRpc extends JsonRpc
         $rand_keys = array_rand($array, $num);
         if(!is_array($rand_keys)){
             $userInfo = Func::getUserBasicInfo($array[$rand_keys]);//获取用户基本信息
-            array_push($resList, $userInfo);
-            return $array[$rand_keys];
+            array_push($resList, $userInfo['display_name']);
+            return $resList;
         }
         foreach ($rand_keys as $value) {
             $userInfo = Func::getUserBasicInfo($array[$value]);//获取用户基本信息
