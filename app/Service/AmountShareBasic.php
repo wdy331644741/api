@@ -205,7 +205,8 @@ class AmountShareBasic
     //获取新用户应该注册应该获取的金额
     static function getNewUserMoney($mallInfo){
         $myNewUserCount = HdAmountShareMasterNewInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
-        if($mallInfo['period'] == 1){
+        $multiple = 0.001;
+        /*if($mallInfo['period'] == 1){
             $multiple = 0.0003;
         }elseif($mallInfo['period'] == 3){
             $multiple = 0.0006;
@@ -213,7 +214,7 @@ class AmountShareBasic
             $multiple = 0.0009;
         }else{
             $multiple = 0;
-        }
+        }*/
         $money = 0;
         if($mallInfo['status'] == 1){
             $money = $mallInfo['investment_amount'] * $multiple * $myNewUserCount;
