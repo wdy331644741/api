@@ -76,7 +76,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'code' => $update,
                     'message' => '投票成功',
                     'data' => $voteData,
-                    'rank' => $this-getPRdate($rank)
+                    'rank' => $this->getPRdate($rank)
                 ];
             }
             
@@ -97,7 +97,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'code' => 0,
                     'message' => '投票成功',
                     'data' => $voteData,
-                    'rank' => $this-getPRdate($rank)
+                    'rank' => $this->getPRdate($rank)
                 ];
             }else{
                 return [
