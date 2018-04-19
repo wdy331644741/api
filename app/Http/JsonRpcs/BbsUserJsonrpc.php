@@ -608,6 +608,16 @@ class BbsUserJsonRpc extends JsonRpc {
                 throw new OmgException(OmgException::DATA_ERROR);
             }
         DB::commit();
+        //增加消息提醒
+        $pm = new Pm();
+        $pm->user_id = $toUserInfo->user_id ;
+        $pm->from_user_id = $this->userId;
+        $pm->tid = $params->thread_id;
+        $pm->cid = $params->comment_id;
+        $pm->content = "回复了你的评论";
+        $pm->type = 5; //恢复的消息数
+        $pm->msg_type = 2;
+        $pm->save();
         return array(
             'code' => 0,
             'message' => $verifyMessage,
@@ -883,7 +893,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $bbsUserInfo['userZanNum'] = $userCommentZanNum+$userThreadZanNum;
         //用户被评论数数目
         $bbsUserInfo['userCommentNum'] = Comment::select('id')
-            ->where(['t_user_id'=>$this->userId,'isverify'=>1,'comment_type'=>0])//0 代表评论  1 代表回复
+            ->where(['t_user_id'=>$this->userId,'isverify'=>1])//0 代表评论  1 代表回复
             ->count();
         /*$bbsUserInfo['userCommentNum'] = Comment::where(["bbs_comments.isverify"=>1])
             ->leftJoin('bbs_threads', 'tid', '=', 'bbs_threads.id')
