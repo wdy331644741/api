@@ -298,7 +298,8 @@ class QuickVoteJsonRpc extends JsonRpc
             $add = $item['number'];
         }
 
-        $res = ($real+$add)*0.3;
+        // $res = ($real+$add)*0.3;
+        $res = $real+$add*0.3;
         //（真实数据+累计日活量）*0.3
         return round($res);
 

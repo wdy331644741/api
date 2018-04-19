@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {   
-        $filePath = '/wdy.ttt';
+        $filePath = storage_path('logs/vote.log');
         $schedule->command('VoteAward')
                  ->everyMinute()->sendOutputTo($filePath);
 
