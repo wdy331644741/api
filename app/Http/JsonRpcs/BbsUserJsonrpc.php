@@ -457,6 +457,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $pm->user_id = Thread::where(['id'=>$params->id])->first()->user_id;
             $pm->from_user_id = $this->userId;
             $pm->tid = $params->id;
+            $pm->cid = $comment->id;
             $pm->content = "回复了你的评论";
             $pm->type = 4;
             $pm->msg_type = 2;
