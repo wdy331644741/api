@@ -428,11 +428,18 @@ class OpenController extends Controller
                         $url = env('WECHAT_BASE_HOST').'/app/check';
                         if($res['result']['data']){
                             $userId = intval($res['result']['data']);
-                            $yunying2_client  = new JsonRpcClient(env('YUNYING2_RPC_URL'));
-                            $res = $yunying2_client->signinWechat(array('userId'=>$userId));
-
-                            if(isset($res['result']['code']) && !$res['result']['code']){
-                                $is_sign = $res['result']['data']['isSignin'];
+                            if(env("WECHAT_SIGNIN_ADDR") != true){
+                                //老接口地址
+                                $actRpcObj = new ActivityJsonRpc();
+                                $res = $actRpcObj->innerSignin($userId);
+                            }else{
+                                //新接口地址
+                                $yunying2_client  = new JsonRpcClient(env('YUNYING2_RPC_URL'));
+                                $res = $yunying2_client->signinWechat(array('userId'=>$userId));
+                                $res = isset($res['result']) ? $res['result'] : [];
+                            }
+                            if(isset($res['code']) && !$res['code']){
+                                $is_sign = $res['data']['isSignin'];
                                 if($is_sign){
                                     $content['error'] = 0;
                                     $content['content'] = "今日你已签到，连续签到可获得更多奖励，记得明天再来哦！";
@@ -443,7 +450,7 @@ class OpenController extends Controller
                                             'color'=>'#000000'
                                         ),
                                         'keyword1'=>array(
-                                            'value'=>$res['result']['data']['award'][0],
+                                            'value'=>$res['data']['award'][0],
                                             'color'=>'#000000'
                                         ),
                                         'keyword2'=>array(
@@ -451,7 +458,7 @@ class OpenController extends Controller
                                             'color'=>'#000000'
                                         ),
                                         'keyword3'=>array(
-                                            'value'=>$res['result']['data']['current'],
+                                            'value'=>$res['data']['current'],
                                             'color'=>'#00000'
                                         ),
                                         'remark'=>array(
