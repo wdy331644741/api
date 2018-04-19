@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         // Commands\Inspire::class,
         Commands\SendAwards::class,
+        Commands\VoteAward::class,
     ];
 
     /**
@@ -30,5 +31,10 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             newThreadIcon::handle();
         })->everyMinute();
+ 
+        $filePath = '/wdy.ttt';
+        $schedule->command('VoteAward')
+                 ->everyMinute()->sendOutputTo($filePath);
+
     }
 }
