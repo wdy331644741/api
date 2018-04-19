@@ -64,11 +64,12 @@ class QuickVoteJsonRpc extends JsonRpc
                 ];
             }else{
                 if($item['vote'] != $voteData){//变换投票
-                    $rank = $this->changeHcounts($item['vote'],$voteData);
-                }else{
-                    $rank = $item['rank'];
+                    // $rank = $this->changeHcounts($item['vote'],$voteData);
+                    $this->insertRedisSorted($voteData,$userId,$this->msectime());
+                    $this->removeRedisSorted($item['vote'],$userId);
                 }
-                $update = ActivityVote::where(['user_id' => $userId])->update(['vote' => $voteData] , ['rank' => $rank]);
+                $rank = $this->getRankRedisSorted($voteData,$userId);
+                $update = ActivityVote::where(['user_id' => $userId])->update(['vote' => $voteData,'rank' => $rank]);
                 return [
                     'code' => $update,
                     'message' => '投票成功',
@@ -78,7 +79,11 @@ class QuickVoteJsonRpc extends JsonRpc
             }
             
         }else{//插入投票数据
-            $rank = $this->addHcounts($voteData);
+            /** 放入有序集合*/
+            $this->insertRedisSorted($voteData,$userId,$this->msectime());
+            // $rank = $this->addHcounts($voteData);
+            $rank = $this->getRankRedisSorted($voteData,$userId);
+            /***************/
             $res = ActivityVote::create([
                 'user_id' => $userId,
                 'vote' => $voteData,
@@ -115,6 +120,9 @@ class QuickVoteJsonRpc extends JsonRpc
 
         $activityName = "vote_time";
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
+        if(empty($activityTime)) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //活动倒计时
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
 
@@ -126,14 +134,17 @@ class QuickVoteJsonRpc extends JsonRpc
 
         //今天是否 投票
         $isTodayVote = '';
+        $lastVote = '';
         if($isLogin){
             $dayBegin = date('Y-m-d')." 00:00:00";
             // $dayEnd = date('Y-m-d')." 24:00:00";
             $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId])->first();
+            $lastVote = $isTodayVote['vote'];
             $isTodayVote = ($isTodayVote)?true:false;
+            
         }
-        $planA = Redis::get('planA_vote_counts');
-        $planB = Redis::get('planB_vote_counts');
+        $planA = Redis::zCard('planA_list');
+        $planB = Redis::zCard('planB_list');
 
         if(!$planA){
             $planA = ActivityVote::where(['vote'=> 'planA'])->count();
@@ -145,13 +156,15 @@ class QuickVoteJsonRpc extends JsonRpc
                 'code' => 1,
                 'message' => '成功',
                 'data' => [
-                    'isLogin' => true,
+                    'isLogin' => $isLogin,
                     'planA' => $planA,
                     'planB' => $planB,
                     'todayVote' => $isTodayVote,
+                    'lastVote' => $lastVote,
                     'lastTiming'=> $diffTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
+                    'victoryData' => $this->victory(-2)
                 ]
             ];
     }
@@ -188,6 +201,74 @@ class QuickVoteJsonRpc extends JsonRpc
             $countNow = $item2+1;
         }
         return $countNow;
+    }
+
+    //方便排名  增加到redis有序集合
+    private function insertRedisSorted($vote,$userId,$score){
+        $key = $vote."_list";
+        return Redis::zAdd($key, $score, $userId);
+    }
+    private function removeRedisSorted($vote,$userId){
+        $key = $vote."_list";
+        return Redis::zRem($key, $userId);
+    }
+    //获取redis有序集合中的排名
+    private function getRankRedisSorted($vote ,$userId){
+        $key = $vote."_list";
+        return Redis::zRank($key, $userId);
+    }
+
+    //活动结束  生产数据
+    private function victory($time){
+        if($time <= 0){
+            $planA = Redis::zCard('planA_list');
+            $planB = Redis::zCard('planB_list');
+
+            if(!$planA){
+                $planA = ActivityVote::where(['vote'=> 'planA'])->count();
+            }
+            if(!$planB){
+                $planB = ActivityVote::where(['vote'=> 'planB'])->count();
+            }
+            $victoryOptioin = ($planA>$planB)?'planA':'planB';
+            $list = Redis::zRange($victoryOptioin."_list" , 0 ,-1);
+            return [
+                'victoryOptioin' => $victoryOptioin,
+                'victoryPeople' =>$this->getUserName($list),
+            ];
+        }
+        return null;
+    }
+
+    //获取用户信息
+    private function getUserName($array,$num = 10){
+        if(empty($array))
+            return false;
+        if(count($array) < $num){
+            $num = count($array);
+        }
+        $resList = [];
+        $rand_keys = array_rand($array, $num);
+        if(!is_array($rand_keys)){
+            $userInfo = Func::getUserBasicInfo($array[$rand_keys]);//获取用户基本信息
+            array_push($resList, $userInfo);
+            return $array[$rand_keys];
+        }
+        foreach ($rand_keys as $value) {
+            $userInfo = Func::getUserBasicInfo($array[$value]);//获取用户基本信息
+            array_push($resList, $userInfo['display_name']);
+        }
+        return $resList;
+    }
+
+    private function msectime() {
+       list($msec, $sec) = explode(' ', microtime());
+       $msectime =  (float)sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
+       return $msectime;
+    }
+
+    public static function sendAward(){
+        DB::table('cron')->increment('cron');
     }
 
 }
