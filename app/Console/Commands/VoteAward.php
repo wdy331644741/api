@@ -103,16 +103,34 @@ class VoteAward extends Command
         if(date('Y-m-d H:i:s') < $activityTime['end_at']){
             return 0;
         }
-        $planA = Redis::zCard('planA_list');
-        $planB = Redis::zCard('planB_list');
+        // $planA = Redis::zCard('planA_list');
+        // $planB = Redis::zCard('planB_list');
 
-        if(!$planA){
-            $planA = ActivityVote::where(['vote'=> 'planA'])->count();
+        // if(!$planA){
+        //     $planA = ActivityVote::where(['vote'=> 'planA'])->count();
+        // }
+        // if(!$planB){
+        //     $planB = ActivityVote::where(['vote'=> 'planB'])->count();
+        // }
+        //获取两个平台的播放量
+        //固定死格式
+        $moveData = explode(',', $activityTime['des']);
+        $mangguoTV = explode(':', $moveData[0]);//芒果TV在前
+        $kuaileTV = explode(':', $moveData[1]);
+        if(mb_substr($kuaileTV[1], -1 ,1 ,"utf-8") == '万'){
+            $planAview = floatval($kuaileTV[1])*10000;
+        }else{
+            $planAview = (int)$kuaileTV[1];
         }
-        if(!$planB){
-            $planB = ActivityVote::where(['vote'=> 'planB'])->count();
+        
+        if(mb_substr($mangguoTV[1], -1 ,1 ,"utf-8") == '万'){
+            $planBview = floatval($mangguoTV[1])*10000;
+        }else{
+            $planBview = (int)$mangguoTV[1];
         }
-        $victoryOptioin = ($planA>$planB)?'planA':'planB';
+        
+
+        $victoryOptioin = ($planAview > $planBview )?'planA':'planB';
         // $lostOptioin = ($planA>$planB)?'planB':'planA';// 败的不发奖
         $victorylist = Redis::zRange($victoryOptioin."_list" , 0 ,-1);
         // $lostlist = Redis::zRange($lostOptioin."_list" , 0 ,-1);
