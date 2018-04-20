@@ -115,18 +115,18 @@ class VoteAward extends Command
         //获取两个平台的播放量
         //固定死格式
         $moveData = explode(',', $activityTime['des']);
-        $mangguoTV = explode(':', $moveData[0]);//芒果TV在前
-        $kuaileTV = explode(':', $moveData[1]);
+        $mangguoTV = explode(':', $moveData[0]);//芒果TV快乐大本营 A在前
+        $kuaileTV = explode(':', $moveData[1]);//优酷TV 极限挑战 B
         if(mb_substr($kuaileTV[1], -1 ,1 ,"utf-8") == '万'){
-            $planAview = floatval($kuaileTV[1])*10000;
+            $planBview = floatval($kuaileTV[1])*10000;
         }else{
-            $planAview = (int)$kuaileTV[1];
+            $planBview = (int)$kuaileTV[1];
         }
         
         if(mb_substr($mangguoTV[1], -1 ,1 ,"utf-8") == '万'){
-            $planBview = floatval($mangguoTV[1])*10000;
+            $planAview = floatval($mangguoTV[1])*10000;
         }else{
-            $planBview = (int)$mangguoTV[1];
+            $planAview = (int)$mangguoTV[1];
         }
         
 
