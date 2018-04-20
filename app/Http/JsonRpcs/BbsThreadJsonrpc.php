@@ -51,40 +51,40 @@ class BbsThreadJsonRpc extends JsonRpc
             return $page;
         });
         //自定义分页  查找一个月内view最多的帖子  剔除 管理员发的置顶贴
-        $monthTime = date("Y-m-d", strtotime("-3 month"));
+//        $monthTime = date("Y-m-d", strtotime("-3 month"));
         $thread = new Thread(['userId' => $userId]);
-        $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-            ->where(['istop' => 0,'isgreat'=>1])
-            ->where('created_at', '>', $monthTime)
-            ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId])
-                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-            })
-            ->with("user")
-            ->with('collection')
-            ->with('zan')
-            ->with('read')
-            ->orderByRaw('comment_num DESC')
-            ->limit(1)
-            ->get()
-            ->toArray();
-        
-        $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-            ->where(['istop' => 0])
-            ->where('created_at', '>', $monthTime)
-            ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId])
-                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-            })
-            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:""])
-            ->with("user")
-            ->with('collection')
-            ->with('zan')
-            ->with('read')
-            ->orderByRaw('views DESC')
-            ->limit(1)
-            ->get()
-            ->toArray();
+//        $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
+//            ->where(['istop' => 0,'isgreat'=>1])
+//            ->where('created_at', '>', $monthTime)
+//            ->Where(function ($query) use ($typeId, $userId) {
+//                $query->where(['isverify' => 1, 'type_id' => $typeId])
+//                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+//            })
+//            ->with("user")
+//            ->with('collection')
+//            ->with('zan')
+//            ->with('read')
+//            ->orderByRaw('comment_num DESC')
+//            ->limit(1)
+//            ->get()
+//            ->toArray();
+//
+//        $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
+//            ->where(['istop' => 0])
+//            ->where('created_at', '>', $monthTime)
+//            ->Where(function ($query) use ($typeId, $userId) {
+//                $query->where(['isverify' => 1, 'type_id' => $typeId])
+//                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+//            })
+//            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:""])
+//            ->with("user")
+//            ->with('collection')
+//            ->with('zan')
+//            ->with('read')
+//            ->orderByRaw('views DESC')
+//            ->limit(1)
+//            ->get()
+//            ->toArray();
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
@@ -93,7 +93,7 @@ class BbsThreadJsonRpc extends JsonRpc
                 $query->where(['isverify' => 1, 'type_id' => $typeId])
                     ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
+           // ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
             ->with('user')
             ->with('collection')
             ->with('zan')
@@ -102,9 +102,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->paginate($pageNum)
             ->toArray();
 
-        if($page == 1){
-            $res['data'] = array_merge($commentThread,$pvThread,$res['data']);
-        }
+//        if($page == 1){
+//            $res['data'] = array_merge($commentThread,$pvThread,$res['data']);
+//        }
 
         return [
             'code' => 0,

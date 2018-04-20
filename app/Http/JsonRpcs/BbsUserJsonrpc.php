@@ -437,13 +437,14 @@ class BbsUserJsonRpc extends JsonRpc {
                 $verifyResult = 1;
                 $verifyMessage = '评论成功';
         }
-
+        $threadInfo = Thread::where(["id"=>$params->id])->first();
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
         $comment->content = $params->content;
         $comment->isverify = $verifyResult;
         $comment->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
+        $comment->t_user_id = $threadInfo->user_id;
         if($verifyResult ==0){
             $comment->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
