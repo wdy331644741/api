@@ -180,7 +180,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'lastTiming'=> $diffTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
-                    'victoryData' => $this->victory($diffTime,$kuaileTV[1],$mangguoTV[1])
+                    'victoryData' => $this->victory($diffTime,$mangguoTV[1],$kuaileTV[1])
                 ]
             ];
     }
