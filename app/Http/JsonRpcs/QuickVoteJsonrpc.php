@@ -171,7 +171,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'lastTiming'=> $diffTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
-                    'victoryData' => $this->victory($diffTime)
+                    'victoryData' => $this->victory($diffTime,$kuaileTV[1],$mangguoTV[1])
                 ]
             ];
     }
@@ -222,22 +222,33 @@ class QuickVoteJsonRpc extends JsonRpc
     //获取redis有序集合中的排名
     private function getRankRedisSorted($vote ,$userId){
         $key = $vote."_list";
-        return Redis::zRank($key, $userId);
+        return Redis::zRank($key, $userId)+1;
     }
 
     //活动结束  生产数据
-    private function victory($time){
+    private function victory($time ,$planA ,$planB){
         if($time <= 0){
-            $planA = Redis::zCard('planA_list');
-            $planB = Redis::zCard('planB_list');
+            // $planA = Redis::zCard('planA_list');
+            // $planB = Redis::zCard('planB_list');
+            // if(!$planA){
+            //     $planA = ActivityVote::where(['vote'=> 'planA'])->count();
+            // }
+            // if(!$planB){
+            //     $planB = ActivityVote::where(['vote'=> 'planB'])->count();
+            // }
 
-            if(!$planA){
-                $planA = ActivityVote::where(['vote'=> 'planA'])->count();
+            if(mb_substr($planA, -1 ,1,"utf-8") == '万'){
+                $planAview = floatval($planA)*10000;
+            }else{
+                $planAview = (int)$planA;
             }
-            if(!$planB){
-                $planB = ActivityVote::where(['vote'=> 'planB'])->count();
+            if(mb_substr($planB, -1 ,1 ,"utf-8") == '万'){
+                $planBview = floatval($planB)*10000;
+            }else{
+                $planBview = (int)$planB;
             }
-            $victoryOption = ($planA>$planB)?'planA':'planB';
+
+            $victoryOption = ($planAview>$planBview)?'planA':'planB';
             $list = Redis::zRange($victoryOption."_list" , 0 ,-1);
             return [
                 'victoryOption' => $victoryOption,
