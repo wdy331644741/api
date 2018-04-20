@@ -206,15 +206,15 @@ class AmountShareBasic
     static function getNewUserMoney($mallInfo){
         $myNewUserCount = HdAmountShareMasterNewInfo::where('main_id',$mallInfo['id'])->where('is_new',1)->count();
         $multiple = 0.001;
-        /*if($mallInfo['period'] == 1){
-            $multiple = 0.0003;
-        }elseif($mallInfo['period'] == 3){
-            $multiple = 0.0006;
-        }elseif($mallInfo['period'] >= 6){
-            $multiple = 0.0009;
-        }else{
-            $multiple = 0;
-        }*/
+//        if($mallInfo['period'] == 1){
+//            $multiple = 0.0003;
+//        }elseif($mallInfo['period'] == 3){
+//            $multiple = 0.0006;
+//        }elseif($mallInfo['period'] >= 6){
+//            $multiple = 0.0009;
+//        }else{
+//            $multiple = 0;
+//        }
         $money = 0;
         if($mallInfo['status'] == 1){
             $money = $mallInfo['investment_amount'] * $multiple * $myNewUserCount;
