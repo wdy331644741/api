@@ -7,6 +7,7 @@ use App\Models\ActivityVote;
 use Illuminate\Support\Facades\Redis;
 use App\Service\ActivityService;
 use App\Models\Activity;
+use App\Exceptions\OmgException;
 use App\Service\SendAward;
 
 class VoteAward extends Command
@@ -25,7 +26,8 @@ class VoteAward extends Command
      */
     protected $description = 'Display an inspiring quote';
 
-    private static $victoryAward = [
+    //快乐大本营
+    private static $planAAward = [
         "id" => 0,
         "name" => "2%加息券",
         "rate_increases" => 0.02,
@@ -53,8 +55,9 @@ class VoteAward extends Command
         "trigger" => 4,
         "user_id" => "",
     ];
-
-    private static $lostAward = [
+    
+    //极限挑战
+    private static $planBAward = [
         "id" => 0,
         "name" => "1.2%加息券",
         "rate_increases" => 0.012,
@@ -93,13 +96,13 @@ class VoteAward extends Command
         // $this->comment(PHP_EOL.Inspiring::quote().PHP_EOL);
         $activityName = 'vote_time';
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($activityName)) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-        $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
-        // if(date('Y-m-d H:i:s') < $activityTime['end_at']){
-        //     return 0;
+        // if(!ActivityService::isExistByAlias($activityName)) {
+        //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         // }
+        $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
+        if(date('Y-m-d H:i:s') < $activityTime['end_at']){
+            return 0;
+        }
         $planA = Redis::zCard('planA_list');
         $planB = Redis::zCard('planB_list');
 
@@ -110,15 +113,15 @@ class VoteAward extends Command
             $planB = ActivityVote::where(['vote'=> 'planB'])->count();
         }
         $victoryOptioin = ($planA>$planB)?'planA':'planB';
-        $lostOptioin = ($planA>$planB)?'planB':'planA';
+        // $lostOptioin = ($planA>$planB)?'planB':'planA';// 败的不发奖
         $victorylist = Redis::zRange($victoryOptioin."_list" , 0 ,-1);
-        $lostlist = Redis::zRange($lostOptioin."_list" , 0 ,-1);
+        // $lostlist = Redis::zRange($lostOptioin."_list" , 0 ,-1);
         foreach ($victorylist as $v) {
-            $this->sendAward($v,$activityTime,'victory');
+            $this->sendAward($v,$activityTime,$victoryOptioin);
         }
-        foreach ($lostlist as $v) {
-            $this->sendAward($v,$activityTime,'lost');
-        }
+        // foreach ($lostlist as $v) {
+        //     $this->sendAward($v,$activityTime,'lost');
+        // }
         // dd($list);
         // dd($activityTime['end_at']);
     }
@@ -131,21 +134,23 @@ class VoteAward extends Command
         //*****活动参与人数加1*****
         Activity::where('id',$activity['id'])->increment('join_num');
         //直抵红包相关参数
-        if($type == 'victory'){
-            self::$victoryAward['source_id'] = $activity['id'];
-            self::$victoryAward['source_name'] = $activity['name'];
-            self::$victoryAward['user_id'] = $userId;
-            $result = SendAward::increases(self::$victoryAward);
+        if($type == 'planA'){
+            self::$planAAward['source_id'] = $activity['id'];
+            self::$planAAward['source_name'] = $activity['name'];
+            self::$planAAward['user_id'] = $userId;
+            $result = SendAward::increases(self::$planAAward);
         }else{
-            self::$lostAward['source_id'] = $activity['id'];
-            self::$lostAward['source_name'] = $activity['name'];
-            self::$lostAward['user_id'] = $userId;
-            $result = SendAward::increases(self::$lostAward);
+            self::$planBAward['source_id'] = $activity['id'];
+            self::$planBAward['source_name'] = $activity['name'];
+            self::$planBAward['user_id'] = $userId;
+            $result = SendAward::increases(self::$planBAward);
         }
 
         //添加活动参与记录
         if($result['status']){
             SendAward::addJoins($userId,$activity,3);
+            ActivityVote::where(['user_id' => $userId])->update(['status' => 1 ,'remark'=> json_encode($result)]);
+
             
         }
     }

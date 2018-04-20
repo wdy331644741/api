@@ -31,8 +31,8 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             newThreadIcon::handle();
         })->everyMinute();
- 
-        $filePath = '/wdy.ttt';
+  
+        $filePath = storage_path('logs/vote.log');
         $schedule->command('VoteAward')
                  ->everyMinute()->sendOutputTo($filePath);
 
