@@ -69,14 +69,21 @@ class QuickVoteJsonRpc extends JsonRpc
                     // $rank = $this->changeHcounts($item['vote'],$voteData);
                     $this->insertRedisSorted($voteData,$userId,$this->msectime());
                     $this->removeRedisSorted($item['vote'],$userId);
+                    $rank = $this->getRankRedisSorted($voteData,$userId);
+                    $add_rank = $this->getPRdate($rank);
+                    $update = ActivityVote::where(['user_id' => $userId])->update(['vote' => $voteData,'rank' => $rank ,'rank_add'=>$add_rank] );//更换投票时   更新 新的排名
+                }else{
+                    $rank = $this->getRankRedisSorted($voteData,$userId);
+                    $update = ActivityVote::where(['user_id' => $userId])->update(['vote' => $voteData,'rank' => $rank]);
+                    //第二天 不更换投票时   继续返回第一次投票排名
+                    $add_rank = $item['rank_add'];
                 }
-                $rank = $this->getRankRedisSorted($voteData,$userId);
-                $update = ActivityVote::where(['user_id' => $userId])->update(['vote' => $voteData,'rank' => $rank]);
+                
                 return [
                     'code' => $update,
                     'message' => '投票成功',
                     'data' => $voteData,
-                    'rank' => $this->getPRdate($rank)
+                    'rank' => $add_rank,
                 ];
             }
             
@@ -85,11 +92,13 @@ class QuickVoteJsonRpc extends JsonRpc
             $this->insertRedisSorted($voteData,$userId,$this->msectime());
             // $rank = $this->addHcounts($voteData);
             $rank = $this->getRankRedisSorted($voteData,$userId);
+            $add_rank = $this->getPRdate($rank);
             /***************/
             $res = ActivityVote::create([
                 'user_id' => $userId,
                 'vote' => $voteData,
                 'rank' => $rank,
+                'rank_add' => $add_rank
             ]);
             
             if($res){
@@ -97,7 +106,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'code' => 0,
                     'message' => '投票成功',
                     'data' => $voteData,
-                    'rank' => $this->getPRdate($rank)
+                    'rank' => $add_rank,
                 ];
             }else{
                 return [
@@ -144,7 +153,7 @@ class QuickVoteJsonRpc extends JsonRpc
             // $dayEnd = date('Y-m-d')." 24:00:00";
             $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId])->first();
             $lastVote = $isTodayVote['vote'];
-            $lastRank = $isTodayVote['rank'];
+            $lastRank = $isTodayVote['rank_add'];
             $isTodayVote = ($isTodayVote)?true:false;
 
             
@@ -167,7 +176,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'planB' => $this->getPRdate($planB),
                     'todayVote' => $isTodayVote,
                     'lastVote' => $lastVote,
-                    'rank' => $this->getPRdate($lastRank),
+                    'rank' => $lastRank,
                     'lastTiming'=> $diffTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
