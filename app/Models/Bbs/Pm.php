@@ -18,7 +18,7 @@ class Pm extends Model
     protected $dates = ['deleted_at'];
 
     public function comments(){
-        return $this->hasOne('App\Models\Bbs\Comment','id','cid');
+        return $this->hasOne('App\Models\Bbs\Comment','id','cid')->with('reply');
     }
 
     public function threads(){
