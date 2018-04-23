@@ -818,9 +818,10 @@ class BbsUserJsonRpc extends JsonRpc {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
         //查询每日任务
+        $sumCounter = Tasks::where(["enable"=>1])->count();
         $nowTime = date("Y-m-d",time());
 
-        $dayTask =  Tasks::where(["frequency"=>1])->get()->toArray();
+        $dayTask =  Tasks::where(["frequency"=>1,"enable"=>1])->get()->toArray();
         $counter = 0;
         foreach ($dayTask as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->where('created_at','>',$nowTime)->first();
@@ -830,7 +831,7 @@ class BbsUserJsonRpc extends JsonRpc {
         }
 
 
-        $achieveTask = Tasks::where(["frequency"=>2])->get()->toArray();
+        $achieveTask = Tasks::where(["frequency"=>2,"enable"=>1])->get()->toArray();
 
         foreach ($achieveTask  as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->first();
@@ -838,7 +839,7 @@ class BbsUserJsonRpc extends JsonRpc {
                 $counter++;
             }
         }
-        return $counter;
+        return $sumCounter-$counter;
 
 
     }
@@ -849,6 +850,7 @@ class BbsUserJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getBbsUserInfo($param){
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }

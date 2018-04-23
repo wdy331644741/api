@@ -46,4 +46,7 @@ class Comment extends Model
     public function replyUser(){
         return $this->hasOne('App\Models\Bbs\User','user_id','t_user_id');
     }
+    public  function reply(){
+        return $this->hasOne('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1]);
+    }
 }
