@@ -821,7 +821,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $sumCounter = Tasks::where(["enable"=>1])->count();
         $nowTime = date("Y-m-d",time());
 
-        $dayTask =  Tasks::where(["frequency"=>1])->get()->toArray();
+        $dayTask =  Tasks::where(["frequency"=>1,"enable"=>1])->get()->toArray();
         $counter = 0;
         foreach ($dayTask as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->where('created_at','>',$nowTime)->first();
@@ -831,7 +831,7 @@ class BbsUserJsonRpc extends JsonRpc {
         }
 
 
-        $achieveTask = Tasks::where(["frequency"=>2])->get()->toArray();
+        $achieveTask = Tasks::where(["frequency"=>2,"enable"=>1])->get()->toArray();
 
         foreach ($achieveTask  as $value){
             $res = Task::where(['user_id'=>$this->userId,'task_type'=>$value['remark']])->first();
