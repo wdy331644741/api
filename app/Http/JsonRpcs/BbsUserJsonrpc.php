@@ -612,7 +612,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $pm->user_id = $toUserInfo->user_id ;
         $pm->from_user_id = $this->userId;
         $pm->tid = $params->thread_id;
-        $pm->cid = $params->comment_id;
+        $pm->cid = $comment->id;
+        $pm->comment_id = $params->comment_id;
         $pm->content = "回复了你的评论";
         $pm->type = 5; //恢复的消息数
         $pm->msg_type = 2;
@@ -709,7 +710,7 @@ class BbsUserJsonRpc extends JsonRpc {
             return $page;
         });
         $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type])
-            ->with('fromUsers','threads','comments')
+            ->with('fromUsers','threads','comments','replyInfo')
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
