@@ -458,7 +458,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $pm->from_user_id = $this->userId;
             $pm->tid = $params->id;
             $pm->cid = $comment->id;
-            $pm->content = "回复了你的评论";
+            $pm->content = "回复了你的帖子";
             $pm->type = 4;
             $pm->msg_type = 2;
             $pm->save();

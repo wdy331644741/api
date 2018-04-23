@@ -177,7 +177,7 @@ class OmgException extends BasicException
         self::ACTIVITY_IS_END => "活动已结束",
         self::ALREADY_EXIST => "数据已存在",
         self::INVITE_USER_NOT_EXIST => "邀请人不存在",
-        self::NICKNAME_ERROR=>"昵称太长",
+        self::NICKNAME_ERROR=>"昵称不符合规则",
         self::NICKNAME_REPEAT=>"昵称重复",
         self::RIGHT_ERROR=>"您没有操作权限",
         self::NICKNAME_IS_NULL=>"昵称不能为空",
