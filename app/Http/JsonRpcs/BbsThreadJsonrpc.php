@@ -353,7 +353,7 @@ class BbsThreadJsonRpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at")
+        $res =Thread::select("id","cover","title","type_id","url","isgreat", "ishot","isofficial","video_code","is_new","is_special","new","created_at","updated_at")
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->type_id])
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
