@@ -8,6 +8,7 @@ use App\Http\JsonRpcs\BbsCommentJsonrpc;
 use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
+use App\Http\JsonRpcs\CollectCardJsonrpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
 use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
@@ -112,6 +113,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new YearEndJsonRpc());//年终 直接送2%加息 活动结束后 可以直接删除。
         $jsonRpcServer->addService(new ChannelJsonrpc());
         $jsonRpcServer->addService(new CarnivalJsonRpc());//嘉年华战队 活动
+        $jsonRpcServer->addService(new CollectCardJsonrpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
