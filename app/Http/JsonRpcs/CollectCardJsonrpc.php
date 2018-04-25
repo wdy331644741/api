@@ -70,7 +70,7 @@ class CollectCardJsonrpc extends JsonRpc
                 }
                 //刘备卡代表新手红包,注册触发
                 //这里只记录发送卡牌记录
-                $this->dispatch(new CollectCard($userId,$config,$config['register_award']));
+//                $this->dispatch(new CollectCard($userId,$config,$config['register_award']));
             }
             //最后一张牌开启时间
             $result['last_card_time'] = date('m-d', strtotime("+4 day", strtotime($activity['start_at'])));
@@ -347,7 +347,7 @@ class CollectCardJsonrpc extends JsonRpc
                 //随机奖品插入
                 $award = self::getBossAwardList();
                 $prize['award_name'] = $award['iphone']['name'];
-                $rand = rand(1, 3);
+                $rand = rand(0, 2);
                 $rand_data = [];
                 for ($i=0; $i<$rand;$i++) {
                     $phone = self::getRandMobile();
@@ -568,6 +568,7 @@ class CollectCardJsonrpc extends JsonRpc
     private function getBossAward($cardNum, $drawNum, $config) {
         $awards = self::getBossAwardList();
         //卡牌数>=1，奖品“钞票枪”; 随机设定20名用户。
+        //先抽到钞票枪
         if ($cardNum >= 1 && $drawNum == 3) {
             $global_num = 0;
             $global_attr = GlobalAttributes::getItem($config['chaopiaoqiang_alisname']);
@@ -590,9 +591,31 @@ class CollectCardJsonrpc extends JsonRpc
                 return $awards['empty'];
             }
             //卡牌数=5， 奖品“三国礼盒”;机率为100%。
+            //再抽到三国礼盒   这样 滚动记录会显示大奖
         } else if ( $cardNum == 5 && $drawNum == 2) {
             return $awards['sanguolihe'];
             //卡牌数=0， 奖品“谢谢参与”
+        } else if ($cardNum >= 1 && $drawNum == 2) {
+            $global_num = 0;
+            $global_attr = GlobalAttributes::getItem($config['chaopiaoqiang_alisname']);
+            if ($global_attr) {
+                $global_num = intval($global_attr->number);
+            }
+            //超过20个人，中奖 empty
+            if ($global_num >=20) {
+                return $awards['empty'];
+            }
+            //
+            $join_num = UserAttribute::where('key', '=', $config['alias_name'])->count();
+            $total_num = $config['chaopiaoqiang'];
+            $max = round($join_num / $total_num);
+            $rand = rand(1, $max);
+            if ($rand == 1) {
+                GlobalAttributes::increment($config['chaopiaoqiang_alisname']);
+                return $awards['chaopiaoqiang'];
+            } else {
+                return $awards['empty'];
+            }
         } else {
             return $awards['empty'];
         }
