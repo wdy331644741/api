@@ -41,8 +41,21 @@ class CollectCardAwardService
                 'user_agent' => Request::header('User-Agent'),
                 'status' => 1,
                 'type' => 'activity',
-                'remark' => '',
+                'remark' => isset($award['remark']) ? $award['remark'] : '',
             ]);
         }
+    }
+
+    public static function sendMessage($userId, $arr=array()) {
+        $config = Config::get('collectcard');
+        $template = $config['message'];
+        $remark = '';
+        //站内信
+        $msg_flag = SendMessage::Mail($userId, $template, $arr);
+        $remark .= $msg_flag ? '站内信发送成功;':'站内信发送失败;';
+        //短信
+        $sms_flag = SendMessage::Message($userId, $template, $arr);
+        $remark .= $sms_flag ? '短信发送成功;':'短信发送失败;';
+        return $remark;
     }
 }

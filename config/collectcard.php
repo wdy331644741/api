@@ -31,4 +31,5 @@ return [
     ],
     'chaopiaoqiang_alisname'=> 'collect_card_chaopiaoqiang',
     'chaopiaoqiang'=> 20,
+    'message'=> '恭喜您在“三国集卡”活动中获得“{{awardname}}”奖品，我们将按照您账户内的收货地址陆续邮寄，请尽快前往填写。感谢您的支持！',
 ];
