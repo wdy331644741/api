@@ -14,6 +14,7 @@ use App\Service\CollectCardService;
 use App\Service\Func;
 use App\Service\GlobalAttributes;
 use App\Service\SendAward;
+use App\Service\SendMessage;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\CollectCard;
 use Lib\JsonRpcClient;
@@ -187,19 +188,24 @@ class CollectCardJsonrpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = HdCollectCard::select('user_id', 'award_name', 'card_name', 'alias_name', 'uuid','effective_end', 'effective_start')
+        $data = HdCollectCard::select('award_name', 'card_name', 'uuid','effective_end', 'effective_start')
             ->where('type', '!=', 'empty')
             ->where('user_id',$userId)
             ->where('status', 1)
             ->orderBy('id', 'desc')->get()->toArray();
         $valid_award = array();//未使用
         $invalid_award = array();//奖励过期或已使用
+        $config = Config::get('collectcard');
         foreach ($data as &$item){
+            $item['card_aliasname'] = $config['card_name'][$item['card_name']];
+            unset($item['card_name']);
             //加息券是否已使用
             if( $this->couponUseStatus($item['uuid'])) {
+                unset($item['uuid']);
                 //已使用
                 array_push($invalid_award, $item);
             } else {
+                unset($item['uuid']);
                 array_push($valid_award, $item);
             }
         }
@@ -400,7 +406,11 @@ class CollectCardJsonrpc extends JsonRpc
         Attributes::increment($userId,$config['award_total_key'],$num);
         //减少用户抽奖次数
         Attributes::decrement($userId,$config['award_user_key'],$num);
+        if ($award['type'] == 'activity') {
+            $award['remark'] = CollectCardAwardService::sendMessage($userId, ['awardname'=>$award['name']]);
+        }
         CollectCardAwardService::sendAward($userId, $award);
+        unset($award['remark']);
         DB::commit();
         return [
             'code' => 0,
