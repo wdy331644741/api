@@ -51,9 +51,39 @@ class CollectCardJsonrpc extends JsonRpc
             }
         }
         // 活动是否存在
-        if($activity = ActivityService::GetActivityInfoByAlias($config['alias_name'])) {
-            $result['available'] = 1; //活动开始
-            $result['timeing'] = strtotime($activity['end_at']) - strtotime('now');
+        $activity = ActivityService::GetActivityedInfoByAlias($config['alias_name']);
+        if(isset($activity->id) && $activity->id > 0) {
+            $startTime = !empty($activity->start_at) ? strtotime($activity->start_at) : 0;
+            $endTime = !empty($activity->end_at) ? strtotime($activity->end_at) : 0;
+            //活动正在进行
+            if(empty($startTime) && empty($endTime)){
+                $result['available'] = 1;
+            } else if(empty($startTime) && !empty($endTime)){
+                if(time() > $endTime){
+                    //活动结束
+                    $result['available'] = 2;
+                }else{
+                    //活动正在进行
+                    $result['available'] = 1;
+                }
+            } else if(!empty($startTime) && empty($endTime)){
+                //活动未开始
+                if(time() < $startTime){
+                    $result['available'] = 0;
+                }else{
+                    //活动正在进行
+                    $result['available'] = 1;
+                }
+            } else if(!empty($startTime) && !empty($endTime)){
+                if(time() > $startTime){
+                    //活动正在进行
+                    $result['available'] = 1;
+                }
+                if(time() > $endTime){
+                    $result['available'] = 2;
+                }
+            }
+            $result['timeing'] = strtotime($activity->end_at) - strtotime('now');
         }
         if($result['available'] && $result['login'] && $result['channel']) {
             //获取卡牌
@@ -74,7 +104,9 @@ class CollectCardJsonrpc extends JsonRpc
 //                $this->dispatch(new CollectCard($userId,$config,$config['register_award']));
             }
             //最后一张牌开启时间
-            $result['last_card_time'] = date('m-d', strtotime("+4 day", strtotime($activity['start_at'])));
+            $last_card_time = strtotime("+4 day", strtotime($activity->start_at));
+            $result['last_card'] = strtotime('now') > $last_card_time ? 1 : 0;
+            $result['last_card_time'] = date('m-d', $last_card_time);
             //每日登陆就送1次抽卡机会
             self::addDrawCardNum($userId, $config['day_login_key']);
             //抽卡次数
