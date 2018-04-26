@@ -85,7 +85,8 @@ class CollectCardService
         $activity = ActivityService::GetActivityInfoByAlias($register_award['alias_name']);
         $where['user_id'] = $userId;
         $where['activity_id'] = $activity->id;
-        $where['status'] = 0;
+        //todo  :status=1
+        $where['status'] = 1;
         $reg_awad = HdCollectCard::select('created_at')->where(['user_id'=>$userId, 'status'=>1, 'alias_name'=>$config['register_award']['alias_name']])->orderBy('id','desc')->first();
         if($reg_awad) {
             $award_log = SendRewardLog::select('user_id', 'uuid', 'remark', 'award_id', 'award_type')->where($where)->where('created_at', '>=', $reg_awad['created_at'])->get()->toArray();
