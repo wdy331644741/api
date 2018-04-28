@@ -131,12 +131,13 @@ class QuickVoteJsonRpc extends JsonRpc
 
         $activityName = "vote_time";
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
-        // if(empty($activityTime)) {
-        //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        // }
+        if(empty($activityTime)) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //活动倒计时
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
-
+        //活动距离开始时间
+        $startTime =  strtotime($activityTime['start_at']) - strtotime('now');
         //获取两个平台的播放量
         //固定死格式
         $moveData = explode(',', $activityTime['des']);
@@ -178,6 +179,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'lastVote' => $lastVote,
                     'rank' => $lastRank,
                     'lastTiming'=> $diffTime,
+                    'startTiming'=> $startTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
                     'victoryData' => $this->victory($diffTime,$mangguoTV[1],$kuaileTV[1])
