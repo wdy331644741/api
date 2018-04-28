@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         // Commands\Inspire::class,
+        Commands\VoteAward::class,
     ];
 
     /**
@@ -23,8 +24,10 @@ class Kernel extends ConsoleKernel
      * @return void
      */
     protected function schedule(Schedule $schedule)
-    {
-        // $schedule->command('inspire')
-        //          ->hourly();
+    {   
+        $filePath = storage_path('logs/vote.log');
+        $schedule->command('VoteAward')
+                 ->everyMinute()->sendOutputTo($filePath);
+
     }
 }
