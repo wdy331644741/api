@@ -131,9 +131,9 @@ class QuickVoteJsonRpc extends JsonRpc
 
         $activityName = "vote_time";
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
-        if(empty($activityTime)) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
+        // if(empty($activityTime)) {
+        //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        // }
         //活动倒计时
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
 
