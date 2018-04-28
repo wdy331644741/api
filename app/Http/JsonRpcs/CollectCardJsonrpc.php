@@ -532,7 +532,8 @@ class CollectCardJsonrpc extends JsonRpc
     //翻倍奖励
     private  function awardDouble($userId, $config) {
         if($this->isFanbei($userId, $config)) {
-            return false;
+//            return false;
+            throw new OmgException(OmgException::MALL_IS_HAS);
         }
         $virtual_award = $this->virtualAwardDouble($userId, $config);
         $activity_award = $this->avtivityAwardDouble($userId, $config);
