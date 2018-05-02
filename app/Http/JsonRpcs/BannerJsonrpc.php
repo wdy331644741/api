@@ -83,6 +83,7 @@ class BannerJsonRpc extends JsonRpc {
 				->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
 			$data = $this->addChannelImg($data, 'mobile');
 			$data = $this->specialChannelImg($data, 'mobile');
+			$data = $this->specialChannelImg2($data, 'mobile');
 			break;
 		case "annualreport":
 			Paginator::currentPageResolver(function () use ($page) {
@@ -491,6 +492,38 @@ class BannerJsonRpc extends JsonRpc {
         ];
         if (in_array($thisChannel, $channel)) {
             $where = ['position' => $position, 'can_use' => 0, 'name' => "特定渠道显示，快乐大本营送芒果月卡"];
+            $arr = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                ->where($where)
+                ->where(function ($query) {
+                    $query->whereNull('start')->orWhereRaw('start < now()');
+                })
+                ->where(function ($query) {
+                    $query->whereNull('end')->orWhereRaw('end > now()');
+                })
+                ->take(1)->get()->toArray();
+            if (empty($arr)) {
+                return $data;
+            }
+            foreach ($data as $key => $item) {
+                $arr[$key + 1] = $item;
+            }
+            return $arr;
+        }
+        return $data;
+    }
+
+    private function specialChannelImg2($data, $position) {
+        global $userId;
+        $userInfo = Func::getUserBasicInfo($userId, true);
+        $thisChannel = isset($userInfo['from_channel']) ? $userInfo['from_channel'] : '';
+        if (empty($thisChannel) || empty($position)) {
+            return $data;
+        }
+        $channel = [
+            'kbjk'
+        ];
+        if (in_array($thisChannel, $channel)) {
+            $where = ['position' => $position, 'can_use' => 0, 'name' => "特定渠道显示，三国集卡"];
             $arr = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
                 ->where($where)
                 ->where(function ($query) {
