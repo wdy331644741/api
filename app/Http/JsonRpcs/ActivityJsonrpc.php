@@ -343,7 +343,8 @@ class ActivityJsonRpc extends JsonRpc {
 
         //事务开始
         DB::beginTransaction();
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
+//        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }

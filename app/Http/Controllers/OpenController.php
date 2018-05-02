@@ -428,9 +428,17 @@ class OpenController extends Controller
                         $url = env('WECHAT_BASE_HOST').'/app/check';
                         if($res['result']['data']){
                             $userId = intval($res['result']['data']);
-                            $actRpcObj = new ActivityJsonRpc();
-                            $res = $actRpcObj->innerSignin($userId);
-                            if(!$res['code']){
+                            if(env("WECHAT_SIGNIN_ADDR") != true){
+                                //老接口地址
+                                $actRpcObj = new ActivityJsonRpc();
+                                $res = $actRpcObj->innerSignin($userId);
+                            }else{
+                                //新接口地址
+                                $yunying2_client  = new JsonRpcClient(env('YUNYING2_RPC_URL'));
+                                $res = $yunying2_client->signinWechat(array('userId'=>$userId));
+                                $res = isset($res['result']) ? $res['result'] : [];
+                            }
+                            if(isset($res['code']) && !$res['code']){
                                 $is_sign = $res['data']['isSignin'];
                                 if($is_sign){
                                     $content['error'] = 0;
