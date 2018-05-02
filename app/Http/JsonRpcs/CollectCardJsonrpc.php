@@ -83,7 +83,7 @@ class CollectCardJsonrpc extends JsonRpc
                     $result['available'] = 2;
                 }
             }
-            $result['timeing'] = strtotime($activity->end_at) - strtotime('now');
+            $result['timeing'] = strtotime($activity->end_at);
         }
         if($result['available'] && $result['login'] && $result['channel']) {
             //获取卡牌
