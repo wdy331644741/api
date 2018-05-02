@@ -161,12 +161,12 @@ class QuickVoteJsonRpc extends JsonRpc
         $planA = Redis::zCard('planA_list');
         $planB = Redis::zCard('planB_list');
 
-        if(!$planA){
+//        if(!$planA){
             $planA = ActivityVote::where(['vote'=> 'planA'])->count();
-        }
-        if(!$planB){
+//        }
+//        if(!$planB){
             $planB = ActivityVote::where(['vote'=> 'planB'])->count();
-        }
+//        }
         return [
                 'code' => 1,
                 'message' => '成功',
