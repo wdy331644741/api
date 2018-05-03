@@ -162,12 +162,12 @@ class QuickVoteJsonRpc extends JsonRpc
         $planA = Redis::zCard('planA_list');
         $planB = Redis::zCard('planB_list');
 
-//        if(!$planA){
+        if(!$planA){
             $planA = ActivityVote::where(['vote'=> 'planA'])->count();
-//        }
-//        if(!$planB){
+        }
+        if(!$planB){
             $planB = ActivityVote::where(['vote'=> 'planB'])->count();
-//        }
+        }
         return [
                 'code' => 1,
                 'message' => '成功',
@@ -252,11 +252,16 @@ class QuickVoteJsonRpc extends JsonRpc
 
             if(mb_substr($planA, -1 ,1,"utf-8") == '万'){
                 $planAview = floatval($planA)*10000;
+            }else if (mb_substr($planA, -1 ,1,"utf-8") == '亿'){
+                $planAview = floatval($planA)*100000000;
             }else{
                 $planAview = (int)$planA;
             }
+
             if(mb_substr($planB, -1 ,1 ,"utf-8") == '万'){
                 $planBview = floatval($planB)*10000;
+            }else if (mb_substr($planB, -1 ,1,"utf-8") == '亿'){
+                $planBview = floatval($planB)*100000000;
             }else{
                 $planBview = (int)$planB;
             }
@@ -280,7 +285,7 @@ class QuickVoteJsonRpc extends JsonRpc
         }
         $resList = [];
         $rand_keys = array_rand($array, $num);
-        if(!is_array($rand_keys)){
+        if(!is_array($rand_keys)){//测试环境  如果只有一个用户。stat
             $userInfo = Func::getUserBasicInfo($array[$rand_keys]);//获取用户基本信息
             array_push($resList, $userInfo['display_name']);
             return $resList;
