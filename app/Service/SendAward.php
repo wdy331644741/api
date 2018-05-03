@@ -201,12 +201,12 @@ class SendAward
 //                }
 //                break;
             //每日登陆送一次抽卡次数
-            case 'collect_card_login':
-            case 'collect_card_share':
-                if(isset($triggerData['tag']) && $triggerData['tag'] == 'active'){
-                    Attributes::increment($triggerData['user_id'],"collect_card_drew_user",1);
-                }
-                break;
+//            case 'collect_card_login':
+//            case 'collect_card_share':
+//                if(isset($triggerData['tag']) && $triggerData['tag'] == 'active'){
+//                    Attributes::increment($triggerData['user_id'],"collect_card_drew_user",1);
+//                }
+//                break;
                 //把实名奖加入到该活动发奖记录表
             case 'collect_card_real_name':
                 if(isset($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
