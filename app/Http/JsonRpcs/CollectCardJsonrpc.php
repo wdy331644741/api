@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\ActivityJoin;
 use App\Models\HdCollectCard;
 use App\Models\HdCollectCardAward;
+use App\Models\User;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
@@ -486,12 +487,23 @@ class CollectCardJsonrpc extends JsonRpc
         $where['activity_id'] = $activity['id'];
         $where['status'] = 3;
         $date = date('Y-m-d');
-        $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->get()->count();
+        $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->first();
         if ($count) {
             return false;
         }
-        return !SendAward::ActiveSendAward($userId, $aliasName);
-//        return !!Attributes::increment($userId,"collect_card_drew_user", $num);
+        DB::beginTransaction();
+        $config = Config::get('collectcard');
+        Attributes::getItemLock($userId, $config['drew_user_key']);
+        SendAward::addJoins($userId, $activity, 3);
+        $flag = Attributes::increment($userId, $config['drew_user_key']);
+        if ($flag) {
+            DB::commit();
+            return true;
+        }
+        DB::rollBack();
+        return false;
+
+//        return !SendAward::ActiveSendAward($userId, $aliasName);
     }
 
     //用户抽卡次数(抽卡次数不是抽奖次数)
