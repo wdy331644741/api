@@ -220,7 +220,7 @@ class CollectCardJsonrpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = HdCollectCard::select('award_name', 'card_name', 'uuid','effective_end', 'effective_start')
+        $data = HdCollectCard::select('award_name', 'card_name', 'uuid','effective_end', 'effective_start','created_at', 'alias_name')
             ->where('type', '!=', 'empty')
             ->where('user_id',$userId)
             ->where('status', 1)
@@ -230,15 +230,30 @@ class CollectCardJsonrpc extends JsonRpc
         $config = Config::get('collectcard');
         foreach ($data as &$item){
             $item['card_aliasname'] = $config['card_name'][$item['card_name']];
+            $item['status'] = 1;
             unset($item['card_name']);
+            $flag = false;
+            if ($item['uuid']) {
+                if ( false !== stripos($item['card_aliasname'], 'jiaxi') ) {
+                    $flag = $this->couponUseStatus($item['uuid']);
+                } else {
+                    $flag = $this->couponUseStatus($item['uuid'], 2);
+                }
+            }
+            unset($item['uuid']);
             //加息券是否已使用
-            if( $this->couponUseStatus($item['uuid'])) {
-                unset($item['uuid']);
+            if( $flag ) {
                 //已使用
+                $item['status'] = 2;
                 array_push($invalid_award, $item);
             } else {
-                unset($item['uuid']);
-                array_push($valid_award, $item);
+                $date = time();
+                if ( $date > strtotime($item['effective_end'])) {
+                    $item['status'] = 3;
+                    array_push($invalid_award, $item);
+                } else {
+                    array_push($valid_award, $item);
+                }
             }
         }
         $ret['valid_award'] = $valid_award;
@@ -515,15 +530,16 @@ class CollectCardJsonrpc extends JsonRpc
     }
 
     //优惠券或红包使用状态
-    private function couponUseStatus($uuid) {
+    private function couponUseStatus($uuid, $type=1) {
         if(!$uuid) {
             return false;
         }
         $url = env('ACCOUNT_HTTP_URL');
         $client = new JsonRpcClient($url);
         $params['uuid'] = $uuid;
+        $params['type'] = $type;
         $result = $client->couponUseStatus($params);
-        if (isset($result['result']) && $result['result'] && $result['result']['status'] == 1) {//成功
+        if ( !empty($result['result']) && $result['result']['status'] == 1) {//成功
             return true;
         }
         return false;

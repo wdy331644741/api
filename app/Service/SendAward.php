@@ -195,11 +195,11 @@ class SendAward
         switch ($activityInfo['alias_name']) {
             /**快乐大本营集卡活动 start**/
             //注册
-            case 'collect_card_register':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
-                    Attributes::increment($triggerData['user_id'],"collect_card_drew_user",1);
-                }
-                break;
+//            case 'collect_card_register':
+//                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'){
+//                    Attributes::increment($triggerData['user_id'],"collect_card_drew_user",1);
+//                }
+//                break;
             //每日登陆送一次抽卡次数
             case 'collect_card_login':
             case 'collect_card_share':
