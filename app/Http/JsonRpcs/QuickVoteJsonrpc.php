@@ -70,7 +70,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     $this->insertRedisSorted($voteData,$userId,$this->msectime());
                     $this->removeRedisSorted($item['vote'],$userId);
                     $rank = $this->getRankRedisSorted($voteData,$userId);
-                    $add_rank = $this->getPRdate($rank);
+                    $add_rank = $this->getPRdateTow($rank,$voteData);
                     $update = ActivityVote::where(['user_id' => $userId])->update(['vote' => $voteData,'rank' => $rank ,'rank_add'=>$add_rank] );//更换投票时   更新 新的排名
                 }else{
                     $rank = $this->getRankRedisSorted($voteData,$userId);
@@ -92,7 +92,7 @@ class QuickVoteJsonRpc extends JsonRpc
             $this->insertRedisSorted($voteData,$userId,$this->msectime());
             // $rank = $this->addHcounts($voteData);
             $rank = $this->getRankRedisSorted($voteData,$userId);
-            $add_rank = $this->getPRdate($rank);
+            $add_rank = $this->getPRdateTow($rank,$voteData);
             /***************/
             $res = ActivityVote::create([
                 'user_id' => $userId,
@@ -173,10 +173,8 @@ class QuickVoteJsonRpc extends JsonRpc
                 'message' => '成功',
                 'data' => [
                     'isLogin' => $isLogin,
-                    'planA' => intval($planA * 97),
-                    'planB' => intval($planB * 93),
-                    //        'planA' => $this->getPRdate($planA),
-                    //        'planB' => $this->getPRdate($planB),
+                    'planA' => $this->getPRdateTow($planA,'planA'),
+                    'planB' => $this->getPRdateTow($planB,'planB'),
                     'todayVote' => $isTodayVote,
                     'lastVote' => $lastVote,
                     'rank' => $lastRank,
@@ -339,6 +337,28 @@ class QuickVoteJsonRpc extends JsonRpc
         //（真实数据+累计日活量）*0.3
         return round($res);
 
+    }
+    /**
+     * 公关数据 v2
+     *
+     */
+    private function getPRdateTow($real = 0,$type){
+        //前一个小时  取真实数据
+        $key = 'LeiJiHuoYue';
+        $PRconf = config('prdate');
+        //获取活动开始时间  取真实数据
+        $activityTime = ActivityService::GetActivityedInfoByAlias('vote_time');
+        $timeDiff = time() - strtotime($activityTime['start_at']);
+        if($timeDiff <= $PRconf['afterAdd'] * 60){
+            return $real;
+        }
+        
+        if($type == 'planA'){
+            return $real*97;
+        }else if($type == 'planB'){
+            return $real*93;
+        }
+        return 666;
     }
 
 }
