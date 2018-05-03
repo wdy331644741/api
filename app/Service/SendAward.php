@@ -208,11 +208,11 @@ class SendAward
 //                }
 //                break;
                 //把实名奖加入到该活动发奖记录表
-            case 'collect_card_real_name':
-                if(isset($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
-                    CollectCardService::addRedByRealName($triggerData['user_id']);
-                }
-                break;
+//            case 'collect_card_real_name':
+//                if(isset($triggerData['tag']) && $triggerData['tag'] == 'real_name'){
+//                    CollectCardService::addRedByRealName($triggerData['user_id']);
+//                }
+//                break;
             /**快乐大本营集卡活动 end**/
             /**快本欢乐大转盘 start**/
             case 'kb_dazhuanpan_sign_in':
