@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\ActivityJoin;
 use App\Models\HdCollectCard;
 use App\Models\HdCollectCardAward;
+use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
@@ -225,7 +226,36 @@ class CollectCardJsonrpc extends JsonRpc
             ->where('type', '!=', 'empty')
             ->where('user_id',$userId)
             ->where('status', 1)
-            ->orderBy('id', 'desc')->get()->toArray();
+            ->orderBy('created_at', 'desc')->get()->toArray();
+        $key = 'collect_card__award_list_' . $userId;
+        $list = Cache::remember($key, 10, function() use(&$userId){
+            //实名奖励
+            $activity = ActivityService::GetActivityInfoByAlias('advanced_real_name');
+            $where['user_id'] = $userId;
+            $where['activity_id'] = $activity->id;
+            $where['status'] = 1;
+            $award_log = SendRewardLog::select('user_id', 'uuid', 'remark', 'award_id', 'award_type', 'created_at')->where($where)->get()->toArray();
+            $list = array();
+            if ($award_log) {
+                foreach ($award_log as $val) {
+                    $award_info = array();
+                    $remark = json_decode( $val['remark'], 1);
+                    $award_info['award_name'] = $remark['award_name'];
+                    $award_info['card_name'] = 'liubei';
+                    $award_info['uuid'] = $val['uuid'];
+                    $award_info['effective_end'] = $remark['effective_end'];
+                    $award_info['effective_start'] = $remark['effective_start'];
+                    $award_info['created_at'] = $val['created_at'];
+                    $award_info['alias_name'] = 'advanced_real_name';
+                    $award_info['type'] = 'virtual';
+                    $list[] = $award_info;
+                }
+            }
+            return $list;
+        });
+        if (!empty($list)) {
+            $data = self::arrSort(array_merge($data, $list), 'created_at');
+        }
         $valid_award = array();//未使用
         $invalid_award = array();//奖励过期或已使用
         $config = Config::get('collectcard');
@@ -617,7 +647,7 @@ class CollectCardJsonrpc extends JsonRpc
             $activity = ActivityService::GetActivityInfoByAlias($config['register_award']['alias_name']);
             //根据活动id发奖品
             SendAward::addAwardByActivity($userId, $activity->id);
-            CollectCardService::addRedByRealName($userId);
+//            CollectCardService::addRedByRealName($userId);
             return true;
         }
         return false;
@@ -743,6 +773,23 @@ class CollectCardJsonrpc extends JsonRpc
         $suffix = mt_rand(2000, 9000);
 
         return $prefix . $middle . $suffix;
+    }
+
+    /**
+     * 二维数组根据字段进行排序
+     * @params array $array 需要排序的数组
+     * @params string $field 排序的字段
+     * @params string $sort 排序顺序标志 SORT_DESC 降序；SORT_ASC 升序
+     */
+    public static function arrSort($array, $field, $sort = 'SORT_DESC') {
+        $arrSort = array();
+        foreach ($array as $uniqid => $row) {
+            foreach ($row as $key => $value) {
+                $arrSort[$key][$uniqid] = $value;
+            }
+        }
+        array_multisort($arrSort[$field], constant($sort), $array);
+        return $array;
     }
 }
 

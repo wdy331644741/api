@@ -78,7 +78,7 @@ class CollectCardService
             ]);
         }
     }
-
+/*
     public  static function addRedByRealName($userId) {
         $config = Config::get('collectcard');
         $register_award = $config['register_award'];
@@ -105,4 +105,5 @@ class CollectCardService
             }
         }
     }
+*/
 }
