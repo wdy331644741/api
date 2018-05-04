@@ -89,7 +89,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     $this->removeRedisSorted($item['vote'],$userId);
                     $rank = $this->getRankRedisSorted($voteData,$userId);
                     $add_rank = $this->getPRdateTow($rank,substr($voteData,0,5));
-                    $update = ActivityVote::where(['user_id' => $userId, 'vote' => $voteData] )->update(['vote' => $voteData,'rank' => $rank ,'rank_add'=>$add_rank] );//更换投票时   更新 新的排名
+                    $update = ActivityVote::where(['user_id' => $userId, 'vote' => $item['vote'] )->update(['vote' => $voteData,'rank' => $rank ,'rank_add'=>$add_rank] );//更换投票时   更新 新的排名
                 }else{
                     $rank = $this->getRankRedisSorted($voteData,$userId);
                     $update = ActivityVote::where(['user_id' => $userId, 'vote' => $voteData] )->update(['vote' => $voteData,'rank' => $rank]);
@@ -244,6 +244,50 @@ class QuickVoteJsonRpc extends JsonRpc
             // return $obj->update(['status' => 1 ,'remark'=> json_encode($result)]);
             return 1;
         }
+    }
+
+    /**
+     * 获取 线上 单双数标  投资数据
+     *
+     * @JsonRpcMethod
+     */
+    public function getInvestmentMark(){
+        $url = 'http://stat.wanglibao.com:10000/aso_user/get_transaction_list';
+        $curl = curl_init(); // 启动一个CURL会话
+        curl_setopt($curl, CURLOPT_URL, $url); // 要访问的地址
+        $untime = time();
+
+        $data = [
+            'code'=>hash('sha256',$untime.'Tli70uaAa4soY6d86hjv'),
+            'timestamp'=>$untime,
+            's_date'=>'2018-05-01 16:00:15',
+            'n_date'=>'2018-05-07 16:00:15',
+            'data_type'=>1
+        ];
+        if($data != null){
+            curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
+        }
+        curl_setopt($curl, CURLOPT_TIMEOUT, 300); // 设置超时限制防止死循环
+        curl_setopt($curl, CURLOPT_HEADER, 0); // 显示返回的Header区域内容
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); // 获取的信息以文件流的形式返回
+        $info = curl_exec($curl); // 执行操作
+        if (curl_errno($curl)) {
+            echo 'Errno:'.curl_getinfo($curl);//捕抓异常
+            dump(curl_getinfo($curl));
+        }
+        $data = json_decode($info,true);
+        if(!empty($data['data'])){
+            // return $data['data'];
+            $newArray = [];
+            foreach ($data['data'] as $key => $value) {
+                if($value['period'] > 2){
+                    $newArray[$value['user_id']] = $value['source_amount']/12*$value['period']*0.012;
+                }
+            }
+            return $newArray;
+        }
+        return false;
     }
 
     //方便排名  增加到redis有序集合
