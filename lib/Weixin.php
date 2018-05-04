@@ -157,7 +157,7 @@ class Weixin
         }
 
     }
-    
+
     /*
      *通过jscode获取用户的openid，session_key
      * @params：string code
