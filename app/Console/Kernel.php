@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
     {   
         $filePath = storage_path('logs/vote.log');
         $schedule->command('VoteAward')
-                 ->everyMinute()->sendOutputTo($filePath);
+                 ->dailyAt('15:00')->sendOutputTo($filePath);
 
     }
 }

@@ -119,12 +119,16 @@ class VoteAward extends Command
         $kuaileTV = explode(':', $moveData[1]);//优酷TV 极限挑战 B
         if(mb_substr($kuaileTV[1], -1 ,1 ,"utf-8") == '万'){
             $planBview = floatval($kuaileTV[1])*10000;
+        }else if (mb_substr($kuaileTV[1], -1 ,1,"utf-8") == '亿'){
+            $planBview = floatval($kuaileTV[1])*100000000;
         }else{
             $planBview = (int)$kuaileTV[1];
         }
         
         if(mb_substr($mangguoTV[1], -1 ,1 ,"utf-8") == '万'){
             $planAview = floatval($mangguoTV[1])*10000;
+        }else if (mb_substr($mangguoTV[1]), -1 ,1,"utf-8") == '亿'){
+            $planAview = floatval($mangguoTV[1]))*100000000;
         }else{
             $planAview = (int)$mangguoTV[1];
         }
