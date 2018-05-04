@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         // Commands\Inspire::class,
-        Commands\VoteAward::class,
+        Commands\VoteAwardDebug::class,
     ];
 
     /**
@@ -26,8 +26,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {   
         $filePath = storage_path('logs/vote.log');
-        $schedule->command('VoteAward')
-                 ->everyMinute()->sendOutputTo($filePath);
+        $schedule->command('VoteAwardDebug')
+                 ->everyMinute()->withoutOverlapping()->sendOutputTo($filePath);
 
     }
 }
