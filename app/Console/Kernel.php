@@ -17,7 +17,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         // Commands\Inspire::class,
         Commands\SendAwards::class,
-        Commands\VoteAward::class,
+        Commands\VoteAwardDebug::class,
     ];
 
     /**
@@ -33,8 +33,8 @@ class Kernel extends ConsoleKernel
         })->everyMinute();
   
         $filePath = storage_path('logs/vote.log');
-        $schedule->command('VoteAward')
-                 ->dailyAt('15:00')->sendOutputTo($filePath);
+        $schedule->command('VoteAwardDebug')
+                 ->everyMinute()->withoutOverlapping()->sendOutputTo($filePath);
 
     }
 }
