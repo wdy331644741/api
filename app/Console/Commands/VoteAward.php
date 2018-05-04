@@ -128,7 +128,7 @@ class VoteAward extends Command
         if(mb_substr($mangguoTV[1], -1 ,1 ,"utf-8") == '万'){
             $planAview = floatval($mangguoTV[1])*10000;
         }else if (mb_substr($mangguoTV[1]), -1 ,1,"utf-8") == '亿'){
-            $planAview = floatval($mangguoTV[1]))*100000000;
+            $planAview = floatval($mangguoTV[1])*100000000;
         }else{
             $planAview = (int)$mangguoTV[1];
         }
