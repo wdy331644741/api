@@ -219,6 +219,7 @@ class CollectCardJsonrpc extends JsonRpc
      */
     public function collectMyList() {
         global $userId;
+        $userId = 5100881;
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -275,7 +276,7 @@ class CollectCardJsonrpc extends JsonRpc
             unset($item['card_name']);
             $flag = false;
             if ($item['uuid']) {
-                if ( false !== stripos($item['card_aliasname'], 'jiaxi') ) {
+                if ( false !== stripos($item['alias_name'], 'jiaxi') ) {
                     $flag = $this->couponUseStatus($item['uuid']);
                 } else {
                     $flag = $this->couponUseStatus($item['uuid'], 2);
