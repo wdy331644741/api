@@ -89,7 +89,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     $this->removeRedisSorted($item['vote'],$userId);
                     $rank = $this->getRankRedisSorted($voteData,$userId);
                     $add_rank = $this->getPRdateTow($rank,substr($voteData,0,5));
-                    $update = ActivityVote::where(['user_id' => $userId, 'vote' => $item['vote'] )->update(['vote' => $voteData,'rank' => $rank ,'rank_add'=>$add_rank] );//更换投票时   更新 新的排名
+                    $update = ActivityVote::where(['user_id' => $userId, 'vote' => $item['vote'] ] )->update(['vote' => $voteData,'rank' => $rank ,'rank_add'=>$add_rank] );//更换投票时   更新 新的排名
                 }else{
                     $rank = $this->getRankRedisSorted($voteData,$userId);
                     $update = ActivityVote::where(['user_id' => $userId, 'vote' => $voteData] )->update(['vote' => $voteData,'rank' => $rank]);
@@ -430,13 +430,6 @@ class QuickVoteJsonRpc extends JsonRpc
         return 666;
     }
 
-    /**
-     * 版本过滤
-     *
-     */
-    private function changeVersion($str){
-
-    }
 
 }
 
