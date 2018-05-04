@@ -9,6 +9,7 @@ use App\Models\HdCollectCardAward;
 use App\Models\SendRewardLog;
 use App\Models\User;
 use App\Models\UserAttribute;
+use App\Models\Award2;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\CollectCardAwardService;
@@ -243,8 +244,17 @@ class CollectCardJsonrpc extends JsonRpc
                     $award_info['award_name'] = $remark['award_name'];
                     $award_info['card_name'] = 'liubei';
                     $award_info['uuid'] = $val['uuid'];
-                    $award_info['effective_end'] = $remark['effective_end'];
-                    $award_info['effective_start'] = $remark['effective_start'];
+                    if (isset($remark['effective_start'])) {
+                        $award_info['effective_start'] = $remark['effective_start'];
+                        $award_info['effective_end'] = $remark['effective_end'];
+                    } else {
+                        $award_info['effective_start'] = $val['created_at'];
+                        $award_detail = Award2::select('effective_time_day')->where('id', $remark['award_id'])->first();
+                        if (!$award_detail) {
+                            continue;
+                        }
+                        $award_info['effective_end'] = date("Y-m-d H:i:s", strtotime("+" . $award_detail->effective_time_day . " days", strtotime($val['created_at'])));
+                    }
                     $award_info['created_at'] = $val['created_at'];
                     $award_info['alias_name'] = 'advanced_real_name';
                     $award_info['type'] = 'virtual';
