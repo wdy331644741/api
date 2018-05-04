@@ -22,8 +22,8 @@ use Validator, Config, Request, Cache, DB, Session;
 class QuickVoteJsonRpc extends JsonRpc
 {
 
-    const VERSION = '2.0';
-    const ACT_NAME = 'vote_time2.0';
+    const VERSION = '2.0'; //1.0是 会出错  2.0是2.0
+    const ACT_NAME = 'vote_time2.0';//vote_time
     //v2.0 分享送积分
     private $_integral = [
         "id" => 0,
@@ -74,7 +74,7 @@ class QuickVoteJsonRpc extends JsonRpc
             throw new OmgException(OmgException::DATA_ERROR);
         }
         //用户是否已经参加过投票
-        $item  = ActivityVote::where(['user_id' => $userId , 'vote' => $voteData])->first();
+        $item  = ActivityVote::where(['user_id' => $userId , 'status' => self::VERSION])->first();
         if($item){
             //已经参与过投票，判断当天是否投过票
             if(date('Y-m-d') == substr($item['updated_at'], 0,10)){
@@ -116,7 +116,8 @@ class QuickVoteJsonRpc extends JsonRpc
                 'user_id' => $userId,
                 'vote' => $voteData,
                 'rank' => $rank,
-                'rank_add' => $add_rank
+                'rank_add' => $add_rank,
+                'status' => self::VERSION
             ]);
             
             if($res){
@@ -169,7 +170,7 @@ class QuickVoteJsonRpc extends JsonRpc
         if($isLogin){
             $dayBegin = date('Y-m-d')." 00:00:00";
             // $dayEnd = date('Y-m-d')." 24:00:00";
-            $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId, 'vote' => $voteData])->first();
+            $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId, 'status' => self::VERSION])->first();
             $lastVote = $isTodayVote['vote'];
             $lastRank = $isTodayVote['rank_add'];
             $isTodayVote = ($isTodayVote)?true:false;
