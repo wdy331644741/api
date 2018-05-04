@@ -1434,7 +1434,7 @@ class SendAward
         $info['status'] = 0;
         //验证必填
         $validator = Validator::make($info, [
-            'id' => 'required|integer|min:1',
+            'id' => 'required|integer|min:0',
             'user_id' => 'required|integer|min:1',
             'source_id' => 'required|integer|min:0',
             'source_name' => 'required|min:2|max:255',
