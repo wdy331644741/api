@@ -241,7 +241,7 @@ class QuickVoteJsonRpc extends JsonRpc
         // return $result;
         //添加活动参与记录
         if($result['status']){
-            // SendAward::addJoins($userId,$activity,3);
+            SendAward::addJoins($userId,$activity,3);
             // $obj = call_user_func(array(self::VERSION,'where'),['user_id' => $userId]);
             // return $obj->update(['status' => 1 ,'remark'=> json_encode($result)]);
             return 1;
