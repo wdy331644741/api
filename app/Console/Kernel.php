@@ -31,10 +31,9 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             newThreadIcon::handle();
         })->everyMinute();
-  
-        $filePath = storage_path('logs/vote.log');
-        $schedule->command('VoteAwardDebug')
-                 ->everyMinute()->withoutOverlapping()->sendOutputTo($filePath);
+        // $filePath = storage_path('logs/vote.log');
+        // $schedule->command('VoteAwardDebug')
+        //          ->hourly()->withoutOverlapping()->sendOutputTo($filePath);
 
     }
 }

@@ -27,15 +27,15 @@ class QuickVoteJsonRpc extends JsonRpc
     //v2.0 分享送积分
     private $_integral = [
         "id" => 0,
-        "name" => "8000积分",
-        "integral" => 8000,
-        "message" => "",
+        "name" => "100积分",
+        "integral" => 100,
+        "message" => "恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。",
         "mail" => "恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。",
         "limit_desc" => null,
         "created_at" => "2017-08-14 14:53:19",
         "updated_at" => "2017-08-14 14:53:19",
         "source_id" => 0,
-        "source_name" => "testredMoney",
+        "source_name" => "",
         "trigger" => 4,
         "user_id" => ''
     ];
@@ -224,6 +224,8 @@ class QuickVoteJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $activity = ActivityService::GetActivityedInfoByAlias(self::ACT_NAME);
+        $this->_integral['source_name'] = $activity['source_name'];
+        $this->_integral['source_id'] = $activity['source_id'];
         //验证频次   一天5次
         $where = array();
         $where['user_id'] = $userId;
@@ -239,7 +241,7 @@ class QuickVoteJsonRpc extends JsonRpc
         // return $result;
         //添加活动参与记录
         if($result['status']){
-            SendAward::addJoins($userId,$activity,3);
+            // SendAward::addJoins($userId,$activity,3);
             // $obj = call_user_func(array(self::VERSION,'where'),['user_id' => $userId]);
             // return $obj->update(['status' => 1 ,'remark'=> json_encode($result)]);
             return 1;
@@ -248,10 +250,10 @@ class QuickVoteJsonRpc extends JsonRpc
 
     /**
      * 获取 线上 单双数标  投资数据
-     *
+     * data 1:快乐大本营 单数  0:极限挑战 双数
      * @JsonRpcMethod
      */
-    public function getInvestmentMark(){
+    public function getInvestmentMark($params){
         $url = 'http://stat.wanglibao.com:10000/aso_user/get_transaction_list';
         $curl = curl_init(); // 启动一个CURL会话
         curl_setopt($curl, CURLOPT_URL, $url); // 要访问的地址
@@ -260,9 +262,9 @@ class QuickVoteJsonRpc extends JsonRpc
         $data = [
             'code'=>hash('sha256',$untime.'Tli70uaAa4soY6d86hjv'),
             'timestamp'=>$untime,
-            's_date'=>'2018-05-01 16:00:15',
+            's_date'=>'2018-05-04 16:00:15',
             'n_date'=>'2018-05-07 16:00:15',
-            'data_type'=>1
+            'data_type'=>$params->data
         ];
         if($data != null){
             curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
@@ -281,9 +283,19 @@ class QuickVoteJsonRpc extends JsonRpc
             // return $data['data'];
             $newArray = [];
             foreach ($data['data'] as $key => $value) {
-                if($value['period'] > 2){
+                if(array_key_exists($value['user_id'] ,$newArray)){
+                    $hasAmount = $newArray[$value['user_id']];
+                    $newArray[$value['user_id']] = $hasAmount + $value['source_amount']/12*$value['period']*0.012;
+                    // Redis::hSetNx('voteSendMoney',$value['user_id'],$hasAmount + $value['source_amount']/12*$value['period']*0.012);
+                }else{
                     $newArray[$value['user_id']] = $value['source_amount']/12*$value['period']*0.012;
+                    // Redis::hSetNx('voteSendMoney',$value['user_id'],$value['source_amount']/12*$value['period']*0.012);
                 }
+                    
+            }
+            //写入哈希表
+            foreach ($newArray as $key => $value) {
+                Redis::hSetNx('voteSendMoney',$key,$value);
             }
             return $newArray;
         }
@@ -413,10 +425,9 @@ class QuickVoteJsonRpc extends JsonRpc
      */
     private function getPRdateTow($real = 0,$type){
         //前一个小时  取真实数据
-        $key = 'LeiJiHuoYue';
         $PRconf = config('prdate');
         //获取活动开始时间  取真实数据
-        $activityTime = ActivityService::GetActivityedInfoByAlias('vote_time');
+        $activityTime = ActivityService::GetActivityedInfoByAlias(self::ACT_NAME);
         $timeDiff = time() - strtotime($activityTime['start_at']);
         if($timeDiff <= $PRconf['afterAdd'] * 60){
             return $real;

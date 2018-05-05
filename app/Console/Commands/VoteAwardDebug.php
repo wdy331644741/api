@@ -29,15 +29,11 @@ class VoteAwardDebug extends Command
      */
     protected $description = 'Display an inspiring quote';
 
-    //快乐大本营
-    private static $planAAward = [
-        //返现奖励
+
+    private static $voteAward = [
+        
     ];
-    
-    //极限挑战
-    private static $planBAward = [
-        //返现奖励
-    ];
+
 
     /**
      * Execute the console command.
@@ -48,21 +44,31 @@ class VoteAwardDebug extends Command
     {
         // $this->comment(PHP_EOL.Inspiring::quote().PHP_EOL);
         $activityName = 'vote_time2.0';
-        // 活动是否存在
-        // if(!ActivityService::isExistByAlias($activityName)) {
-        //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        // }
+        // 活动是否结束
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
+        if($activityTime['end_at'] > date('Y-m-d H:i:s') ){
+            //活动未结束  不发奖
+            echo "活动未结束  不发奖";
+            die();
+        }
+        //获取 发奖hash表数据
+        $sendList = Redis::hGetAll('voteSendMoney');
+        if(empty($sendList)){
+            //发奖列表为空  不发奖
+            echo "奖列表为空  不发奖";
+            die();
+        }
 
-        //$victoryOptioin = ($planAview > $planBview )?'planA':'planB';
-        // $lostOptioin = ($planA>$planB)?'planB':'planA';// 败的不发奖
-        //$victorylist = Redis::zRange($victoryOptioin."_list" , 0 ,-1);
-        // $lostlist = Redis::zRange($lostOptioin."_list" , 0 ,-1);
-        $planAlist = Redis::zRange("planA_list" , 0 ,-1);
-        foreach ($planAlist as $v) {
-            $this->dispatch((new VoteSendAward($v))->onQueue('lazy'));
+        foreach ($sendList as $k => $v) {
+            if($v == 0){
+                continue;
+            }else{
+                $mark = Redis::hSet('voteSendMoney',$k,0);//发过的 标记为0
+                // $this->dispatch((new VoteSendAward($k,$v))->onQueue('lazy'));
+                $this->dispatch( new VoteSendAward($k,$v) );
+                echo "$k : $v".PHP_EOL;
+            }
             
-            // $this->sendAward($v,$activityTime,'planA');
         }
 
     }
