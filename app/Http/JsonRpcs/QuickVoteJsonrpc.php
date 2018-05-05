@@ -224,7 +224,7 @@ class QuickVoteJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $activity = ActivityService::GetActivityedInfoByAlias(self::ACT_NAME);
-        $this->_integral['source_name'] = $activity['alias_name'];
+        $this->_integral['source_name'] = $activity['name'];
         $this->_integral['source_id'] = $activity['id'];
         //验证频次   一天5次
         $where = array();
