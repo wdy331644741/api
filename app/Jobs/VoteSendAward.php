@@ -28,7 +28,7 @@ class VoteSendAward extends Job implements ShouldQueue
         "id" => 999,
         "name" => "2分钱",//null
         "money" => "0.02",//null
-        "type" => "2分钱",// ?
+        "type" => "battle_reward",// ?
         "mail" => "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。",
         "message" => "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。",
         "created_at" => "",
@@ -74,7 +74,6 @@ class VoteSendAward extends Job implements ShouldQueue
         $this->voteAward['source_id'] = $activity['id'];
         $this->voteAward['money'] = $this->amount;
         $this->voteAward['name'] = $this->amount.'元';
-        $this->voteAward['type'] = $this->amount.'元';
         $result = SendAward::cash($this->voteAward);
         //*****活动参与人数加1*****
         Activity::where('id',$activity['id'])->increment('join_num');
