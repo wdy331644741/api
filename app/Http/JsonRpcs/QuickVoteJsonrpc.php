@@ -254,6 +254,8 @@ class QuickVoteJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getInvestmentMark($params){
+        //test 数据
+        // if($params->test)
         
         //如果 已经过滤过一遍  redis列表 奖品已经处理
         if(!empty(Redis::hGetAll('voteSendMoney_bk' ) ) )
