@@ -200,7 +200,7 @@ class QuickVoteJsonRpc extends JsonRpc
                     'startTiming'=> $startTime,
                     'mangguoTV'=> $mangguoTV[1],
                     'kuaileTV'=> $kuaileTV[1],
-                    'victoryData' => $this->victory($diffTime,$mangguoTV[1],$kuaileTV[1])
+                    'victoryData' => $this->victory($diffTime,$mangguoTV[1],$kuaileTV[1])   //v1.0
                 ]
             ];
     }
@@ -254,12 +254,14 @@ class QuickVoteJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getInvestmentMark($params){
-        //test 数据
-        // if($params->test)
-        
+
+        $totalCach = 0;
         //如果 已经过滤过一遍  redis列表 奖品已经处理
-        if(!empty(Redis::hGetAll('voteSendMoney_bk' ) ) )
-            return Redis::hGetAll('voteSendMoney_bk' );
+        if(!empty(Redis::hGetAll('voteSendMoney_bk' ) ) ){
+            $arr = Redis::hGetAll('voteSendMoney_bk' );
+            $totalCach = array_sum($arr);
+            return [$arr , $totalCach];
+        }
 
         $url = 'http://stat.wanglibao.com:10000/aso_user/get_transaction_list';
         $curl = curl_init(); // 启动一个CURL会话
@@ -288,16 +290,37 @@ class QuickVoteJsonRpc extends JsonRpc
             dump(curl_getinfo($curl));
         }
         $data = json_decode($info,true);
+        
         if(!empty($data['data'])){
-            // return $data['data'];
+            //test 数据***************************************
+            array_push($data['data'], array(
+                'user_id' => '5100881',
+                'source_amount' => '120112.00',
+                'period' => '24',
+                ));
+            array_push($data['data'], array(
+                'user_id' => '5100881',
+                'source_amount' => '7894.00',
+                'period' => '8',
+                ));
+            array_push($data['data'], array(
+                'user_id' => '5100881',
+                'source_amount' => '100.00',
+                'period' => '8',
+                ));
+            //***********************************************
+            return $data['data'];
+
             $newArray = [];
             foreach ($data['data'] as $key => $value) {
                 if(array_key_exists($value['user_id'] ,$newArray)){
                     $hasAmount = $newArray[$value['user_id']];
-                    $newArray[$value['user_id']] = $hasAmount + $value['source_amount']/12*$value['period']*$route;
+                    $newArray[$value['user_id']] = $hasAmount + round($value['source_amount']/12*$value['period']*$route ,2);
+                    $totalCach += $newArray[$value['user_id']];
                     // Redis::hSetNx('voteSendMoney',$value['user_id'],$hasAmount + $value['source_amount']/12*$value['period']*0.012);
                 }else{
-                    $newArray[$value['user_id']] = $value['source_amount']/12*$value['period']*$route;
+                    $newArray[$value['user_id']] = round($value['source_amount']/12*$value['period']*$route , 2);
+                    $totalCach += $newArray[$value['user_id']];
                     // Redis::hSetNx('voteSendMoney',$value['user_id'],$value['source_amount']/12*$value['period']*0.012);
                 }
                     
@@ -307,7 +330,7 @@ class QuickVoteJsonRpc extends JsonRpc
                 Redis::hSetNx('voteSendMoney',$key,$value);
                 Redis::hSetNx('voteSendMoney_bk',$key,$value);
             }
-            return $newArray;
+            return [$newArray , $totalCach];
         }
         return false;
     }
@@ -330,14 +353,6 @@ class QuickVoteJsonRpc extends JsonRpc
     //活动结束  生产数据
     private function victory($time ,$planA ,$planB){
         if($time <= 0){
-            // $planA = Redis::zCard('planA_list');
-            // $planB = Redis::zCard('planB_list');
-            // if(!$planA){
-            //     $planA = ActivityVote::where(['vote'=> 'planA'])->count();
-            // }
-            // if(!$planB){
-            //     $planB = ActivityVote::where(['vote'=> 'planB'])->count();
-            // }
 
             if(mb_substr($planA, -1 ,1,"utf-8") == '万'){
                 $planAview = floatval($planA)*10000;
@@ -356,10 +371,19 @@ class QuickVoteJsonRpc extends JsonRpc
             }
 
             $victoryOption = ($planAview>$planBview)?'planA':'planB';
-            $list = Redis::zRange($victoryOption."_list" , 0 ,-1);
+            // $list = Redis::zRange($victoryOption."_list" , 0 ,-1); //v1.0
+            $victoryTowData = Redis::hKeys('voteSendMoney_bk' );//取所有的key //2.0
+            //在活动结束后的三个小时 的空档期 展示假数据
+            if(empty($victoryTowData)){
+                return [
+                    'victoryOption' => $victoryOption,
+                    'victoryPeople' => array("186******01","181******27","131******67","150******77","151******34","187******95","120******51","184******85","143******50","132******24")
+                ];
+            }
+
             return [
                 'victoryOption' => $victoryOption,
-                'victoryPeople' =>$this->getUserName($list),
+                'victoryPeople' =>$this->getUserName($victoryTowData),
             ];
         }
         return null;

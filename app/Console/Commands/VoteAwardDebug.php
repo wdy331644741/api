@@ -65,8 +65,8 @@ class VoteAwardDebug extends Command
                 continue;
             }else{
                 $mark = Redis::hSet('voteSendMoney',$k,0);//发过的 标记为0
-                // $this->dispatch((new VoteSendAward($k,$v))->onQueue('lazy'));
-                $this->dispatch( new VoteSendAward($k,$v) );
+                $this->dispatch((new VoteSendAward($k,$v))->onQueue('lazy'));
+                // $this->dispatch( new VoteSendAward($k,$v) );
                 echo "$k : $v put in queue done!".PHP_EOL;
             }
             
