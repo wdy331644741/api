@@ -309,7 +309,7 @@ class QuickVoteJsonRpc extends JsonRpc
                 'period' => '8',
                 ));
             //***********************************************
-            return $data['data'];
+            // return $data['data'];
 
             $newArray = [];
             foreach ($data['data'] as $key => $value) {
@@ -405,7 +405,11 @@ class QuickVoteJsonRpc extends JsonRpc
         }
         foreach ($rand_keys as $value) {
             $userInfo = Func::getUserBasicInfo($array[$value]);//获取用户基本信息
-            array_push($resList, $userInfo['display_name']);
+            if(empty( $userInfo['display_name'] )){
+                array_push($resList, '123****00');//测试环境 用户数据不完善
+            }else{
+                array_push($resList, $userInfo['display_name']);
+            }
         }
         return $resList;
     }
