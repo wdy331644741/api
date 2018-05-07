@@ -61,12 +61,13 @@ class VoteAwardDebug extends Command
 
         foreach ($sendList as $k => $v) {
             if($v == 0){
+                echo "$k : $v has done!".PHP_EOL;
                 continue;
             }else{
                 $mark = Redis::hSet('voteSendMoney',$k,0);//发过的 标记为0
                 // $this->dispatch((new VoteSendAward($k,$v))->onQueue('lazy'));
                 $this->dispatch( new VoteSendAward($k,$v) );
-                echo "$k : $v".PHP_EOL;
+                echo "$k : $v put in queue done!".PHP_EOL;
             }
             
         }
