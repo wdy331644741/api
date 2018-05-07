@@ -224,8 +224,8 @@ class QuickVoteJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $activity = ActivityService::GetActivityedInfoByAlias(self::ACT_NAME);
-        $this->_integral['source_name'] = $activity['source_name'];
-        $this->_integral['source_id'] = $activity['source_id'];
+        $this->_integral['source_name'] = $activity['name'];
+        $this->_integral['source_id'] = $activity['id'];
         //验证频次   一天5次
         $where = array();
         $where['user_id'] = $userId;
@@ -254,6 +254,13 @@ class QuickVoteJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getInvestmentMark($params){
+        //test 数据
+        // if($params->test)
+        
+        //如果 已经过滤过一遍  redis列表 奖品已经处理
+        if(!empty(Redis::hGetAll('voteSendMoney_bk' ) ) )
+            return Redis::hGetAll('voteSendMoney_bk' );
+
         $url = 'http://stat.wanglibao.com:10000/aso_user/get_transaction_list';
         $curl = curl_init(); // 启动一个CURL会话
         curl_setopt($curl, CURLOPT_URL, $url); // 要访问的地址
@@ -262,10 +269,12 @@ class QuickVoteJsonRpc extends JsonRpc
         $data = [
             'code'=>hash('sha256',$untime.'Tli70uaAa4soY6d86hjv'),
             'timestamp'=>$untime,
-            's_date'=>'2018-05-04 16:00:15',
-            'n_date'=>'2018-05-07 16:00:15',
+            's_date'=> $params->s_date,
+            'n_date'=> $params->n_date,
             'data_type'=>$params->data
         ];
+        $route = ($params->data == 0)?0.012:0.02 ;//快乐大本营  奇数标 返现*0.02    极限挑战  偶数标  返现*0.012
+
         if($data != null){
             curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
@@ -285,10 +294,10 @@ class QuickVoteJsonRpc extends JsonRpc
             foreach ($data['data'] as $key => $value) {
                 if(array_key_exists($value['user_id'] ,$newArray)){
                     $hasAmount = $newArray[$value['user_id']];
-                    $newArray[$value['user_id']] = $hasAmount + $value['source_amount']/12*$value['period']*0.012;
+                    $newArray[$value['user_id']] = $hasAmount + $value['source_amount']/12*$value['period']*$route;
                     // Redis::hSetNx('voteSendMoney',$value['user_id'],$hasAmount + $value['source_amount']/12*$value['period']*0.012);
                 }else{
-                    $newArray[$value['user_id']] = $value['source_amount']/12*$value['period']*0.012;
+                    $newArray[$value['user_id']] = $value['source_amount']/12*$value['period']*$route;
                     // Redis::hSetNx('voteSendMoney',$value['user_id'],$value['source_amount']/12*$value['period']*0.012);
                 }
                     
@@ -296,6 +305,7 @@ class QuickVoteJsonRpc extends JsonRpc
             //写入哈希表
             foreach ($newArray as $key => $value) {
                 Redis::hSetNx('voteSendMoney',$key,$value);
+                Redis::hSetNx('voteSendMoney_bk',$key,$value);
             }
             return $newArray;
         }
