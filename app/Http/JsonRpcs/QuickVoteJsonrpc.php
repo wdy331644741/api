@@ -293,21 +293,21 @@ class QuickVoteJsonRpc extends JsonRpc
         
         if(!empty($data['data'])){
             //test 数据***************************************
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '120112.00',
-                'period' => '24',
-                ));
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '7894.00',
-                'period' => '8',
-                ));
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '100.00',
-                'period' => '8',
-                ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '120112.00',
+            //     'period' => '24',
+            //     ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '7894.00',
+            //     'period' => '8',
+            //     ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '100.00',
+            //     'period' => '8',
+            //     ));
             //***********************************************
             // return $data['data'];
 
@@ -372,18 +372,18 @@ class QuickVoteJsonRpc extends JsonRpc
 
             $victoryOption = ($planAview>$planBview)?'planA':'planB';
             // $list = Redis::zRange($victoryOption."_list" , 0 ,-1); //v1.0
-            $victoryTowData = Redis::hKeys('voteSendMoney_bk' );//取所有的key //2.0
+            // $victoryTowData = Redis::hKeys('voteSendMoney_bk' );//取所有的key //2.0
             //在活动结束后的三个小时 的空档期 展示假数据
-            if(empty($victoryTowData)){
-                return [
-                    'victoryOption' => $victoryOption,
-                    'victoryPeople' => array("186******01","181******27","131******67","150******77","151******34","187******95","120******51","184******85","143******50","132******24")
-                ];
-            }
+            // if(empty($victoryTowData)){
+            //     return [
+            //         'victoryOption' => $victoryOption,
+            //         'victoryPeople' => array("186******01","181******27","131******67","150******77","151******34","187******95","120******51","184******85","143******50","132******24")
+            //     ];
+            // }
 
             return [
                 'victoryOption' => $victoryOption,
-                'victoryPeople' =>$this->getUserName($victoryTowData),
+                // 'victoryPeople' =>$this->getUserName($victoryTowData),
             ];
         }
         return null;

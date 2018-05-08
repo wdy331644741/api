@@ -25,9 +25,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {   
-        $filePath = storage_path('logs/vote.log');
-        $schedule->command('VoteAwardDebug')
-                 ->hourly()->withoutOverlapping()->sendOutputTo($filePath);
+        // $filePath = storage_path('logs/vote.log');
+        // $schedule->command('VoteAwardDebug')
+        //          ->hourly()->withoutOverlapping()->sendOutputTo($filePath);
 
     }
 }
