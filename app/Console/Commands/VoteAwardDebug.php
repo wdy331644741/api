@@ -27,7 +27,7 @@ class VoteAwardDebug extends Command
      *
      * @var string
      */
-    protected $description = 'Display an inspiring quote';
+    protected $description = '极限挑战2.0 现金发奖';
 
 
     private static $voteAward = [
@@ -42,35 +42,47 @@ class VoteAwardDebug extends Command
      */
     public function handle()
     {
-        // $this->comment(PHP_EOL.Inspiring::quote().PHP_EOL);
+        $this->comment(PHP_EOL.'vs2.0 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
+        // $max = $this->ask('一次性放入队列多少条?');
         $activityName = 'vote_time2.0';
         // 活动是否结束
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
         if($activityTime['end_at'] > date('Y-m-d H:i:s') ){
             //活动未结束  不发奖
-            echo "活动未结束  不发奖";
+            $this->error('活动未结束  不发奖');
             die();
         }
         //获取 发奖hash表数据
         $sendList = Redis::hGetAll('voteSendMoney');
         if(empty($sendList)){
             //发奖列表为空  不发奖
-            echo "奖列表为空  不发奖";
+            $this->error('奖列表为空  不发奖');
             die();
         }
 
+        $fp = fopen(storage_path('logs/vote_cash'.date('Y-m-d').'.log'), 'a');
+        $bar = $this->output->createProgressBar(count($sendList));
+        //计数
+        $eachSend = 0;
         foreach ($sendList as $k => $v) {
             if($v == 0){
-                echo "$k : $v has done!".PHP_EOL;
+                // $this->error("$k : $v has done!");
+                fwrite($fp, "$k : $v has done!".PHP_EOL);
                 continue;
             }else{
                 $mark = Redis::hSet('voteSendMoney',$k,0);//发过的 标记为0
-                $this->dispatch((new VoteSendAward($k,$v))->onQueue('lazy'));
+                $this->dispatch((new VoteSendAward($k,$v))->onQueue('battle'));
                 // $this->dispatch( new VoteSendAward($k,$v) );
-                echo "$k : $v put in queue done!".PHP_EOL;
+                // $this->info("$k : $v put in queue-battle done!");
+                // if($eachSend++ > $max)
+                //     break;
+                fwrite($fp, "$k : $v--put in queue-battle done!".PHP_EOL);
+                $bar->advance();
             }
             
         }
+        fclose($fp);
+        $bar->finish();
 
     }
 
