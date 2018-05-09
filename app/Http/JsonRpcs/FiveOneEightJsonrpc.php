@@ -66,9 +66,12 @@ class FiveOneEightJsonRpc extends JsonRpc
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-
-        $number = $config['draw_number'] - Attributes::getNumberByDay($userId, $config['drew_daily_key']);
+        //事务开始
+        DB::beginTransaction();
+        $dailyNum = Attributes::getNumberByDay($userId, $config['drew_daily_key']);
+        $number = $config['draw_number'] - $dailyNum;
         if($number <= 0) {
+            DB::commit();
             throw new OmgException(OmgException::NUMBER_IS_NULL);
         }
 
@@ -85,6 +88,7 @@ class FiveOneEightJsonRpc extends JsonRpc
 
         // 发奖
         $res = $this->sendAward($userId, $award);
+        DB::commit();
         if($res) {
             $result['awardName'] = $award['name'];
             $result['aliasName'] = $award['alias_name'];
