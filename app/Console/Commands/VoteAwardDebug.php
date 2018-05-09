@@ -27,7 +27,7 @@ class VoteAwardDebug extends Command
      *
      * @var string
      */
-    protected $description = '极限挑战2.0 现金发奖';
+    protected $description = '极限挑战3.0 现金发奖';
 
 
     private static $voteAward = [
@@ -42,9 +42,9 @@ class VoteAwardDebug extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL.'vs2.0 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
+        $this->comment(PHP_EOL.'vs3.0 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
         // $max = $this->ask('一次性放入队列多少条?');
-        $activityName = 'vote_time2.0';
+        $activityName = 'vote_time3.0';
         // 活动是否结束
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
         if($activityTime['end_at'] > date('Y-m-d H:i:s') ){
