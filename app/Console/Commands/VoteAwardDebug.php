@@ -44,7 +44,7 @@ class VoteAwardDebug extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL.self::ACT_NAME' 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
+        $this->comment(PHP_EOL.self::ACT_NAME.' 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
         // $max = $this->ask('一次性放入队列多少条?');
         $activityName = self::ACT_NAME;
         // 活动是否结束
