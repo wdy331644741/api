@@ -158,6 +158,21 @@ class Weixin
 
     }
 
+    /*
+     *通过jscode获取用户的openid，session_key
+     * @params：string code
+     */
+    public function getXcxLoginToken($code){
+        $xcx_api_url = "/sns/jscode2session?appid=".env('XCX_APPID')."&secret=".env('XCX_APP_SECRET')."&js_code=".urlencode($code)."&grant_type=authorization_code";
+        $res = $this->_client->get($xcx_api_url);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            if(isset($data['openid']) && isset($data['session_key']))
+                return $data;
+        }
+        file_put_contents(storage_path('logs/xcx_error_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=> [web]code:【".$data['errcode'].'】-errmsg：【'.$data['errmsg'].'】'.PHP_EOL,FILE_APPEND);
+        return false;
+    }
 
     /*
      *通过openid,template_id发送模板消息

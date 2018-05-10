@@ -488,6 +488,51 @@ class OpenController extends Controller
         return $content;
     }
 
+    //---------------------------------小程序----------------------------------//
+
+    public function postXcxLogin(Request $request){
+        if(!isset($request->code)){
+            return $this->outputJson(10001,array('error_msg'=>'Parames Error'));
+        }
+        $weixin = new  Weixin();
+        $data = $weixin->getXcxLoginToken($request->code);
+        $sid = session_id();
+        $token = env('SESSION_NAME')."=".$sid;
+        $rpcConfig = [
+            'timeout' => 20,
+            'resultToArr' => true,
+            'useCurrentCookie' => false,
+            'cookie' => $token,
+            'useCurrentUserAgent' => true,
+            'useCurrentReferer' => true,
+        ]; //rpc配置);
+        if($data){
+            $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'),$rpcConfig);
+            $res = $client->accountIsBind(array('channel'=>'wechat_xcx','key'=>$data['openid']));
+            if(isset($res['error'])){
+                return $this->outputJson(10003,array('error_msg'=>'Remote Server Error1'));//接口出错
+            }
+            if(!$res['result']['data'] && $res['result']['message'] == "未绑定"){
+                $session = new Session();
+                $wxSession = $session->get('weixin');
+                if(empty($wxSession)){
+                    $session->set('weixin',array('openid'=>$data['openid']));
+                }else{
+                    $wxSession['openid'] = $data['openid'];
+                    $session->set('weixin',$wxSession);
+                }
+                return $this->outputJson(10013,array('error_msg'=>'User Is Unbind'));//用户未绑定
+            }
+            $signData = $client->accountSignIn(array('channel'=>'wechat_xcx','openId'=>$data['openid']));
+            if(isset($signData['error'])){
+                return $this->outputJson(10003,array('error_msg'=>'Remote Server Error'));//接口出错
+            }
+            return $this->outputJson(0);//成功
+        }
+        return $this->outputJson(40029,array('error_msg'=>'invalid code'));//接口出错
+
+    }
+
     //---------------------------------爱有钱----------------------------------//
 
     public function postAyqRegister(Request $request){
