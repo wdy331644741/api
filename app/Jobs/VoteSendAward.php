@@ -18,6 +18,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class VoteSendAward extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
+    const VERSION = '3.0'; 
+    const ACT_NAME = 'vote_time3.0';//vote_time
+
     private $userId;
     private $amount; //返现金额
     private $activityName = 'vote_time3.0_cash';
@@ -83,7 +86,7 @@ class VoteSendAward extends Job implements ShouldQueue
         //添加活动参与记录
         if($result['status']){
             SendAward::addJoins($userId,$activity,3);
-            ActivityVote::where(['user_id' => $userId , 'status' => 2])->update(['status' => 3 ,'remark'=> json_encode($result)]);
+            ActivityVote::where(['user_id' => $userId , 'status' => intval(self::VERSION)])->update([ 'remark'=> json_encode($result)]);
         }
     }
 

@@ -15,6 +15,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 class VoteAwardDebug extends Command
 {
     use DispatchesJobs;
+    const VERSION = '3.0'; 
+    const ACT_NAME = 'vote_time3.0';//vote_time
     /**
      * The name and signature of the console command.
      *
@@ -42,9 +44,9 @@ class VoteAwardDebug extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL.'vs3.0 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
+        $this->comment(PHP_EOL.self::ACT_NAME' 返现金放入battle队列'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
         // $max = $this->ask('一次性放入队列多少条?');
-        $activityName = 'vote_time3.0';
+        $activityName = self::ACT_NAME;
         // 活动是否结束
         $activityTime = ActivityService::GetActivityedInfoByAlias($activityName);
         if($activityTime['end_at'] > date('Y-m-d H:i:s') ){
@@ -53,7 +55,7 @@ class VoteAwardDebug extends Command
             die();
         }
         //获取 发奖hash表数据
-        $sendList = Redis::hGetAll('voteSendMoney');
+        $sendList = Redis::hGetAll('voteSendMoney'.intval(self::VERSION));
         if(empty($sendList)){
             //发奖列表为空  不发奖
             $this->error('奖列表为空  不发奖');
