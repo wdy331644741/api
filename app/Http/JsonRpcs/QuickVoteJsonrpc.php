@@ -302,11 +302,14 @@ class QuickVoteJsonRpc extends JsonRpc
      */
     public function getInvestmentMark($params){
 
+        $voteSendMoney_bk = 'voteSendMoney'.self::VERSION.'_bk';
+        $voteSendMoney    = 'voteSendMoney'.self::VERSION;
+
         //如果 已经过滤过一遍  redis列表 奖品已经处理
-        if(!empty(Redis::hGetAll('voteSendMoney_bk' ) ) ){
-            $arr = Redis::hGetAll('voteSendMoney_bk' );
-            $totalCach = array_sum($arr);
-            return [$arr , $totalCach];
+        $arr_bk = Redis::hGetAll($voteSendMoney_bk );
+        if(!empty( $arr_bk) ){
+            $totalCach = array_sum($arr_bk);
+            return [$arr_bk , $totalCach];
         }
 
         $url = 'http://stat.wanglibao.com:10000/aso_user/get_transaction_list';
@@ -371,8 +374,8 @@ class QuickVoteJsonRpc extends JsonRpc
             }
             //写入哈希表
             foreach ($newArray as $key => $value) {
-                Redis::hSetNx('voteSendMoney',$key,$value);
-                Redis::hSetNx('voteSendMoney_bk',$key,$value);
+                Redis::hSetNx($voteSendMoney,$key,$value);
+                Redis::hSetNx($voteSendMoney_bk,$key,$value);
             }
             return [$newArray , array_sum($newArray) ];
         }
