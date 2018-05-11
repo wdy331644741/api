@@ -203,10 +203,10 @@ class QuickVoteJsonRpc extends JsonRpc
         if($isLogin){
             $dayBegin = date('Y-m-d')." 00:00:00";
             // $dayEnd = date('Y-m-d')." 24:00:00";
-            $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId, 'status' => self::VERSION])->first();
+            $isTodayVote = ActivityVote::where(['user_id'=> $userId, 'status' => self::VERSION])->first();
             $lastVote = $isTodayVote['vote'];
             $lastRank = $isTodayVote['rank_add'];
-            $isTodayVote = ($isTodayVote)?true:false;
+            $isTodayVote = (substr($isTodayVote['updated_at'], 0,10) == date('Y-m-d'))?true:false;
 
             
         }
@@ -342,21 +342,21 @@ class QuickVoteJsonRpc extends JsonRpc
         
         if(!empty($data['data'])){
             //test 数据***************************************
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '130112.00',
-                'period' => '6',
-                ));
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '4894.00',
-                'period' => '12',
-                ));
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '101.00',
-                'period' => '12',
-                ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '130112.00',
+            //     'period' => '6',
+            //     ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '4894.00',
+            //     'period' => '12',
+            //     ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '101.00',
+            //     'period' => '12',
+            //     ));
             //***********************************************
             // return $data['data'];
 
