@@ -551,7 +551,7 @@ class QuickVoteJsonRpc extends JsonRpc
             SendAward::addJoins($userId,$activity,3,50);
             return 1;
         }
-        return $result;
+        throw new OmgException(4500,'红包发送失败');
 
     }
 
