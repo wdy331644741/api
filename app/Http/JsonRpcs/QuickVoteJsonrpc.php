@@ -41,7 +41,7 @@ class QuickVoteJsonRpc extends JsonRpc
     ];
 
     //红包
-    private $_redpack = [
+    private $_redpack = [ 
         "id" => 0,
         "name" => "50元直抵红包",
         "red_type" => 1,
