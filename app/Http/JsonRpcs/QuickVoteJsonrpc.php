@@ -276,23 +276,35 @@ class QuickVoteJsonRpc extends JsonRpc
                 $dayRedpack++;
             }
         }
-        if($dayIntegral >= 5){
+        if($dayIntegral >= 4){
             // $this->dispatch(new VoteSendAwardIng($userId));
             if($dayRedpack >= 1){
                 return "一天最多分享5次，一天一次红包";
             }
+            //第五次时 同时发放积分和红包
             $this->sendRedpack($userId,$activity);
-            return "一天最多分享5次";
+            $result = SendAward::integral($this->_integral ,array());
+            //添加活动参与记录
+            if($result['status']){
+                SendAward::addJoins($userId,$activity,3);
+                return 1;
+            }else{
+                return $result;
+            }
+            //return "一天最多分享5次";
+        }else{
+            //第三次的时候
+            $result = SendAward::integral($this->_integral ,array());
+            //添加活动参与记录
+            if($result['status']){
+                SendAward::addJoins($userId,$activity,3);
+                return 1;
+            }else{
+                return $result;
+            }
         }
 
-        $result = SendAward::integral($this->_integral ,array());
-        //添加活动参与记录
-        if($result['status']){
-            SendAward::addJoins($userId,$activity,3);
-            return 1;
-        }else{
-            return $result;
-        }
+        
     }
 
     /**
@@ -537,7 +549,9 @@ class QuickVoteJsonRpc extends JsonRpc
         //添加活动参与记录
         if($result['status']){
             SendAward::addJoins($userId,$activity,3,50);
+            return 1;
         }
+        return $result;
 
     }
 
