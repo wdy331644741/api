@@ -55,7 +55,7 @@ class VoteAwardDebug extends Command
             die();
         }
         //获取 发奖hash表数据
-        $sendList = Redis::hGetAll('voteSendMoney'.intval(self::VERSION));
+        $sendList = Redis::hGetAll('voteSendMoney'.self::VERSION);
         if(empty($sendList)){
             //发奖列表为空  不发奖
             $this->error('奖列表为空  不发奖');
@@ -72,7 +72,7 @@ class VoteAwardDebug extends Command
                 fwrite($fp, "$k : $v has done!".PHP_EOL);
                 continue;
             }else{
-                $mark = Redis::hSet('voteSendMoney',$k,0);//发过的 标记为0
+                $mark = Redis::hSet('voteSendMoney'.self::VERSION,$k,0);//发过的 标记为0
                 $this->dispatch((new VoteSendAward($k,$v))->onQueue('battle'));
                 // $this->dispatch( new VoteSendAward($k,$v) );
                 // $this->info("$k : $v put in queue-battle done!");

@@ -203,10 +203,10 @@ class QuickVoteJsonRpc extends JsonRpc
         if($isLogin){
             $dayBegin = date('Y-m-d')." 00:00:00";
             // $dayEnd = date('Y-m-d')." 24:00:00";
-            $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId, 'status' => self::VERSION])->first();
+            $isTodayVote = ActivityVote::where(['user_id'=> $userId, 'status' => self::VERSION])->first();
             $lastVote = $isTodayVote['vote'];
             $lastRank = $isTodayVote['rank_add'];
-            $isTodayVote = ($isTodayVote)?true:false;
+            $isTodayVote = (substr($isTodayVote['updated_at'], 0,10) == date('Y-m-d'))?true:false;
 
             
         }
@@ -276,23 +276,35 @@ class QuickVoteJsonRpc extends JsonRpc
                 $dayRedpack++;
             }
         }
-        if($dayIntegral >= 5){
+        if($dayIntegral >= 4){
             // $this->dispatch(new VoteSendAwardIng($userId));
             if($dayRedpack >= 1){
                 return "一天最多分享5次，一天一次红包";
             }
+            //第五次时 同时发放积分和红包
             $this->sendRedpack($userId,$activity);
-            return "一天最多分享5次";
+            $result = SendAward::integral($this->_integral ,array());
+            //添加活动参与记录
+            if($result['status']){
+                SendAward::addJoins($userId,$activity,3);
+                return 1;
+            }else{
+                return $result;
+            }
+            //return "一天最多分享5次";
+        }else{
+            //第三次的时候
+            $result = SendAward::integral($this->_integral ,array());
+            //添加活动参与记录
+            if($result['status']){
+                SendAward::addJoins($userId,$activity,3);
+                return 1;
+            }else{
+                return $result;
+            }
         }
 
-        $result = SendAward::integral($this->_integral ,array());
-        //添加活动参与记录
-        if($result['status']){
-            SendAward::addJoins($userId,$activity,3);
-            return 1;
-        }else{
-            return $result;
-        }
+        
     }
 
     /**
@@ -342,21 +354,21 @@ class QuickVoteJsonRpc extends JsonRpc
         
         if(!empty($data['data'])){
             //test 数据***************************************
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '130112.00',
-                'period' => '6',
-                ));
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '4894.00',
-                'period' => '12',
-                ));
-            array_push($data['data'], array(
-                'user_id' => '5100881',
-                'source_amount' => '101.00',
-                'period' => '12',
-                ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '130112.00',
+            //     'period' => '6',
+            //     ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '4894.00',
+            //     'period' => '12',
+            //     ));
+            // array_push($data['data'], array(
+            //     'user_id' => '5100881',
+            //     'source_amount' => '101.00',
+            //     'period' => '12',
+            //     ));
             //***********************************************
             // return $data['data'];
 
@@ -537,7 +549,9 @@ class QuickVoteJsonRpc extends JsonRpc
         //添加活动参与记录
         if($result['status']){
             SendAward::addJoins($userId,$activity,3,50);
+            return 1;
         }
+        return $result;
 
     }
 
