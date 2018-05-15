@@ -523,10 +523,34 @@ class CollectCardJsonrpc extends JsonRpc
 
     //登陆或分享根据别名加次数， 一天一次
     private  function addDrawCardNum($userId, $aliasName) {
-        $config = Config::get('collectcard');
-        $this->dispatch(new CollectCard($userId,$config,$aliasName));
-        return true;
-
+        $activity = ActivityService::GetActivityInfoByAlias($aliasName);
+        $where['user_id'] = $userId;
+        $where['activity_id'] = $activity['id'];
+        $where['status'] = 3;
+        $date = date('Y-m-d');
+        $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->first();
+        if ($count) {
+            return false;
+        }
+        $userKey = $userId . ":" . $aliasName;
+        Cache::put($userKey, 1, 1);
+        if (Cache::get($userKey) == 1) {
+            $config = Config::get('collectcard');
+            DB::beginTransaction();
+            Attributes::getItemLock($userId, $config['drew_user_key']);
+            SendAward::addJoins($userId, $activity, 3);
+            $flag = Attributes::increment($userId, $config['drew_user_key']);
+            if ($flag) {
+                DB::commit();
+                Cache::forget($userKey);
+                return true;
+            }
+            DB::rollBack();
+            Cache::forget($userKey);
+            return false;
+        }
+        Cache::forget($userKey);
+        return false;
 //        return !SendAward::ActiveSendAward($userId, $aliasName);
     }
 

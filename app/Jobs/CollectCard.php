@@ -32,10 +32,6 @@ class CollectCard extends Job implements ShouldQueue
      */
     public function handle()
     {
-        if (is_array($this->awards)) {
             CollectCardService::sendAward($this->userId, $this->awards);
-        } else {
-            CollectCardService::addDrawCardNum($this->userId, $this->awards);
-        }
     }
 }
