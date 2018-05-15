@@ -319,7 +319,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
                     //获取摇一摇新规则的开始时间
                     $newThreshold = GlobalAttributes::getItem("sign_in_system_new_threshold_time");
-                    $newThresholdStart = isset($newThreshold['start_at']) && $newThreshold['start_at'] != '' ? strtotime($newThreshold['start_at']) : 0;
+                    $newThresholdStart = isset($newThreshold['string']) && $newThreshold['string'] != '' ? strtotime($newThreshold['string']) : 0;
                     //判断当前时间是否超过配置时间
                     if($newThresholdStart > 0 && time() > $newThresholdStart){
                         //6个月标才可以加摇一摇时间
