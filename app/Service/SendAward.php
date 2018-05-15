@@ -317,9 +317,23 @@ class SendAward
             //投资就给该用户添加48小时摇红包时间
             case 'sign_in_system_threshold':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id'])){
-                    $config = Config::get('signinsystem');
-                    $expiredTime = time() + 3600 * $config['expired_hour'];
-                    Attributes::setItem($triggerData['user_id'],"sign_in_system_threshold",$expiredTime);
+                    //获取摇一摇新规则的开始时间
+                    $newThreshold = GlobalAttributes::getItem("sign_in_system_new_threshold_time");
+                    $newThresholdStart = isset($newThreshold['start_at']) && $newThreshold['start_at'] != '' ? strtotime($newThreshold['start_at']) : 0;
+                    //判断当前时间是否超过配置时间
+                    if($newThresholdStart > 0 && time() > $newThresholdStart){
+                        //6个月标才可以加摇一摇时间
+                        if((isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && isset($triggerData['period']) && $triggerData['period'] >= 6)){
+                            $config = Config::get('signinsystem');
+                            $expiredTime = time() + 3600 * $config['expired_hour'];
+                            Attributes::setItem($triggerData['user_id'],"sign_in_system_threshold",$expiredTime);
+                        }
+                    }else{
+                        $config = Config::get('signinsystem');
+                        $expiredTime = time() + 3600 * $config['expired_hour'];
+                        Attributes::setItem($triggerData['user_id'],"sign_in_system_threshold",$expiredTime);
+                    }
+
                 }
                 break;
             //投资给邀请人增加倍数
