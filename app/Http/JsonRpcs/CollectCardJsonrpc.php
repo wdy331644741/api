@@ -20,6 +20,7 @@ use App\Service\SendAward;
 use App\Service\SendMessage;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\CollectCard;
+use Illuminate\Support\Facades\Redis;
 use Lib\JsonRpcClient;
 
 use Config, Request, Cache,DB;
@@ -527,13 +528,18 @@ class CollectCardJsonrpc extends JsonRpc
         $where['activity_id'] = $activity['id'];
         $where['status'] = 3;
         $date = date('Y-m-d');
-        DB::beginTransaction();
         $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->first();
         if ($count) {
-            DB::rollBack();
+            return false;
+        }
+        //解决重复加两次
+        $is_lock = Redis::setnx($userId.":".$aliasName, time()+5);
+        // 不能获取锁
+        if(!$is_lock){
             return false;
         }
         $config = Config::get('collectcard');
+        DB::beginTransaction();
         Attributes::getItemLock($userId, $config['drew_user_key']);
         SendAward::addJoins($userId, $activity, 3);
         $flag = Attributes::increment($userId, $config['drew_user_key']);
