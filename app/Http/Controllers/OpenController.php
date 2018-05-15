@@ -496,8 +496,18 @@ class OpenController extends Controller
         }
         $weixin = new  Weixin();
         $data = $weixin->getXcxLoginToken($request->code);
+        $sid = session_id();
+        $token = env('SESSION_NAME')."=".$sid;
+        $rpcConfig = [
+            'timeout' => 20,
+            'resultToArr' => true,
+            'useCurrentCookie' => false,
+            'cookie' => $token,
+            'useCurrentUserAgent' => true,
+            'useCurrentReferer' => true,
+        ]; //rpc配置);
         if($data){
-            $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+            $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'),$rpcConfig);
             $res = $client->accountIsBind(array('channel'=>'wechat_xcx','key'=>$data['openid']));
             if(isset($res['error'])){
                 return $this->outputJson(10003,array('error_msg'=>'Remote Server Error1'));//接口出错

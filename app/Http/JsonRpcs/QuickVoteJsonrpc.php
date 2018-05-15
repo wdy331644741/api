@@ -9,8 +9,7 @@ use Lib\JsonRpcClient;
 use App\Service\Func;
 use App\Models\UserAttribute;
 use App\Models\ActivityVote;
-use App\Jobs\CarnivalSendRedMoney;
-use App\Jobs\CarnivalSendListRedMoney;
+use App\Jobs\VoteSendAwardIng;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Support\Facades\Redis;
 use App\Service\SendMessage;
@@ -21,9 +20,10 @@ use Validator, Config, Request, Cache, DB, Session;
 
 class QuickVoteJsonRpc extends JsonRpc
 {
+    use DispatchesJobs;
 
-    const VERSION = '2.0'; //1.0是 会出错  2.0是2.0
-    const ACT_NAME = 'vote_time2.0';//vote_time
+    const VERSION = '3.0'; //1.0是 会出错  2.0是2.0
+    const ACT_NAME = 'vote_time3.0';//vote_time
     //v2.0 分享送积分
     private $_integral = [
         "id" => 0,
@@ -39,7 +39,34 @@ class QuickVoteJsonRpc extends JsonRpc
         "trigger" => 4,
         "user_id" => ''
     ];
-    //use DispatchesJobs;
+
+    //红包
+    private $_redpack = [
+        "id" => 0,
+        "name" => "50元直抵红包",
+        "red_type" => 1,
+        "red_money" => 50,
+        "percentage" => 0.0,
+        "effective_time_type" => 1,
+        "effective_time_day" => 10,
+        "effective_time_start" => null,
+        "effective_time_end" => null,
+        "investment_threshold" => 10000,
+        "project_duration_type" => 3,
+        "project_type" => 0,
+        "product_id" => "",
+        "platform_type" => 0,
+        "limit_desc" => "10000元起投，限6月及以上标",
+        "created_at" => "",
+        "updated_at" => "",
+        "project_duration_time" => 6,
+        "message" => "恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。",
+        "mail" => "恭喜您在'{{sourcename}}'活动中获得'{{awardname}}'奖励。",
+        "source_id" => "",
+        "source_name" => "",
+        "trigger" => 4,
+        "user_id" => ""
+    ];
     /**
      * 参加投票
      *
@@ -153,12 +180,18 @@ class QuickVoteJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //活动倒计时
+        if($activityTime['end_at'] == null || $activityTime['start_at'] == null){
+            return "活动开始、结束时间不能为空";
+        }
         $diffTime = strtotime($activityTime['end_at']) - strtotime('now');
         //活动距离开始时间
         $startTime =  strtotime($activityTime['start_at']) - strtotime('now');
         //获取两个平台的播放量
         //固定死格式
         $moveData = explode(',', $activityTime['des']);
+        if(count($moveData ) != 2){
+            return "播放量未设置";
+        }
         $mangguoTV = explode(':', $moveData[0]);
         $kuaileTV = explode(':', $moveData[1]);
 
@@ -170,10 +203,10 @@ class QuickVoteJsonRpc extends JsonRpc
         if($isLogin){
             $dayBegin = date('Y-m-d')." 00:00:00";
             // $dayEnd = date('Y-m-d')." 24:00:00";
-            $isTodayVote = ActivityVote::where('updated_at', '>', $dayBegin)->where(['user_id'=> $userId, 'status' => self::VERSION])->first();
+            $isTodayVote = ActivityVote::where(['user_id'=> $userId, 'status' => self::VERSION])->first();
             $lastVote = $isTodayVote['vote'];
             $lastRank = $isTodayVote['rank_add'];
-            $isTodayVote = ($isTodayVote)?true:false;
+            $isTodayVote = (substr($isTodayVote['updated_at'], 0,10) == date('Y-m-d'))?true:false;
 
             
         }
@@ -232,20 +265,46 @@ class QuickVoteJsonRpc extends JsonRpc
         $where['activity_id'] = $activity['id'];
         $where['status'] = 3;
         $date = date('Y-m-d');
-        $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->get()->count();
-        if($count >= 5){
-            return "一天最多分享5次";
+        $countInfo = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->get()->toArray();
+        
+        $dayIntegral = 0;
+        $dayRedpack  = 0;
+        foreach ($countInfo as $v) {
+            if(empty($v['remark'])){
+                $dayIntegral++;
+            }else{
+                $dayRedpack++;
+            }
+        }
+        if($dayIntegral >= 4){
+            // $this->dispatch(new VoteSendAwardIng($userId));
+            if($dayRedpack >= 1){
+                return "一天最多分享5次，一天一次红包";
+            }
+            //第五次时 同时发放积分和红包
+            $this->sendRedpack($userId,$activity);
+            $result = SendAward::integral($this->_integral ,array());
+            //添加活动参与记录
+            if($result['status']){
+                SendAward::addJoins($userId,$activity,3);
+                return 1;
+            }else{
+                return $result;
+            }
+            //return "一天最多分享5次";
+        }else{
+            //第三次的时候
+            $result = SendAward::integral($this->_integral ,array());
+            //添加活动参与记录
+            if($result['status']){
+                SendAward::addJoins($userId,$activity,3);
+                return 1;
+            }else{
+                return $result;
+            }
         }
 
-        $result = SendAward::integral($this->_integral ,array());
-        // return $result;
-        //添加活动参与记录
-        if($result['status']){
-            SendAward::addJoins($userId,$activity,3);
-            // $obj = call_user_func(array(self::VERSION,'where'),['user_id' => $userId]);
-            // return $obj->update(['status' => 1 ,'remark'=> json_encode($result)]);
-            return 1;
-        }
+        
     }
 
     /**
@@ -255,12 +314,14 @@ class QuickVoteJsonRpc extends JsonRpc
      */
     public function getInvestmentMark($params){
 
-        $totalCach = 0;
+        $voteSendMoney_bk = 'voteSendMoney'.self::VERSION.'_bk';
+        $voteSendMoney    = 'voteSendMoney'.self::VERSION;
+
         //如果 已经过滤过一遍  redis列表 奖品已经处理
-        if(!empty(Redis::hGetAll('voteSendMoney_bk' ) ) ){
-            $arr = Redis::hGetAll('voteSendMoney_bk' );
-            $totalCach = array_sum($arr);
-            return [$arr , $totalCach];
+        $arr_bk = Redis::hGetAll($voteSendMoney_bk );
+        if(!empty( $arr_bk) ){
+            $totalCach = array_sum($arr_bk);
+            return [$arr_bk , $totalCach];
         }
 
         $url = 'http://stat.wanglibao.com:10000/aso_user/get_transaction_list';
@@ -295,18 +356,18 @@ class QuickVoteJsonRpc extends JsonRpc
             //test 数据***************************************
             // array_push($data['data'], array(
             //     'user_id' => '5100881',
-            //     'source_amount' => '120112.00',
-            //     'period' => '24',
+            //     'source_amount' => '130112.00',
+            //     'period' => '6',
             //     ));
             // array_push($data['data'], array(
             //     'user_id' => '5100881',
-            //     'source_amount' => '7894.00',
-            //     'period' => '8',
+            //     'source_amount' => '4894.00',
+            //     'period' => '12',
             //     ));
             // array_push($data['data'], array(
             //     'user_id' => '5100881',
-            //     'source_amount' => '100.00',
-            //     'period' => '8',
+            //     'source_amount' => '101.00',
+            //     'period' => '12',
             //     ));
             //***********************************************
             // return $data['data'];
@@ -316,21 +377,19 @@ class QuickVoteJsonRpc extends JsonRpc
                 if(array_key_exists($value['user_id'] ,$newArray)){
                     $hasAmount = $newArray[$value['user_id']];
                     $newArray[$value['user_id']] = $hasAmount + round($value['source_amount']/12*$value['period']*$route ,2);
-                    $totalCach += $newArray[$value['user_id']];
                     // Redis::hSetNx('voteSendMoney',$value['user_id'],$hasAmount + $value['source_amount']/12*$value['period']*0.012);
                 }else{
                     $newArray[$value['user_id']] = round($value['source_amount']/12*$value['period']*$route , 2);
-                    $totalCach += $newArray[$value['user_id']];
                     // Redis::hSetNx('voteSendMoney',$value['user_id'],$value['source_amount']/12*$value['period']*0.012);
                 }
                     
             }
             //写入哈希表
             foreach ($newArray as $key => $value) {
-                Redis::hSetNx('voteSendMoney',$key,$value);
-                Redis::hSetNx('voteSendMoney_bk',$key,$value);
+                Redis::hSetNx($voteSendMoney,$key,$value);
+                Redis::hSetNx($voteSendMoney_bk,$key,$value);
             }
-            return [$newArray , $totalCach];
+            return [$newArray , array_sum($newArray) ];
         }
         return false;
     }
@@ -479,6 +538,22 @@ class QuickVoteJsonRpc extends JsonRpc
         return 666;
     }
 
+    //积分满5次 发放红包-50元的直抵红包
+    private function sendRedpack($userId,$activity){
+
+        $this->_redpack['user_id'] = $userId;
+        $this->_redpack['source_name'] = $activity['name'];
+        $this->_redpack['source_id'] = $activity['id'];
+        $result = SendAward::redMoney($this->_redpack );
+
+        //添加活动参与记录
+        if($result['status']){
+            SendAward::addJoins($userId,$activity,3,50);
+            return 1;
+        }
+        throw new OmgException(4500,'红包发送失败');
+
+    }
 
 }
 
