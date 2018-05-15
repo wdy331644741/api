@@ -219,7 +219,6 @@ class CollectCardJsonrpc extends JsonRpc
      */
     public function collectMyList() {
         global $userId;
-        $userId = 5100881;
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -323,6 +322,9 @@ class CollectCardJsonrpc extends JsonRpc
         $config = Config::get('collectcard');
         $user_info = Func::getUserBasicInfo($userId);
         if( !$user_info['from_channel'] || !in_array($user_info['from_channel'], $config['channel']) ) {
+            return $result;
+        }
+        if(!ActivityService::isExistByAlias($config['alias_name'])) {
             return $result;
         }
         $result['data']['share'] = self::addDrawCardNum($userId, $config['day_share_key']);
@@ -521,18 +523,16 @@ class CollectCardJsonrpc extends JsonRpc
     //登陆或分享根据别名加次数， 一天一次
     private static function addDrawCardNum($userId, $aliasName) {
         $activity = ActivityService::GetActivityInfoByAlias($aliasName);
-        if(!$activity) {
-            return false;
-        }
         $where['user_id'] = $userId;
         $where['activity_id'] = $activity['id'];
         $where['status'] = 3;
         $date = date('Y-m-d');
+        DB::beginTransaction();
         $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->first();
         if ($count) {
+            DB::rollBack();
             return false;
         }
-        DB::beginTransaction();
         $config = Config::get('collectcard');
         Attributes::getItemLock($userId, $config['drew_user_key']);
         SendAward::addJoins($userId, $activity, 3);
