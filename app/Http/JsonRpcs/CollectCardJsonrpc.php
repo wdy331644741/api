@@ -522,33 +522,10 @@ class CollectCardJsonrpc extends JsonRpc
     }
 
     //登陆或分享根据别名加次数， 一天一次
-    private static function addDrawCardNum($userId, $aliasName) {
-        $activity = ActivityService::GetActivityInfoByAlias($aliasName);
-        $where['user_id'] = $userId;
-        $where['activity_id'] = $activity['id'];
-        $where['status'] = 3;
-        $date = date('Y-m-d');
-        $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->first();
-        if ($count) {
-            return false;
-        }
-        //解决重复加两次
-        $is_lock = Redis::setnx($userId.":".$aliasName, time()+5);
-        // 不能获取锁
-        if(!$is_lock){
-            return false;
-        }
+    private  function addDrawCardNum($userId, $aliasName) {
         $config = Config::get('collectcard');
-        DB::beginTransaction();
-        Attributes::getItemLock($userId, $config['drew_user_key']);
-        SendAward::addJoins($userId, $activity, 3);
-        $flag = Attributes::increment($userId, $config['drew_user_key']);
-        if ($flag) {
-            DB::commit();
-            return true;
-        }
-        DB::rollBack();
-        return false;
+        $this->dispatch(new CollectCard($userId,$config,$aliasName));
+        return true;
 
 //        return !SendAward::ActiveSendAward($userId, $aliasName);
     }

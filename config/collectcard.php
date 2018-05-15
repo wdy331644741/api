@@ -26,7 +26,7 @@ return [
     ],
     'end_award' => ['name' => '翻倍卡牌', 'alias_name' => 'fanbei',  'card_name'=>'zhugeliang', 'type' => 'virtual'],
     'channel' => [
-            'kbjk',
+        'haoyouyaoqing1','360j','360pcs','360yds','APPStor','APPStorePlu','baid','baiduj','baidup','chuiz','fw','huawe','lenov','m36','m360j','mbaiduj','mbaidup','meiz','opp','oppofee','q','qqplu','qqplus','qqplus','samsun','sgqqd','sogo','sougou','viv','wanglibao','xiaom','xiaomiplu','al','qqcp','gd','gdt','sglccp','360p','m360p','fhcp','jrttcp','sgpcs','sgyds','sgp','msgp','qqcpd','ggkd','xlp','fh','fh','fh','fh','fh',' 518TYHDp','518TYHDh',' LDLT-d','bkl201','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao2','LDLT','kbjk',
           //  'lc-kolxl',//测试使用
     ],
     'chaopiaoqiang_alisname'=> 'collect_card_chaopiaoqiang',

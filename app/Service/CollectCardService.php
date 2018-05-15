@@ -106,4 +106,28 @@ class CollectCardService
         }
     }
 */
+
+    //登陆或分享根据别名加次数， 一天一次
+    public static function addDrawCardNum($userId, $aliasName) {
+        $activity = ActivityService::GetActivityInfoByAlias($aliasName);
+        $where['user_id'] = $userId;
+        $where['activity_id'] = $activity['id'];
+        $where['status'] = 3;
+        $date = date('Y-m-d');
+        $count = ActivityJoin::where($where)->whereRaw("date(created_at) = '{$date}'")->first();
+        if ($count) {
+            return false;
+        }
+        $config = Config::get('collectcard');
+        DB::beginTransaction();
+        Attributes::getItemLock($userId, $config['drew_user_key']);
+        SendAward::addJoins($userId, $activity, 3);
+        $flag = Attributes::increment($userId, $config['drew_user_key']);
+        if ($flag) {
+            DB::commit();
+            return true;
+        }
+        DB::rollBack();
+        return false;
+    }
 }
