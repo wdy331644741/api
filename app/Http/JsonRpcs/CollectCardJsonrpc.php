@@ -88,15 +88,12 @@ class CollectCardJsonrpc extends JsonRpc
                 }
             }
             $result['timeing'] = strtotime($activity->end_at);
-        }
-        if($result['available'] && $result['login'] && $result['channel']) {
             //老用户不能参加
             if (strtotime($user_info['create_time']) < $startTime) {
-                return [
-                    "code"=>-1,
-                    "message"=>"该活动为新用户专享活动，老用户不可参加！"
-                ];
+                $result['channel'] = 0;
             }
+        }
+        if($result['available'] && $result['login'] && $result['channel']) {
             //获取卡牌
             $user_attr_text = Attributes::getJsonText($userId, $config['alias_name']);
             //1.注册就送刘备卡
@@ -115,7 +112,7 @@ class CollectCardJsonrpc extends JsonRpc
 //                $this->dispatch(new CollectCard($userId,$config,$config['register_award']));
             }
             //最后一张牌开启时间
-            $last_card_time = strtotime("+4 day", strtotime($activity->start_at));
+            $last_card_time = strtotime("+5 day", strtotime($activity->start_at));
             $result['last_card'] = strtotime('now') > $last_card_time ? 1 : 0;
             $result['last_card_time'] = date('m-d', $last_card_time);
             //每日登陆就送1次抽卡机会
@@ -158,10 +155,7 @@ class CollectCardJsonrpc extends JsonRpc
         }
         //老用户不能参加
         if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
-            return [
-                "code"=>-1,
-                "message"=>"该活动为新用户专享活动，老用户不可参加！"
-            ];
+            throw new OmgException(OmgException::API_ILLEGAL);
         }
         try {
             DB::beginTransaction();
