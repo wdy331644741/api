@@ -90,6 +90,13 @@ class CollectCardJsonrpc extends JsonRpc
             $result['timeing'] = strtotime($activity->end_at);
         }
         if($result['available'] && $result['login'] && $result['channel']) {
+            //老用户不能参加
+            if (strtotime($user_info['create_time']) < $startTime) {
+                return [
+                    "code"=>-1,
+                    "message"=>"该活动为新用户专享活动，老用户不可参加！"
+                ];
+            }
             //获取卡牌
             $user_attr_text = Attributes::getJsonText($userId, $config['alias_name']);
             //1.注册就送刘备卡
@@ -146,8 +153,15 @@ class CollectCardJsonrpc extends JsonRpc
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($config['alias_name'])) {
+        if(!$activity = ActivityService::GetActivityInfoByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        //老用户不能参加
+        if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
+            return [
+                "code"=>-1,
+                "message"=>"该活动为新用户专享活动，老用户不可参加！"
+            ];
         }
         try {
             DB::beginTransaction();
@@ -231,12 +245,13 @@ class CollectCardJsonrpc extends JsonRpc
             ->orderBy('created_at', 'desc')->get()->toArray();
         $key = 'collect_card__award_list_' . $userId;
         $list = Cache::remember($key, 10, function() use(&$userId){
+            $activity_time = ActivityService::GetActivityInfoByAlias(Config::get('collectcard.alias_name'));
             //实名奖励
             $activity = ActivityService::GetActivityInfoByAlias('advanced_real_name');
             $where['user_id'] = $userId;
             $where['activity_id'] = $activity->id;
             $where['status'] = 1;
-            $award_log = SendRewardLog::select('user_id', 'uuid', 'remark', 'award_id', 'award_type', 'created_at')->where($where)->get()->toArray();
+            $award_log = SendRewardLog::select('user_id', 'uuid', 'remark', 'award_id', 'award_type', 'created_at')->where($where)->where('created_at', '>=', $activity_time->start_at)->get()->toArray();
             $list = array();
             if ($award_log) {
                 foreach ($award_log as $val) {
@@ -355,14 +370,14 @@ class CollectCardJsonrpc extends JsonRpc
             $result['available']= 1;
         }
         if( $result['login'] && $flag && $result['available']) {
-//            try{
-//                DB::beginTransaction();
-//                DB::commit();
-//            } catch (Exception $e) {
-//                DB::rollBack();
-//                $message = "[".date('Y-m-d H:i:s')."] userId:".$userId ." message:".$e->getMessage() ."\r\n";
-//                file_put_contents(storage_path("logs/") . "collect_" . date('Y-m-d') . ".log", $message, FILE_APPEND);
-//            }
+            //老用户不能参加
+            if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
+                return [
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => $result,
+                ];
+            }
             $this->awardDouble($userId, $config);
             $result['flag']= true;
         }
@@ -532,24 +547,18 @@ class CollectCardJsonrpc extends JsonRpc
         if ($count) {
             return false;
         }
-        $userKey = $userId . ":" . $aliasName;
-        Cache::put($userKey, 1, 1);
-        if (Cache::get($userKey) == 1) {
+        $user_lock = $userId . ":" . $aliasName;
+        $is_lock = Redis::set($user_lock, 1, "nx", "ex", 5);
+        if ($is_lock) {
             $config = Config::get('collectcard');
             DB::beginTransaction();
             Attributes::getItemLock($userId, $config['drew_user_key']);
             SendAward::addJoins($userId, $activity, 3);
-            $flag = Attributes::increment($userId, $config['drew_user_key']);
-            if ($flag) {
-                DB::commit();
-                Cache::forget($userKey);
-                return true;
-            }
-            DB::rollBack();
-            Cache::forget($userKey);
-            return false;
+            Attributes::increment($userId, $config['drew_user_key']);
+            DB::commit();
+            Redis::del($user_lock);
+            return true;
         }
-        Cache::forget($userKey);
         return false;
 //        return !SendAward::ActiveSendAward($userId, $aliasName);
     }
@@ -654,14 +663,22 @@ class CollectCardJsonrpc extends JsonRpc
 
     //实名红包翻倍
     //由于正常发奖实名限制一次，所以跳过限制发送
+
     private function virtualAwardDouble($userId, $config) {
+//        $where['user_id'] = $userId;
+//        $where['status'] = 1;
+//        $where['type'] = $config['register_award']['type'];
+//        $where['alias_name'] = $config['register_award']['alias_name'];
+//        $virtual_award = HdCollectCard::select('id')->where($where)->first();
+        //
+        $activity_time = ActivityService::GetActivityInfoByAlias($config['alias_name']);
+        $activity = ActivityService::GetActivityInfoByAlias('advanced_real_name');
         $where['user_id'] = $userId;
+        $where['activity_id'] = $activity->id;
         $where['status'] = 1;
-        $where['type'] = $config['register_award']['type'];
-        $where['alias_name'] = $config['register_award']['alias_name'];
-        $virtual_award = HdCollectCard::select('id')->where($where)->first();
+        $award_log = SendRewardLog::select('id')->where($where)->where('created_at', '>=', $activity_time->start_at)->first();
         //如果奖励记录表有实名奖品的记录，说明已经实名了，奖品翻倍
-        if ($virtual_award) {
+        if ($award_log) {
             $activity = ActivityService::GetActivityInfoByAlias($config['register_award']['alias_name']);
             //根据活动id发奖品
             SendAward::addAwardByActivity($userId, $activity->id);
