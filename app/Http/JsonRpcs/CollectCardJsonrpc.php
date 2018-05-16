@@ -227,7 +227,6 @@ class CollectCardJsonrpc extends JsonRpc
      */
     public function collectMyList() {
         global $userId;
-        $userId = 122;
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
