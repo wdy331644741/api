@@ -26,7 +26,7 @@ return [
     ],
     'end_award' => ['name' => '翻倍卡牌', 'alias_name' => 'fanbei',  'card_name'=>'zhugeliang', 'type' => 'virtual'],
     'channel' => [
-        'haoyouyaoqing1','360j','360pcs','360yds','APPStor','APPStorePlu','baid','baiduj','baidup','chuiz','fw','huawe','lenov','m36','m360j','mbaiduj','mbaidup','meiz','opp','oppofee','q','qqplu','qqplus','qqplus','samsun','sgqqd','sogo','sougou','viv','wanglibao','xiaom','xiaomiplu','al','qqcp','gd','gdt','sglccp','360p','m360p','fhcp','jrttcp','sgpcs','sgyds','sgp','msgp','qqcpd','ggkd','xlp','fh','fh','fh','fh','fh',' 518TYHDp','518TYHDh',' LDLT-d','bkl201','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao1','toutiao2','LDLT','kbjk',
+        'haoyouyaoqing1','360jj','360pcss','360ydss','APPStore','APPStorePlus','baidu','baidujj','baidupz','chuizi','fwh','huawei','lenovo','m360','m360jj','mbaidujj','mbaidupz','meizu','oppo','oppofeed','qq','qqplus','qqplus1','qqplus2','samsung','sgqqdh','sogou','sougou1','vivo','wanglibao1','xiaomi','xiaomiplus','ali','qqcpd','gdt','gdt1','sglccpt','360pz','m360pz','fhcpc','jrttcpc','sgpcss','sgydss','sgpz','msgpz','qqcpd1','ggkdg','xlps','fh1','fh2','fh3','fh4','fh5',' 518TYHDpc','518TYHDh5',' LDLT-dx','bkl2018','toutiao1','toutiao2','toutiao3','toutiao4','toutiao5','toutiao6','toutiao7','toutiao8','toutiao9','toutiao10','toutiao11','toutiao12','toutiao13','toutiao14','toutiao15','toutiao16','toutiao17','toutiao18','toutiao19','toutiao20','LDLT','kbjk',
           //  'lc-kolxl',//测试使用
     ],
     'chaopiaoqiang_alisname'=> 'collect_card_chaopiaoqiang',
