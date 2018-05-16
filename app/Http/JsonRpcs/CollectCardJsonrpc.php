@@ -89,7 +89,7 @@ class CollectCardJsonrpc extends JsonRpc
             }
             $result['timeing'] = strtotime($activity->end_at);
             //老用户不能参加
-            if (strtotime($user_info['create_time']) < $startTime) {
+            if ($result['login'] && strtotime($user_info['create_time']) < $startTime) {
                 $result['channel'] = 0;
             }
         }
