@@ -238,7 +238,8 @@ class CollectCardJsonrpc extends JsonRpc
             ->orderBy('created_at', 'desc')->get()->toArray();
         $key = 'collect_card__award_list_' . $userId;
         $list = Cache::remember($key, 1, function() use(&$userId){
-            $activity_time = ActivityService::GetActivityInfoByAlias(Config::get('collectcard.alias_name'));
+            
+            $activity_time = ActivityService::GetActivityedInfoByAlias(Config::get('collectcard.alias_name'));
             //实名奖励
             $activity = ActivityService::GetActivityInfoByAlias('advanced_real_name');
             $where['user_id'] = $userId;
