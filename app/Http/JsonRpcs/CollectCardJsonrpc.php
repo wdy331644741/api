@@ -196,7 +196,6 @@ class CollectCardJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function collectlist() {
-        Cache::forget('collect_card_list');
         $list = Cache::remember('collect_card_list', 30, function() {
             $sql = "SELECT cc.id, user_id, award_name FROM hd_collect_card cc 
                       JOIN  (SELECT MAX(id) id FROM `hd_collect_card` WHERE status = 1 AND `type` != 'empty' GROUP BY user_id) t 
@@ -238,7 +237,7 @@ class CollectCardJsonrpc extends JsonRpc
             ->where('status', 1)
             ->orderBy('created_at', 'desc')->get()->toArray();
         $key = 'collect_card__award_list_' . $userId;
-        $list = Cache::remember($key, 10, function() use(&$userId){
+        $list = Cache::remember($key, 1, function() use(&$userId){
             $activity_time = ActivityService::GetActivityInfoByAlias(Config::get('collectcard.alias_name'));
             //实名奖励
             $activity = ActivityService::GetActivityInfoByAlias('advanced_real_name');
