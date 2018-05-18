@@ -43,6 +43,8 @@ class CollectCardJsonrpc extends JsonRpc
                 'has' => 0, //是否已获取刘备卡片
                 'timeing'=>0,//倒计时
                 'num'=>0, //剩余次数
+                'last_card'=>0,
+                'last_card_time'=>0,
                 ];
         $config = Config::get('collectcard');
         $cards = self::getInitCard();
@@ -89,9 +91,9 @@ class CollectCardJsonrpc extends JsonRpc
             }
             $result['timeing'] = strtotime($activity->end_at);
             //老用户不能参加
-            if ($result['login'] && strtotime($user_info['create_time']) < $startTime) {
-                $result['channel'] = 0;
-            }
+//            if ($result['login'] && strtotime($user_info['create_time']) < $startTime) {
+//                $result['channel'] = 0;
+//            }
         }
         if($result['available'] && $result['login'] && $result['channel']) {
             //获取卡牌
@@ -154,9 +156,9 @@ class CollectCardJsonrpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //老用户不能参加
-        if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
-            throw new OmgException(OmgException::API_ILLEGAL);
-        }
+//        if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
+//            throw new OmgException(OmgException::API_ILLEGAL);
+//        }
         try {
             DB::beginTransaction();
             $user_attr_text = Attributes::getJsonText($userId, $config['alias_name']);
@@ -365,13 +367,13 @@ class CollectCardJsonrpc extends JsonRpc
         }
         if( $result['login'] && $flag && $result['available']) {
             //老用户不能参加
-            if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
-                return [
-                    'code' => 0,
-                    'message' => 'success',
-                    'data' => $result,
-                ];
-            }
+//            if (strtotime($user_info['create_time']) < strtotime($activity->start_at)) {
+//                return [
+//                    'code' => 0,
+//                    'message' => 'success',
+//                    'data' => $result,
+//                ];
+//            }
             $this->awardDouble($userId, $config);
             $result['flag']= true;
         }

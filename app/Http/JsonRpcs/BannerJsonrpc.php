@@ -83,7 +83,7 @@ class BannerJsonRpc extends JsonRpc {
 				->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
 			$data = $this->addChannelImg($data, 'mobile');
 			$data = $this->specialChannelImg($data, 'mobile');
-			$data = $this->specialChannelImg2($data, 'mobile');
+//			$data = $this->specialChannelImg2($data, 'mobile');
 			break;
 		case "annualreport":
 			Paginator::currentPageResolver(function () use ($page) {
@@ -512,6 +512,7 @@ class BannerJsonRpc extends JsonRpc {
         return $data;
     }
 
+    /*
     private function specialChannelImg2($data, $position) {
         global $userId;
         $userInfo = Func::getUserBasicInfo($userId, true);
@@ -546,4 +547,5 @@ class BannerJsonRpc extends JsonRpc {
         }
         return $data;
     }
+    */
 }
