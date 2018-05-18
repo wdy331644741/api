@@ -1170,7 +1170,7 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getSignInList($params){
         $userId = isset($params->user_id) && $params->user_id > 0 ? $params->user_id : 0 ;
-        $return = ['signin_list'=>[],"signin_day"=>0]
+        $return = ['signin_list'=>[],"signin_day"=>0];
         if($userId <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
