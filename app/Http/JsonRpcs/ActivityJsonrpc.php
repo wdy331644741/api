@@ -1170,6 +1170,7 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getSignInList($params){
         $userId = isset($params->user_id) && $params->user_id > 0 ? $params->user_id : 0 ;
+        $return = ['signin_list'=>[],"signin_day"=>0];
         if($userId <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
@@ -1195,10 +1196,13 @@ class ActivityJsonRpc extends JsonRpc {
             ->where('activity_id', $activityId)
             ->where('status',3)
             ->orderBy('id', 'desc')->paginate($num)->toArray();
+        $signInDay = Attributes::getItem($userId,'signin');
+        $return['signin_list'] = $data;
+        $return["signin_day"] = isset($signInDay['number']) && $signInDay['number'] > 0 ? $signInDay['number']%28 : 0;
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $data,
+            'data' => $return,
         ];
     }
 
