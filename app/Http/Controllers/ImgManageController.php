@@ -92,6 +92,8 @@ class ImgManageController extends Controller
 
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
+        //显示频次0不限，1每日显示一次,2只显示一次,3每日三次
+        $data['view_frequency'] = intval($request['view_frequency']);
         $id = Banner::insertGetId($data);
         if($id){
             return $this->outputJson(0,array('insert_id'=>$id));
