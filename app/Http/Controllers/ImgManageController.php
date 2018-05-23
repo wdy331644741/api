@@ -212,7 +212,8 @@ class ImgManageController extends Controller
         $data['activity_time'] = $request['activity_time'];
 
         $data['tag'] = empty($request['tag']) ? null : $request['tag'];
-
+        //显示频次0不限，1每日显示一次,2只显示一次,3每日三次
+        $data['view_frequency'] = intval($request['view_frequency']);
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));
