@@ -530,7 +530,7 @@ class BannerJsonRpc extends JsonRpc {
             return $data;
         }
         $channel = [
-            '360jj','360pcss','360ydss','APPStore','APPStorePlus','baidu','baidujj','baidupz','chuizi','fwh','huawei','lenovo','m360','m360jj','mbaidujj','mbaidupz','meizu','oppo','oppofeed','qq','qqplus','qqplus1','qqplus2','samsung','sgqqdh','sogou','sougou1','vivo','wanglibao1','xiaomi','xiaomiplus','ali','qqcpd','gdt','gdt1','sglccpt','360pz','m360pz','fhcpc','jrttcpc','sgpcss','sgydss','sgpz','msgpz','qqcpd1','ggkdg','wanglibao2','xlpx','fh1','fh2','fh3','fh4','fh5'
+            '360jj','360pcss','360ydss','APPStore','APPStorePlus','baidu','baidujj','baidupz','chuizi','fwh','huawei','lenovo','m360','m360jj','mbaidujj','mbaidupz','meizu','oppo','oppofeed','qq','qqplus','qqplus1','qqplus2','samsung','sgqqdh','sogou','sougou1','vivo','wanglibao1','xiaomi','xiaomiplus','ali','qqcpd','gdt','gdt1','sglccpt','360pz','m360pz','fhcpc','jrttcpc','sgpcss','sgydss','sgpz','msgpz','qqcpd1','ggkdg','wanglibao2','xlpx','fh1','fh2','fh3','fh4','fh5','bkl2018','toutiao1','toutiao2','toutiao3','toutiao4','toutiao5','toutiao6','toutiao7','toutiao8','toutiao9','toutiao10','toutiao11','toutiao12','toutiao13','toutiao14','toutiao15','toutiao16','toutiao17','toutiao18','toutiao19','toutiao20','LDLT','kbyg','kbjk'
         ];
         if (in_array($thisChannel, $channel)) {
             $where = ['position' => $position, 'can_use' => 0, 'name' => "特定渠道显示，快乐大本营送芒果月卡"];
