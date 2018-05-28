@@ -16,6 +16,7 @@ use App\Service\CollectCardAwardService;
 use App\Service\CollectCardService;
 use App\Service\Func;
 use App\Service\GlobalAttributes;
+use App\Models\GlobalAttribute;
 use App\Service\SendAward;
 use App\Service\SendMessage;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -501,6 +502,7 @@ class CollectCardJsonrpc extends JsonRpc
         $card_num = self::getCardKindNum($userId, $config['alias_name']);
         DB::beginTransaction();
         Attributes::getItemLock($userId, $config['award_total_key']);
+        GlobalAttribute::where(array('key' => 'collect_card_chaopiaoqiang'))->lockforupdate()->first();
         $user_num = $this->getUserNum($userId,$config['award_user_key']);
         if ( $num > $user_num) {
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
@@ -741,7 +743,7 @@ class CollectCardJsonrpc extends JsonRpc
             $join_num = UserAttribute::where('key', '=', $config['alias_name'])->count();
             $total_num = $config['chaopiaoqiang'];
             $max = round($join_num / $total_num);
-            $rand = rand(1, $max);
+            $rand = rand(1, 5);
             if ($rand == 1) {
                 GlobalAttributes::increment($config['chaopiaoqiang_alisname']);
                 return $awards['chaopiaoqiang'];
