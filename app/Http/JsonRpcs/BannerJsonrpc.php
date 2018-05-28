@@ -80,7 +80,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
+				->orderByRaw('sort DESC')->limit(5)->get()->toArray();
 			$data = $this->addChannelImg($data, 'mobile');
 			$data = $this->specialChannelImg($data, 'mobile');
 //			$data = $this->specialChannelImg2($data, 'mobile');
@@ -138,7 +138,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->get()->toArray();
+				->orderByRaw('sort DESC')->get()->toArray();
 			break;
 		// 默认
 		default:
@@ -149,7 +149,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->get()->toArray();
+				->orderByRaw('sort DESC')->get()->toArray();
 			if ($position == 'pc') {
 				$data = $this->addChannelImg($data, 'pc');
 				$data = $this->specialChannelImg($data, 'pc');
@@ -221,7 +221,7 @@ class BannerJsonRpc extends JsonRpc {
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 		if (!$data) {
 			$where = array(
 				'can_use' => 1,
@@ -235,7 +235,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->first();
+				->orderByRaw('sort DESC')->first();
 		}
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -269,7 +269,7 @@ class BannerJsonRpc extends JsonRpc {
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 		if (!$data) {
 			$where = array(
 				'can_use' => 1,
@@ -283,7 +283,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->first();
+				->orderByRaw('sort DESC')->first();
 		}
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -404,7 +404,7 @@ class BannerJsonRpc extends JsonRpc {
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
