@@ -72,6 +72,8 @@ Route::group(['middleware' => 'admin'], function(){
     //后台用户记录日志
     Route::controller('log', 'LogController');
 
+    //世界杯活动配置
+    Route::controller('worldcup', 'WorldCupConfigController');
 
 });
 
