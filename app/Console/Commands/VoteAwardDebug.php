@@ -15,8 +15,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 class VoteAwardDebug extends Command
 {
     use DispatchesJobs;
-    const VERSION = '6.0'; 
-    const ACT_NAME = 'vote_time6.0';//vote_time
+    const VERSION = '7.0';
+    const ACT_NAME = 'vote_time7.0';//vote_time
     /**
      * The name and signature of the console command.
      *
