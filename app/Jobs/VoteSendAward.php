@@ -18,12 +18,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 class VoteSendAward extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
-    const VERSION = '6.0'; 
-    const ACT_NAME = 'vote_time6.0';//vote_time
+    const VERSION = '7.0';
+    const ACT_NAME = 'vote_time7.0';//vote_time
 
     private $userId;
     private $amount; //返现金额
-    private $activityName = 'vote_time6.0_cash';
+    private $activityName = 'vote_time7.0_cash';
     private $activityInfo;
 
     private $voteAward = [
