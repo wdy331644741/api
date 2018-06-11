@@ -46,7 +46,7 @@ class WorldCupJsonrpc extends JsonRpc
             $result['available'] = 1;
         }
         if ($result['available'] && $result['login']) {
-            $result['num'] = Attributes::getNumberByDay($userId, $config['alias_name']);
+            $result['num'] = Attributes::getNumberByDay($userId, $config['drew_user_key']);
             $result['total_ball'] = self::getTotalBallCounts($userId, $config['extra_ball_key']);
             $result['rank_list'] = self::getRankList($config);
         }
@@ -93,8 +93,8 @@ class WorldCupJsonrpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $config = Config::get('world_cup');
-        $result['num'] = intval(Attributes::getNumberByDay($userId, $config['alias_name']));
-        $result['total_ball'] = self::getTotalBallCounts($userId);
+//        $result['num'] = intval(Attributes::getNumberByDay($userId, $config['alias_name']));
+//        $result['total_ball'] = self::getTotalBallCounts($userId, $config['extra_ball_key']);
         $result['data'] = self::getBallRankList($userId);
         return [
             'code' => 0,
@@ -116,11 +116,14 @@ class WorldCupJsonrpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $config = Config::get('worldcup');
-        if(!ActivityService::isExistByAlias($config['alias_name_draw'])) {
+        if(!ActivityService::isExistByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $id = isset($params->id) ? intval($params->id) : 0;
         if(!$id){
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        if (!HdWorldCupConfig::find($id)) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $default = 1;
@@ -152,8 +155,7 @@ class WorldCupJsonrpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $config = Config::get('worldcup');
-        $data = self::getHistoryRankTop($config);
+        $data = self::getHistoryRankTop();
         return [
             'code' => 0,
             'message' => 'success',
@@ -277,7 +279,8 @@ class WorldCupJsonrpc extends JsonRpc
     }
 
     //历史助攻榜首列表 （当前是第三周,  显示第一周的第一名和第二周的第一名）
-    protected static function getHistoryRankTop($config) {
+    protected static function getHistoryRankTop() {
+        $config = Config::get('worldcup');
         $date_group = $config['date_group'];
         $date = time();
         $history_list = [];
