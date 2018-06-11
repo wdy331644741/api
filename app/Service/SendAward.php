@@ -18,6 +18,7 @@ use App\Models\Award6;
 use App\Models\AwardCash;
 use App\Models\Coupon;
 use App\Models\CouponCode;
+use App\Models\HdWorldCupExtra;
 use Lib\JsonRpcClient;
 use App\Models\SendRewardLog;
 use App\Service\SendMessage;
@@ -193,6 +194,34 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** FIFA World Cup 活动 start **/
+            //投资
+            case 'world_cup_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if ( $amount >= 5000) {
+                        $num = intval($amount/5000);
+                        $config = Config::get('worldcup');
+                        Attributes::incrementByDay($triggerData['user_id'],$config['drew_user_key'],$num);
+                    }
+                }
+                break;
+            //绑卡
+            case 'world_cup_bind_bank_card':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    WorldCupService::addExtraBall($triggerData['from_user_id'], $triggerData['user_id'], 1, 1);
+                }
+                break;
+            //邀请人首投
+            case 'world_cup_invite_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first']){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if($amount >= 2000){
+                        WorldCupService::addExtraBall($triggerData['from_user_id'], $triggerData['user_id'], 2, 2);
+                    }
+                }
+                break;
+            /** FIFA World Cup 活动 end **/
             /**快乐大本营集卡活动 start**/
             //注册
 //            case 'collect_card_register':
