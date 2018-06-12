@@ -208,9 +208,13 @@ class SendAward
                 break;
             //绑卡
             case 'world_cup_bind_bank_card':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
-                    WorldCupService::addExtraBall($triggerData['from_user_id'], $triggerData['user_id'], 1, 1);
-                }
+//                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id'])){
+                    $url = Config::get('award.reward_http_url');
+                    $client = new JsonRpcClient($url);
+                    //获取邀请人id
+                    $user_info = $client->getInviteUser(array('uid' => $triggerData['user_id']));
+                    WorldCupService::addExtraBall($user_info['id'], $triggerData['user_id'], 1, 1);
+//                }
                 break;
             //邀请人首投
             case 'world_cup_invite_investment':

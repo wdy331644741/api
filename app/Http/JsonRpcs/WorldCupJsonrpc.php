@@ -33,6 +33,8 @@ class WorldCupJsonrpc extends JsonRpc
                 'num' => 0, //剩余次数
                 'total_ball' => 0,//您所支持球队总进球数+额外进球数
                 'invitecode' => '',
+                'start' => '',
+                'end' => '',
                 'rank_list' => [],//本周好友助攻排行榜
                 ];
         // 用户是否登录
@@ -47,8 +49,12 @@ class WorldCupJsonrpc extends JsonRpc
         }
         if ($result['available'] && $result['login']) {
             $result['num'] = Attributes::getNumberByDay($userId, $config['drew_user_key']);
-            $result['total_ball'] = self::getTotalBallCounts($userId, $config['extra_ball_key']);
+            $result['total_ball'] = WorldCupService::getTotalBallCounts($userId);
             $result['rank_list'] = self::getRankList($config);
+        }
+        if ($dates = self::getCurrDate($config['alias_name'])) {
+            $result['start'] = $dates['start'];
+            $result['end'] = $dates['end'];
         }
         return [
             'code' => 0,
@@ -70,7 +76,7 @@ class WorldCupJsonrpc extends JsonRpc
         }
         $result = [];
         $config = Config::get('worldcup');
-        $extra_ball_num = self::getExtraBallCounts($userId, $config['extra_ball_key']);
+        $extra_ball_num = WorldCupService::getExtraBallCounts($userId);
         $data = self::getExtraBallList($userId);
         $result['extra_ball'] = $extra_ball_num;
         $result['data'] = $data;
@@ -203,37 +209,6 @@ class WorldCupJsonrpc extends JsonRpc
         return $number;
     }
 
-    //我的总进球数  进球数+额外进球数
-    protected static function getTotalBallCounts($userId, $key) {
-        //进球数
-        $ball_nums = self::getBallCounts($userId);
-        $extra_ball_nums = self::getExtraBallCounts($userId, $key);
-        return intval($ball_nums + $extra_ball_nums);
-    }
-
-    //进球数
-    protected  static function getBallCounts($userId) {
-        $world_cup_config = HdWorldCupConfig::select(['hd_world_cup_config.id','hd_world_cup_config.team','hd_world_cup_config.number','s.user_id', 's.number AS count'])
-            ->leftJoin('hd_world_cup_support AS s', 'hd_world_cup_config.id','=','s.world_cup_config_id')
-            ->where(['s.user_id'=>$userId])
-            ->orderBy('hd_world_cup_config.number', 'desc')
-            ->get()->toArray();
-        $sum = 0;
-        foreach ($world_cup_config as $val) {
-            $sum += (intval($val['number']) * intval($val['count']));
-        }
-        return $sum;
-    }
-
-    //我的额外进球数
-    protected  static function getExtraBallCounts($userId, $key) {
-        $num = Attributes::getNumberByDay($userId, $key);
-//        if (!$num) {
-//            return 0;
-//        }
-        return $num;
-    }
-
     //额外进球列表  邀请好友手机号， 时间， 需用户组返回用户的邀请好友列表
     protected  static function getExtraBallList($userId) {
 
@@ -248,17 +223,19 @@ class WorldCupJsonrpc extends JsonRpc
         return $data;
     }
 
-    //本周好友助攻排行榜; 显示三条
-    protected static function getRankList($config) {
-        $date_group = $config['date_group'];
+    protected static function getCurrDate($key) {
+        $date_group = WorldCupService::getDateList($key);
         $date = time();
-        $curr_week = null;
         foreach ($date_group as $val) {
             if ($date >=strtotime($val['start']) && $date <=strtotime($val['end'])) {
-                $curr_week = $val;
-                break;
+                return $val;
             }
         }
+        return [];
+    }
+    //本周好友助攻排行榜; 显示三条
+    protected static function getRankList($config) {
+        $curr_week = self::getCurrDate($config['alias_name']);
         if (!$curr_week) {
             return [];
         }
@@ -281,7 +258,7 @@ class WorldCupJsonrpc extends JsonRpc
     //历史助攻榜首列表 （当前是第三周,  显示第一周的第一名和第二周的第一名）
     protected static function getHistoryRankTop() {
         $config = Config::get('worldcup');
-        $date_group = $config['date_group'];
+        $date_group = WorldCupService::getDateList($config['alias_name']);
         $date = time();
         $history_list = [];
         foreach ($date_group as $val) {
