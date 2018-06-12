@@ -76,6 +76,7 @@ Route::group(['middleware' => 'admin'], function(){
 
     //世界杯活动配置
     Route::controller('worldcup', 'WorldCupConfigController');
+    Route::controller('worldcups', 'WorldCupController');
 
 
 });
