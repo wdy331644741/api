@@ -6,6 +6,7 @@ use App\Models\HdWorldCupSupport;
 use App\Models\HdWorldCupExtra;
 use App\Service\ActivityService;
 use App\Service\SendAward;
+use App\Models\Activity;
 use Illuminate\Queue\SerializesModels;
 
 use Illuminate\Queue\InteractsWithQueue;
@@ -20,14 +21,12 @@ class WorldCupSendAward extends Job implements ShouldQueue
     private $userId;
     private $amount; //返现金额
     private $activityName = 'world_cup_cash';
-    private $activityInfo;
 
+    //返现奖励
     private $award = [
-        //返现奖励
-//        "id" => 999,
         "name" => "",//null
         "money" => "0",//null
-        "type" => "worldcup_cash",// ?
+        "type" => "world_cup_cash",// ?
         "mail" => "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。",
         "message" => "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。",
         "created_at" => "",
@@ -36,6 +35,7 @@ class WorldCupSendAward extends Job implements ShouldQueue
         "source_name" => "",
 //        "trigger" => 4,
         "user_id" => "",
+        "id" => 999,
     ];
 
 
@@ -48,7 +48,6 @@ class WorldCupSendAward extends Job implements ShouldQueue
     {
         $this->userId = $userId;
         $this->amount = $amount;
-        $this->activityInfo = ActivityService::GetActivityedInfoByAlias($this->activityName);
     }
 
     /**
@@ -58,30 +57,27 @@ class WorldCupSendAward extends Job implements ShouldQueue
      */
     public function handle()
     {
-        $this->sendAwardCash($this->userId,$this->activityInfo);
-        // CarnivalRedMoneyService::sendAward($this->amount, $this->userId,$actInfo);
-
-    }
-
-    private function sendAwardCash($userId ,$activity){
+        $userId = $this->userId;
+        $activity = ActivityService::GetActivityedInfoByAlias($this->activityName);
         if (!SendAward::frequency($userId, $activity)) {//不通过
             //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
-            return SendAward::addJoins($userId, $activity, 1, json_encode(array('err_msg' => 'pass frequency')));
+            return SendAward::addJoins($userId, $activity, 2, json_encode(array('err_msg' => 'pass frequency')));
         }
         $this->award['user_id'] = $userId;
-        $this->award['source_name'] = $activity['name'];
-        $this->award['source_id'] = $activity['id'];
+        $this->award['source_name'] = $activity->name;
+        $this->award['source_id'] = $activity->id;
         $this->award['money'] = $this->amount;
         $this->award['name'] = $this->amount.'元';
         $result = SendAward::cash($this->award);
         //*****活动参与人数加1*****
-        Activity::where('id',$activity['id'])->increment('join_num');
+        Activity::where('id',$activity->id)->increment('join_num');
         //添加活动参与记录
         if($result['status']){
-            SendAward::addJoins($userId,$activity,3);
-            HdWorldCupSupport::where(['user_id' => $userId])->update(['status'=>1,  'remark'=> json_encode($result)]);
+            HdWorldCupSupport::where(['user_id' => $userId])->update(['status'=>1, 'remark'=> json_encode($result)]);
             HdWorldCupExtra::where(['user_id' => $userId])->update([ 'status'=> 1]);
+            SendAward::addJoins($userId,$activity,3);
         }
+
     }
 
 }
