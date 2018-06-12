@@ -143,6 +143,7 @@ class WorldCupJsonrpc extends JsonRpc
         WorldCupService::addBallSupport($userId, $id, $default);
         DB::commit();
         $ret['number'] = $sy_number;
+        $ret['total_number'] = WorldCupService::getTotalBallCounts($userId);;
         return [
             'code' => 0,
             'message' => 'success',

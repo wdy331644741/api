@@ -97,7 +97,10 @@ class WorldCupService
         $ball_list = self::getTotalBall();
         $extra_list = self::getTotalExtraBall();
         foreach ($extra_list as $val) {
-            $ball_list[$val['user_id']]['numbetr'] += $val['number'];
+            if (!isset($ball_list[$val['user_id']]['number'])) {
+                $ball_list[$val['user_id']]['number'] = 0;
+            }
+            $ball_list[$val['user_id']]['number'] += $val['number'];
         }
         return $ball_list;
     }
@@ -106,15 +109,19 @@ class WorldCupService
     //进球数列表
     public  static function getTotalBall()
     {
-        $world_cup_config = HdWorldCupConfig::select(['hd_world_cup_config.id','hd_world_cup_config.team','hd_world_cup_config.number','s.user_id', 's.number AS count'])
+        $world_cup_config = HdWorldCupConfig::select(['hd_world_cup_config.number','s.user_id', 's.number AS count'])
             ->leftJoin('hd_world_cup_support AS s', 'hd_world_cup_config.id','=','s.world_cup_config_id')
             ->where(['s.status'=> 0])
             ->orderBy('hd_world_cup_config.number', 'desc')
             ->get()->toArray();
         $data = array();
         foreach ($world_cup_config as $val) {
-            $data[$val['user_Id']]['user_id'] = $val['user_id'];
-            $data[$val['user_Id']]['number'] +=  intval($val['number'] * $val['count']);
+            $data[$val['user_id']]['user_id'] = $val['user_id'];
+
+            if (!isset($data[$val['user_id']]['number'])) {
+                $data[$val['user_id']]['number'] = 0;
+            }
+            $data[$val['user_id']]['number'] += intval($val['number'] * $val['count']);
         }
         return $data;
     }
@@ -124,7 +131,7 @@ class WorldCupService
     public  static function getTotalExtraBall()
     {
 
-        $data = HdWorldCupExtra::selectRaw('user_id, SUM(number) AS total_num')
+        $data = HdWorldCupExtra::selectRaw('user_id, SUM(number) AS number')
             ->where(['status'=> 0])
             ->groupBy('user_id')
             ->get()->toArray();
