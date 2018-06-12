@@ -170,6 +170,25 @@ class WorldCupJsonrpc extends JsonRpc
     }
 
     /**
+     * 我的助攻数 每周 总助攻数
+     *
+     * @JsonRpcMethod
+     */
+    public function worldCupHelpList() {
+        global $userId;
+        // 是否登录
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $data = self::getMyHelpList($userId);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
+
+    /**
      * 邀请页面返回手机号
      *
      * @JsonRpcMethod
@@ -296,6 +315,30 @@ class WorldCupJsonrpc extends JsonRpc
             }
         }
         return $world_cup_config;
+    }
+
+    public static function getMyHelpList($userId) {
+        $config = Config::get('worldcup');
+        $date_group = WorldCupService::getDateList($config['alias_name']);
+        $date = time();
+        $list = [];
+        foreach ($date_group as $val) {
+            if ($date >=strtotime($val['end'])) {
+                $data = HdWorldCupExtra::selectRaw('SUM(number) AS number')
+                    ->where(['type'=>2])
+                    ->where(['user_id'=>$userId])
+                    ->whereBetween('created_at', [$val['start'], $val['end']])
+                    ->groupBy('user_id')
+                    ->first()->toArray();
+                if ($data) {
+                    $list[] = array_merge($data, $val);
+                }
+            }
+        }
+        if (empty($list)) {
+            return [];
+        }
+        return $list;
     }
 
 //    protected  static function getAllBallCounts() {

@@ -135,7 +135,7 @@ class WorldCupService
     {
         $dates = GlobalAttributes::getText($key);
         if ($dates) {
-            return json_encode($dates, true);
+            return json_decode($dates, true);
         }
         return [];
     }
