@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\HdWorldCupConfig;
 use App\Models\HdWorldCupExtra;
 use App\Models\HdWorldCupSupport;
+use App\Models\HdWorldCup;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
@@ -190,6 +191,46 @@ class WorldCupJsonrpc extends JsonRpc
     }
 
     /**
+     * 我的瓜分现金
+     *
+     * @JsonRpcMethod
+     */
+    public function worldCupAwardShow()
+    {
+        global $userId;
+        $result = [
+            'status'=>0,
+            'amount'=>0
+        ];
+        // 用户是否登录
+        if(!$userId) {
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $result,
+            ];
+        }
+        $config = Config::get('worldcup');
+        $activityTime = ActivityService::GetActivityedInfoByAlias($config['alias_name']);
+        if($activityTime && strtotime($activityTime->end_at) > time() ){
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $result,
+            ];
+        }
+
+        $amount = self::getCashByUserId($userId);
+        $result['amount'] = $amount;
+        $result['status'] = 1;
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $result,
+        ];
+
+    }
+    /**
      * 邀请页面返回手机号
      *
      * @JsonRpcMethod
@@ -340,6 +381,17 @@ class WorldCupJsonrpc extends JsonRpc
             return [];
         }
         return $list;
+    }
+
+    public static function getCashByUserId($userId)
+    {
+        $where['user_id'] = $userId;
+        $where['status'] = 1;
+        $worldcup = HdWorldCup::select(['amount'])->where($where)->first();
+        if ($worldcup) {
+            return $worldcup->amount;
+        }
+        return 0;
     }
 
 //    protected  static function getAllBallCounts() {
