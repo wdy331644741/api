@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\HdWorldCup;
 use App\Models\HdWorldCupSupport;
 use App\Models\HdWorldCupExtra;
 use App\Service\ActivityService;
@@ -73,9 +74,22 @@ class WorldCupSendAward extends Job implements ShouldQueue
         Activity::where('id',$activity->id)->increment('join_num');
         //添加活动参与记录
         if($result['status']){
-            HdWorldCupSupport::where(['user_id' => $userId])->update(['status'=>1, 'remark'=> json_encode($result)]);
+            HdWorldCup::create([
+                'user_id'=>$userId,
+                'amount' => $this->amount,
+                'status' => 1,
+                'remark' => json_encode($result)
+            ]);
+            HdWorldCupSupport::where(['user_id' => $userId])->update(['status'=>1]);
             HdWorldCupExtra::where(['user_id' => $userId])->update([ 'status'=> 1]);
             SendAward::addJoins($userId,$activity,3);
+        } else {
+            HdWorldCup::create([
+                'user_id'=>$userId,
+                'amount' => $this->amount,
+                'status' => 0,
+                'remark' => json_encode($result)
+            ]);
         }
 
     }

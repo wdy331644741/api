@@ -5,10 +5,12 @@ use App\Models\HdWorldCupSupport;
 use App\Service\Attributes;
 use App\Models\HdWorldCupExtra;
 use App\Models\HdWorldCupConfig;
+use App\Service\GlobalAttributes;
 use Config;
 
 class WorldCupService
 {
+    const DIVIDE_CASH = 10000000;
     /**
      *  增加额外进球数
      * @param $userId
@@ -90,6 +92,22 @@ class WorldCupService
     }
 
     //发奖用
+    public static function getSendAwardList()
+    {
+        $data = self::getTotalBallList();
+        if (empty($data)) {
+            return [];
+        }
+
+        // 现金= 我的总进球数 * （1000000 / 活动用户支持球队总进球数之和）
+        foreach ($data as $key=>$val) {
+            $data[$key]['size'] = self::getCashByNumber($val['number']);
+            unset($data[$key]['number']);
+        }
+        return $data;
+    }
+
+    //发奖用
     //总进球数列表  进球数+额外进球数
     public static function getTotalBallList()
     {
@@ -145,5 +163,19 @@ class WorldCupService
             return json_decode($dates, true);
         }
         return [];
+    }
+
+    //通过进球数分的所得现金
+    public static function getCashByNumber($num=0)
+    {
+        if ($num <=0 ) {
+            return 0;
+        }
+        $ball_info = GlobalAttributes::getItem('world_cup_ball');
+        if (!$ball_info || $ball_info->number <= 0) {
+            return 0;
+        }
+        $total_ball = $ball_info->number;
+        return bcdiv(bcmul($num, self::DIVIDE_CASH), $total_ball, 2);
     }
 }

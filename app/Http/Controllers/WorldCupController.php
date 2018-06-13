@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\WorldCupSendAward;
+use App\Service\GlobalAttributes;
 use App\Service\WorldCupService;
 use Illuminate\Http\Request;
 
@@ -11,27 +12,18 @@ use Validator, Excel, Response;
 
 class WorldCupController extends Controller
 {
-
-    const DIVIDE_CASH = 10000000;
-    public function getSendAward($type, $amount) {
+    public function getSendAward($type) {
         $params['type'] = $type;
-        $params['amount'] = $amount;
         $validator = Validator::make($params, [
             'type' => 'required|integer',
-            'amount' => 'required|integer',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        $data = WorldCupService::getTotalBallList();
+
+        $data = WorldCupService::getSendAwardList();
         if (empty($data)) {
             return $this->outputJson(10001,array('error_msg'=> '发奖列表为空或已发奖完成'));
-        }
-        // 现金= 我的总进球数 * （1000000 / 活动用户支持球队总进球数之和）
-        foreach ($data as &$val) {
-            $val['size'] = bcdiv(bcmul($val['number'], self::DIVIDE_CASH ), $amount, 2);
-            unset($val['number']);
-
         }
         // type=1 生成excel
         if ($type == 1) {
@@ -52,13 +44,5 @@ class WorldCupController extends Controller
             return $this->outputJson(0);
         }
         return $this->outputJson(10001,array('error_msg'=> '参数值不正确'));
-    }
-
-    public function messages()
-    {
-        return [
-            'type.required' => 'A title is required',
-            'amount.required'  => 'A message is required',
-        ];
     }
 }
