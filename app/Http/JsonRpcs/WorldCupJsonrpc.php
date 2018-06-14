@@ -34,8 +34,9 @@ class WorldCupJsonrpc extends JsonRpc
                 'num' => 0, //剩余次数
                 'total_ball' => 0,//您所支持球队总进球数+额外进球数
                 'invitecode' => '',
-                'start' => '',
-                'end' => '',
+                'start' => '',//本周开始时间
+                'end' => '',//本周结束时间
+                'overtime' => 0,//0未到时间  1已到时间 ； 前端样式变化需要
                 'rank_list' => [],//本周好友助攻排行榜
                 ];
         // 用户是否登录
@@ -53,9 +54,15 @@ class WorldCupJsonrpc extends JsonRpc
             $result['total_ball'] = WorldCupService::getTotalBallCounts($userId);
             $result['rank_list'] = self::getRankList($config);
         }
+        //得到本周时间
         if ($dates = self::getCurrDate($config['alias_name'])) {
             $result['start'] = $dates['start'];
             $result['end'] = $dates['end'];
+        }
+        //得到赛程过半时间
+        if ($activity_time = ActivityService::GetActivityedInfoByAlias($config['overtime'])) {
+            if (strtotime($activity_time->start_at) < time())
+                $result['overtime'] = 1;
         }
         return [
             'code' => 0,
