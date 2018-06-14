@@ -280,7 +280,7 @@ class WorldCupJsonrpc extends JsonRpc
     //额外进球列表  邀请好友手机号， 时间， 需用户组返回用户的邀请好友列表
     protected  static function getExtraBallList($userId) {
 
-        $data = HdWorldCupExtra::select('f_userid', 'number', 'type', 'created_at')->where(['user_id'=>$userId, 'type'=>2])->get()->toArray();
+        $data = HdWorldCupExtra::select('f_userid', 'number', 'type', 'created_at')->where(['user_id'=>$userId])->get()->toArray();
         if (empty($data)) {
             return [];
         }
@@ -336,9 +336,11 @@ class WorldCupJsonrpc extends JsonRpc
                     ->whereBetween('created_at', [$val['start'], $val['end']])
                     ->groupBy('user_id')
                     ->orderBy('total_num', 'desc')
-                    ->first()->toArray();
+                    ->first();
                 if ($data) {
-                    $history_list[] = array_merge($data, $val);
+                    $val['user_id'] = $data['user_id'];
+                    $val['total_num'] = $data['total_num'];
+                    $history_list[] = $val;
                 }
             }
         }
@@ -372,16 +374,17 @@ class WorldCupJsonrpc extends JsonRpc
         $date = time();
         $list = [];
         foreach ($date_group as $val) {
-            if ($date >=strtotime($val['end'])) {
+            $start = strtotime($val['start']);
+            $end = strtotime($val['end']);
+            if ($date >=$end || ($date >= $start && $date <= $end )) {
                 $data = HdWorldCupExtra::selectRaw('SUM(number) AS number')
                     ->where(['type'=>2])
                     ->where(['user_id'=>$userId])
                     ->whereBetween('created_at', [$val['start'], $val['end']])
                     ->groupBy('user_id')
-                    ->first()->toArray();
-                if ($data) {
-                    $list[] = array_merge($data, $val);
-                }
+                    ->first();
+                $val['number'] = empty($data) ? 0 : $data['number'];
+                $list[] = $val;
             }
         }
         if (empty($list)) {

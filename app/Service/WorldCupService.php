@@ -84,7 +84,7 @@ class WorldCupService
         }
         $data = HdWorldCupExtra::selectRaw('SUM(number) AS total_num')
             ->where($where)
-            ->first()->toArray();
+            ->first();
         if (!$data) {
             return 0;
         }
