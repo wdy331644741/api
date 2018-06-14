@@ -22,8 +22,8 @@ class QuickVoteJsonRpc extends JsonRpc
 {
     use DispatchesJobs;
 
-    const VERSION = '7.0'; //1.0是 会出错  2.0是2.0
-    const ACT_NAME = 'vote_time7.0';//vote_time
+    const VERSION = '8.0'; //1.0是 会出错  2.0是2.0
+    const ACT_NAME = 'vote_time8.0';//vote_time
     //v2.0 分享送积分
     private $_integral = [
         "id" => 0,
