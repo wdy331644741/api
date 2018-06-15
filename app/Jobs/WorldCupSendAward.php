@@ -27,7 +27,7 @@ class WorldCupSendAward extends Job implements ShouldQueue
     private $award = [
         "name" => "",//null
         "money" => "0",//null
-        "type" => "world_cup_cash",// ?
+        "type" => "worldcup_cash",// ?
         "mail" => "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。",
         "message" => "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。",
         "created_at" => "",
