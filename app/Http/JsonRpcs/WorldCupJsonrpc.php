@@ -33,6 +33,7 @@ class WorldCupJsonrpc extends JsonRpc
                 'available' => 0,//1开始，0 结束
                 'num' => 0, //剩余次数
                 'total_ball' => 0,//您所支持球队总进球数+额外进球数
+                'user_ball' => 0,//您所支持球队总进球数+额外进球数
                 'invitecode' => '',
                 'start' => '',//本周开始时间
                 'end' => '',//本周结束时间
@@ -52,8 +53,9 @@ class WorldCupJsonrpc extends JsonRpc
         if ($result['available'] && $result['login']) {
             $result['num'] = Attributes::getNumberByDay($userId, $config['drew_user_key']);
             $result['total_ball'] = WorldCupService::getTotalBallCounts($userId);
-            $result['rank_list'] = self::getRankList($config);
+            $result['user_ball'] = WorldCupService::getBallCounts($userId);
         }
+        $result['rank_list'] = self::getRankList($config);
         //得到本周时间
         if ($dates = self::getCurrDate($config['alias_name'])) {
             $result['start'] = $dates['start'];
@@ -151,7 +153,7 @@ class WorldCupJsonrpc extends JsonRpc
         WorldCupService::addBallSupport($userId, $id, $default);
         DB::commit();
         $ret['number'] = $sy_number;
-        $ret['total_number'] = WorldCupService::getTotalBallCounts($userId);;
+        $ret['user_ball'] = WorldCupService::getBallCounts($userId);
         return [
             'code' => 0,
             'message' => 'success',
@@ -165,11 +167,11 @@ class WorldCupJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function worldCupHistoryList() {
-        global $userId;
-        // 是否登录
-        if(!$userId){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
+//        global $userId;
+//        // 是否登录
+//        if(!$userId){
+//            throw new OmgException(OmgException::NO_LOGIN);
+//        }
         $data = self::getHistoryRankTop();
         return [
             'code' => 0,
@@ -312,6 +314,7 @@ class WorldCupJsonrpc extends JsonRpc
                     ->whereBetween('created_at', [$curr_week['start'], $curr_week['end']])
                     ->groupBy('user_id')
                     ->orderBy('total_num', 'desc')
+                    ->limit(3)
                     ->get()->toArray();
         if (empty($data)) {
             return [];
