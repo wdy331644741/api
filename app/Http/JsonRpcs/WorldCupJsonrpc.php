@@ -262,11 +262,8 @@ class WorldCupJsonrpc extends JsonRpc
 
     //用户支持次数
     private function getUserNum($userId, $key) {
-        $user_attr = Attributes::getItemLock($userId, $key);
-        if ($user_attr && $user_attr->number > 0) {
-            return $user_attr->number;
-        }
-        return 0;
+        $number = Attributes::getNumberByDay($userId, $key);
+        return $number;
     }
 
     //减少支持次数,
@@ -309,17 +306,26 @@ class WorldCupJsonrpc extends JsonRpc
         if (!$curr_week) {
             return [];
         }
-        $data = HdWorldCupExtra::selectRaw('user_id, SUM(number) AS total_num')
-                    ->where(['type'=>2])
-                    ->whereBetween('created_at', [$curr_week['start'], $curr_week['end']])
-                    ->groupBy('user_id')
-                    ->orderBy('total_num', 'desc')
-                    ->limit(3)
-                    ->get()->toArray();
+//        $data = HdWorldCupExtra::selectRaw('user_id, SUM(number) AS total_num')
+//                    ->where(['type'=>2])
+//                    ->whereBetween('created_at', [$curr_week['start'], $curr_week['end']])
+//                    ->groupBy('user_id')
+//                    ->orderBy('total_num', 'desc')
+//                    ->limit(3)
+//                    ->get()->toArray();
+        $sql = "SELECT h1.user_id, h2.total_num FROM hd_world_cup_extra h1
+                  JOIN  ( \n
+							SELECT MAX(id) id,SUM(number) AS total_num  FROM `hd_world_cup_extra`
+								WHERE (`type` = '2') AND `created_at` between '{$curr_week['start']}' and '{$curr_week['end']}'
+								GROUP BY user_id limit 3
+					      ) h2
+                  WHERE h1.id=h2.id ORDER BY total_num DESC, created_at ASC";
+        $data = DB::select($sql);
         if (empty($data)) {
             return [];
         }
         foreach ($data as &$val) {
+            $val = get_object_vars($val);
             $phone = Func::getUserPhone($val['user_id']);
             $val['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
         }
