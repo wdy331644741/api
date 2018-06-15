@@ -313,23 +313,15 @@ class WorldCupJsonrpc extends JsonRpc
 //                    ->orderBy('total_num', 'desc')
 //                    ->limit(3)
 //                    ->get()->toArray();
-        $sql = "SELECT h1.user_id, h2.total_num FROM hd_world_cup_extra h1
-                  JOIN  ( \n
-							SELECT MAX(id) id,SUM(number) AS total_num  FROM `hd_world_cup_extra`
-								WHERE (`type` = '2') AND `created_at` between '{$curr_week['start']}' and '{$curr_week['end']}'
-								GROUP BY user_id limit 3
-					      ) h2
-                  WHERE h1.id=h2.id ORDER BY total_num DESC, created_at ASC";
-        $data = DB::select($sql);
-        if (empty($data)) {
-            return [];
+        $data = self::getGroupByUserId($curr_week['start'], $curr_week['end'], 3);
+        $list = [];
+        foreach ($data as $key => $val) {
+            $list[$key]['user_id'] = $val->user_id;
+            $list[$key]['total_num'] = $val->total_num;
+            $phone = Func::getUserPhone($val->user_id);
+            $list[$key]['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
         }
-        foreach ($data as &$val) {
-            $val = get_object_vars($val);
-            $phone = Func::getUserPhone($val['user_id']);
-            $val['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-        }
-        return $data;
+        return $list;
     }
 
     //历史助攻榜首列表 （当前是第三周,  显示第一周的第一名和第二周的第一名）
@@ -340,15 +332,16 @@ class WorldCupJsonrpc extends JsonRpc
         $history_list = [];
         foreach ($date_group as $val) {
             if ($date >=strtotime($val['end'])) {
-                $data = HdWorldCupExtra::selectRaw('user_id, SUM(number) AS total_num')
-                    ->where(['type'=>2])
-                    ->whereBetween('created_at', [$val['start'], $val['end']])
-                    ->groupBy('user_id')
-                    ->orderBy('total_num', 'desc')
-                    ->first();
+//                $data = HdWorldCupExtra::selectRaw('user_id, SUM(number) AS total_num')
+//                    ->where(['type'=>2])
+//                    ->whereBetween('created_at', [$val['start'], $val['end']])
+//                    ->groupBy('user_id')
+//                    ->orderBy('total_num', 'desc')
+//                    ->first();
+                $data = self::getGroupByUserId($val['start'], $val['end'], 1);
                 if ($data) {
-                    $val['user_id'] = $data['user_id'];
-                    $val['total_num'] = $data['total_num'];
+                    $val['user_id'] = $data[0]->user_id;
+                    $val['total_num'] = $data[0]->total_num;
                     $history_list[] = $val;
                 }
             }
@@ -411,6 +404,21 @@ class WorldCupJsonrpc extends JsonRpc
             return $worldcup->amount;
         }
         return 0;
+    }
+
+    public static function getGroupByUserId($start, $end, $limit, $type=2) {
+        if (!$start || !$end) {
+            return [];
+        }
+        $sql = "SELECT h1.user_id, h2.total_num FROM hd_world_cup_extra h1
+                  JOIN  (
+							SELECT MAX(id) id,SUM(number) AS total_num  FROM `hd_world_cup_extra`
+								WHERE (`type` = {$type}) AND `created_at` between '{$start}' and '{$end}'
+								GROUP BY user_id
+					      ) h2
+                  WHERE h1.id=h2.id ORDER BY total_num DESC, created_at ASC LIMIT {$limit}";
+        $data = DB::select($sql);
+        return $data;
     }
 
 //    protected  static function getAllBallCounts() {
