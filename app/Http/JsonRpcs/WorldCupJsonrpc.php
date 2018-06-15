@@ -43,7 +43,8 @@ class WorldCupJsonrpc extends JsonRpc
         // 用户是否登录
         if($userId) {
             $result['login'] = true;
-            $result['invitecode'] = base64_encode($userId);
+            $user_info = Func::getUserBasicInfo($userId);
+            $result['invitecode'] = $user_info['invite_code'];
         }
         $config = Config::get('worldcup');
         // 活动是否存在
