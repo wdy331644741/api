@@ -23,7 +23,7 @@ class VoteSendAward extends Job implements ShouldQueue
 
     private $userId;
     private $amount; //返现金额
-    private $activityName = 'vote_time7.0_cash';
+    private $activityName = 'vote_time8.0_cash';
     private $activityInfo;
 
     private $voteAward = [
