@@ -45,6 +45,8 @@ class WorldCupJsonrpc extends JsonRpc
             $result['login'] = true;
             $user_info = Func::getUserBasicInfo($userId);
             $result['invitecode'] = $user_info['invite_code'];
+            $result['total_ball'] = WorldCupService::getTotalBallCounts($userId);
+            $result['user_ball'] = WorldCupService::getBallCounts($userId);
         }
         $config = Config::get('worldcup');
         // 活动是否存在
@@ -53,8 +55,6 @@ class WorldCupJsonrpc extends JsonRpc
         }
         if ($result['available'] && $result['login']) {
             $result['num'] = Attributes::getNumberByDay($userId, $config['drew_user_key']);
-            $result['total_ball'] = WorldCupService::getTotalBallCounts($userId);
-            $result['user_ball'] = WorldCupService::getBallCounts($userId);
         }
         $result['rank_list'] = self::getRankList($config);
         //得到本周时间
