@@ -114,11 +114,14 @@ class WorldCupService
         //进球数
         $ball_list = self::getTotalBall();
         $extra_list = self::getTotalExtraBall();
+
         foreach ($extra_list as $val) {
-            if (!isset($ball_list[$val['user_id']]['number'])) {
-                $ball_list[$val['user_id']]['number'] = 0;
+            if (isset($ball_list[$val['user_id']])) {
+                $ball_list[$val['user_id']]['number'] += $val['number'];
+            } else {
+                $ball_list[$val['user_id']]['number'] = $val['number'];
+                $ball_list[$val['user_id']]['user_id'] = $val['user_id'];
             }
-            $ball_list[$val['user_id']]['number'] += $val['number'];
         }
         return $ball_list;
     }
