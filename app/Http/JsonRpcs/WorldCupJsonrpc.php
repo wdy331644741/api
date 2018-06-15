@@ -221,7 +221,7 @@ class WorldCupJsonrpc extends JsonRpc
             ];
         }
         $config = Config::get('worldcup');
-        $activityTime = ActivityService::GetActivityedInfoByAlias($config['alias_name']);
+        $activityTime = ActivityService::GetActivityedInfoByAlias('world_cup_cash');
         if($activityTime && strtotime($activityTime->end_at) > time() ){
             return [
                 'code' => 0,
