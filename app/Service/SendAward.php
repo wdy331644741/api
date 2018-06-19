@@ -213,7 +213,9 @@ class SendAward
                     $client = new JsonRpcClient($url);
                     //获取邀请人id
                     $user_info = $client->getInviteUser(array('uid' => $triggerData['user_id']));
-                    WorldCupService::addExtraBall($user_info['id'], $triggerData['user_id'], 1, 1);
+                    if (isset($user_info['result']['data']['id'])) {
+                        WorldCupService::addExtraBall($user_info['result']['data']['id'], $triggerData['user_id'], 1, 1);
+                    }
 //                }
                 break;
             //邀请人首投
