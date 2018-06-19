@@ -15,8 +15,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 class VoteAwardDebug extends Command
 {
     use DispatchesJobs;
-    const VERSION = '6.0'; 
-    const ACT_NAME = 'vote_time6.0';//vote_time
+    const VERSION = '8.0';
+    const ACT_NAME = 'vote_time8.0';//vote_time
     /**
      * The name and signature of the console command.
      *
@@ -29,7 +29,7 @@ class VoteAwardDebug extends Command
      *
      * @var string
      */
-    protected $description = '极限挑战6.0 现金发奖';
+    protected $description = '极限挑战8.0 现金发奖';
 
 
     private static $voteAward = [
