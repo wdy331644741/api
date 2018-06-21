@@ -22,8 +22,8 @@ class QuickVoteJsonRpc extends JsonRpc
 {
     use DispatchesJobs;
 
-    const VERSION = '8.0'; //1.0是 会出错  2.0是2.0
-    const ACT_NAME = 'vote_time8.0';//vote_time
+    const VERSION = '9.0'; //1.0是 会出错  2.0是2.0
+    const ACT_NAME = 'vote_time9.0';//vote_time
     //v2.0 分享送积分
     private $_integral = [
         "id" => 0,
@@ -336,8 +336,8 @@ class QuickVoteJsonRpc extends JsonRpc
             'n_date'=> $params->n_date,
             'data_type'=>$params->data
         ];
-        $route = ($params->data == 0)?0.012:0.02 ;//快乐大本营  奇数标 返现*0.02    极限挑战  偶数标  返现*0.012
-
+        $route = ($params->data == 0)?0.006:0.01 ;//快乐大本营  奇数标 返现*0.02    极限挑战  偶数标  返现*0.012
+        //6-22号 更改返现比例  快乐大本营改0.02->0.01  极限挑战 0.012->0.006
         if($data != null){
             curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
