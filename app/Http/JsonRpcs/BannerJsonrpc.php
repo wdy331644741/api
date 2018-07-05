@@ -41,16 +41,11 @@ class BannerJsonRpc extends JsonRpc {
 				})
 				->orderByRaw('sort DESC')->get()->toArray();
 			/*$data2 = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
-
 				->where($where)
 				->where(function ($query) {
 					$query->whereNull('start')->orWhereRaw('start < now()');
 				})
 				->whereRaw('end < now()')
-
-				->orderByRaw('sort DESC')->get()->toArray();
-			$data = array_merge($data1, $data2);
-
 				->orderByRaw('sort DESC')->get()->toArray();*/
 			$data = $data1;
 			break;
@@ -85,10 +80,10 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->limit(5)->get()->toArray();
+				->orderByRaw('sort DESC')->limit(5)->get()->toArray();
 			$data = $this->addChannelImg($data, 'mobile');
 			$data = $this->specialChannelImg($data, 'mobile');
-
+//			$data = $this->specialChannelImg2($data, 'mobile');
 			break;
 		case "annualreport":
 			Paginator::currentPageResolver(function () use ($page) {
@@ -143,7 +138,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->get()->toArray();
+				->orderByRaw('sort DESC')->get()->toArray();
 			break;
 		// 默认
 		default:
@@ -154,12 +149,10 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->get()->toArray();
+				->orderByRaw('sort DESC')->get()->toArray();
 			if ($position == 'pc') {
 				$data = $this->addChannelImg($data, 'pc');
-
 				$data = $this->specialChannelImg($data, 'pc');
-
 			}
 		}
 
@@ -228,7 +221,7 @@ class BannerJsonRpc extends JsonRpc {
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 		if (!$data) {
 			$where = array(
 				'can_use' => 1,
@@ -242,7 +235,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->first();
+				->orderByRaw('sort DESC')->first();
 		}
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -276,7 +269,7 @@ class BannerJsonRpc extends JsonRpc {
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 		if (!$data) {
 			$where = array(
 				'can_use' => 1,
@@ -290,7 +283,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('id + sort DESC')->first();
+				->orderByRaw('sort DESC')->first();
 		}
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -313,14 +306,14 @@ class BannerJsonRpc extends JsonRpc {
 			'can_use' => 1,
 			'position' => 'pop',
 		);
-		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'url_ios', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time', 'view_frequency')->where($where)
 			->where(function ($query) {
 				$query->whereNull('start')->orWhereRaw('start < now()');
 			})
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -404,14 +397,14 @@ class BannerJsonRpc extends JsonRpc {
 		} else {
 			$where['name'] = '存管弹窗立即开通';
 		}
-		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+		$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'url_ios', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
 			->where(function ($query) {
 				$query->whereNull('start')->orWhereRaw('start < now()');
 			})
 			->where(function ($query) {
 				$query->whereNull('end')->orWhereRaw('end > now()');
 			})
-			->orderByRaw('id + sort DESC')->first();
+			->orderByRaw('sort DESC')->first();
 
 		if (!$data) {
 			throw new OmgException(OmgException::NO_DATA);
@@ -461,6 +454,7 @@ class BannerJsonRpc extends JsonRpc {
 			"dkh5",
 			"zgby",
 			"spicy_wlb",
+			"yihuys",
 
 		];
 		if (in_array($thisChannel, $channel)) {
@@ -494,29 +488,7 @@ class BannerJsonRpc extends JsonRpc {
             return $data;
         }
         $channel = [
-            'wanglibao1',
-            'APPStore',
-            'sogou',
-            'samsung',
-            'leshi',
-            'huawei',
-            'm360',
-            'meizu',
-            'vivo',
-            'baidu',
-            'ali',
-            'lenovo',
-            'qq',
-            'oppo',
-            'xiaomi',
-            'chuizi',
-            'wenzhoulouyu',
-            'baidupz',
-            'mbaidupz',
-            'gbcxyd4',
-            'mbaidujj',
-            'baidujj',
-            'mdsp',
+            '360jj','360pcss','360ydss','APPStore','APPStorePlus','baidu','baidujj','baidupz','chuizi','fwh','huawei','lenovo','m360','m360jj','mbaidujj','mbaidupz','meizu','oppo','oppofeed','qq','qqplus','qqplus1','qqplus2','samsung','sgqqdh','sogou','sougou1','vivo','wanglibao1','xiaomi','xiaomiplus','ali','qqcpd','gdt','gdt1','sglccpt','360pz','m360pz','fhcpc','jrttcpc','sgpcss','sgydss','sgpz','msgpz','qqcpd1','ggkdg','wanglibao2','xlpx','fh1','fh2','fh3','fh4','fh5','bkl2018','toutiao1','toutiao2','toutiao3','toutiao4','toutiao5','toutiao6','toutiao7','toutiao8','toutiao9','toutiao10','toutiao11','toutiao12','toutiao13','toutiao14','toutiao15','toutiao16','toutiao17','toutiao18','toutiao19','toutiao20','LDLT','kbyg','kbjk'
         ];
         if (in_array($thisChannel, $channel)) {
             $where = ['position' => $position, 'can_use' => 0, 'name' => "特定渠道显示，快乐大本营送芒果月卡"];
@@ -539,4 +511,41 @@ class BannerJsonRpc extends JsonRpc {
         }
         return $data;
     }
+
+    /*
+    private function specialChannelImg2($data, $position) {
+        global $userId;
+        $userInfo = Func::getUserBasicInfo($userId, true);
+        $thisChannel = isset($userInfo['from_channel']) ? $userInfo['from_channel'] : '';
+        if (empty($thisChannel) || empty($position)) {
+            return $data;
+        }
+        $channel = [
+            'haoyouyaoqing1','360jj','360pcss','360ydss','APPStore','APPStorePlus','baidu','baidujj','baidupz','chuizi','fwh','huawei','lenovo','m360','m360jj','mbaidujj','mbaidupz','meizu','oppo','oppofeed','qq','qqplus','qqplus1','qqplus2','samsung','sgqqdh','sogou','sougou1','vivo','wanglibao1','xiaomi','xiaomiplus','ali','qqcpd','gdt','gdt1','sglccpt','360pz','m360pz','fhcpc','jrttcpc','sgpcss','sgydss','sgpz','msgpz','qqcpd1','ggkdg','xlps','fh1','fh2','fh3','fh4','fh5',' 518TYHDpc','518TYHDh5',' LDLT-dx','bkl2018','toutiao1','toutiao2','toutiao3','toutiao4','toutiao5','toutiao6','toutiao7','toutiao8','toutiao9','toutiao10','toutiao11','toutiao12','toutiao13','toutiao14','toutiao15','toutiao16','toutiao17','toutiao18','toutiao19','toutiao20','LDLT','kbjk',
+        ];
+        if (in_array($thisChannel, $channel)) {
+            $where = ['position' => $position, 'can_use' => 0, 'name' => "特定渠道显示，三国集卡"];
+            $arr = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                ->where($where)
+                ->where(function ($query) {
+                    $query->whereNull('start')->orWhereRaw('start < now()');
+                })
+                ->where(function ($query) {
+                    $query->whereNull('end')->orWhereRaw('end > now()');
+                })
+                ->take(1)->get()->toArray();
+            if (empty($arr)) {
+                return $data;
+            }
+            if (strtotime($userInfo['create_time']) < strtotime($arr[0]['start'])) {
+                return $data;
+            }
+            foreach ($data as $key => $item) {
+                $arr[$key + 1] = $item;
+            }
+            return $arr;
+        }
+        return $data;
+    }
+    */
 }

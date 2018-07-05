@@ -65,6 +65,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //ios跳转url
+        $data['url_ios'] = isset($request['url_ios']) ? trim($request['url_ios']) : '';
         //是否分享
         $data['short_des'] = trim($request['short_des']);
         //简短说明
@@ -90,6 +92,8 @@ class ImgManageController extends Controller
 
         //图片活动的时间
         $data['activity_time'] = $request['activity_time'];
+        //显示频次0不限，1每日显示一次,2只显示一次,3每日三次
+        $data['view_frequency'] = intval($request['view_frequency']);
         $id = Banner::insertGetId($data);
         if($id){
             return $this->outputJson(0,array('insert_id'=>$id));
@@ -188,6 +192,8 @@ class ImgManageController extends Controller
         $data['img_path'] = trim($request['img_path']);
         //跳转url
         $data['url'] = trim($request['url']);
+        //ios跳转url
+        $data['url_ios'] = isset($request['url_ios']) ? trim($request['url_ios']) : '';
         //开始时间
         $data['start'] = empty($request['start']) ? null : $request['start'];
         //结束时间
@@ -206,7 +212,8 @@ class ImgManageController extends Controller
         $data['activity_time'] = $request['activity_time'];
 
         $data['tag'] = empty($request['tag']) ? null : $request['tag'];
-
+        //显示频次0不限，1每日显示一次,2只显示一次,3每日三次
+        $data['view_frequency'] = intval($request['view_frequency']);
         $status = Banner::where($where)->update($data);
         if($status){
             return $this->outputJson(0,array('error_msg'=>'修改成功'));

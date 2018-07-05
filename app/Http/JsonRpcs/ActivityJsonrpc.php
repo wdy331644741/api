@@ -263,6 +263,13 @@ class ActivityJsonRpc extends JsonRpc {
         }
         $day = $params->day;
         $aliasName = "signinDay_{$day}";
+        //摇一摇活动下线
+        $yaoyiyaoKey = "sign_in_system";
+        if (!ActivityService::isExistByAlias($yaoyiyaoKey)) {
+            if ( 0 == $day%28) {
+                $aliasName = "signinDay_new_" . $day;
+            }
+        }
         $signInName = 'signin';
         $isAward = false;
         $awardName = '';
@@ -343,11 +350,12 @@ class ActivityJsonRpc extends JsonRpc {
 
         //事务开始
         DB::beginTransaction();
-        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
+//        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->lockForUpdate()->first();
+        $activity = Activity::where('alias_name', $aliasName)->with('rules')->with('awards')->first();
         if(!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $signIn = Attributes::getItem($userId, $aliasName);
+        $signIn = Attributes::getItemLock($userId, $aliasName);
 
         //签到过
         if($signIn) {
@@ -426,6 +434,18 @@ class ActivityJsonRpc extends JsonRpc {
     //签到发奖
     private function signSendAward($userId) {
         $aliasName = 'signin';
+        $yaoyiyaoKey = "sign_in_system";
+        //摇一摇活动下线
+        if (!ActivityService::isExistByAlias($yaoyiyaoKey)) {
+            $awards = SendAward::ActiveSendAward($userId, $aliasName);
+            if(!isset($awards[0]['award_name'])) {
+                throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+            }
+            $award['name'] = $awards[0]['award_name'];
+            $award['type'] = $awards[0]['award_type'];
+            return $award;
+        }
+
         $interval = strtotime(date('Y-m-d 20:00:00')) - time();
         $rand = rand(1, 2);
 
@@ -453,8 +473,10 @@ class ActivityJsonRpc extends JsonRpc {
     // 获取额外奖励领取记录
     private function isExtraAwards($userId, $end) {
         $aliasName = "signinDay_{$end}";
+        if ( $end%28 == 0) {
+            $aliasName = "signinDay_new_" . $end;
+        }
         $extra = Attributes::getItem($userId, $aliasName);
-
         $lastUpdate = $extra['updated_at'] ? $extra['updated_at'] : $extra['created_at'];
         $lastUpdateDate = date('Y-m-d', strtotime($lastUpdate));
 
@@ -1124,9 +1146,9 @@ class ActivityJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function statisticsInfo($params) {
-        global $requestIP;
+        global $requestIP, $userId;
         $type = isset($params->channel)?$params->channel:'';
-        $ret = Func::statistics($type, $requestIP);
+        $ret = Func::statistics($type, $requestIP, $userId);
         $return = $ret;
         if($ret) {
             $return = ['id'=>$ret];
@@ -1169,6 +1191,7 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function getSignInList($params){
         $userId = isset($params->user_id) && $params->user_id > 0 ? $params->user_id : 0 ;
+        $return = ['signin_list'=>[],"signin_day"=>0];
         if($userId <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
@@ -1194,10 +1217,13 @@ class ActivityJsonRpc extends JsonRpc {
             ->where('activity_id', $activityId)
             ->where('status',3)
             ->orderBy('id', 'desc')->paginate($num)->toArray();
+        $signInDay = Attributes::getItem($userId,'signin');
+        $return['signin_list'] = $data;
+        $return["signin_day"] = isset($signInDay['number']) && $signInDay['number'] > 0 ? $signInDay['number']%28 : 0;
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $data,
+            'data' => $return,
         ];
     }
 

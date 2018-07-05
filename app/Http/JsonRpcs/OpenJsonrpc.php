@@ -66,6 +66,25 @@ class OpenJsonRpc extends JsonRpc {
         }
         return $res['error'];
     }
+
+    /**
+     * 微信小程序绑定
+     *
+     * @JsonRpcMethod
+     */
+    public function wechatXcxBind() {
+        global $userId;
+        $session = new Session();
+        $weixin = $session->get('weixin');
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $res = $client->accountBind(array('channel'=>'wechat_xcx','openId'=>$weixin['openid'],'userId'=>$userId));
+        if(!isset($res['error'])){
+            return $res['result'];
+        }elseif ($res['error']['code'] == 1443){
+            throw new OmgException(OmgException::IS_DINED_TO_WECHAT);
+        }
+        return $res['error'];
+    }
     
     /**
      * 微信解除绑定

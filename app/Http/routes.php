@@ -65,8 +65,16 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('one', 'OneYuanController');
     // 红包分享
     Route::controller('money', 'MoneyShareController');
+
     // ios审核设置
     Route::controller('examine', 'ExamineController');
+
+    //后台用户记录日志
+    Route::controller('log', 'LogController');
+
+    //世界杯活动配置
+    Route::controller('worldcup', 'WorldCupConfigController');
+    Route::controller('worldcups', 'WorldCupController');
 
 });
 

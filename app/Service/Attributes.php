@@ -102,7 +102,7 @@ class Attributes
      * @return int
      */
     static public function getNumberByDay($userId, $key) {
-        $res = UserAttribute::where(array('user_id' => $userId, 'key' => $key))->lockforupdate()->first();
+        $res = UserAttribute::where(array('user_id' => $userId, 'key' => $key))->lockForUpdate()->first();
         if(!$res) {
             return 0;
         }
