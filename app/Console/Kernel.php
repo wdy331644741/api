@@ -25,19 +25,10 @@ class Kernel extends ConsoleKernel
      * @return void
      */
     protected function schedule(Schedule $schedule)
-<<<<<<< HEAD
-    {
-
-        $schedule->call(function () {
-            newThreadIcon::handle();
-        })->everyMinute();
-
-=======
     {   
         // $filePath = storage_path('logs/vote.log');
         // $schedule->command('VoteAwardDebug')
         //          ->hourly()->withoutOverlapping()->sendOutputTo($filePath);
->>>>>>> master
 
     }
 }
