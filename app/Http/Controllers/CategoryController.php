@@ -25,7 +25,6 @@ class CategoryController extends Controller {
         if ($validator->fails()) {
             return $this->outputJson(10001, ['error_msg'=>$validator->errors()->first()]);
         }
-        $flag = false;
         $qids = isset($request->qids) ? $request->qids : '';
         if ($qids) {
             $qids = explode(',', $qids);
@@ -34,13 +33,12 @@ class CategoryController extends Controller {
                     return $this->outputJson(10001, ['error_msg'=>'Params Error']);
                 }
             }
-            $flag = true;
         }
         $category = new Category();
         $category->title = $request->title;
         $category->icon = $request->icon;
         if ($category->save()) {
-            if ($flag) {
+            if ($qids) {
                 $data = array();
                 foreach ($qids as $k=>$v) {
                     $data[$k]['q_id'] = $v;
@@ -68,17 +66,34 @@ class CategoryController extends Controller {
         $qids = isset($request->qids) ? $request->qids : '';
         if ($qids) {
             $qids = explode(',', $qids);
-            $qids = array_map('intval', $qids);
-            $flag = true;
+            foreach($qids as $v) {
+                if (!is_numeric($v)) {
+                    return $this->outputJson(10001, ['error_msg'=>'Params Error']);
+                }
+            }
         }
 
         try {
             $category = Category::findOrFail($request->id);
             $category->title = $request->title;
-            $category->content = $request->content;
-            $category->relative = $request->relative;
+            $category->icon = $request->icon;
             if(!$category->save()){
                 return $this->outputJson(10001, array('error_msg'=>'Database Error'));
+            }
+            if (!$qids) {
+                CategoryQuestion::where(['c_id'=>$request->id])->delete();
+            } else {
+                $old_qids = CategoryQuestion::select('q_id')->where(['c_id'=>$request->id])->get()->toArray();
+                $old_qids = array_column($old_qids, 'q_id');
+                $add = array_diff($qids, $old_qids);
+                $delete = array_diff($old_qids, $qids);
+                $data = array();
+                foreach ($add as $k=>$v) {
+                    $data[$k]['q_id'] = $v;
+                    $data[$k]['c_id'] = $request->id;
+                }
+                CategoryQuestion::insert($data);
+                CategoryQuestion::whereIn('q_id', $delete)->delete();
             }
             return $this->outputJson(0);
         }catch (\Exception $e) {
