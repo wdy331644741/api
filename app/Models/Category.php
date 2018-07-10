@@ -8,7 +8,7 @@ class Category extends Model
     public $table = 'q_categories';
     protected $guarded = ['created_at', 'updated_at'];
 
-    public function categoryQuestion() {
+    public function questions() {
         return $this->hasMany('App\Models\CategoryQuestion', 'c_id', 'id');
     }
 }

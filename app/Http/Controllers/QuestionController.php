@@ -29,10 +29,11 @@ class QuestionController extends Controller {
         $relative = $request->relative;
         if ($relative) {
             $relative = explode(',', $relative);
-            foreach($relative as $v) {
+            foreach($relative as $k=>$v) {
                 if (!is_numeric($v)) {
                     return $this->outputJson(10001, ['error_msg'=>'Params Error']);
                 }
+                $relative[$k] = intval($v);
             }
             $relative = json_encode($relative);
         }
@@ -109,7 +110,7 @@ class QuestionController extends Controller {
         }
     }
 
-    public function postOffline(Request $request) {
+    public function postOffLine(Request $request) {
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
         ]);
@@ -144,5 +145,15 @@ class QuestionController extends Controller {
         } catch (\Exception $e) {
             return $this->outputJson(10001, array('error_msg'=>'Database Error'));
         }
+    }
+
+    public function getRelative ($id) {
+        $question = Question::find($id);
+        $relative_id = json_decode($question->relative, true);
+        $data = [];
+        if ($relative_id) {
+            $data = Question::select(['id', 'title'])->whereIn('id', $relative_id);
+        }
+        return $this->outputJson(0, $data);
     }
 }
