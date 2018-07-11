@@ -78,6 +78,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('worldcup', 'WorldCupConfigController');
     Route::controller('worldcups', 'WorldCupController');
 
+    Route::controller('question', 'QuestionController');
+    Route::controller('category', 'CategoryController');
 
 });
 
