@@ -53,6 +53,8 @@ class OmgException extends BasicException
     const GET_AWARDDATAEXIST_FAIL = 4203;
     const SENDAEARD_FAIL = 4204;
     const PARAMS_NEED_ERROR = 4205;
+    const REDEEM_EMPTY = 4206;
+    const REDEEM_IS_GET = 4207;
     const DATABASE_ERROR = 4026;
     const FREQUENCY_ERROR = 4027;
     const INSERT_FAIL = 4028;
@@ -146,6 +148,8 @@ class OmgException extends BasicException
         self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在或已过期",
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
+        self::REDEEM_EMPTY => "口令红包已领取完",
+        self::REDEEM_IS_GET => "该口令红包您已经领取",
         self::INSERT_FAIL => "插入失败",
         self::INTEGRAL_FAIL => "商品信息有误，停止兑换",
         self::INTEGRAL_LACK_FAIL => "积分值不足",
