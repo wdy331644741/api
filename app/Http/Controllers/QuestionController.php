@@ -9,7 +9,7 @@ use Validator;
 class QuestionController extends Controller {
 
     public function getList() {
-        $data = Question::orderBy('status', 'desc')->orderBy('id','desc')->paginate(20);
+        $data = Question::orderBy('id', 'desc')->orderBy('id','desc')->paginate(20);
         return $this->outputJson(0, $data);
     }
 

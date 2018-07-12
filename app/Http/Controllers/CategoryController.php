@@ -10,7 +10,7 @@ use Validator;
 class CategoryController extends Controller {
 
     public function getList() {
-        $data = Category::select(['id','title', 'icon', 'status'])->with('questions')->orderBy('status', 'desc')->orderBy('id', 'desc')->get();
+        $data = Category::select(['id','title', 'icon', 'status'])->with('questions')->orderBy('id', 'desc')->paginate(50);
         return $this->outputJson(0, $data);
     }
 
