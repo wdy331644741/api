@@ -66,6 +66,8 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
      */
     public function examineConfigApp($params) {
         $versions = $params->versions;
+        $type = isset($params->type) ? $params->type : 1;
+        $app_name = isset($params->app_name) ? $params->app_name : '';
         if(empty($versions)){
             return array(
                 'code' => 0,
@@ -73,7 +75,13 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
                 'data' => null,
             );
         }
-        $config = Examine::where('status',1)->where('versions',$versions)->first();
+        $where['status'] = 1;
+        $where['versions'] = $versions;
+        $where['type'] = $type;
+        if(!empty($app_name)){
+            $where['app_name'] = $app_name;
+        }
+        $config = Examine::where($where)->first();
         return array(
             'code' => 0,
             'message' => 'success',

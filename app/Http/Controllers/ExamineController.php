@@ -9,12 +9,14 @@ use Validator;
 
 class ExamineController extends Controller
 {
-    function getConfigList(){
-        $data = Examine::paginate(1);
+    function getConfigList(Request $request){
+        $type = intval($request->type);
+        $data = Examine::where("type",$type)->paginate(20);
         return $this->outputJson(0,$data);
     }
     public function postAdd(Request $request) {
         $validator = Validator::make($request->all(), [
+            'type' => 'required|min:1',
             'versions' => 'required|min:1|max:32',
             'company_name' => 'required|min:1|max:64',
             'disclosure_click' => 'required|integer|min:0|max:1',
@@ -24,6 +26,10 @@ class ExamineController extends Controller
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
+        //版本号
+        $data['app_name'] = trim($request['app_name']);
+        //版本号
+        $data['type'] = intval($request['type']);
         //版本号
         $data['versions'] = trim($request['versions']);
         //现公司名称显示
@@ -47,8 +53,8 @@ class ExamineController extends Controller
             return $this->outputJson(0, $res);
         }
         //判断已经添加多少条
-        $count = Examine::count();
-        if($count >= 1){
+        $count = Examine::where("type",1)->count();
+        if($data['type'] == 1 && $count >= 1){
             return $this->outputJson(10001,array('error_msg'=>'最多添加一条'));
         }
         //添加时间
