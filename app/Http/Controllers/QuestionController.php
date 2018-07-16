@@ -28,7 +28,7 @@ class QuestionController extends Controller {
         $question = new Question();
         $question->title = $request->title;
         $question->content = $request->content;
-        if ($question->icon) {
+        if ($request->icon) {
             $question->icon = $request->icon;
             $question->type = $request->type;
         }
@@ -78,7 +78,7 @@ class QuestionController extends Controller {
             $question->title = $request->title;
             $question->content = $request->content;
             $question->relative = $relative;
-            if ($question->icon) {
+            if ($request->icon) {
                 $question->icon = $request->icon;
                 $question->type = $request->type;
             }
