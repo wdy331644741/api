@@ -67,7 +67,7 @@ class QuestionJsonrpc extends JsonRpc {
             throw  new OmgException(OmgException::PARAMS_ERROR);
         }
 
-        $data = Question::select(['id','title', 'content'])->find($params->id);
+        $data = Question::select(['id','title', 'content','icon', 'type'])->find($params->id);
         if (!$data) {
             throw  new OmgException(OmgException::DATA_ERROR);
         }
