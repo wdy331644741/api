@@ -17,8 +17,8 @@ class QuestionController extends Controller {
         $validator = Validator::make($request->all(), [
             'title' => 'required|max:255',
             'content' => 'required',
-            'icon'=>'required_with:type',
-            'type'=>'required_with:icon|integer|min:1',
+//            'icon'=>'required_with:type',
+            'type'=>'integer',
         ]);
 
         if ($validator->fails()) {
@@ -28,10 +28,8 @@ class QuestionController extends Controller {
         $question = new Question();
         $question->title = $request->title;
         $question->content = $request->content;
-        if ($request->icon) {
-            $question->icon = $request->icon;
-            $question->type = $request->type;
-        }
+//            $question->icon = $request->icon;
+        $question->type = $request->type;
         $relative = $request->relative;
         if ($relative) {
             $relative = explode(',', $relative);
@@ -56,8 +54,8 @@ class QuestionController extends Controller {
             'id' => 'required|integer',
             'title' => 'required|max:255',
             'content' => 'required',
-            'icon'=>'required_with:type',
-            'type'=>'required_with:icon|integer|min:1',
+//            'icon'=>'required_with:type',
+            'type'=>'integer',
         ]);
 
         if ($validator->fails()) {
@@ -78,10 +76,8 @@ class QuestionController extends Controller {
             $question->title = $request->title;
             $question->content = $request->content;
             $question->relative = $relative;
-            if ($request->icon) {
-                $question->icon = $request->icon;
-                $question->type = $request->type;
-            }
+//                $question->icon = $request->icon;
+            $question->type = $request->type;
             if(!$question->save()){
                 return $this->outputJson(10001, array('error_msg'=>'Database Error'));
             }
