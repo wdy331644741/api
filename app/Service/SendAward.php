@@ -1626,7 +1626,7 @@ class SendAward
             //奖品预警
             $num = CouponCode::where($where)->count();
             if($num <= 50){
-                Func::earlyWarning($num);
+                Func::earlyWarning($num,$info['name']);
             }
 
             //发送消息

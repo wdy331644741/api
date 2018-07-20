@@ -429,27 +429,31 @@ class Func
      * 奖品阈值预警
      *
      */
-    static public function earlyWarning($number){
+    static public function earlyWarning($number,$name,$id){
         $res = GlobalAttribute::where("key","earlyWarning")->whereRaw( " to_days(created_at) = to_days(now())")->first();
         if($res){
             return false;
         }else{
-            $params = array();
-            $params['phone'] = '13466678840';
-            $params['node_name'] = "custom";
-            $params['tplParam'] = array();
-            $params['customTpl'] = "华数忧患券剩余已经不多了，请及时补充，剩余数量：".$number."张";
-            $url = Config::get('cms.message_http_url');
-            $client = new JsonRpcClient($url);
-            $res = $client->sendSms($params);
-            if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            $arr  = array('15811347310','13466678840');
+            foreach ($arr as $val){
+                $params = array();
+                $params['phone'] = $val;
+                $params['node_name'] = "custom";
+                $params['tplParam'] = array();
+                $params['customTpl'] = "华数忧患券剩余已经不多了，请及时补充，优惠券名称：".$name.",剩余数量：".$number."张";
+                $url = Config::get('cms.message_http_url');
+                $client = new JsonRpcClient($url);
+                $res = $client->sendSms($params);
+                if(isset($res['result']['code']) && $res['result']['code'] === 0){
 
-                $obj = new GlobalAttribute();
-                $obj->key = "earlyWarning";
-                $obj->number = 1;
-                $obj->save();
-                return true;
+                    $obj = new GlobalAttribute();
+                    $obj->key = "earlyWarning_".$id;
+                    $obj->number = 1;
+                    $obj->save();
+                    return true;
+                }
             }
+
             return false;
         }
     }
