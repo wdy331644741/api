@@ -1642,6 +1642,12 @@ class SendAward
         $where['is_use'] = 0;
         $data = CouponCode::where($where)->lockForUpdate()->first();
         if (!empty($data) && isset($data['code']) && !empty($data['code']) && isset($data['id']) && !empty($data['id'])) {
+            //奖品预警
+            $num = CouponCode::where($where)->count();
+            if($num <= 50){
+                Func::earlyWarning($num,$info['name'],$info['id']);
+            }
+
             //发送消息
             $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>6,'status'=>true,'code'=>$data['code']);
             $info['code'] = $data['code'];

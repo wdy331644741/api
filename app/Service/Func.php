@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\WechatUser;
 use App\Models\JsonRpc;
 use App\Models\Admin;
+use App\Models\GlobalAttribute;
+use Config;
 
 class Func
 {
@@ -445,5 +447,73 @@ class Func
         }
         //文件名
         return array('errcode'=>0,'data'=>Config::get('cms.img_http_url').$fileName);
+    }
+
+    /*
+     * 奖品阈值预警
+     *
+     */
+    static public function earlyWarning($number,$name,$id){
+        $res = GlobalAttribute::where("key","earlyWarning")->whereRaw( " to_days(created_at) = to_days(now())")->first();
+        if($res){
+            return false;
+        }else{
+            $arr  = array('15811347310','13466678840');
+            foreach ($arr as $val){
+                $params = array();
+                $params['phone'] = $val;
+                $params['node_name'] = "custom";
+                $params['tplParam'] = array();
+                $params['customTpl'] = "华数忧患券剩余已经不多了，请及时补充，优惠券名称：".$name.",剩余数量：".$number."张";
+                $url = Config::get('cms.message_http_url');
+                $client = new JsonRpcClient($url);
+                $res = $client->sendSms($params);
+                if(isset($res['result']['code']) && $res['result']['code'] === 0){
+
+                    $obj = new GlobalAttribute();
+                    $obj->key = "earlyWarning_".$id;
+                    $obj->number = 1;
+                    $obj->save();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /*
+     * 获取统计日活量
+     *
+     */
+    static function getStatSport(){
+        $url = 'http://stat.wanglibao.com:10000/aso_user/get_log_list';
+        $curl = curl_init(); // 启动一个CURL会话
+        curl_setopt($curl, CURLOPT_URL, $url); // 要访问的地址
+        $untime = time();
+
+        $data = [
+            'code'=>hash('sha256',$untime.'TcW80uaAa4soY6d86hjv'),
+            'timestamp'=>$untime,
+        ];
+        if($data != null){
+            curl_setopt($curl, CURLOPT_POST, 1); // 发送一个常规的Post请求
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data); // Post提交的数据包
+        }
+        curl_setopt($curl, CURLOPT_TIMEOUT, 300); // 设置超时限制防止死循环
+        curl_setopt($curl, CURLOPT_HEADER, 0); // 显示返回的Header区域内容
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); // 获取的信息以文件流的形式返回
+        $info = curl_exec($curl); // 执行操作
+        if (curl_errno($curl)) {
+            echo 'Errno:'.curl_getinfo($curl);//捕抓异常
+            dump(curl_getinfo($curl));
+        }
+        $data = json_decode($info,true);
+        if(!empty($data['data'])){
+            return $data['data']['active_num'];
+        }
+        return false;
+
+
     }
 }
