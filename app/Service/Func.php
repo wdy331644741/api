@@ -454,7 +454,7 @@ class Func
      *
      */
     static public function earlyWarning($number,$name,$id){
-        $res = GlobalAttribute::where("key","earlyWarning")->whereRaw( " to_days(created_at) = to_days(now())")->first();
+        $res = GlobalAttribute::where("key","earlyWarning_".$id)->whereRaw( " to_days(created_at) = to_days(now())")->first();
         if($res){
             return false;
         }else{
@@ -464,7 +464,7 @@ class Func
                 $params['phone'] = $val;
                 $params['node_name'] = "custom";
                 $params['tplParam'] = array();
-                $params['customTpl'] = "华数忧患券剩余已经不多了，请及时补充，优惠券名称：".$name.",剩余数量：".$number."张";
+                $params['customTpl'] = $name."优惠券剩余已经不多了，请及时补充，优惠券名称：".$name.",剩余数量：".$number."张";
                 $url = Config::get('cms.message_http_url');
                 $client = new JsonRpcClient($url);
                 $res = $client->sendSms($params);
