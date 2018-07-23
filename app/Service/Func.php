@@ -450,11 +450,9 @@ class Func
                     $obj->key = "earlyWarning_".$id;
                     $obj->number = 1;
                     $obj->save();
-                    return true;
                 }
             }
-
-            return false;
+            return true;
         }
     }
 
