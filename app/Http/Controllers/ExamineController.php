@@ -11,7 +11,7 @@ class ExamineController extends Controller
 {
     function getConfigList(Request $request){
         $type = intval($request->type);
-        $data = Examine::where("type",$type)->paginate(20);
+        $data = Examine::where("type",$type)->orderBy("id","desc")->paginate(20);
         return $this->outputJson(0,$data);
     }
     public function postAdd(Request $request) {
