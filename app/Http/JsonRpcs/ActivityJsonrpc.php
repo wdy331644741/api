@@ -1287,7 +1287,7 @@ class ActivityJsonRpc extends JsonRpc {
             $insertData['updated_at'] = date("Y-m-d H:i:s");
             $insertID = AwardBatch::insertGetId($insertData);
             $aa = new \App\Http\Controllers\AwardController;
-            $aa->addJob($uids,$award_info->award_type,$award_info->award_id,$info->name,$insertID,$info->id);
+            $aa->addJob($insertData['uids'],$award_info->award_type,$award_info->award_id,$info->name,$insertID,$info->id);
             return [
                 'code' => 0,
                 'message' => '成功',
