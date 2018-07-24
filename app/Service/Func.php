@@ -459,6 +459,7 @@ class Func
             return false;
         }else{
             $arr  = array('15811347310','13466678840');
+            $i =0;
             foreach ($arr as $val){
                 $params = array();
                 $params['phone'] = $val;
@@ -469,16 +470,16 @@ class Func
                 $client = new JsonRpcClient($url);
                 $res = $client->sendSms($params);
                 if(isset($res['result']['code']) && $res['result']['code'] === 0){
-
-                    $obj = new GlobalAttribute();
-                    $obj->key = "earlyWarning_".$id;
-                    $obj->number = 1;
-                    $obj->save();
-                    return true;
+                    $i++;
                 }
             }
-
-            return false;
+            if($i){
+                $obj = new GlobalAttribute();
+                $obj->key = "earlyWarning_".$id;
+                $obj->number = 1;
+                $obj->save();
+            }
+            return true;
         }
     }
 
