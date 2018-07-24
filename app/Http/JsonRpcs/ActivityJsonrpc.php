@@ -1274,6 +1274,12 @@ class ActivityJsonRpc extends JsonRpc {
                 $uids[] = $value->user_id;
             }
         }
+        if(empty($uids)){
+            return [
+                'code' => -1,
+                'message' => '发送优惠券为空',
+            ];
+        }
         //获取奖品id
         $award_info = Award::where("activity_id",$info->id)->first();
         if(isset($award_info->award_type) && $award_info->award_type > 0 && isset($award_info->award_id) && $award_info->award_id){
