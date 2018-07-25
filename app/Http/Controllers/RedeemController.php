@@ -30,10 +30,10 @@ class RedeemController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         //判断是否添加过该名称
-//        $count = RedeemAward::where('name',$request->name)->count();
-//        if($count > 0){
-//            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该信息已经添加'));
-//        }
+        $count = RedeemAward::where('name',$request->name)->where("type",1)->count();
+        if($count > 0){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该信息已经添加'));
+        }
         //添加到关系表
         $data = array();
         $data['type'] = intval($request->type);
