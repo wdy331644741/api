@@ -344,7 +344,7 @@ class BannerJsonRpc extends JsonRpc {
 			'enable' => 1,
 		];
 		$newdate = date('Y-m-d H:i:s');
-		$data = AppStartpage::select('id', 'img1', 'img2', 'img3', 'img4', 'target_url', 'release_at', 'online_time', 'offline_time')
+		$data = AppStartpage::select('id', 'img1', 'img2', 'img3', 'img4', 'img5', 'target_url', 'release_at', 'online_time', 'offline_time')
 			->where($filter)
 			->where('online_time', '<=', $newdate)
 			->where('offline_time', '>=', $newdate)
