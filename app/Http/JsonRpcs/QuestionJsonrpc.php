@@ -5,6 +5,7 @@ use App\Exceptions\OmgException;
 use App\Models\Category;
 use App\Models\CategoryQuestion;
 use App\Models\Question;
+use App\Service\GlobalAttributes;
 use Lib\JsonRpcClient;
 use Validator;
 use Config;
@@ -101,6 +102,21 @@ class QuestionJsonrpc extends JsonRpc {
                $qids = json_decode($question->relative, true);
                $data = Question::select(['id', 'title'])->where(['status'=> 1])->whereIn('id', $qids)->get()->toArray();
         }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+    }
+
+    /**
+     *  问题关联
+     *
+     * @JsonRpcMethod
+     */
+    public function myServiceSwitch(){
+        $res = GlobalAttribute::where(['key'=>'myservice'])->first();
+        $data = isset($res['number']) ? $res['number'] : 0;
         return array(
             'code' => 0,
             'message' => 'success',
