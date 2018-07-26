@@ -34,6 +34,7 @@ use Lib\McQueue;
 use App\Service\GlobalAttributes;
 use App\Service\SignInSystemBasic;
 use Illuminate\Pagination\Paginator;
+use App\Models\AwardBatch;
 class ActivityJsonRpc extends JsonRpc {
 
 
@@ -1240,6 +1241,66 @@ class ActivityJsonRpc extends JsonRpc {
             'code' => 0,
             'message' => 'success',
             'data' => $data
+        ];
+    }
+    /**
+     *  接收曹晋数据发送华数优惠券
+     *
+     * @JsonRpcMethod
+     */
+    public function getDataSendCoupon($params) {
+        $data = isset($params->data) ? $params->data : [];
+        if(empty($data)){
+            return [
+                'code' => -1,
+                'message' => '参数为空',
+            ];
+        }
+        $info = ActivityService::GetActivityInfoByAlias("coupon_huashu");
+        if(!$info){
+            return [
+                'code' => -1,
+                'message' => '活动不存在',
+            ];
+        }
+        $uids = [];
+        foreach($data as $key => $value){
+            if(isset($value->user_id) && isset($value->num) && $value->num > 1){
+                for($i=1;$i<=$value->num;$i++){
+                    $uids[] = $value->user_id;
+                }
+            }else{
+                $uids[] = $value->user_id;
+            }
+        }
+        if(empty($uids)){
+            return [
+                'code' => -1,
+                'message' => '发送优惠券为空',
+            ];
+        }
+        //获取奖品id
+        $award_info = Award::where("activity_id",$info->id)->first();
+        if(isset($award_info->award_type) && $award_info->award_type > 0 && isset($award_info->award_id) && $award_info->award_id){
+            //插入日志
+            $insertData['params_data'] = json_encode($data);
+            $insertData['uids'] = implode(",",$uids);
+            $insertData['award_type'] = $award_info->award_type;
+            $insertData['award_id'] = $award_info->award_id;
+            $insertData['source_name'] = $info->name;
+            $insertData['created_at'] = date("Y-m-d H:i:s");
+            $insertData['updated_at'] = date("Y-m-d H:i:s");
+            $insertID = AwardBatch::insertGetId($insertData);
+            $aa = new \App\Http\Controllers\AwardController;
+            $aa->addJob($insertData['uids'],$award_info->award_type,$award_info->award_id,$info->name,$insertID,$info->id);
+            return [
+                'code' => 0,
+                'message' => '成功',
+            ];
+        }
+        return [
+            'code' => -1,
+            'message' => '失败',
         ];
     }
 }

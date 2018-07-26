@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Bbs;
 
+use App\Service\Func;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -14,7 +15,7 @@ class ThreadSectionController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','name','description','isuse', 'created_at', 'sort', 'isban' ];
+    protected $fileds = ['id','name','icon','description','isuse', 'created_at', 'sort', 'isban' ];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_thread_sections,id'
     ];
@@ -38,12 +39,17 @@ class ThreadSectionController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+        $imgData = Func::getImageUrl($request);
+        if($imgData['errcode']){
+            return $this->outputJson(10001,array('error_msg'=>$imgData['errmsg']));
+        }
         $section = new ThreadSection();
         $section->name = $request->name;
         $section->isuse = isset($request->isuse) ? $request->isuse : 0;
         $section->isban = isset($request->isban) ? $request->isban : 0;
         $section->sort = isset($request->sort) ? $request->sort : 0;
         $section->description = isset($request->description) ? $request->description : NULL;
+        $section->icon = $imgData['data'];
         $section->save();
         if($section->id){
             return $this->outputJson(0,array('insert_id'=>$section->id));
@@ -93,11 +99,20 @@ class ThreadSectionController extends Controller
         if(isset($request->description)){
             $putData['description'] = $request->description;
         }
+        $imgData = Func::getImageUrl($request);
+        if($imgData['errcode']){
+            return $this->outputJson(10001,array('error_msg'=>$imgData['errmsg']));
+        }
+        $putData['icon'] = $imgData['data'];
         if (empty($putData)){
             return $this->outputJson(10009,array('error_msg'=>'Not Changed'));
         }
+        $icon = ThreadSection::where('id',$request->id)->value('icon');
+        $strArr = explode('/',$icon);
+        $fileName = $strArr[count($strArr)-1];
         $res = ThreadSection::where('id',$request->id)->update($putData);
         if($res){
+            unlink(base_path()."/storage/images/".$fileName);
             return $this->outputJson(0);
         }else{
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));

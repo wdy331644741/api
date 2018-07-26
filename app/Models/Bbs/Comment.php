@@ -34,12 +34,17 @@ class Comment extends Model
 
     public function zan(){
         $userId = $this->userId;
+
         return $this->hasOne('App\Models\Bbs\CommentZan','cid','id')->where(['status'=>0,'user_id'=>$userId]);
     }
-    public function reply(){
-        $userId = $this->userId;
-        return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1])->orwhere(function($query)use($userId){$query->where(['from_id'=>$userId]);})->with('user');
+    public function officeReply(){
+        //$userId = $this->userId;
+        return $this->hasMany('App\Models\Bbs\CommentReply','comment_id','id')->where(['is_verify'=>1,"reply_type"=>"official"]);
 
+    }
+
+    public function replyUser(){
+        return $this->hasOne('App\Models\Bbs\User','user_id','t_user_id');
     }
 
 }

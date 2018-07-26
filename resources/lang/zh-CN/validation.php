@@ -222,7 +222,8 @@ return [
         'groups'                => '分组',
         'total_num'             => '总次数',
         'money'                 => '金额',
-        'type'                  => '类型'
+        'type'                  => '类型',
+        'nickname'              => '昵称'
     ],
 
 ];

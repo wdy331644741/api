@@ -49,6 +49,8 @@ class OmgException extends BasicException
     const GET_AWARDDATAEXIST_FAIL = 4203;
     const SENDAEARD_FAIL = 4204;
     const PARAMS_NEED_ERROR = 4205;
+    const REDEEM_EMPTY = 4206;
+    const REDEEM_IS_GET = 4207;
     const DATABASE_ERROR = 4026;
     const FREQUENCY_ERROR = 4027;
     const INSERT_FAIL = 4028;
@@ -125,6 +127,8 @@ class OmgException extends BasicException
         self::GET_AWARDDATAEMPTY_FAIL => "该CODE和奖品信息关系不存在或已过期",
         self::GET_AWARDDATAEXIST_FAIL => "该CODE和奖品信息关系必要数据为空",
         self::SENDAEARD_FAIL => "发送兑换码奖品失败",
+        self::REDEEM_EMPTY => "口令红包已领取完",
+        self::REDEEM_IS_GET => "该口令红包您已经领取",
         self::INSERT_FAIL => "插入失败",
         self::INTEGRAL_FAIL => "商品信息有误，停止兑换",
         self::INTEGRAL_LACK_FAIL => "积分值不足",
@@ -155,8 +159,8 @@ class OmgException extends BasicException
         self::CONDITION_NOT_ENOUGH => "条件不足",
         self::ACTIVITY_IS_END => "活动已结束",
         self::ALREADY_EXIST => "数据已存在",
-        self::NICKNAME_ERROR=>"昵称太长",
-        self::NICKNAME_REPEAT=>"昵称重复",
+        self::NICKNAME_ERROR=>"昵称不符合规则",
+        self::NICKNAME_REPEAT=>"该昵称已存在",
         self::RIGHT_ERROR=>"您没有操作权限",
         self::NICKNAME_IS_NULL=>"昵称不能为空",
         self::THREAD_ERROR =>"抱歉，发贴失败，因含有敏感词等",

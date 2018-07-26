@@ -366,6 +366,7 @@ class ImgManageController extends Controller
             'img2' => 'url',
             'img3' => 'url',
             'img4' => 'url',
+            'img5' => 'url',
             'online_time' => 'date|required',
             'offline_time' => 'required|after:online_time',
             'target_url' => 'url'
@@ -392,6 +393,9 @@ class ImgManageController extends Controller
         }
         if(isset($request->img4)){
             $insdata['img4'] = $request->img4;
+        }
+        if(isset($request->img5)){
+            $insdata['img5'] = $request->img5;
         }
         if(isset($request->target_url)){
             $insdata['target_url'] = $request->target_url;
@@ -444,6 +448,7 @@ class ImgManageController extends Controller
             'img2' => 'url',
             'img3' => 'url',
             'img4' => 'url',
+            'img5' => 'url',
             'online_time' => 'date|required',
             'offline_time' => 'required|after:online_time',
             'target_url' => 'url'
@@ -470,6 +475,9 @@ class ImgManageController extends Controller
         }
         if(isset($request->img4)){
             $data['img4'] = $request->img4;
+        }
+        if(isset($request->img5)){
+            $data['img5'] = $request->img5;
         }
         if(isset($request->target_url)){
             $data['target_url'] = $request->target_url;
@@ -537,8 +545,7 @@ class ImgManageController extends Controller
         $now_date = date('Y-m-d H:i:s');
         $current = AppStartpage::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = AppStartpage::where('online_time','<=',$now_date)
-            ->where('offline_time','>=',$now_date)
+        $pre = AppStartpage::where(array("enable"=>1))
             ->whereRaw("id + sort > $current_num")
             ->orderByRaw('id + sort ASC')->first();
         if(!$pre){
@@ -567,8 +574,7 @@ class ImgManageController extends Controller
         $now_date = date('Y-m-d H:i:s');
         $current = AppStartpage::where('id',$id)->first()->toArray();
         $current_num = $current['id'] + $current['sort'];
-        $pre = AppStartpage::where('online_time','<=',$now_date)
-            ->where('offline_time','>=',$now_date)
+        $pre = AppStartpage::where(array("enable"=>1))
             ->whereRaw("id + sort < $current_num")
             ->orderByRaw('id + sort DESC')->first();
         if(!$pre){
