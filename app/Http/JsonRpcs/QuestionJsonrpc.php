@@ -5,6 +5,7 @@ use App\Exceptions\OmgException;
 use App\Models\Category;
 use App\Models\CategoryQuestion;
 use App\Models\Question;
+use App\Models\GlobalAttribute;
 use App\Service\GlobalAttributes;
 use Lib\JsonRpcClient;
 use Validator;
