@@ -18,7 +18,7 @@ class Pm extends Model
     protected $dates = ['deleted_at'];
 
     public function comments(){
-        return $this->hasOne('App\Models\Bbs\Comment','id','comment_id');
+        return $this->hasOne('App\Models\Bbs\Comment','id','cid');
     }
 
     public function threads(){
@@ -27,6 +27,9 @@ class Pm extends Model
 
     public function fromUsers(){
         return $this->hasOne('App\Models\Bbs\User','user_id','from_user_id');
+    }
+    public function replyInfo(){
+        return $this->hasOne('App\Models\Bbs\Comment','id','comment_id');
     }
 
 }

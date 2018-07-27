@@ -398,4 +398,7 @@ class AwardController extends AwardCommonController
             });
         })->export($typeName);
     }
+    public function addJob($uids,$award_type,$award_id,$source_name,$insertID,$source_id){
+        $this->dispatch(new BatchAward($uids,$award_type,$award_id,$source_name,$insertID,$source_id));
+    }
 }

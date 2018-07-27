@@ -38,13 +38,22 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function examineConfig() {
+    public function examineConfig($params) {
+        $versions = $params->versions;
+        $app_name = isset($params->app_name) ? $params->app_name : '';
         //获取请求头
         @$header = Request::header();
         $userAgent = isset($header['user-agent'][0]) ? $header['user-agent'][0] : "";
         if((strpos($userAgent, 'iPhone') || strpos($userAgent, 'iPad')) && strpos($userAgent, 'AppleWebKit')){
+            $where['versions'] = $versions;
+            if(empty($app_name)){
+                $where['type'] = 1;
+            }else{
+                $where['app_name'] = $app_name;
+            }
+            $where['status'] = 1;
             //h5页面请求
-            $config = Examine::where('status',1)->first();
+            $config = Examine::where($where)->first();
             return array(
                 'code' => 0,
                 'message' => 'success',
@@ -66,6 +75,8 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
      */
     public function examineConfigApp($params) {
         $versions = $params->versions;
+        $type = isset($params->type) ? $params->type : 1;
+        $app_name = isset($params->app_name) ? $params->app_name : '';
         if(empty($versions)){
             return array(
                 'code' => 0,
@@ -73,7 +84,13 @@ class AppUpdateConfigJsonRpc extends JsonRpc {
                 'data' => null,
             );
         }
-        $config = Examine::where('status',1)->where('versions',$versions)->first();
+        $where['status'] = 1;
+        $where['versions'] = $versions;
+        $where['type'] = $type;
+        if(!empty($app_name)){
+            $where['app_name'] = $app_name;
+        }
+        $config = Examine::where($where)->first();
         return array(
             'code' => 0,
             'message' => 'success',

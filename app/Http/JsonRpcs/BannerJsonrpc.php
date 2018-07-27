@@ -140,6 +140,28 @@ class BannerJsonRpc extends JsonRpc {
 				})
 				->orderByRaw('sort DESC')->get()->toArray();
 			break;
+			//在线客服-广告位
+        case "ad":
+        case "infolink":
+            Paginator::currentPageResolver(function () use ($page) {
+                return $page;
+            });
+            $res = BANNER::select( 'name','img_path', 'url')->where($where)
+                ->where(function ($query) {
+                    $query->whereNull('start')->orWhereRaw('start < now()');
+                })
+                ->where(function ($query) {
+                    $query->whereNull('end')->orWhereRaw('end > now()');
+                })
+                ->orderByRaw('sort DESC')->paginate($pageNum)->toArray();
+            $data = $res['data'];
+            $rData['total'] = $res['total'];
+            $rData['per_page'] = $res['per_page'];
+            $rData['current_page'] = $res['current_page'];
+            $rData['last_page'] = $res['last_page'];
+            $rData['from'] = $res['from'];
+            $rData['to'] = $res['to'];
+            break;
 		// 默认
 		default:
 			$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
@@ -344,7 +366,7 @@ class BannerJsonRpc extends JsonRpc {
 			'enable' => 1,
 		];
 		$newdate = date('Y-m-d H:i:s');
-		$data = AppStartpage::select('id', 'img1', 'img2', 'img3', 'img4', 'target_url', 'release_at', 'online_time', 'offline_time')
+		$data = AppStartpage::select('id', 'img1', 'img2', 'img3', 'img4', 'img5', 'target_url', 'release_at', 'online_time', 'offline_time')
 			->where($filter)
 			->where('online_time', '<=', $newdate)
 			->where('offline_time', '>=', $newdate)

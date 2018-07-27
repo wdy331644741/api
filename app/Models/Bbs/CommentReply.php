@@ -15,4 +15,10 @@ class CommentReply extends Model
 
         return $this->hasOne('App\Models\Bbs\User','user_id','from_id')->select("user_id","nickname","isadmin");
     }
+    public  function replycomment(){
+
+        return $this->hasOne('App\Models\Bbs\Comment','id','comment_id');
+    }
+
+
 }

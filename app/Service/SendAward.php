@@ -1632,6 +1632,11 @@ class SendAward
             //修改优惠码状态
             CouponCode::where("id",$data['id'])->update(array('is_use'=>1));
             DB::commit();
+            //奖品预警
+            $num = CouponCode::where($where)->count();
+            if($num <= 50){
+                Func::earlyWarning($num,$info['name'],$info['id']);
+            }
             return $err;
         }else{
             //存储到日志
