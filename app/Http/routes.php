@@ -78,6 +78,7 @@ Route::group(['middleware' => 'admin'], function(){
 
     Route::controller('question', 'QuestionController');
     Route::controller('category', 'CategoryController');
+    Route::controller('myservice', 'ImgManageController');
 
 });
 
