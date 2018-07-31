@@ -2,14 +2,26 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\CategoryQuestion;
 use App\Models\Question;
 use Illuminate\Http\Request;
 use Validator;
 
 class QuestionController extends Controller {
 
-    public function getList() {
-        $data = Question::orderBy('id', 'desc')->orderBy('id','desc')->paginate(20);
+    public function getList(Request $request) {
+
+        if ($request->type) {
+            $qids = CategoryQuestion::select('q_id')->where('c_id', $request->type)->get()->toArray();
+            $data = [];
+            if ($qids) {
+                $qids = array_column($qids, 'q_id');
+                $data = Question::whereIn('id', $qids)->orderBy('id', 'desc')->orderBy('id','desc')->paginate(20);
+            }
+        } else {
+            $data = Question::orderBy('id', 'desc')->orderBy('id','desc')->paginate(20);
+        }
         return $this->outputJson(0, $data);
     }
 
