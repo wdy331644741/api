@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use Yajra\Datatables\Facades\Datatables;
 use Illuminate\Http\Request;
 use Validator;
+use App\Models\Bbs\Thread;
 
 trait BasicDatatables{
     public function getDtList(Request $request)
@@ -51,6 +52,7 @@ trait BasicDatatables{
                 $items->with($with);
             }
         }
+
         /* */
         $res = Datatables::of($items)->make();
         return $this->outputJson(0, $res->getData());
@@ -59,6 +61,8 @@ trait BasicDatatables{
     //查询列表
     public function getSearchList(Request $request)
     {
+
+        $path = $request->path();
         $items = $this->model->select($this->fileds);
         // 只显示删除
         if ($request->has('onlyTrashed')) {
@@ -126,6 +130,18 @@ trait BasicDatatables{
         }
         /* */
         $res = Datatables::of($items)->make();
+        dd($res);
+        if($path == 'bbs/user/search-list'){
+            $newdata = [];
+            foreach ($res->getData()->data as $val){
+                $num = Thread::where(['user_id'=>$val[1]])->count();
+                $val[] = $num;
+                $newdata[] = $val;
+            }
+            $res->getData()->data = $newdata;
+            dd($res->getData());
+            return $this->outputJson(0, $res->getData());
+        }
         return $this->outputJson(0, $res->getData());
     }
 
