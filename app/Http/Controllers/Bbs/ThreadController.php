@@ -39,7 +39,8 @@ class ThreadController extends Controller
     //帖子为审核列表
     public function getList(Request $request){
         $res = Func::freeSearch($request,new Thread(),$this->fileds,['section','user']);
-        $res['app_url'] = env('APP_URL');
+        $appurl = env('APP_URL');
+        $res['app_url'] = $appurl == "http://api-omg.wanglibao.com" ? $appurl : $appurl."/yunying";
         return response()->json(array('error_code'=> 0, 'data'=>$res));
 
     }
