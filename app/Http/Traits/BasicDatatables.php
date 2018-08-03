@@ -2,6 +2,8 @@
 
 namespace App\Http\Traits;
 
+use App\Service\Func;
+use phpDocumentor\Reflection\Types\Null_;
 use Yajra\Datatables\Facades\Datatables;
 use Illuminate\Http\Request;
 use Validator;
@@ -130,17 +132,16 @@ trait BasicDatatables{
         }
         /* */
         $res = Datatables::of($items)->make();
-        dd($res);
+        $resArr = json_decode(json_encode($res->getData()),true);
         if($path == 'bbs/user/search-list'){
             $newdata = [];
-            foreach ($res->getData()->data as $val){
+            foreach ($resArr['data'] as $val){
                 $num = Thread::where(['user_id'=>$val[1]])->count();
                 $val[] = $num;
                 $newdata[] = $val;
             }
-            $res->getData()->data = $newdata;
-            dd($res->getData());
-            return $this->outputJson(0, $res->getData());
+            $resArr['data'] = $newdata;
+            return $this->outputJson(0, $resArr);
         }
         return $this->outputJson(0, $res->getData());
     }
