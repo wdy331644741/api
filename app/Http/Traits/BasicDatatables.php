@@ -51,6 +51,7 @@ trait BasicDatatables{
                 $items->with($with);
             }
         }
+        dd($items);
         /* */
         $res = Datatables::of($items)->make();
         return $this->outputJson(0, $res->getData());
