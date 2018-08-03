@@ -280,6 +280,7 @@ class BbsUserJsonRpc extends JsonRpc {
                 $verifyMessage = '发贴成功';
         }
 
+        file_put_contents(storage_path('logs/bbs_log_'.date('Y-m-d').'.log'),date('Y-m-d H:i:s')."=>resCode:".$verifyResult."-macCode：".$resMaxCode."-imgCode:".$resImgCode."-textCode:".$resTextCode.PHP_EOL,FILE_APPEND);
         $thread = new Thread();
         $thread->user_id = $this->userId;
         $thread->type_id = $params->type_id;
