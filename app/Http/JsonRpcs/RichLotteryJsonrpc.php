@@ -3,7 +3,7 @@
 namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
-use App\Models\SignInSystem;
+use App\Models\RichLottery;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
@@ -22,10 +22,10 @@ class RichLotteryJsonRpc extends JsonRpc
      */
     public function lotterySystemInfo() {
         global $userId;
-// $userId = 5101340;
+$userId = 5101340;
         $config     = Config::get('richlottery');
         $user       = ['login' => false, 'multiple' => 0];
-        $game       = ['available' => true, 'nextSeconds' => 0];
+        $game       = ['available' => true, 'nextSeconds' => 0 ,'awards' => null];
         $looteryBat = null;
         //$awardList = $this->getAwardList();
 
@@ -44,6 +44,11 @@ class RichLotteryJsonRpc extends JsonRpc
         }else{
             $looteryBat = $item['start'];//当前是哪个时间段的 抽奖
             $game['nextSeconds'] = 0;
+            //去掉 敏感信息
+            foreach ($item['awards'] as &$value) {
+                unset($value['pro'] ,$value['award_type']);
+            }
+            $game['awards'] = $item['awards'];
         }
     
         // 用户是否登录
@@ -74,7 +79,7 @@ class RichLotteryJsonRpc extends JsonRpc
      *
      * @JsonRpcMethod
      */
-    public function shareLooteryAdd(){
+    public function shareLotteryAdd(){
         global $userId;
 $userId = 5101340;
         //是否登录
@@ -120,7 +125,7 @@ $userId = 5101340;
      *
      * @JsonRpcMethod
      */
-    public function looterySystemDraw() {
+    public function lotterySystemDraw() {
         global $userId;
 $userId = 5101340;
         if(!$userId){
@@ -139,9 +144,7 @@ $userId = 5101340;
             'awardName' => '',
             'awardType' => 0,
             'amount' => 0,
-            'multiple' => 1,
-            'multiple_card' => 0,
-            'lastGlobalNum' => 0
+            'awardSigni' => '',
         ];
         $remark = [];
 
@@ -154,19 +157,21 @@ $userId = 5101340;
         if($item['start'] != intval(date('H'))) {
             return '不在抽奖时间段内';
         }
+        //查询是否 剩余抽奖次数
 
         // 获取奖品
         $award = $this->getAward($item);
 
         // 根据别名发活动奖品
         $aliasName = $award['alias_name'];
-        $awards = SendAward::ActiveSendAward($userId, $aliasName);return $awards;
+        $awards = SendAward::ActiveSendAward($userId, $aliasName);
         if(isset($awards[0]['award_name']) && $awards[0]['status']) {
             $result['awardName'] = $awards[0]['award_name'];
             $result['awardType'] = $awards[0]['award_type'];
             $result['amount'] = strval(intval($result['awardName']));
+            $result['awardSigni'] = $aliasName;//奖品标示 需要返回给前端
             $remark['awards'] = $awards;
-            SignInSystem::create([
+            RichLottery::create([
                 'user_id' => $userId,
                 'amount' => $award['size'],
                 'award_name' => $result['awardName'],
