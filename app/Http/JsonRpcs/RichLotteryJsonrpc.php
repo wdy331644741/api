@@ -27,7 +27,6 @@ $userId = 5101340;
         $user       = ['login' => false, 'multiple' => 0];
         $game       = ['available' => true, 'nextSeconds' => 0 ,'awards' => null];
         $looteryBat = null;
-        //$awardList = $this->getAwardList();
 
         // 活动是否存在
         if(ActivityService::isExistByAlias($config['alias_name'])) {
@@ -226,25 +225,6 @@ $userId = 5101340;
     }
 
     /**
-     * 获取剩余奖品数量
-     * @param $item
-     * @return float|int
-     */
-    private function getLastGlobalNum($item) {
-        // 活动开始一段时间后强制结束
-        if(time() - $item['startTimestamps'] > $item['times']) {
-            return 0;
-        }
-
-        $globalKey = Config::get('richlottery.alias_name') . '_' . date('Ymd') . '_'. $item['start'];
-        $awardNumberMultiple = Config::get('richlottery.award_number_multiple');
-        $usedGlobalNumber = Cache::get($globalKey, 0);
-        $globalNumber = floor($this->getTotalNum($item) * $awardNumberMultiple);
-        $lastGlobalNumber = $globalNumber - $usedGlobalNumber < 0  ? 0 :$globalNumber - $usedGlobalNumber;
-        return $lastGlobalNumber;
-    }
-
-    /**
      * 获取奖品总数
      *
      * @param $item
@@ -281,24 +261,6 @@ $userId = 5101340;
         throw new OmgException(OmgException::NUMBER_IS_NULL);
     }
 
-    /**
-     * 获取倍率
-     *
-     * @param $userId
-     * @param $config
-     * @return int
-     */
-    private function getMultiple($userId, $config) {
-        return Cache::remember("sign_in_system_multiple_{$userId}", 5, function() use ($userId, $config) {
-            $inviteNum = Attributes::getNumber($userId, $config['invite_alias_name'], 0);
-            foreach ($config['multipleLists'] as $item) {
-                if ($inviteNum >= $item['min'] && $inviteNum <= $item['max']) {
-                    return $item['multiple'];
-                }
-            }
-            return 1;
-        });
-    }
 
 
     /**
@@ -330,23 +292,6 @@ $userId = 5101340;
         throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
     }
 
-    /**
-     * 获取获奖列表
-     *
-     * @return array
-     */
-    private function getAwardList() {
-        return Cache::remember('sign_in_system_list', 2, function() {
-            $data = SignInSystem::select('user_id', 'award_name')->orderBy('id', 'desc')->take(20)->get();
-            foreach ($data as &$item){
-                if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
-                    $phone = Func::getUserPhone($item['user_id']);
-                    $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-                }
-            }
-            return $data;
-        });
-    }
 
     /**
      * 抽奖间隔验证
@@ -365,16 +310,5 @@ $userId = 5101340;
         return false;
     }
 
-    /**
-     * 用户投资标是否超过48小时
-     *
-     */
-    private function isInvested($userId, $config) {
-        $expired = Attributes::getNumber($userId, $config['trade_alias_name'], 0);
-        if(time() < $expired) {
-            return true;
-        }
-        return false;
-    }
 }
 
