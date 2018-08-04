@@ -22,7 +22,6 @@ class RichLotteryJsonRpc extends JsonRpc
      */
     public function lotterySystemInfo() {
         global $userId;
-$userId = 5101340;
         $config     = Config::get('richlottery');
         $user       = ['login' => false, 'multiple' => 0];
         $game       = ['available' => true, 'nextSeconds' => 0 ,'awards' => null];
@@ -35,7 +34,7 @@ $userId = 5101340;
 
         // 下次活动开始时间
         $item = $this->selectList($config['lists']);
-        $game['nextSeconds'] = $item['endTimestamps'] - time() + rand(0,3);
+        $game['nextSeconds'] = $item['endTimestamps'] - time();
         // 活动开始一段时间后强制结束
         if(time() - $item['startTimestamps'] > $item['times']) {
             $game['available'] = false;
@@ -44,10 +43,10 @@ $userId = 5101340;
             $looteryBat = $item['start'];//当前是哪个时间段的 抽奖
             $game['nextSeconds'] = 0;
             //去掉 敏感信息
-            foreach ($item['awards'] as &$value) {
-                unset($value['pro'] ,$value['award_type']);
-            }
-            $game['awards'] = $item['awards'];
+            // foreach ($item['awards'] as &$value) {
+            //     unset($value['pro'] ,$value['award_type']);
+            // }
+            // $game['awards'] = $item['awards'];
         }
     
         // 用户是否登录
@@ -80,7 +79,6 @@ $userId = 5101340;
      */
     public function shareLotteryAdd(){
         global $userId;
-$userId = 5101340;
         //是否登录
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
@@ -126,7 +124,6 @@ $userId = 5101340;
      */
     public function lotterySystemDraw() {
         global $userId;
-$userId = 5101340;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -154,15 +151,32 @@ $userId = 5101340;
 
         $item = $this->selectList($config['lists']);
         if($item['start'] != intval(date('H'))) {
-            return '不在抽奖时间段内';
+            return [
+                'code' => -1,
+                'message' => 'failed',
+                'data' => '不在活动时间段内',
+            ];
         }
+        $looteryBat = $item['start'];//当前是哪个时间段的 抽奖
         //查询是否 剩余抽奖次数
+        $userLottery = $this->getLooteryCounts($looteryBat,$userId);
+        if(substr($userLottery,-1) - substr($userLottery, 0,1)  <= 0){
+            return [
+                'code' => -1,
+                'message' => 'failed',
+                'data' => '抽奖次数不足',
+            ];
+        }
 
         // 获取奖品
         $award = $this->getAward($item);
 
         // 根据别名发活动奖品
         $aliasName = $award['alias_name'];
+        //如果是谢谢参与
+        if($aliasName == 'thanks'){
+            return $this->thanksLottery($userId);
+        }
         $awards = SendAward::ActiveSendAward($userId, $aliasName);
         if(isset($awards[0]['award_name']) && $awards[0]['status']) {
             $result['awardName'] = $awards[0]['award_name'];
@@ -181,6 +195,9 @@ $userId = 5101340;
                 'type' => $result['awardType'],
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
+            //修改 用户剩余抽奖次数
+            $this->decLotteryCounts($looteryBat,$userId);
+
         }else{
             throw new OmgException(OmgException::API_FAILED);
         }
@@ -193,7 +210,52 @@ $userId = 5101340;
     }
 
     /**
+     * 谢谢抽奖
+     *
+     */
+    private function thanksLottery($userId){
+        RichLottery::create([
+            'user_id' => $userId,
+            'amount' => 0,
+            'award_name' => 'thanks',
+            'uuid' => '',
+            'ip' => Request::getClientIp(),
+            'user_agent' => Request::header('User-Agent'),
+            'status' => 1,
+            'type' => 0,
+            'remark' => '谢谢参与',
+        ]);
+        //修改 用户剩余抽奖次数
+        $this->decLotteryCounts($looteryBat,$userId);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'awardName' => '谢谢参与',
+                'awardType' => 0,
+                'amount' => 0,
+                'awardSigni' => 'thanks',
+            ],
+        ]; 
+    }
+
+
+    /**
+     * 抽奖完成 减少用户抽奖次数
+     *
+     */
+    private function decLotteryCounts($bat,$userId){
+        $key = Config::get('richlottery.alias_name') . '_' . date('Ymd') . '_'. $bat . '_' . $userId;
+        //获取用户剩余抽奖信息
+        $_remainder = $this->getLooteryCounts($bat,$userId);
+        $newSet = substr($_remainder,0,1) + 1;
+        Redis::setex($key,1*3600 ,$newSet.'-'.substr($_remainder,-1) );
+        return true;
+    }
+
+    /**
      * 增加redis 中每个用户抽奖次数
+     * 每个用户限抽两次
      *
      */
     private function shareAddLooteryCounts($bat,$userId){
@@ -301,9 +363,9 @@ $userId = 5101340;
      * @return bool
      */
     private function isTooOften($userId, $config) {
-        $key = "sign_in_system_interval_{$userId}";
+        $key = "rich_lottery_system_{$userId}";
         $value = Cache::pull($key);
-        Cache::put($key, time(), 5);
+        Cache::put($key, time(), 3);
         if($value && time()-$value < $config['interval']) {
             return true;
         }
