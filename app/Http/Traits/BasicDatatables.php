@@ -20,31 +20,33 @@ trait BasicDatatables{
         // 定制化搜索
         if ($request->has('customSearch')) {
             $customSearch = $request->get('customSearch');
-            switch ($customSearch['pattern']) {
-                case 'like':
-                    $items->where($customSearch['name'], 'like', "%{$customSearch['value']}%");
-                    break;
-                case 'equal':
-                case '=':
-                    $items->where($customSearch['name'], '=', $customSearch['value']);
-                    break;
-                case '<=':
-                    $items->where($customSearch['name'], '<=', $customSearch['value']);
-                    break;
-                case '>=':
-                    $items->where($customSearch['name'], '>=', $customSearch['value']);
-                    break;
-                case '!=':
-                    $items->where($customSearch['name'], '!=', $customSearch['value']);
-                    break;
-                case '<':
-                    $items->where($customSearch['name'], '<', $customSearch['value']);
-                    break;
-                case '>':
-                    $items->where($customSearch['name'], '>', $customSearch['value']);
-                    break;
-                default :
-                    break;
+            foreach ($customSearch as $item){
+                switch ($item['pattern']) {
+                    case 'like':
+                        $items->where($item['name'], 'like', "%{$item['value']}%");
+                        break;
+                    case 'equal':
+                    case '=':
+                        $items->where($item['name'], '=', $item['value']);
+                        break;
+                    case '<=':
+                        $items->where($item['name'], '<=', $item['value']);
+                        break;
+                    case '>=':
+                        $items->where($item['name'], '>=', $item['value']);
+                        break;
+                    case '!=':
+                        $items->where($item['name'], '!=', $item['value']);
+                        break;
+                    case '<':
+                        $items->where($item['name'], '<', $item['value']);
+                        break;
+                    case '>':
+                        $items->where($item['name'], '>', $item['value']);
+                        break;
+                    default :
+                        break;
+                }
             }
         }
         // 关联
@@ -54,7 +56,6 @@ trait BasicDatatables{
                 $items->with($with);
             }
         }
-
         /* */
         $res = Datatables::of($items)->make();
         return $this->outputJson(0, $res->getData());
@@ -123,7 +124,6 @@ trait BasicDatatables{
             }
         }
         // 关联
-        //echo $items->toSql();exit;
         if ($request->has('withs')) {
             $withs = $request->get('withs');
             foreach ($withs as $key => $with) {
