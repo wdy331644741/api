@@ -2,6 +2,8 @@
 return [
     'alias_name' => 'rich_lottery',
     'interval' => 5, // 两次抽奖间隔秒数
+    'drew_daily_key' => 'richLottery_drew_daily', // 两次抽奖间隔秒数
+    'drew_total_key' => 'richLottery_drew_total', // 两次抽奖间隔秒数
     'lists' => [
         [
             'start' => 9,
