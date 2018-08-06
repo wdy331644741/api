@@ -28,7 +28,7 @@ class RichLotteryJsonRpc extends JsonRpc
         $looteryBat = null;
 
         // 活动是否存在
-        if(ActivityService::isExistByAlias($config['alias_name'])) {
+        if(!ActivityService::isExistByAlias($config['alias_name'])) {
             $game['available'] = false;
         }
 
