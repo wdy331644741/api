@@ -11,7 +11,7 @@ use App\Service\SignInSystemBasic;
 use App\Service\Func;
 use App\Service\SendAward;
 use Illuminate\Support\Facades\Redis;
-use Config, Request, Cache;
+use Config, Request, DB, Cache;
 
 class RichLotteryJsonRpc extends JsonRpc
 {
