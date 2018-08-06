@@ -14,6 +14,7 @@ use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\NetworkDramaDzpJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
+use App\Http\JsonRpcs\PerBaiJsonrpc;
 use App\Http\JsonRpcs\QuestionJsonrpc;
 use App\Http\JsonRpcs\RobRateCouponJsonRpc;
 use App\Http\JsonRpcs\ScratchJsonRpc;
@@ -120,6 +121,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new CollectCardJsonrpc());
         $jsonRpcServer->addService(new WorldCupJsonrpc());//世界杯活动
         $jsonRpcServer->addService(new QuestionJsonrpc());//我的客服
+        $jsonRpcServer->addService(new PerBaiJsonrpc());//逢百抽大奖
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
