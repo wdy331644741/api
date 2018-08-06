@@ -213,6 +213,7 @@ class RichLotteryJsonRpc extends JsonRpc
             DB::commit();
 
         }else{
+            DB::rollBack();
             throw new OmgException(OmgException::API_FAILED);
         }
 
