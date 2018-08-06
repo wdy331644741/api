@@ -29,7 +29,7 @@ class RichLotteryJsonRpc extends JsonRpc
 
         // 活动是否存在
         if(ActivityService::isExistByAlias($config['alias_name'])) {
-            
+            $game['available'] = false;
         }
 
         // 下次活动开始时间
@@ -168,6 +168,11 @@ class RichLotteryJsonRpc extends JsonRpc
             ];
         }
 
+
+        //事务开始
+        DB::beginTransaction();
+        //forupdate
+        Attributes::getNumberByDay($userId, $config['drew_daily_key']);
         // 获取奖品
         $award = $this->getAward($item);
 
@@ -175,7 +180,12 @@ class RichLotteryJsonRpc extends JsonRpc
         $aliasName = $award['alias_name'];
         //如果是谢谢参与
         if($aliasName == 'thanks'){
-            return $this->thanksLottery($userId);
+            $ret = $this->thanksLottery($userId);
+            //递增 用户属性
+            Attributes::incrementByDay($userId, $config['drew_daily_key']);
+            Attributes::increment($userId, $config['drew_total_key']);
+            DB::commit();
+            return $ret;
         }
         $awards = SendAward::ActiveSendAward($userId, $aliasName);
         if(isset($awards[0]['award_name']) && $awards[0]['status']) {
@@ -197,6 +207,10 @@ class RichLotteryJsonRpc extends JsonRpc
             ]);
             //修改 用户剩余抽奖次数
             $this->decLotteryCounts($looteryBat,$userId);
+            //递增 用户属性
+            Attributes::incrementByDay($userId, $config['drew_daily_key']);
+            Attributes::increment($userId, $config['drew_total_key']);
+            DB::commit();
 
         }else{
             throw new OmgException(OmgException::API_FAILED);
