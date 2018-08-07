@@ -24,7 +24,7 @@ class RichLotteryJsonRpc extends JsonRpc
         global $userId;
         $config     = Config::get('richlottery');
         $user       = ['login' => false, 'multiple' => 0];
-        $game       = ['available' => true, 'nextSeconds' => 0 ,'awards' => null];
+        $game       = ['available' => true, 'nextSeconds' => 0 , 'endSeconds' => 0 , 'awards' => null];
         $looteryBat = null;
 
         // 活动是否存在
@@ -42,6 +42,7 @@ class RichLotteryJsonRpc extends JsonRpc
         }else{
             $looteryBat = $item['start'];//当前是哪个时间段的 抽奖
             $game['nextSeconds'] = 0;
+            $game['endSeconds'] = $this->whenEndDraw($looteryBat,$item);
             //去掉 敏感信息
             // foreach ($item['awards'] as &$value) {
             //     unset($value['pro'] ,$value['award_type']);
@@ -180,7 +181,7 @@ class RichLotteryJsonRpc extends JsonRpc
         $aliasName = $award['alias_name'];
         //如果是谢谢参与
         if($aliasName == 'thanks'){
-            $ret = $this->thanksLottery($userId);
+            $ret = $this->thanksLottery($userId,$looteryBat);
             //递增 用户属性
             Attributes::incrementByDay($userId, $config['drew_daily_key']);
             Attributes::increment($userId, $config['drew_total_key']);
@@ -224,11 +225,25 @@ class RichLotteryJsonRpc extends JsonRpc
         ];
     }
 
+
+    /**
+     * 还有多长时间 结束本次抽奖
+     *
+     */
+    private function whenEndDraw($bat,$conf){
+        $nowS = time();
+        //本次抽奖开始 时间戳
+        $dateStr = date('Y-m-d'); 
+        //活动开始了多长时间 
+        $runingTime = $nowS - strtotime($dateStr." {$bat}:00:00");
+        return $conf['times'] - $runingTime;
+    }
+
     /**
      * 谢谢抽奖
      *
      */
-    private function thanksLottery($userId){
+    private function thanksLottery($userId,$bat){
         RichLottery::create([
             'user_id' => $userId,
             'amount' => 0,
@@ -241,7 +256,7 @@ class RichLotteryJsonRpc extends JsonRpc
             'remark' => '谢谢参与',
         ]);
         //修改 用户剩余抽奖次数
-        $this->decLotteryCounts($looteryBat,$userId);
+        $this->decLotteryCounts($bat,$userId);
         return [
             'code' => 0,
             'message' => 'success',
