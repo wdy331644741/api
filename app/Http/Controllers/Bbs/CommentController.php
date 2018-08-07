@@ -136,10 +136,9 @@ class CommentController extends Controller
         if($comment->isverify == 1){
             $thread->decrement('comment_num');
         }
-
-        if(in_array($thread->isverify,[2])){
+        /*if(in_array($thread->isverify,[2])){
             return $this->outputJson(10012,array('error_msg'=>'Error Operation'));
-        }
+        }*/
         $res = Comment::where('id',$id)->update(['isverify'=>2,'verify_time'=>date('Y-m-d H:i:s')]);
         if($comment != null){
             $pm = new Pm();
@@ -194,10 +193,10 @@ class CommentController extends Controller
             $thread = Thread::find($comment->tid);
             $user_id = null;
             if($thread != null){
-                if(in_array($thread->isverify,[2])){
+                /*if(in_array($thread->isverify,[2])){
                     $error[$val] = 10012;
                     continue;
-                }
+                }*/
                 $user_id = $thread->user_id;
                 $pm = new Pm();
                 $pm->user_id = $user_id;
@@ -244,10 +243,10 @@ class CommentController extends Controller
             $thread = Thread::find($comment->tid);
             $user_id = null;
             if($thread != null){
-                if(in_array($thread->isverify,[2])){
+                /*if(in_array($thread->isverify,[2])){
                     $error[$val] = 10012;
                     continue;
-                }
+                }*/
                 $user_id = $thread->user_id;
                 $pm = new Pm();
                 $pm->user_id = $user_id;
