@@ -344,7 +344,6 @@ class ThreadController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
         $idArr = explode('-',$request->id);
-
         foreach (array_filter($idArr) as $val){
             $thread = Thread::find($val);
             if(in_array($thread->isverify,[2])){
