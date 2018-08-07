@@ -80,6 +80,9 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('category', 'CategoryController');
     Route::controller('myservice', 'ImgManageController');
 
+    // 逢百活动配置
+    Route::controller('perhundred', 'PerHundredController');
+
 });
 
 // 对外接口
