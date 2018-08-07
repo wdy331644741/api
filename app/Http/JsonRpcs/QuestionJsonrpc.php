@@ -29,6 +29,7 @@ class QuestionJsonrpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getOftenQuestions($params){
+        
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
