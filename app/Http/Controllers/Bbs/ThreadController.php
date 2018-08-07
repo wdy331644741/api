@@ -293,14 +293,15 @@ class ThreadController extends Controller
     }
 
     //批量审帖
-    public function postBatchPass(Request $request){
+        public function postBatchPass(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        foreach ($request->id as $val){
+        $idArr = explode('-',$request->id);
+        foreach (array_filter($idArr) as $val){
             $thread = Thread::find($val);
             if(in_array($thread->isverify,[1])){
                 $error[$val] = 10010;
@@ -342,7 +343,8 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        foreach ($request->id as $val){
+        $idArr = explode('-',$request->id);
+        foreach (array_filter($idArr) as $val){
             $thread = Thread::find($val);
             if(in_array($thread->isverify,[2])){
                 $error[$val] = 10010;
