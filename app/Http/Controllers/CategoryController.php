@@ -78,20 +78,14 @@ class CategoryController extends Controller {
             if(!$category->save()){
                 return $this->outputJson(10001, array('error_msg'=>'Database Error'));
             }
-            if (!$qids) {
-                CategoryQuestion::where(['c_id'=>$request->id])->delete();
-            } else {
-                $old_qids = CategoryQuestion::select('q_id')->where(['c_id'=>$request->id])->get()->toArray();
-                $old_qids = array_column($old_qids, 'q_id');
-                $add = array_diff($qids, $old_qids);
-                $delete = array_diff($old_qids, $qids);
+            CategoryQuestion::where(['c_id'=>$request->id])->delete();
+            if ($qids) {
                 $data = array();
-                foreach ($add as $k=>$v) {
+                foreach ($qids as $k=>$v) {
                     $data[$k]['q_id'] = $v;
-                    $data[$k]['c_id'] = $request->id;
+                    $data[$k]['c_id'] = $category->id;
                 }
-                CategoryQuestion::insert($data);
-                CategoryQuestion::whereIn('q_id', $delete)->delete();
+                $cate_question = CategoryQuestion::insert($data);
             }
             return $this->outputJson(0);
         }catch (\Exception $e) {
