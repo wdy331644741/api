@@ -12,7 +12,7 @@ return [
             'awards' => [
                 ['alias_name' =>'rich_lottery_18888_ex', 'desp' => '18888元体验金', 'size' => 18888, 'pro' => 10],
                 ['alias_name' =>'rich_lottery_8.8_in', 'desp' => '8.8%加息券', 'size' => 8.8, 'pro' => 20],
-                ['alias_name' =>'rich_lottery_8.8_re', 'desp' => '8.8元红包', 'size' => 8.8, 'pro' => 20],
+                ['alias_name' =>'rich_lottery_8_re', 'desp' => '8元红包', 'size' => 8.8, 'pro' => 20],
                 ['alias_name' =>'rich_lottery_1_in', 'desp' => '1%加息券', 'size' => 1, 'pro' => 10],
                 ['alias_name' =>'rich_lottery_88_re', 'desp' => '88元红包',  'size' => 88, 'pro' => 10],
                 ['alias_name' =>'rich_lottery_1.5_in', 'desp' => '1.5加息券', 'size' => 1.5, 'pro' => 10],
@@ -26,7 +26,7 @@ return [
             'awards' => [
                 ['alias_name' =>'rich_lottery_18888_ex', 'desp' => '18888元体验金', 'size' => 18888, 'pro' => 5],
                 ['alias_name' =>'rich_lottery__8.8_in', 'desp' => '8.8%加息券', 'size' => 8.8, 'pro' => 15],
-                ['alias_name' =>'rich_lottery_8.8_re', 'desp' => '8.8元红包', 'size' => 8.8, 'pro' => 15],
+                ['alias_name' =>'rich_lottery_8_re', 'desp' => '8元红包', 'size' => 8.8, 'pro' => 15],
                 ['alias_name' =>'rich_lottery_1_in', 'desp' => '1%加息券', 'size' => 1, 'pro' => 15],
                 ['alias_name' =>'rich_lottery_88_re', 'desp' => '88元红包',  'size' => 88, 'pro' => 20],
                 ['alias_name' =>'rich_lottery_1.5_in', 'desp' => '1.5加息券', 'size' => 1.5, 'pro' => 15],
@@ -41,7 +41,7 @@ return [
             'awards' => [
                 ['alias_name' =>'rich_lottery_18888_ex', 'desp' => '18888元体验金', 'size' => 18888, 'pro' => 10],
                 ['alias_name' =>'rich_lottery_8.8_in', 'desp' => '8.8%加息券', 'size' => 8.8, 'pro' => 15],
-                ['alias_name' =>'rich_lottery_8.8_re', 'desp' => '8.8元红包', 'size' => 8.8, 'pro' => 10],
+                ['alias_name' =>'rich_lottery_8_re', 'desp' => '8元红包', 'size' => 8.8, 'pro' => 10],
                 ['alias_name' =>'rich_lottery_1_in', 'desp' => '1%加息券', 'size' => 1, 'pro' => 20],
                 ['alias_name' =>'rich_lottery_88_re', 'desp' => '88元红包',  'size' => 88, 'pro' => 20],
                 ['alias_name' =>'rich_lottery_1.5_in', 'desp' => '1.5加息券', 'size' => 1.5, 'pro' => 10],
