@@ -29,7 +29,6 @@ class QuestionJsonrpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function getOftenQuestions($params){
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -40,10 +39,24 @@ class QuestionJsonrpc extends JsonRpc {
         });
         $data = Category::select(['id','title', 'icon'])->where(['status'=> 1])->orderBy('id', 'desc')->paginate($pageNum);
         foreach ($data as $k=>$v) {
-            $qids = CategoryQuestion::select('q_id')->where(['c_id'=>$v->id])->get()->toArray();
+            $qids = CategoryQuestion::select('q_id')->where(['c_id'=>$v->id])->orderBy('id', 'asc')->get()->toArray();
             $qids = array_column($qids, 'q_id');
             if ($qids) {
-                $v->question = Question::select(['id', 'title'])->where(['status'=> 1])->whereIn('id', $qids)->orderBy('id', 'desc')->get();
+//                $v->question = Question::select(['id', 'title'])->where(['status'=> 1])->whereIn('id', $qids)->orderBy('id', 'desc')->get();
+                $questions = Question::select(['id', 'title'])->where(['status'=> 1])->whereIn('id', $qids)->get()->toArray();
+                $tempArr = array();
+                if ($questions) {
+                    foreach ($qids as $qid) {
+                        foreach ($questions as $kk=>$vv) {
+                            if ($vv['id'] == $qid) {
+                                $tempArr[] = $vv;
+//                                var_dump($data);
+                                break;
+                            }
+                        }
+                    }
+                }
+                $v->question= $tempArr;
             } else {
                 $v->question = [];
             }
