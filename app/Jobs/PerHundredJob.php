@@ -43,7 +43,7 @@ class PerHundredJob extends Job implements ShouldQueue
                 $insertArr[] = array('period'=>$this->insertID,'draw_number'=>0);
             }
             $insertArr[] = array('period'=>$this->insertID,'draw_number'=>$item);
-            if($key == $this->number-1){//最后一个数放到最后
+            if($key == $this->number-3){//最后一个数放到最后
                 $insertArr[] = array('period'=>$this->insertID,'draw_number'=>$this->number-1);
             }
             if(($key+1)%100 == 0){
