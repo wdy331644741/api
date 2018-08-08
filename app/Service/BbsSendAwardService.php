@@ -93,12 +93,10 @@ class BbsSendAwardService
      * */
     private function dayPublishThreadTask()
     {
-
         $dayPublishThreadInfo = Tasks::where(["task_mark"=>"dayPublishThread","enable"=>1])->get()->toArray();
             if($dayPublishThreadInfo) {
             $nowTime = date("Y:m:d",time());
-            $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->where('created_at','>',$nowTime)->count();
-
+            $userDayThreadCount = Thread::where(["user_id"=>$this->userId,"isverify"=>1])->whereRaw('to_days(created_at) = to_days(now())')->count();
             foreach ($dayPublishThreadInfo as $value) {
                 //审核是否已经发过奖
                 $res = Task::where(["user_id"=>$this->userId,"task_type"=>$value['remark']])->where('award_time','>',$nowTime)->count();
@@ -302,7 +300,6 @@ class BbsSendAwardService
      * 拼装接口数据
      * **/
     private function organizeDataAndSend($params,$awardUserId){
-
         $awards['id'] = 0;
         $awards['user_id'] = $awardUserId;
         $awards['source_id'] = $params['id'];

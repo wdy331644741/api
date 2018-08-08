@@ -279,7 +279,6 @@ class BbsUserJsonRpc extends JsonRpc {
                 $verifyResult = 1;
                 $verifyMessage = '发贴成功';
         }
-
         $thread = new Thread();
         $thread->user_id = $this->userId;
         $thread->type_id = $params->type_id;
@@ -295,7 +294,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
 
-
+        $thread->save();
         if($verifyResult ==1){
             $bbsAward = new BbsSendAwardService($this->userId);
             $bbsAward->publishThreadAward();
@@ -306,8 +305,8 @@ class BbsUserJsonRpc extends JsonRpc {
                 $this->setNewThread();
                 $thread->is_new = 1;
             }
+            $thread->save();
         }
-        $thread->save();
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
 
         $message = $verifyMessage;
