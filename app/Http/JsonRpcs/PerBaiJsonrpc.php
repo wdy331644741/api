@@ -37,8 +37,8 @@ class PerBaiJsonrpc extends JsonRpc
             'countdown' => 0,//倒计时
             'start'=>'',
             'remain_number'=> 0,//剩余抽奖号码个数
-            'draw_number'=> '',//我的最新的抽奖号码
-            'draw_number_list'=> '',//我的的抽奖号码列表
+            'draw_number'=> null,//我的最新的抽奖号码
+            'draw_number_list'=> [],//我的的抽奖号码列表
         ];
 
         // 用户是否登录
@@ -48,46 +48,21 @@ class PerBaiJsonrpc extends JsonRpc
 
         // 活动是否存在
         $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();
-        if(isset($activityInfo->id) && $activityInfo->id > 0) {
-            $startTime = isset($activityInfo->start_at) && !empty($activityInfo->start_at) ? strtotime($activityInfo->start_at) : 0;
-            $endTime = isset($activityInfo->end_at) && !empty($activityInfo->end_at) ? strtotime($activityInfo->end_at) : 0;
-            //活动正在进行
-            if(empty($startTime) && empty($endTime)){
-                $result['available'] = 1;
-            }
-            if(empty($startTime) && !empty($endTime)){
-                if(time() > $endTime){
-                    //活动结束
-                    $result['available'] = 2;
-                }else{
+        if ($activityInfo) {
+            $activityConfig = HdPerHundredConfig::where(['status' => 1])->orderBy('id','desc')->first();
+            if ($activityConfig) {
+                //活动开始时间
+                $result['start'] = $activityConfig->start_time;
+                if (time() > strtotime($activityConfig->start_time)) {
                     //活动正在进行
                     $result['available'] = 1;
                 }
-            }
-            if(!empty($startTime) && empty($endTime)){
-                //活动未开始
-                if(time() < $startTime){
-                    $result['available'] = 0;
-                }else{
-                    //活动正在进行
-                    $result['available'] = 1;
-                }
-            }
-            if(!empty($startTime) && !empty($endTime)){
-                if(time() > $startTime){
-                    //活动正在进行
-                    $result['available'] = 1;
-                }
-                if(time() > $endTime){
-                    $result['available'] = 2;
-                }
+
             }
         }
         //活动参与人数
-        //活动开始时间
-        $result['start'] = $activityInfo->start_at;
         //活动倒计时
-        $countdownInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();
+        $countdownInfo = Activity::where(['enable' => 1, 'alias_name' => $config['countdown']])->first();
         if ($countdownInfo) {
             //活动倒计时开始
             if(time() > strtotime($countdownInfo->start_at)){
