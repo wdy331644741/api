@@ -31,7 +31,7 @@ class PerHundredJob extends Job implements ShouldQueue
     public function handle()
     {
         HdPerHundredConfig::where('id',$this->insertID)->update(["insert_status"=>1]);
-        $rand = range(0,$this->number-1);
+        $rand = range(1,$this->number-2);
         shuffle($rand);
         $insertArr = [];
         $count = HdPerbai::where("period",$this->insertID)->count();
@@ -39,7 +39,13 @@ class PerHundredJob extends Job implements ShouldQueue
             return '已生成';
         }
         foreach($rand as $key => $item){
+            if($key == 0){//第一个数放到最前
+                $insertArr[] = array('period'=>$this->insertID,'draw_number'=>0);
+            }
             $insertArr[] = array('period'=>$this->insertID,'draw_number'=>$item);
+            if($key == $this->number-1){//最后一个数放到最后
+                $insertArr[] = array('period'=>$this->insertID,'draw_number'=>$this->number-1);
+            }
             if(($key+1)%100 == 0){
                 //执行insert
                 HdPerbai::insert($insertArr);
