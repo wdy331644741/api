@@ -37,6 +37,7 @@ class PerBaiJsonrpc extends JsonRpc
             'countdown' => 0,//倒计时
             'start'=>'',
             'remain_number'=> 0,//剩余抽奖号码个数
+            'alert_status'=>0,//弹框状态
             'draw_number'=> null,//我的最新的抽奖号码
             'draw_number_list'=> [],//我的的抽奖号码列表
         ];
@@ -78,6 +79,14 @@ class PerBaiJsonrpc extends JsonRpc
             $result['draw_number'] = self::getNewDrawNum($userId);
             //我的抽奖号码列表
             $result['draw_number_list'] = self::getDrawNumList($userId);
+
+            //是否有中奖的号码
+            $award = HdPerbai::select('draw_number','award_name')->where(['status'=>2])->orderBy('id', 'desc')->first();
+            if ($award) {
+                $result['alert_status'] = 1;
+                $result['alert_number'] = PerBaiService::format($award['draw_number']);
+                $result['alert_name'] = $award['award_name'];
+            }
         }
         return [
             'code' => 0,
