@@ -10,6 +10,7 @@ use Config, DB;
 class PerBaiService
 {
     const PERBAI_VERSION = 1;
+    const PERBAI_VERSION_END = 'perbai_end_';
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type='investment')
     {
@@ -28,6 +29,7 @@ class PerBaiService
                 return false;
             }
         }
+        $global_key = self::PERBAI_VERSION_END .self::PERBAI_VERSION;
         Attributes::increment($userId, $config['drew_user_key'], $number);
         try {
             DB::beginTransaction();
@@ -89,6 +91,15 @@ class PerBaiService
                 $count = count($info);
                 Attributes::increment($userId, $config['drew_total_key'], $count);
                 Attributes::decrement($userId, $config['drew_user_key'], $count);
+                //判断抽奖号码已发完
+                if ($count < $number) {
+                    GlobalAttributes::setItem($global_key, 0);
+                }
+            } else {
+                $attr = GlobalAttributes::getItem($global_key);
+                if (!$attr) {
+                    GlobalAttributes::setItem($global_key, 0);
+                }
             }
             if ($send_msg) {
                 self::sendMessage($send_msg);
@@ -105,15 +116,15 @@ class PerBaiService
 
     public static function curlSina() {
 
-            $url = "http://hq.sinajs.cn/rn=1533632801221&list=s_sz399001";
+            $url = "http://hq.sinajs.cn/list=sz399001";
             // 创建一个新cURL资源
             $ch = curl_init();
             // 设置URL和相应的选项
             curl_setopt($ch, CURLOPT_URL,$url);
             curl_setopt($ch, CURLOPT_HEADER, 0);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // https请求 不验证证书和hosts
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+//            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // https请求 不验证证书和hosts
+//            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
             // 抓取URL并把它传递给浏览器
             $data = curl_exec($ch);
             if (curl_errno($ch)) {
