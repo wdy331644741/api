@@ -115,8 +115,7 @@ class PerBaiService
     }
 
     public static function curlSina() {
-
-            $url = "http://hq.sinajs.cn/list=sz399001";
+            $url = "http://hq.sinajs.cn/list=s_sz399001";
             // 创建一个新cURL资源
             $ch = curl_init();
             // 设置URL和相应的选项

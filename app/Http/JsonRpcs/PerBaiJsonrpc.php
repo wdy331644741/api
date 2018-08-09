@@ -202,6 +202,20 @@ class PerBaiJsonrpc extends JsonRpc
         ];
     }
 
+    /**
+     * curl
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiCurl() {
+        $data = PerBaiService::curlSina();
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
+
     public static function getRemainNum() {
 
         $num = HdPerbai::where('status', 0)->count();
