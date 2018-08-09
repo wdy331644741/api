@@ -380,6 +380,17 @@ class Func
         }
         return $ret;
     }
+    /*
+     * 去除js代码
+    */
+    public static function delScript($string,$isRpc=false){
+        $preg = "/&lt;script[\s\S|&lt;|>]*?&lt;\/script&gt;/i";
+        if($isRpc){
+            $preg = "/<script[\s\S|>]*?<\/script>/i";
+        }
+        $newstr = preg_replace($preg,"",$string);    //第四个参数中的3表示替换3次，默认是-1，替换全部
+        return $newstr;
+    }
 
     /*
      * 上传图片公有方法

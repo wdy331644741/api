@@ -87,7 +87,7 @@ class ThreadController extends Controller
         $thread->cover = $cover;
         $thread->video_code = isset($request->video_code) ? $request->video_code : NULL;
         $thread->title = isset($request->title) ? $request->title : NULL;
-        $thread->content = isset($request->content) ? $request->content : NULL;
+        $thread->content = isset($request->content) ? Func::delScript($request->content) : NULL;
         $thread->isofficial = $request->isofficial ? $request->isofficial : 0;
         $thread->istop = $request->istop ? $request->istop : 0;
         $thread->isverify = 1;
@@ -110,6 +110,7 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+
         $cover = NULL;
         if(count(array_filter(explode(',',$request->imgdata)))>0){
             $cover = json_encode(explode(',',$request->imgdata));
@@ -131,7 +132,8 @@ class ThreadController extends Controller
             $putData['isofficial'] = $request->isofficial ? $request->isofficial : 0;
         }
         if(isset($request->content)) {
-            $putData['content'] = $request->content;
+            $newstr = Func::delScript($request->content);
+            $putData['content'] = $newstr;
         }
         if(isset($request->video_code)) {
             $putData['video_code'] = isset($request->video_code) ? $request->video_code : NULL;
@@ -293,7 +295,7 @@ class ThreadController extends Controller
     }
 
     //批量审帖
-        public function postBatchPass(Request $request){
+    public function postBatchPass(Request $request){
         $validator = Validator::make($request->all(), [
             'id'=>'required',
         ]);
