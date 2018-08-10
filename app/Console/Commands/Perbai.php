@@ -40,6 +40,7 @@ class Perbai extends Command
     public function handle()
     {
         $key = PerBaiService::PERBAI_VERSION_END . PerBaiService::PERBAI_VERSION;
+
         $attr = GlobalAttributes::getItem($key);
         if ($attr && $attr['number'] == 0) {
             $price = PerBaiService::curlSina();
