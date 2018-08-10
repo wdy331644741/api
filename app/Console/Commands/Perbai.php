@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\HdPerbai;
 use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
 use Illuminate\Console\Command;
+use Config;
 
 class Perbai extends Command
 {
@@ -39,14 +41,24 @@ class Perbai extends Command
      */
     public function handle()
     {
-        $key = PerBaiService::PERBAI_VERSION_END . PerBaiService::PERBAI_VERSION;
+        $key = PerBaiService::PERBAI_VERSION_END;
 
         $attr = GlobalAttributes::getItem($key);
         if ($attr && $attr['number'] == 0) {
             $price = PerBaiService::curlSina();
             if ($price) {
                 $price = $price * 100;
-                GlobalAttributes::setItem($key, $price);
+                GlobalAttributes::setItem($key, $price, date('Y-d-m'), '已抓取完成');
+                //开奖号码
+                $draw_number = substr(strrev($price), 0, 4);
+                $config = Config::get('perbai');
+                $awards = $config['awards']['zhongjidajiang'];
+                $update['award_name'] = $awards['name'];
+                $update['alias_name'] = $awards['alias_name'];
+                $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
+                $update['status'] = 2;
+                HdPerbai::where(['draw_number'=>$draw_number, 'period'=>PerBaiService::PERBAI_VERSION])->update($update);
+
             }
         }
     }

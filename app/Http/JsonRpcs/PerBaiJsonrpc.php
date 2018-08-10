@@ -36,7 +36,7 @@ class PerBaiJsonrpc extends JsonRpc
             'countdown_status' => 0,//倒计时是否开始
             'countdown' => 0,//倒计时
             'start'=>'',
-            'remain_number'=> 0,//剩余抽奖号码个数
+//            'remain_number'=> 0,//剩余抽奖号码个数
             'alert_status'=>0,//弹框状态
             'draw_number'=> null,//我的最新的抽奖号码
             'draw_number_list'=> [],//我的的抽奖号码列表
@@ -71,8 +71,6 @@ class PerBaiJsonrpc extends JsonRpc
                 $result['countdown'] = strtotime($activityInfo['start_at']) - strtotime('now');
             }
         }
-        //抽奖号码剩余个数
-        $result['remain_number'] = self::getRemainNum();
         //深证成指收盘   爬虫
         //我的抽奖号码  显示最新获得，  登陆显示此字段
         if ($result['login']) {
@@ -203,6 +201,56 @@ class PerBaiJsonrpc extends JsonRpc
     }
 
     /**
+     *  活动开奖状态信息
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiDrawStatus() {
+
+        global $userId;
+//        2已中奖、1未中奖，0待开奖
+        $data['status'] = 0;
+        $data['remain_number'] = self::getRemainNum();
+        $data['shenzheng'] = null;
+        $data['create_time'] = null;
+//        //抽奖号码剩余个数
+        if ($data['remain_number'] == 0) {
+            $attr = GlobalAttributes::getItem(PerBaiService::PERBAI_VERSION_END);
+            if ($attr && $attr['number'] > 0) {
+                    $data['shenzheng'] = $attr['number'] / 100;
+                    $data['create_time'] = $attr['string'];
+                    //开奖号码
+                    $draw_number = substr(strrev($attr['number']), 0, 4);
+                    $draw_info = HdPerbai::where(['draw_number'=>$draw_number, 'period'=>PerBaiService::PERBAI_VERSION])->first();
+                    $data['status'] = ($userId && $userId == $draw_info->user_id) ? 2 : 1;
+            }
+        }
+
+        //上期数据
+        $data['before_period'] = [];
+        $before_version = PerBaiService::PERBAI_VERSION - 1;
+        if ($before_version > 0) {
+            $before_key = str_replace(PerBaiService::PERBAI_VERSION, $before_version, PerBaiService::PERBAI_VERSION_END);
+            $before_attr = GlobalAttributes::getItem($before_key);
+            if ($before_attr && $before_attr['number'] > 0) {
+                //上期深证成指收盘价
+                $before_data['shenzheng'] = $before_attr['number'] / 100;
+                $before_data['create_time'] = $before_attr['string'];
+                //开奖号码
+                $before_data['draw_number'] = $before_number = substr(strrev($before_attr['number']), 0, 4);
+                $before_info = HdPerbai::where(['draw_number'=>$before_number, 'period'=>$before_version])->first();
+                $before_data['status'] = ($userId && $userId == $draw_info->user) ? 2 : 1;
+                $data['before_period'][] = $before_data;
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
+
+    /**
      * curl
      *
      * @JsonRpcMethod
@@ -218,7 +266,7 @@ class PerBaiJsonrpc extends JsonRpc
 
     public static function getRemainNum() {
 
-        $num = HdPerbai::where('status', 0)->count();
+        $num = HdPerbai::where(['status'=>0, 'period'=>PerBaiService::PERBAI_VERSION])->count();
         return $num;
     }
 

@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
         //逢百抽大奖抓取深证成指数
         $schedule->command('Perbai')->weekdays()->timezone('Asia/Shanghai')->when(function () {
             return date('H') >= 15 && date('H') <= 23;
-        });
+        })->withoutOverlapping();
 
     }
 }

@@ -9,7 +9,7 @@ return [
         'puzhao'=>['name' => '200元京东卡', 'alias_name' => 'puzhao','award_name'=>'阳光普照奖'],
         'yichuidingyin'=>['name' => 'Apple Watch Series 3智能手表', 'alias_name' => 'yichuidingyin', 'award_name'=>'一锤定音奖'],
         'yimadangxian'=>['name' => 'Apple iPad 2018新款 9.7英寸', 'alias_name' => 'yimadangxian', 'award_name'=>'一马当先奖'],
-        'fuxinggaozhao'=>['name' => 'Apple iPhone X 256GB', 'alias_name' => 'fuxinggaozhao', 'award_name'=>'终极大奖'],
+        'zhongjidajiang'=>['name' => 'Apple iPhone X 256GB', 'alias_name' => 'zhongjidajiang', 'award_name'=>'终极大奖'],
     ]
 ];
 
