@@ -9,8 +9,8 @@ use Config, DB;
 
 class PerBaiService
 {
-    const PERBAI_VERSION = 1;
-    const PERBAI_VERSION_END = 'perbai_end_';
+    const PERBAI_VERSION = 2;
+    const PERBAI_VERSION_END = 'perbai_end_2';
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type='investment')
     {
@@ -29,7 +29,7 @@ class PerBaiService
                 return false;
             }
         }
-        $global_key = self::PERBAI_VERSION_END .self::PERBAI_VERSION;
+        $global_key = self::PERBAI_VERSION_END;
         Attributes::increment($userId, $config['drew_user_key'], $number);
         try {
             DB::beginTransaction();
@@ -115,8 +115,7 @@ class PerBaiService
     }
 
     public static function curlSina() {
-
-            $url = "http://hq.sinajs.cn/list=sz399001";
+            $url = "http://hq.sinajs.cn/list=s_sz399001";
             // 创建一个新cURL资源
             $ch = curl_init();
             // 设置URL和相应的选项
