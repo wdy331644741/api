@@ -80,7 +80,7 @@ class BannerJsonRpc extends JsonRpc {
 				->where(function ($query) {
 					$query->whereNull('end')->orWhereRaw('end > now()');
 				})
-				->orderByRaw('sort DESC')->limit(6)->get()->toArray();
+				->orderByRaw('sort DESC')->limit(7)->get()->toArray();
 			$data = $this->addChannelImg($data, 'mobile');
 			$data = $this->specialChannelImg($data, 'mobile');
 //			$data = $this->specialChannelImg2($data, 'mobile');
