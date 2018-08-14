@@ -50,6 +50,7 @@ class CommentController extends Controller
         if(isset($request->comment_type)){
             $commentType = $request->comment_type ? 3 : 1;
         }
+        DB::beginTransaction();
         $comment = Comment::find($request->comment_id);
         $commentReply = new CommentReply();
         $commentReply->comment_id = $request->comment_id;
@@ -59,6 +60,7 @@ class CommentController extends Controller
         $commentReply->reply_type = $commentType === 1 ? "comment" : "official";
         $commentReply->t_user_id = $comment->t_user_id;
         $commentReply->is_verify = 1;
+
         $commentObj = new Comment();
         $commentObj->user_id = $request->from_id;
         $commentObj->tid = $comment->tid;
@@ -66,12 +68,17 @@ class CommentController extends Controller
         $commentObj->isverify = 1;
         $commentObj->verify_time = date('Y-m-d H:i:s');
         $commentObj->comment_type = $commentType;
-        $commentObj->t_user_id = $comment->t_user_id;
+        $commentObj->t_user_id = $comment->user_id;
+        $commentObj->reply_id = $comment->id;
+
         $res1 = $commentObj->save();
         $res = $commentReply->save();
+
         if($res && $res1){
+            DB::commit();
             return $this->outputJson(0);
         }else{
+            DB::rollBack();
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
 
