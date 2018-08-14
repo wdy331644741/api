@@ -29,6 +29,7 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiInfo() {
         global $userId;
+//        $userId = 5101480;
         $config = Config::get('perbai');
         $result = [
             'login' => false,
@@ -80,11 +81,16 @@ class PerBaiJsonrpc extends JsonRpc
             $result['draw_number_list'] = self::getDrawNumList($userId);
 
             //是否有中奖的号码
-            $award = HdPerbai::select('draw_number','award_name')->where(['status'=>2])->orderBy('id', 'desc')->first();
-            if ($award) {
+            $where['status'] = 2;
+            $where['user_id'] = $userId;
+            $award = HdPerbai::where($where)->orderBy('id', 'desc')->first();
+            //弹框只显示一次
+            if ($award && empty($award['remark'])) {
                 $result['alert_status'] = 1;
                 $result['alert_number'] = PerBaiService::format($award['draw_number']);
                 $result['alert_name'] = $award['award_name'];
+                $award->remark = 'alert';//弹框只显示一次
+                $award->save();
             }
         }
         return [
@@ -116,7 +122,7 @@ class PerBaiJsonrpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $data = HdPerbai::select('draw_number', 'uuid', 'period')->where(['status'=>2, 'user_id'=>$userId])->paginate($page)->toArray();
+        $data = HdPerbai::select('draw_number','award_name','updated_at')->where(['status'=>2, 'user_id'=>$userId])->paginate($page)->toArray();
         if ($data['data']) {
             foreach ($data['data'] as $k=>$v) {
                 $data['data'][$k]['draw_number'] = PerBaiService::format($v['draw_number']);
@@ -242,7 +248,7 @@ class PerBaiJsonrpc extends JsonRpc
                 //开奖号码
                 $before_data['draw_number'] = $before_number = substr(strrev($before_attr['number']), 0, 4);
                 $before_info = HdPerbai::where(['draw_number'=>$before_number, 'period'=>$before_version])->first();
-                $before_data['status'] = ($userId && $userId == $draw_info->user) ? 2 : 1;
+                $before_data['status'] = ($userId && $userId == $before_info->user_id) ? 2 : 1;
                 $before_data['period'] = intval( $perbaiService::$perbai_version  - 1);
                 $data['before_period'][] = $before_data;
             }
