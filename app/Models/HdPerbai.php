@@ -8,4 +8,5 @@ class HdPerbai extends Model
 {
 
     public $table = 'hd_perbai';
+    public $timestamps = true;
 }
