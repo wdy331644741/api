@@ -68,7 +68,8 @@ class PerBaiJsonrpc extends JsonRpc
             //活动倒计时开始
             if(time() > strtotime($countdownInfo->start_at)){
                 $result['countdown_status'] = 1;
-                $result['countdown'] = strtotime($activityInfo['start_at']) - strtotime('now');
+                $difftime = strtotime($activityInfo['start_at']) - strtotime('now');
+                $result['countdown'] = $difftime > 0 ? $difftime : 0;
             }
         }
         //深证成指收盘   爬虫
