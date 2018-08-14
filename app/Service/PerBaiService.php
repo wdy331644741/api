@@ -2,10 +2,9 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
-use App\fundsmanager\Core\Contracts\Cache;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
-use Config, DB;
+use Config, Cache,DB;
 
 
 class PerBaiService
