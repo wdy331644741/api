@@ -210,6 +210,7 @@ class PerBaiJsonrpc extends JsonRpc
         global $userId;
 //        2已中奖、1未中奖，0待开奖
         $data['status'] = 0;
+        $data['period'] = PerBaiService::PERBAI_VERSION;
         $data['remain_number'] = self::getRemainNum();
         $data['shenzheng'] = null;
         $data['create_time'] = null;
@@ -240,6 +241,7 @@ class PerBaiJsonrpc extends JsonRpc
                 $before_data['draw_number'] = $before_number = substr(strrev($before_attr['number']), 0, 4);
                 $before_info = HdPerbai::where(['draw_number'=>$before_number, 'period'=>$before_version])->first();
                 $before_data['status'] = ($userId && $userId == $draw_info->user) ? 2 : 1;
+                $before_data['period'] = intval( PerBaiService::PERBAI_VERSION  - 1);
                 $data['before_period'][] = $before_data;
             }
         }

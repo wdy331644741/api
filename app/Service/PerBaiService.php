@@ -9,8 +9,8 @@ use Config, DB;
 
 class PerBaiService
 {
-    const PERBAI_VERSION = 2;
-    const PERBAI_VERSION_END = 'perbai_end_2';
+    const PERBAI_VERSION = 1;
+    const PERBAI_VERSION_END = 'perbai_end_1';
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type='investment')
     {
@@ -108,7 +108,7 @@ class PerBaiService
             DB::commit();
         } catch (Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] userId: ' . $userId . ' number:' . $number . ' error:' . $e->getMessage() . "\r\n";
-            $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . date('Y-m-d') . '_perbai.sql.log');
+            $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'perbai.sql.log');
             file_put_contents($filepath, $log, FILE_APPEND);
             DB::rollBack();
         }
