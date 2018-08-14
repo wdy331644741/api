@@ -208,30 +208,31 @@ class PerBaiJsonrpc extends JsonRpc
     public function perbaiDrawStatus() {
 
         global $userId;
+        $perbaiService = new PerBaiService();
 //        2已中奖、1未中奖，0待开奖
         $data['status'] = 0;
-        $data['period'] = PerBaiService::PERBAI_VERSION;
+        $data['period'] = $perbaiService::$perbai_version;
         $data['remain_number'] = self::getRemainNum();
         $data['shenzheng'] = null;
         $data['create_time'] = null;
 //        //抽奖号码剩余个数
         if ($data['remain_number'] == 0) {
-            $attr = GlobalAttributes::getItem(PerBaiService::PERBAI_VERSION_END);
+            $attr = GlobalAttributes::getItem($perbaiService::$perbai_version_end);
             if ($attr && $attr['number'] > 0) {
                     $data['shenzheng'] = $attr['number'] / 100;
                     $data['create_time'] = $attr['string'];
                     //开奖号码
                     $draw_number = substr(strrev($attr['number']), 0, 4);
-                    $draw_info = HdPerbai::where(['draw_number'=>$draw_number, 'period'=>PerBaiService::PERBAI_VERSION])->first();
+                    $draw_info = HdPerbai::where(['draw_number'=>$draw_number, 'period'=>$perbaiService::$perbai_version])->first();
                     $data['status'] = ($userId && $userId == $draw_info->user_id) ? 2 : 1;
             }
         }
 
         //上期数据
         $data['before_period'] = [];
-        $before_version = PerBaiService::PERBAI_VERSION - 1;
+        $before_version = $perbaiService::$perbai_version - 1;
         if ($before_version > 0) {
-            $before_key = str_replace(PerBaiService::PERBAI_VERSION, $before_version, PerBaiService::PERBAI_VERSION_END);
+            $before_key = str_replace($perbaiService::$perbai_version, $before_version, $perbaiService::$perbai_version_end);
             $before_attr = GlobalAttributes::getItem($before_key);
             if ($before_attr && $before_attr['number'] > 0) {
                 //上期深证成指收盘价
@@ -241,7 +242,7 @@ class PerBaiJsonrpc extends JsonRpc
                 $before_data['draw_number'] = $before_number = substr(strrev($before_attr['number']), 0, 4);
                 $before_info = HdPerbai::where(['draw_number'=>$before_number, 'period'=>$before_version])->first();
                 $before_data['status'] = ($userId && $userId == $draw_info->user) ? 2 : 1;
-                $before_data['period'] = intval( PerBaiService::PERBAI_VERSION  - 1);
+                $before_data['period'] = intval( $perbaiService::$perbai_version  - 1);
                 $data['before_period'][] = $before_data;
             }
         }
@@ -268,7 +269,8 @@ class PerBaiJsonrpc extends JsonRpc
 
     public static function getRemainNum() {
 
-        $num = HdPerbai::where(['status'=>0, 'period'=>PerBaiService::PERBAI_VERSION])->count();
+        $perbaiService = new PerBaiService();
+        $num = HdPerbai::where(['status'=>0, 'period'=>$perbaiService::$perbai_version])->count();
         return $num;
     }
 

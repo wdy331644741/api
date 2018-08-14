@@ -41,7 +41,8 @@ class Perbai extends Command
      */
     public function handle()
     {
-        $key = PerBaiService::PERBAI_VERSION_END;
+        $perbaiService = new PerBaiService();
+        $key = $perbaiService::$perbai_version_end;
 
         $attr = GlobalAttributes::getItem($key);
         if ($attr && $attr['number'] == 0) {
@@ -57,7 +58,7 @@ class Perbai extends Command
                 $update['alias_name'] = $awards['alias_name'];
                 $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
                 $update['status'] = 2;
-                HdPerbai::where(['draw_number'=>$draw_number, 'period'=>PerBaiService::PERBAI_VERSION])->update($update);
+                HdPerbai::where(['draw_number'=>$draw_number, 'period'=>$perbaiService::$perbai_version])->update($update);
 
             }
         }

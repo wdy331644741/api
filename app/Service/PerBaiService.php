@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
+use App\fundsmanager\Core\Contracts\Cache;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
 use Config, DB;
@@ -9,34 +10,46 @@ use Config, DB;
 
 class PerBaiService
 {
-    const PERBAI_VERSION = 1;
-    const PERBAI_VERSION_END = 'perbai_end_1';
+    static $perbai_version;//1
+    static $perbai_version_end;//'perbai_end_1';
+
+    public function __construct()
+    {
+        $config = Cache::remember('perbai_config', 5, function(){
+            $data = HdPerHundredConfig::where(['status'=>1])->first();
+            return $data;
+        });
+        self::$perbai_version = $config['id'];
+        self::$perbai_version_end = 'perbai_end_' . $config['id'];
+    }
+
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type='investment')
     {
-            self::addDrawNumByInvestment($userId, $number, $type);
+            $model = new self();
+            $model->addDrawNumByInvestment($userId, $number, $type);
     }
 
-    public static function addDrawNumByInvestment($userId, $number, $type)
+    public function addDrawNumByInvestment($userId, $number, $type)
     {
         $config = Config::get('perbai');
         $awards = $config['awards'];
         if ($type == 'invite') {
             //1.判断用户邀请得到的抽奖号的数量 ， >=50,  就不能得到了，每天
-            $where = ['user_id' => $userId, 'period'=>self::PERBAI_VERSION, 'type'=>$type];
+            $where = ['user_id' => $userId, 'period'=>self::$perbai_version, 'type'=>$type];
             $limit_count = HdPerbai::where($where)->whereRaw( " to_days(updated_at) = to_days(now())")->count();
             if ($limit_count >= 50) {
                 return false;
             }
         }
-        $global_key = self::PERBAI_VERSION_END;
+        $global_key = self::$perbai_version_end;
         Attributes::increment($userId, $config['drew_user_key'], $number);
         try {
             DB::beginTransaction();
             Attributes::getItemLock($userId, $config['drew_user_key']);
 
             //循环插入用户id和抽奖号码
-            $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::PERBAI_VERSION])->take($number)->get()->toArray();
+            $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->take($number)->get()->toArray();
 //            var_dump($info);die;
             $send_msg = [];
             if ($info) {
