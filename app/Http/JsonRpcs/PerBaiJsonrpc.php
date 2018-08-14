@@ -83,14 +83,16 @@ class PerBaiJsonrpc extends JsonRpc
             //是否有中奖的号码
             $where['status'] = 2;
             $where['user_id'] = $userId;
-            $award = HdPerbai::where($where)->orderBy('id', 'desc')->first();
+            $perbai_model = HdPerbai::where($where)->orderBy('id', 'desc')->first();
             //弹框只显示一次
-            if ($award && empty($award['remark'])) {
+            if ($perbai_model && empty($perbai_model['remark'])) {
                 $result['alert_status'] = 1;
-                $result['alert_number'] = PerBaiService::format($award['draw_number']);
-                $result['alert_name'] = $award['award_name'];
-                $award->remark = 'alert';//弹框只显示一次
-                $award->save();
+                $result['alert_number'] = PerBaiService::format($perbai_model['draw_number']);
+                $result['alert_name'] = $perbai_model['award_name'];
+                //不用更新时间,只是记录弹框状态显示或不显示
+                $perbai_model->timestamps = false;
+                $perbai_model->remark = 'alert';//弹框只显示一次
+                $perbai_model->save();
             }
         }
         return [
@@ -126,6 +128,7 @@ class PerBaiJsonrpc extends JsonRpc
         if ($data['data']) {
             foreach ($data['data'] as $k=>$v) {
                 $data['data'][$k]['draw_number'] = PerBaiService::format($v['draw_number']);
+                $data['data'][$k]['updated_at'] = date('Y-m-d', strtotime($v['updated_at']));
             }
         }
 
