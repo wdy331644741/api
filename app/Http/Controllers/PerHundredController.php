@@ -37,7 +37,15 @@ class PerHundredController extends Controller
             'sunshine_img1' => 'required|min:1|max:255',
             'sunshine_img2' => 'required|min:1|max:255',
             'numbers' => 'required|min:1|max:16',
-            'start_time' => 'required|date'
+            'start_time' => 'required|date',
+            'ultimate_pc1' => 'required|min:1|max:255',
+            'ultimate_pc2' => 'required|min:1|max:255',
+            'first_pc1' => 'required|min:1|max:255',
+            'first_pc2' => 'required|min:1|max:255',
+            'last_pc1' => 'required|min:1|max:255',
+            'last_pc2' => 'required|min:1|max:255',
+            'sunshine_pc1' => 'required|min:1|max:255',
+            'sunshine_pc2' => 'required|min:1|max:255',
         ];
         if($id > 0){
             unset($filter['numbers']);
@@ -63,6 +71,15 @@ class PerHundredController extends Controller
         $data['sunshine_img2'] = trim($request->sunshine_img2);
         $data['start_time'] = trim($request->start_time);
         $data['updated_at'] = date("Y-m-d H:i:s");
+
+        $data['ultimate_pc1'] = trim($request->ultimate_pc1);
+        $data['ultimate_pc2'] = trim($request->ultimate_pc2);
+        $data['first_pc1'] = trim($request->first_pc1);
+        $data['first_pc2'] = trim($request->first_pc2);
+        $data['last_pc1'] = trim($request->last_pc1);
+        $data['last_pc2'] = trim($request->last_pc2);
+        $data['sunshine_pc1'] = trim($request->sunshine_pc1);
+        $data['sunshine_pc2'] = trim($request->sunshine_pc2);
         //添加
         if($id <= 0){
             $data['numbers'] = intval($request->numbers);
