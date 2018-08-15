@@ -13,7 +13,7 @@ use App\Models\Bbs\ReplyConfig;
 use App\Models\Bbs\CommentReply;
 use App\Http\Traits\BasicDatatables;
 use App\Service\Func;
-use Validator;
+use Validator,DB;
 
 class CommentController extends Controller
 {
