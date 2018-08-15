@@ -65,11 +65,11 @@ class PerBaiJsonrpc extends JsonRpc
         //活动参与人数
         //活动倒计时
         $countdownInfo = Activity::where(['enable' => 1, 'alias_name' => $config['countdown']])->first();
-        if ($countdownInfo) {
+        if ($countdownInfo && $activityInfo) {
             //活动倒计时开始
             if(time() > strtotime($countdownInfo->start_at)){
                 $result['countdown_status'] = 1;
-                $difftime = strtotime($activityInfo['start_at']) - strtotime('now');
+                $difftime = strtotime($activityConfig['start_time']) - strtotime('now');
                 $result['countdown'] = $difftime > 0 ? $difftime : 0;
             }
         }
@@ -197,8 +197,8 @@ class PerBaiJsonrpc extends JsonRpc
     public function perbaiAwardInfo() {
 
         $key = 'perbai_award_pic';
-        $data = Cache::remember($key, 5, function() {
-            $fields = ['ultimate_award','ultimate_img1','ultimate_img2','first_award','first_img1','first_img2','last_award','last_img1','last_img2','sunshine_award','sunshine_img1','sunshine_img2'];
+        $data = Cache::remember($key, 10, function() {
+            $fields = ['ultimate_award','ultimate_img1','ultimate_img2','first_award','first_img1','first_img2','last_award','last_img1','last_img2','sunshine_award','sunshine_img1','sunshine_img2', 'ultimate_pc1','ultimate_pc2','first_pc1','first_pc2','last_pc1','last_pc2','sunshine_pc1','sunshine_pc2'];
             $list = HdPerHundredConfig::select($fields)->where('status', 1)->orderBy('id', 'desc')->first();
             return $list;
         });
