@@ -118,4 +118,15 @@ class PerHundredController extends Controller
         $data->update();
         return $this->outputJson(0,$data);
     }
+
+    //为了测试，单独生成抽奖号码
+    public function postAddNum(Request $request) {
+        $number = intval($request->number);
+        $id = intval($request->id);
+        if ( $number <= 0 || $id <= 0) {
+            return $this->outputJson(-1,["error_msg"=>"参数不正确"]);
+        }
+        $this->dispatch(new PerHundredJob($id,$number));
+        return $this->outputJson(0,["error_msg"=>"成功"]);
+    }
 }
