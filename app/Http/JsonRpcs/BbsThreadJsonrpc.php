@@ -11,6 +11,7 @@ use Lib\JsonRpcClient;
 use Illuminate\Pagination\Paginator;
 use Validator;
 use App\Models\bbs\ThreadRecord;
+use App\Models\Bbs\GlobalConfig;
 
 
 
@@ -26,7 +27,7 @@ class BbsThreadJsonRpc extends JsonRpc
     /**
      *  根据板块获取帖子列表
      *  全部排序
-     *
+     * @排序规则：阅读量倒叙
      * @param id 区域id
      * @param pageNum  每页条数
      * @param page 当前页
@@ -51,61 +52,23 @@ class BbsThreadJsonRpc extends JsonRpc
             return $page;
         });
         //自定义分页  查找一个月内view最多的帖子  剔除 管理员发的置顶贴
-//        $monthTime = date("Y-m-d", strtotime("-3 month"));
+        //$monthTime = date("Y-m-d", strtotime("-3 month"));
         $thread = new Thread(['userId' => $userId]);
-//        $commentThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-//            ->where(['istop' => 0,'isgreat'=>1])
-//            ->where('created_at', '>', $monthTime)
-//            ->Where(function ($query) use ($typeId, $userId) {
-//                $query->where(['isverify' => 1, 'type_id' => $typeId])
-//                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-//            })
-//            ->with("user")
-//            ->with('collection')
-//            ->with('zan')
-//            ->with('read')
-//            ->orderByRaw('comment_num DESC')
-//            ->limit(1)
-//            ->get()
-//            ->toArray();
-//
-//        $pvThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-//            ->where(['istop' => 0])
-//            ->where('created_at', '>', $monthTime)
-//            ->Where(function ($query) use ($typeId, $userId) {
-//                $query->where(['isverify' => 1, 'type_id' => $typeId])
-//                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-//            })
-//            ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:""])
-//            ->with("user")
-//            ->with('collection')
-//            ->with('zan')
-//            ->with('read')
-//            ->orderByRaw('views DESC')
-//            ->limit(1)
-//            ->get()
-//            ->toArray();
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
-
             ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId])
-                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+                $query->where(['isverify' => 1, 'type_id' => $typeId]);
+                    //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-           // ->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
+            //->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
             ->with('user')
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('updated_at DESC')
+            ->orderByRaw('views DESC')
             ->paginate($pageNum)
             ->toArray();
-
-//        if($page == 1){
-//            $res['data'] = array_merge($commentThread,$pvThread,$res['data']);
-//        }
-
         return [
             'code' => 0,
             'message' => 'success',
@@ -115,12 +78,12 @@ class BbsThreadJsonRpc extends JsonRpc
     }
 
     /**
-     *  根据板块获取帖子列表
-     *  最热排序
-     *
+     * 根据板块获取帖子列表
+     * 最热排序
+     * @排序规则：先查询最热帖子，然后展示帖子大于等于临界值的帖子
      * @param id 区域id
      * @param pageNum  每页条数
-     * @param page 当前页
+     * @param page 当前页、
      * @JsonRpcMethod
      */
     public function getBbsThreadHotList($params)
@@ -139,7 +102,6 @@ class BbsThreadJsonRpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $monthTime = date("Y-m-d", strtotime("-1 month"));
         $thread = new Thread(['userId' => $userId]);
         $monthTime = date("Y-m-d", strtotime("-1 month"));
         $hotThread = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code")
@@ -164,12 +126,12 @@ class BbsThreadJsonRpc extends JsonRpc
         }
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-            ->where(['istop' => 0])
+            //->where(['istop' => 0]) 史贺
+            ->where(['istop'=>0,'ishot'=>1])
             ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId])
-                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+                $query->where(['isverify' => 1, 'type_id' => $typeId]);
+                    //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-            ->where('created_at', '>', $monthTime)
             ->with('user')
             ->with('collection')
             ->with('zan')
@@ -177,7 +139,30 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('views DESC')
             ->paginate($pageNum)
             ->toArray();
+        if(count($res['data']) == 0){
+            $orderViews = GlobalConfig::where(['key'=>'orderViews'])->value('val');
+            $orderComments = GlobalConfig::where(['key'=>'orderComments'])->value('val');
+            $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
+                ->where(['istop'=>0])
+                ->Where(function ($query) use ($typeId, $userId) {
+                    $query->where(['isverify' => 1, 'type_id' => $typeId]);
+                })
+                ->orWhere('views','>=',$orderViews)
+                ->orWhere('comment_num','>=',$orderComments)
+                ->with('user')
+                ->with('collection')
+                ->with('zan')
+                ->with('read')
+                ->orderByRaw('views DESC')
+                ->paginate($pageNum)
+                ->toArray();
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' =>$res
+            ];
 
+        }
         return [
             'code' => 0,
             'message' => 'success',
@@ -189,8 +174,7 @@ class BbsThreadJsonRpc extends JsonRpc
     /**
      *
      *获取精华帖子的详情
-     * @
-     *
+     * @排序规则 ：按阅读量倒叙
      * @JsonRpcMethod
      */
     public function getBbsThreadGreatList($params){
@@ -210,22 +194,18 @@ class BbsThreadJsonRpc extends JsonRpc
         });
         //自定义分页  查找本周1条view最多的帖子  剔除 管理员发的置顶贴
 
-        $monthTime = date("Y-m-d", strtotime("-3 month"));
-
         $thread = new Thread(['userId' => $userId]);
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0,'isgreat'=>1])
-            ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId])
-                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+                $query->where(['isverify' => 1, 'type_id' => $typeId]);
+                    //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
-
             ->with('user')
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('updated_at DESC')
+            ->orderByRaw('views DESC')
             ->paginate($pageNum)
             ->toArray();
         return [
@@ -233,15 +213,12 @@ class BbsThreadJsonRpc extends JsonRpc
             'message' => 'success',
             'data' =>$res
         ];
-
-
     }
 
     /**
      *
      *获取最新帖子的详情
-     * @
-     *
+     * @按创建时间倒叙
      * @JsonRpcMethod
      */
     public function getBbsThreadLastList($params){
@@ -260,16 +237,13 @@ class BbsThreadJsonRpc extends JsonRpc
             return $page;
         });
 
-        $monthTime = date("Y-m-d", strtotime("-1 month"));
-
         $thread = new Thread(['userId' => $userId]);
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
-            ->where('created_at', '>', $monthTime)
             ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId])
-                    ->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
+                $query->where(['isverify' => 1, 'type_id' => $typeId]);
+                    //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
             })
             ->with('user')
             ->with('collection')
@@ -337,14 +311,9 @@ class BbsThreadJsonRpc extends JsonRpc
         }else{
                 throw new OmgException(OmgException::DATA_ERROR);
         }
-
-
     }
     /**
-     *
-     *
      * 获取置顶帖子列表
-     *
      * @JsonRpcMethod
      */
     public function getBbsThreadTopList($params){
@@ -363,18 +332,13 @@ class BbsThreadJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $res
         );
-
     }
     /**
-     *
-     *
      * 获取置顶帖子列表
-     *
      * @JsonRpcMethod
      */
     public function delBbsUserThread($params)
     {
-
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -398,12 +362,9 @@ class BbsThreadJsonRpc extends JsonRpc
     private  function getBbsThreadTopOne($type_id){
         $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at",'')
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$type_id])
-
             ->orderByRaw('created_at DESC')
             ->first();
         return $res;
     }
-
-
 }
 
