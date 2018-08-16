@@ -109,6 +109,7 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiMylist($params) {
         global $userId;
+//        $userId = 5101480;
         $num = isset($params->num) ? $params->num : 5;
         $page = isset($params->page) ? $params->page : 1;
         // 是否登录
@@ -124,7 +125,7 @@ class PerBaiJsonrpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $data = HdPerbai::select('draw_number','award_name','updated_at')->where(['status'=>2, 'user_id'=>$userId])->paginate($page)->toArray();
+        $data = HdPerbai::select('draw_number','award_name','updated_at')->where(['status'=>2, 'user_id'=>$userId])->paginate($num)->toArray();
         if ($data['data']) {
             foreach ($data['data'] as $k=>$v) {
                 $data['data'][$k]['draw_number'] = PerBaiService::format($v['draw_number']);
