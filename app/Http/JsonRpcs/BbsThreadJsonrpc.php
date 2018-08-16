@@ -78,8 +78,8 @@ class BbsThreadJsonRpc extends JsonRpc
     }
 
     /**
-     *  根据板块获取帖子列表
-     *  最热排序
+     * 根据板块获取帖子列表
+     * 最热排序
      * @排序规则：先查询最热帖子，然后展示帖子大于等于临界值的帖子
      * @param id 区域id
      * @param pageNum  每页条数
@@ -311,7 +311,6 @@ class BbsThreadJsonRpc extends JsonRpc
             'message' => 'success',
             'data' => $res
         );
-
     }
     /**
      * 获取置顶帖子列表
