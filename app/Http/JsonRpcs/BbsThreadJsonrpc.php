@@ -118,8 +118,10 @@ class BbsThreadJsonRpc extends JsonRpc
             $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
                 ->where(['istop'=>0])
                 ->where(['isverify' => 1, 'type_id' => $typeId])
-                ->orWhere('views','>=',$orderViews)
-                ->orWhere('comment_num','>=',$orderComments)
+                ->Where(function($query)use($orderViews,$orderComments){
+                    $query->where('views','>=',$orderViews)
+                        ->orWhere('comment_num','>=',$orderComments);
+                })
                 ->with('user')
                 ->with('collection')
                 ->with('zan')
