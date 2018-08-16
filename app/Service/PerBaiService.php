@@ -63,7 +63,7 @@ class PerBaiService
                     if ( 0 === $draw_number) {
                         $update['award_name'] = $awards['yimadangxian']['name'];
                         $update['alias_name'] = $awards['yimadangxian']['alias_name'];
-                        $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
+                        $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
                         $update['status'] = 2;
                         $temp = [
                             'user_id'=>$userId,
@@ -75,7 +75,7 @@ class PerBaiService
                     } else if ( 0 === ($draw_number%100) ) {
                         $update['award_name'] = $awards['puzhao']['name'];
                         $update['alias_name'] = $awards['puzhao']['alias_name'];
-                        $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
+                        $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
                         $update['status'] = 2;
                         $temp = [
                             'user_id'=>$userId,
@@ -87,7 +87,7 @@ class PerBaiService
                     } else if ( $draw_number === ($last_number - 1) ) {
                         $update['award_name'] = $awards['yichuidingyin']['name'];
                         $update['alias_name'] = $awards['yichuidingyin']['alias_name'];
-                        $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
+                        $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
                         $update['status'] = 2;
                         $temp = [
                             'user_id'=>$userId,
@@ -156,9 +156,10 @@ class PerBaiService
 
     public static function sendMessage($data)
     {
-        $template = "亲爱的用户，恭喜您抽中{{{aliasname}}}-{{{awardname}}}，您的奖品兑换码为：{{{code}}}，请于当期活动结束后及时联系平台客服人员兑换奖品。温馨提示：确保您在网利宝平台的收货地址准确无误，立即完善收货地址：{{{url}}}，客服电话：400-858-8066。";
+        $config = Config::get('perbai');
+        $template = $config['message'];
 //        $url = "https://www.wanglibao.com/memberManage/profile.html";
-        $url = "www.wanglibao.com";
+        $url = "https://www.wanglibao.com/wechat/address";
         foreach ($data as $v) {
             $v['url'] = $url;
             SendMessage::Mail($v['user_id'], $template, $v);
