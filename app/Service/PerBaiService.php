@@ -37,7 +37,7 @@ class PerBaiService
             //1.判断用户邀请得到的抽奖号的数量 ， >=50,  就不能得到了，每天
             $where = ['user_id' => $userId, 'period'=>self::$perbai_version, 'type'=>$type];
             $limit_count = HdPerbai::where($where)->whereRaw( " to_days(updated_at) = to_days(now())")->count();
-            if ($limit_count >= 50) {
+            if ($limit_count >= 2) {
                 return false;
             }
         }
