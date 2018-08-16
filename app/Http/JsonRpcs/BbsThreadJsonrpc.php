@@ -105,7 +105,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread = new Thread(['userId' => $userId]);
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-            //->where(['istop' => 0]) 史贺
+            //->where(['istop' => 0])       史贺
             ->where(['istop'=>0,'ishot'=>1])
             ->Where(function ($query) use ($typeId, $userId) {
                 $query->where(['isverify' => 1, 'type_id' => $typeId]);
