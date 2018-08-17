@@ -308,7 +308,7 @@ class PerBaiJsonrpc extends JsonRpc
         $perbaiService = new PerBaiService();
 //        $perbaiService::$perbai_version;
         $where = ['user_id'=>$userId, 'period'=>$perbaiService::$perbai_version];
-        $list = HdPerbai::select('draw_number', 'updated_at')->where(['user_id'=>$userId])->orderBy('id', 'asc')->get();
+        $list = HdPerbai::select('draw_number', 'updated_at')->where($where)->orderBy('id', 'asc')->get();
         if ($list) {
             foreach ($list as $k=>$v) {
                 $list[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
