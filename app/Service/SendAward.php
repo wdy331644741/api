@@ -196,9 +196,9 @@ class SendAward
         switch ($activityInfo['alias_name']) {
             /** 逢百抽大奖 start **/
             case 'perbai_investment':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && $triggerData['is_first'] == 0){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
-                    if ( $triggerData['period'] >= 3 && $amount >= 5000) {
+                    if ( $triggerData['period'] >= 3 && $amount >= 5000 ) {
                         $num = intval($amount/5000);
                         PerBaiService::addDrawNum($triggerData['user_id'],$num);
                     }
