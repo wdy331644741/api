@@ -101,41 +101,24 @@ class BbsThreadJsonRpc extends JsonRpc
         });
         $thread = new Thread(['userId' => $userId]);
 
+        $orderViews = GlobalConfig::where(['key'=>'orderViews'])->value('val');
+        $orderComments = GlobalConfig::where(['key'=>'orderComments'])->value('val');
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-            //->where(['istop' => 0]) 史贺
-            ->where(['istop'=>0,'ishot'=>1])
-            ->where(['isverify' => 1, 'type_id' => $typeId])
+            ->where(['isverify' => 1, 'type_id' => $typeId,'istop'=>0])
+
+            ->Where(function($query)use($orderViews,$orderComments){
+                $query->where('views','>=',$orderViews)
+                    ->orWhere('comment_num','>=',$orderComments)
+                    ->orwhere('ishot',1);
+            })
             ->with('user')
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('views DESC')
+            ->orderByRaw('ishot desc,views DESC')
             ->paginate($pageNum)
             ->toArray();
-        if(count($res['data']) == 0){
-            $orderViews = GlobalConfig::where(['key'=>'orderViews'])->value('val');
-            $orderComments = GlobalConfig::where(['key'=>'orderComments'])->value('val');
-            $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-                ->where(['istop'=>0])
-                ->where(['isverify' => 1, 'type_id' => $typeId])
-                ->Where(function($query)use($orderViews,$orderComments){
-                    $query->where('views','>=',$orderViews)
-                        ->orWhere('comment_num','>=',$orderComments);
-                })
-                ->with('user')
-                ->with('collection')
-                ->with('zan')
-                ->with('read')
-                ->orderByRaw('views DESC')
-                ->paginate($pageNum)
-                ->toArray();
-            return [
-                'code' => 0,
-                'message' => 'success',
-                'data' =>$res
-            ];
 
-        }
         return [
             'code' => 0,
             'message' => 'success',
