@@ -14,10 +14,11 @@ class PerBaiService
 
     public function __construct()
     {
-        $config = Cache::remember('perbai_config', 5, function(){
-            $data = HdPerHundredConfig::where(['status'=>1])->first();
-            return $data;
-        });
+//        $config = Cache::remember('perbai_config', 5, function(){
+//            $data = HdPerHundredConfig::where(['status'=>1])->first();
+//            return $data;
+//        });
+        $config = HdPerHundredConfig::where(['status'=>1])->first();
         self::$perbai_version = $config['id'];
         self::$perbai_version_end = 'perbai_end_' . $config['id'];
     }
