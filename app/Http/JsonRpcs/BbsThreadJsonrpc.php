@@ -57,10 +57,7 @@ class BbsThreadJsonRpc extends JsonRpc
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
-            ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId]);
-                //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-            })
+            ->where(['isverify' => 1, 'type_id' => $typeId])
             //->whereNotIn('id', [isset($commentThread[0]['id'])?$commentThread[0]['id']:"",isset($pvThread[0]['id'])?$pvThread[0]['id']:""])
             ->with('user')
             ->with('collection')
@@ -105,12 +102,9 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread = new Thread(['userId' => $userId]);
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
-            //->where(['istop' => 0])       史贺
+            //->where(['istop' => 0]) 史贺
             ->where(['istop'=>0,'ishot'=>1])
-            ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId]);
-                //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-            })
+            ->where(['isverify' => 1, 'type_id' => $typeId])
             ->with('user')
             ->with('collection')
             ->with('zan')
@@ -123,11 +117,11 @@ class BbsThreadJsonRpc extends JsonRpc
             $orderComments = GlobalConfig::where(['key'=>'orderComments'])->value('val');
             $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
                 ->where(['istop'=>0])
-                ->Where(function ($query) use ($typeId, $userId) {
-                    $query->where(['isverify' => 1, 'type_id' => $typeId]);
+                ->where(['isverify' => 1, 'type_id' => $typeId])
+                ->Where(function($query)use($orderViews,$orderComments){
+                    $query->where('views','>=',$orderViews)
+                        ->orWhere('comment_num','>=',$orderComments);
                 })
-                ->orWhere('views','>=',$orderViews)
-                ->orWhere('comment_num','>=',$orderComments)
                 ->with('user')
                 ->with('collection')
                 ->with('zan')
@@ -176,10 +170,7 @@ class BbsThreadJsonRpc extends JsonRpc
         $thread = new Thread(['userId' => $userId]);
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0,'isgreat'=>1])
-            ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId]);
-                //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-            })
+            ->where(['isverify' => 1, 'type_id' => $typeId])
             ->with('user')
             ->with('collection')
             ->with('zan')
@@ -220,10 +211,7 @@ class BbsThreadJsonRpc extends JsonRpc
 
         $res = $thread->select("id", "user_id", "content", "views", "comment_num", "isgreat", "ishot", "title","cover","isofficial","collection_num","zan_num", "created_at", "updated_at","video_code","is_new","is_special","new")
             ->where(['istop' => 0])
-            ->Where(function ($query) use ($typeId, $userId) {
-                $query->where(['isverify' => 1, 'type_id' => $typeId]);
-                //->orWhere(['user_id' => $userId, "bbs_threads.type_id" => $typeId]);
-            })
+            ->where(['isverify' => 1, 'type_id' => $typeId])
             ->with('user')
             ->with('collection')
             ->with('zan')
