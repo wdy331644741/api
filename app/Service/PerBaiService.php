@@ -25,6 +25,15 @@ class PerBaiService
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type='investment')
     {
+            $activityConfig = HdPerHundredConfig::where(['status' => 1])->orderBy('id','desc')->first();
+            if (!$activityConfig) {
+                return false;
+            }
+            //活动开始时间
+            if (time() < strtotime($activityConfig->start_time)) {
+                return false;
+            }
+
             $model = new self();
             $model->addDrawNumByInvestment($userId, $number, $type);
     }
