@@ -61,7 +61,7 @@ class PerBaiJsonrpc extends JsonRpc
                     $perbaiService = new PerBaiService();
                     $key = $perbaiService::$perbai_version_end;
                     $global_attr = GlobalAttributes::getItem($key);
-                    if ($global_attr && $global_attr['price'] > 0) {
+                    if ($global_attr && $global_attr['number'] > 0) {
                         $result['available'] = 2;
                     }
                 }
