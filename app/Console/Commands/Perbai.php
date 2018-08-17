@@ -6,7 +6,7 @@ use App\Models\HdPerbai;
 use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
 use Illuminate\Console\Command;
-use Config;
+use Config, DB;
 
 class Perbai extends Command
 {
@@ -49,17 +49,37 @@ class Perbai extends Command
             $price = PerBaiService::curlSina();
             if ($price) {
                 $price = $price * 100;
-                GlobalAttributes::setItem($key, $price, date('Y-d-m'), '已抓取完成');
-                //开奖号码
-                $draw_number = substr(strrev($price), 0, 4);
-                $config = Config::get('perbai');
-                $awards = $config['awards']['zhongjidajiang'];
-                $update['award_name'] = $awards['name'];
-                $update['alias_name'] = $awards['alias_name'];
-                $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
-                $update['status'] = 2;
-                HdPerbai::where(['draw_number'=>$draw_number, 'period'=>$perbaiService::$perbai_version])->update($update);
-
+                try {
+                    DB::beginTransaction();
+                    GlobalAttributes::setItem($key, $price, date('Y-m-d'), '已抓取完成');
+                    //开奖号码
+                    $draw_number = substr(strrev($price), 0, 4);
+                    $config = Config::get('perbai');
+                    $awards = $config['awards']['zhongjidajiang'];
+                    $update['award_name'] = $awards['name'];
+                    $update['alias_name'] = $awards['alias_name'];
+                    $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
+                    $update['status'] = 2;
+                    $where = [
+                        'draw_number'=>$draw_number,
+                        'period'=>$perbaiService::$perbai_version
+                    ];
+                    $perbai_model = HdPerbai::where($where)->first();
+                    HdPerbai::where($where)->update($update);
+                    DB::commit();
+                    $sendData = [
+                        'user_id'=>$perbai_model->user_id,
+                        'awardname'=>$awards['name'],
+                        'aliasname'=>$awards['award_name'],
+                        'code'=>$update['uuid']
+                    ];
+                    PerBaiService::sendMessage($sendData);
+                } catch (Exception $e) {
+                    $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
+                    $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'perbai.sql.log');
+                    file_put_contents($filepath, $log, FILE_APPEND);
+                    DB::rollBack();
+                }
             }
         }
     }
