@@ -110,7 +110,7 @@ class PerBaiJsonrpc extends JsonRpc
     public function perbaiMylist($params) {
         global $userId;
 //        $userId = 5101480;
-        $num = isset($params->num) ? $params->num : 5;
+        $num = isset($params->num) ? $params->num : 200;
         $page = isset($params->page) ? $params->page : 1;
         // 是否登录
         if(!$userId){
