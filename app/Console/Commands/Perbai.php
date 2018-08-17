@@ -45,6 +45,12 @@ class Perbai extends Command
         $key = $perbaiService::$perbai_version_end;
 
         $attr = GlobalAttributes::getItem($key);
+        //次日开奖
+        $today = date('Ymd', time());
+        $oldday = date('Ymd', strtotime($attr['created_at']));
+        if ($oldday >= $today) {
+            return false;
+        }
         if ($attr && $attr['number'] == 0) {
             $price = PerBaiService::curlSina();
             if ($price) {

@@ -33,13 +33,18 @@ class PerBaiService
             if (time() < strtotime($activityConfig->start_time)) {
                 return false;
             }
-
             $model = new self();
             $model->addDrawNumByInvestment($userId, $number, $type);
     }
 
     public function addDrawNumByInvestment($userId, $number, $type)
     {
+        $global_key = self::$perbai_version_end;
+        //判断活动结束了
+        $attr = GlobalAttributes::getItem($global_key);
+        if ($attr) {
+            return false;
+        }
         $config = Config::get('perbai');
         $awards = $config['awards'];
         if ($type == 'invite') {
@@ -50,7 +55,6 @@ class PerBaiService
                 return false;
             }
         }
-        $global_key = self::$perbai_version_end;
         Attributes::increment($userId, $config['drew_user_key'], $number);
         try {
             DB::beginTransaction();
@@ -115,6 +119,11 @@ class PerBaiService
                 //判断抽奖号码已发完
                 if ($count < $number) {
                     GlobalAttributes::setItem($global_key, 0);
+                } else {
+                    $remain_num = HdPerbai::where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->first();
+                    if (!$remain_num) {
+                        GlobalAttributes::setItem($global_key, 0);
+                    }
                 }
             } else {
                 $attr = GlobalAttributes::getItem($global_key);
