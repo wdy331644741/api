@@ -58,6 +58,12 @@ class PerBaiJsonrpc extends JsonRpc
                 if (time() > strtotime($activityConfig->start_time)) {
                     //活动正在进行
                     $result['available'] = 1;
+                    $perbaiService = new PerBaiService();
+                    $key = $perbaiService::$perbai_version_end;
+                    $global_attr = GlobalAttributes::getItem($key);
+                    if ($global_attr) {
+                        $result['available'] = 2;
+                    }
                 }
 
             }
