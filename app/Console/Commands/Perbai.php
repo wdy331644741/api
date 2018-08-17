@@ -58,7 +58,7 @@ class Perbai extends Command
                     $awards = $config['awards']['zhongjidajiang'];
                     $update['award_name'] = $awards['name'];
                     $update['alias_name'] = $awards['alias_name'];
-                    $update['uuid'] = 'wlb' . date('Ydm') . rand(1000, 9999);
+                    $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
                     $update['status'] = 2;
                     $where = [
                         'draw_number'=>$draw_number,
@@ -73,7 +73,7 @@ class Perbai extends Command
                         'aliasname'=>$awards['award_name'],
                         'code'=>$update['uuid']
                     ];
-                    PerBaiService::sendMessage($sendData);
+                    PerBaiService::sendMessage(array($sendData));
                 } catch (Exception $e) {
                     $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
                     $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'perbai.sql.log');
