@@ -131,7 +131,9 @@ class PerBaiJsonrpc extends JsonRpc
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
-        $data = HdPerbai::select('draw_number','award_name','updated_at')->where(['status'=>2, 'user_id'=>$userId])->paginate($num)->toArray();
+        $perbaiService = new PerBaiService();
+        $where = ['status'=>2, 'user_id'=>$userId, 'period'=>$perbaiService::$perbai_version];
+        $data = HdPerbai::select('draw_number','award_name','updated_at')->where($where)->paginate($num)->toArray();
         if ($data['data']) {
             foreach ($data['data'] as $k=>$v) {
                 $data['data'][$k]['draw_number'] = PerBaiService::format($v['draw_number']);
@@ -159,8 +161,10 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiList($params) {
         $config = Config::get('perbai');
+        $perbaiService = new PerBaiService();
+        $where = ['status'=>2, 'period'=>$perbaiService::$perbai_version];
 //        $data = Cache::remember('perbai_list', 1, function() {
-            $data = HdPerbai::select('user_id','award_name', 'updated_at')->where(['status'=>2])->orderBy('id', 'desc')->get()->toArray();
+            $data = HdPerbai::select('user_id','award_name', 'updated_at')->where($where)->orderBy('id', 'desc')->get()->toArray();
             foreach ($data as &$item){
                 if(!empty($item['user_id'])){
                     $phone = Func::getUserPhone($item['user_id']);
@@ -301,6 +305,9 @@ class PerBaiJsonrpc extends JsonRpc
     }
 
     public static function getDrawNumList($userId) {
+        $perbaiService = new PerBaiService();
+//        $perbaiService::$perbai_version;
+        $where = ['user_id'=>$userId, 'period'=>$perbaiService::$perbai_version];
         $list = HdPerbai::select('draw_number', 'updated_at')->where(['user_id'=>$userId])->orderBy('id', 'asc')->get();
         if ($list) {
             foreach ($list as $k=>$v) {
