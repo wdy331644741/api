@@ -24,11 +24,6 @@ use App\Service\BbsSendAwardService;
 use App\Models\Bbs\CommentReply;
 use Illuminate\Support\Facades\DB;
 
-
-
-
-
-
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;
@@ -244,7 +239,7 @@ class BbsUserJsonRpc extends JsonRpc {
             if($resImg['code'] =='200'){
 
                 $result = $resImg["result"];
-                    // var_dump($array);
+                // var_dump($array);
                 foreach($result as $index => $image_ret){
 
                     $maxLevel=-1;
@@ -279,12 +274,11 @@ class BbsUserJsonRpc extends JsonRpc {
                 $verifyResult = 1;
                 $verifyMessage = '发贴成功';
         }
-
         $thread = new Thread();
         $thread->user_id = $this->userId;
         $thread->type_id = $params->type_id;
         $thread->title = isset($params->title) ? $params->title : NULL;
-        $thread->content = $params->content;
+        $thread->content = Func::delScript($params->content,true);
         $thread->istop =  0;
         $thread->isverify = $verifyResult;
 
@@ -295,7 +289,7 @@ class BbsUserJsonRpc extends JsonRpc {
             $thread->verify_label =isset($res["result"]["labels"])?json_encode($res["result"]["labels"]):"";
         }
 
-
+        $thread->save();
         if($verifyResult ==1){
             $bbsAward = new BbsSendAwardService($this->userId);
             $bbsAward->publishThreadAward();
@@ -306,8 +300,8 @@ class BbsUserJsonRpc extends JsonRpc {
                 $this->setNewThread();
                 $thread->is_new = 1;
             }
+            $thread->save();
         }
-        $thread->save();
         Attributes::incrementByDay($this->userId,"bbs_user_thread_nums");
 
         $message = $verifyMessage;
@@ -440,7 +434,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $comment = new Comment();
         $comment->user_id = $this->userId;
         $comment->tid = $params->id;
-        $comment->content = $params->content;
+        $comment->content = Func::delScript($params->content);
         $comment->isverify = $verifyResult;
         $comment->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
         $comment->t_user_id = $threadInfo->user_id;
@@ -579,33 +573,33 @@ class BbsUserJsonRpc extends JsonRpc {
 
 
         DB::beginTransaction();
-            //回复表
-            $comReply = new CommentReply();
-            $comReply->comment_id = $params->comment_id;
-            $comReply->from_id = $this->userId;
-            $comReply->to_id = $toUserInfo->user_id;
-            $comReply->content = $params->content;
-            $comReply->reply_type = "reply";
-            $comReply->is_verify =$verifyResult;
-            $comReply->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
-            $replyRes = $comReply->save();
-            if(!$replyRes){
-                throw new OmgException(OmgException::DATA_ERROR);
-            }
-            $comment = new Comment();
-            $comment->user_id = $this->userId;
-            $comment->tid = $params->thread_id;
-            $comment->t_user_id = $toUserInfo->user_id;
-            $comment->content = $params->content;//格式再定
-            $comment->isverify = $verifyResult;
-            $comment->comment_type = 1;//回复的类型 1   评论类型 0
-            $comment->reply_id = $params->comment_id;
-            $comment->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
-            $comRes = $comment->save();
-            if(!$comRes){
-                DB::rollBack();
-                throw new OmgException(OmgException::DATA_ERROR);
-            }
+        //回复表
+        $comReply = new CommentReply();
+        $comReply->comment_id = $params->comment_id;
+        $comReply->from_id = $this->userId;
+        $comReply->to_id = $toUserInfo->user_id;
+        $comReply->content = Func::delScript($params->content);
+        $comReply->reply_type = "reply";
+        $comReply->is_verify =$verifyResult;
+        $comReply->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
+        $replyRes = $comReply->save();
+        if(!$replyRes){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $comment = new Comment();
+        $comment->user_id = $this->userId;
+        $comment->tid = $params->thread_id;
+        $comment->t_user_id = $toUserInfo->user_id;
+        $comment->content = $params->content;//格式再定
+        $comment->isverify = $verifyResult;
+        $comment->comment_type = 1;//回复的类型 1   评论类型 0
+        $comment->reply_id = $params->comment_id;
+        $comment->cover =  !empty($params->imgs)?json_encode($params->imgs):NULL;
+        $comRes = $comment->save();
+        if(!$comRes){
+            DB::rollBack();
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
         DB::commit();
         //增加消息提醒
         $pm = new Pm();
@@ -1058,101 +1052,101 @@ class BbsUserJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-     public function getBbsUserCountAward($param){
-         if (empty($this->userId)) {
-             throw  new OmgException(OmgException::NO_LOGIN);
-         }
-         $nowTime = date("Y-m-d",time());
-         $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread","enable"=>1])->get()->toArray();
-         foreach ($dayPublishThreadTaskInfo as $k=>$value){
-             $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-             if(!$res){
-                 return [
-                     'code'=>0,
-                     'message'=>'success',
-                     'data'=>1
-                 ];
-             }
+    public function getBbsUserCountAward($param){
+        if (empty($this->userId)) {
+            throw  new OmgException(OmgException::NO_LOGIN);
+        }
+        $nowTime = date("Y-m-d",time());
+        $dayPublishThreadTaskInfo = Tasks::where(["task_mark"=>"dayPublishThread","enable"=>1])->get()->toArray();
+        foreach ($dayPublishThreadTaskInfo as $k=>$value){
+            $res = Task::where('award_time','>',$nowTime)->where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1
+                ];
+            }
 
-         }
+        }
 
-         //成就累计发帖  achievePublishThread
-         $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread","enable"=>1])->get()->toArray();
-         foreach ($achievePublishThreadTaskInfo as $k=>$value){
-             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-             if(!$res){
-                 return [
-                     'code'=>0,
-                     'message'=>'success',
-                     'data'=>1
-                 ];
-             }
+        //成就累计发帖  achievePublishThread
+        $achievePublishThreadTaskInfo = Tasks::where(["task_mark"=>"achievePublishThread","enable"=>1])->get()->toArray();
+        foreach ($achievePublishThreadTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1
+                ];
+            }
 
-         }
-         //成就为他人点赞 achieveZanThreadP
-         $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP","enable"=>1])->get()->toArray();
+        }
+        //成就为他人点赞 achieveZanThreadP
+        $achieveZanThreadPTaskInfo = Tasks::where(["task_mark"=>"achieveZanThreadP","enable"=>1])->get()->toArray();
 
-         foreach ($achieveZanThreadPTaskInfo as $k=>$value){
-             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-             if(!$res){
-                 return [
-                     'code'=>0,
-                     'message'=>'success',
-                     'data'=>1
-                 ];
-             }
+        foreach ($achieveZanThreadPTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1
+                ];
+            }
 
-         }
-         //成就回复点赞 achieveZanComment
-         $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment","enable"=>1])->get()->toArray();
+        }
+        //成就回复点赞 achieveZanComment
+        $achieveZanCommentTaskInfo = Tasks::where(["task_mark"=>"achieveZanComment","enable"=>1])->get()->toArray();
 
-         foreach ($achieveZanCommentTaskInfo as $k=>$value){
-             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-             if(!$res){
-                 return [
-                     'code'=>0,
-                     'message'=>'success',
-                     'data'=>1
-                 ];
-             }
+        foreach ($achieveZanCommentTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1
+                ];
+            }
 
-         }
-         //成就主题贴点赞 achieveZanThread
-         $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->get()->toArray();
+        }
+        //成就主题贴点赞 achieveZanThread
+        $achieveZanThreadTaskInfo = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->get()->toArray();
 
-         foreach ($achieveZanThreadTaskInfo as $k=>$value){
-             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-             if(!$res){
-                 return [
-                     'code'=>0,
-                     'message'=>'success',
-                     'data'=>1
-                 ];
-             }
+        foreach ($achieveZanThreadTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1
+                ];
+            }
 
-         }
-         //主题贴加精数量 achieveGreatThread
-         $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread","enable"=>1])->get()->toArray();
+        }
+        //主题贴加精数量 achieveGreatThread
+        $achieveGreatThreadTaskInfo = Tasks::where(["task_mark"=>"achieveGreatThread","enable"=>1])->get()->toArray();
 
-         foreach ($achieveGreatThreadTaskInfo as $k=>$value){
-             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
-             if(!$res){
-                 return [
-                     'code'=>0,
-                     'message'=>'success',
-                     'data'=>1
-                 ];
-             }
+        foreach ($achieveGreatThreadTaskInfo as $k=>$value){
+            $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
+            if(!$res){
+                return [
+                    'code'=>0,
+                    'message'=>'success',
+                    'data'=>1
+                ];
+            }
 
-         }
-         return [
-             'code'=>0,
-             'message'=>'success',
-             'data'=>0
-         ];
+        }
+        return [
+            'code'=>0,
+            'message'=>'success',
+            'data'=>0
+        ];
 
 
-     }
+    }
 
     /**
      *  获取用户被收藏的帖子
@@ -1230,7 +1224,7 @@ class BbsUserJsonRpc extends JsonRpc {
 
     public  function  getBbsUserCommentZan($params)
     {
-        
+
         if (empty($this->userId)) {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
@@ -1325,21 +1319,20 @@ class BbsUserJsonRpc extends JsonRpc {
      *
      * 是否是新人贴
      * */
-     private function  isNewThread(){
+    private function  isNewThread(){
 
-         $isNewThreadKey = 'bbs_newThread';
+        $isNewThreadKey = 'bbs_newThread';
         //判断 是否发过新帖子
-         $res = Redis::GETBIT($isNewThreadKey,$this->userId);
-         return $res;
+        $res = Redis::GETBIT($isNewThreadKey,$this->userId);
+        return $res;
 
-     }
-     /*
-      * 设置新人贴
-      *
-      * */
-     private function setNewThread(){
-         $isNewThreadKey = 'bbs_newThread';
-         Redis::SETBIT($isNewThreadKey,$this->userId,1);
-     }
+    }
+    /*
+     * 设置新人贴
+     *
+     * */
+    private function setNewThread(){
+        $isNewThreadKey = 'bbs_newThread';
+        Redis::SETBIT($isNewThreadKey,$this->userId,1);
+    }
 }
-

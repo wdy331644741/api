@@ -2,9 +2,12 @@
 
 namespace App\Http\Traits;
 
+use App\Service\Func;
+use phpDocumentor\Reflection\Types\Null_;
 use Yajra\Datatables\Facades\Datatables;
 use Illuminate\Http\Request;
 use Validator;
+use App\Models\Bbs\Thread;
 
 trait BasicDatatables{
     public function getDtList(Request $request)
@@ -17,31 +20,33 @@ trait BasicDatatables{
         // 定制化搜索
         if ($request->has('customSearch')) {
             $customSearch = $request->get('customSearch');
-            switch ($customSearch['pattern']) {
-                case 'like':
-                    $items->where($customSearch['name'], 'like', "%{$customSearch['value']}%");
-                    break;
-                case 'equal':
-                case '=':
-                    $items->where($customSearch['name'], '=', $customSearch['value']);
-                    break;
-                case '<=':
-                    $items->where($customSearch['name'], '<=', $customSearch['value']);
-                    break;
-                case '>=':
-                    $items->where($customSearch['name'], '>=', $customSearch['value']);
-                    break;
-                case '!=':
-                    $items->where($customSearch['name'], '!=', $customSearch['value']);
-                    break;
-                case '<':
-                    $items->where($customSearch['name'], '<', $customSearch['value']);
-                    break;
-                case '>':
-                    $items->where($customSearch['name'], '>', $customSearch['value']);
-                    break;
-                default :
-                    break;
+            foreach ($customSearch as $item){
+                switch ($item['pattern']) {
+                    case 'like':
+                        $items->where($item['name'], 'like', "%{$item['value']}%");
+                        break;
+                    case 'equal':
+                    case '=':
+                        $items->where($item['name'], '=', $item['value']);
+                        break;
+                    case '<=':
+                        $items->where($item['name'], '<=', $item['value']);
+                        break;
+                    case '>=':
+                        $items->where($item['name'], '>=', $item['value']);
+                        break;
+                    case '!=':
+                        $items->where($item['name'], '!=', $item['value']);
+                        break;
+                    case '<':
+                        $items->where($item['name'], '<', $item['value']);
+                        break;
+                    case '>':
+                        $items->where($item['name'], '>', $item['value']);
+                        break;
+                    default :
+                        break;
+                }
             }
         }
         // 关联
@@ -59,6 +64,8 @@ trait BasicDatatables{
     //查询列表
     public function getSearchList(Request $request)
     {
+
+        $path = $request->path();
         $items = $this->model->select($this->fileds);
         // 只显示删除
         if ($request->has('onlyTrashed')) {
@@ -117,7 +124,6 @@ trait BasicDatatables{
             }
         }
         // 关联
-        //echo $items->toSql();exit;
         if ($request->has('withs')) {
             $withs = $request->get('withs');
             foreach ($withs as $key => $with) {
@@ -126,6 +132,17 @@ trait BasicDatatables{
         }
         /* */
         $res = Datatables::of($items)->make();
+        $resArr = json_decode(json_encode($res->getData()),true);
+        if($path == 'bbs/user/search-list'){
+            $newdata = [];
+            foreach ($resArr['data'] as $val){
+                $num = Thread::where(['user_id'=>$val[1]])->count();
+                $val[] = $num;
+                $newdata[] = $val;
+            }
+            $resArr['data'] = $newdata;
+            return $this->outputJson(0, $resArr);
+        }
         return $this->outputJson(0, $res->getData());
     }
 

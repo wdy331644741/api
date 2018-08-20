@@ -57,6 +57,7 @@ use App\Http\JsonRpcs\ChannelJsonrpc;
 use App\Http\JsonRpcs\CarnivalJsonRpc;
 use App\Http\JsonRpcs\QuickVoteJsonRpc;
 use App\Http\JsonRpcs\WorldCupJsonrpc;
+use App\Http\JsonRpcs\RichLotteryJsonRpc;
 
 class RpcController extends Controller
 {
@@ -122,6 +123,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new WorldCupJsonrpc());//世界杯活动
         $jsonRpcServer->addService(new QuestionJsonrpc());//我的客服
         $jsonRpcServer->addService(new PerBaiJsonrpc());//逢百抽大奖
+        $jsonRpcServer->addService(new RichLotteryJsonRpc());//8月发财 抽奖
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');

@@ -22,7 +22,7 @@ class ThreadController extends Controller
 {
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','user_id','title','content', 'type_id','video_code','cover','created_at', 'istop', 'isgreat', 'ishot','isofficial','isverify', 'comment_num','zan_num','collection_num'];
+    protected $fileds = ['id','user_id','title','content', 'type_id','video_code','cover','created_at', 'istop', 'isgreat', 'ishot','isofficial','isverify','views', 'comment_num','zan_num','collection_num','created_at'];
     protected $deleteValidates = [
         'id' => 'required|exists:bbs_threads,id'
     ];
@@ -39,7 +39,8 @@ class ThreadController extends Controller
     //帖子为审核列表
     public function getList(Request $request){
         $res = Func::freeSearch($request,new Thread(),$this->fileds,['section','user']);
-        $res['app_url'] = env('APP_URL');
+        $appurl = env('APP_URL');
+        $res['app_url'] = $appurl == "http://api-omg.wanglibao.com" ? $appurl : $appurl."/yunying";
         return response()->json(array('error_code'=> 0, 'data'=>$res));
 
     }
@@ -86,7 +87,7 @@ class ThreadController extends Controller
         $thread->cover = $cover;
         $thread->video_code = isset($request->video_code) ? $request->video_code : NULL;
         $thread->title = isset($request->title) ? $request->title : NULL;
-        $thread->content = isset($request->content) ? $request->content : NULL;
+        $thread->content = isset($request->content) ? Func::delScript($request->content) : NULL;
         $thread->isofficial = $request->isofficial ? $request->isofficial : 0;
         $thread->istop = $request->istop ? $request->istop : 0;
         $thread->isverify = 1;
@@ -109,6 +110,7 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
+
         $cover = NULL;
         if(count(array_filter(explode(',',$request->imgdata)))>0){
             $cover = json_encode(explode(',',$request->imgdata));
@@ -130,7 +132,8 @@ class ThreadController extends Controller
             $putData['isofficial'] = $request->isofficial ? $request->isofficial : 0;
         }
         if(isset($request->content)) {
-            $putData['content'] = $request->content;
+            $newstr = Func::delScript($request->content);
+            $putData['content'] = $newstr;
         }
         if(isset($request->video_code)) {
             $putData['video_code'] = isset($request->video_code) ? $request->video_code : NULL;
@@ -299,7 +302,8 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        foreach ($request->id as $val){
+        $idArr = explode('-',$request->id);
+        foreach (array_filter($idArr) as $val){
             $thread = Thread::find($val);
             if(in_array($thread->isverify,[1])){
                 $error[$val] = 10010;
@@ -341,7 +345,8 @@ class ThreadController extends Controller
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
-        foreach ($request->id as $val){
+        $idArr = explode('-',$request->id);
+        foreach (array_filter($idArr) as $val){
             $thread = Thread::find($val);
             if(in_array($thread->isverify,[2])){
                 $error[$val] = 10010;
