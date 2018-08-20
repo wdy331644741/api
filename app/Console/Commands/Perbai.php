@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\HdPerbai;
+use App\Models\GlobalAttribute;
 use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
 use Illuminate\Console\Command;
@@ -44,7 +45,8 @@ class Perbai extends Command
         $perbaiService = new PerBaiService();
         $key = $perbaiService::$perbai_version_end;
 
-        $attr = GlobalAttributes::getItem($key);
+        DB::beginTransaction();
+        $attr = GlobalAttribute::where(array('key' => $key))->lockforupdate()->first();
         //次日开奖
         $today = date('Ymd', time());
         $oldday = date('Ymd', strtotime($attr['created_at']));
@@ -56,7 +58,6 @@ class Perbai extends Command
             if ($price) {
                 $price = $price * 100;
                 try {
-                    DB::beginTransaction();
                     GlobalAttributes::setItem($key, $price, date('Y-m-d'), '已抓取完成');
                     //开奖号码
                     $draw_number = substr(strrev($price), 0, 4);
