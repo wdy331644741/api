@@ -10,6 +10,7 @@ use App\Models\WechatUser;
 use App\Models\JsonRpc;
 use App\Models\Admin;
 use App\Models\GlobalAttribute;
+use App\Service\SendAward;
 use Config;
 
 class Func
@@ -517,7 +518,7 @@ class Func
             return false;
 
         $data['user_id'] = $userId;
-        $data['uuid'] = '';//不是必要参数
+        $data['uuid'] = SendAward::create_guid();;//用户中心数据库有联合索引
         $data['source_id'] = 0;
         $data['source_name'] = "兑换".$Info;
         $data['integral'] = $num;
