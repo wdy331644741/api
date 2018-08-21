@@ -139,6 +139,8 @@ class FourLotteryJsonRpc extends JsonRpc
             DB::rollBack();
             throw new OmgException(OmgException::API_FAILED);
         }
+        //抽奖完成，减去积分
+        $sub = Func::subIntegralByUser($userId,$config['drew_cost'],$config['alias_name_desc']);
 
         return [
             'code' => 0,

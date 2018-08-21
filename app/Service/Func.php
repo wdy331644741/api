@@ -504,4 +504,30 @@ class Func
 
 
     }
+
+    /*
+     * 减用户积分（仅仅去请求接口）
+     *  @userId int
+     *  @num int
+     *  @Info array //活动\奖品相关
+     *
+     */
+    static function subIntegralByUser($userId , $num ,$Info){
+        if($num <= 0 || empty($awardInfo['name']) )
+            return false;
+
+        $data['user_id'] = $userId;
+        $data['uuid'] = '';//不是必要参数
+        $data['source_id'] = 0;
+        $data['source_name'] = "兑换".$Info;
+        $data['integral'] = $num;
+        $data['remark'] = $Info." * 1";
+
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        return $client->integralUsageRecord($data);
+    }
+
+
+
 }

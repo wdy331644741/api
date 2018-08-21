@@ -1,7 +1,9 @@
 <?php
 return [
     'alias_name' => 'fouryear_pre',
-    'interval' => 2, // 两次抽奖间隔秒数
+    'alias_name_desc' => '四周年积分抽iphonx',
+    'drew_cost' => 1,//1积分抽奖
+    'interval' => 3, // 两次抽奖间隔秒数
     'drew_daily_key' => 'richLottery_drew_daily', // 两次抽奖间隔秒数
     'drew_total_key' => 'richLottery_drew_total', // 两次抽奖间隔秒数
     'lists' => [//每个会员等级的奖品概率
