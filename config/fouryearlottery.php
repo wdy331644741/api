@@ -67,5 +67,6 @@ return [
             ['alias_name' =>'fouryear_pre_10_po', 'desp' => '10积分', 'size' => 10, 'pro' => 5],
         ], 
         /*********************************************************************/
-    ]
+    ],
+    'specialAward' =>['alias_name' =>'fouryear_pre_iPhoneX', 'desp' => '苹果x', 'num' => 1, 'totalCounts' => 10000],
 ];
