@@ -513,7 +513,7 @@ class Func
      *
      */
     static function subIntegralByUser($userId , $num ,$Info){
-        if($num <= 0 || empty($awardInfo['name']) )
+        if($num <= 0 || empty($Info) )
             return false;
 
         $data['user_id'] = $userId;

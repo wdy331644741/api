@@ -99,6 +99,12 @@ class FourLotteryJsonRpc extends JsonRpc
             ];
         }
 
+        //抽取iphoneX
+        if($this->specialCheck(max($_userInfo['level'],0))){
+            Attributes::incrementByDay($userId, $config['drew_daily_key']);
+            Attributes::increment($userId, $config['drew_total_key']);
+            return $this->getiPhoneXaward($userId);
+        }
 
         //事务开始
         DB::beginTransaction();
@@ -139,14 +145,22 @@ class FourLotteryJsonRpc extends JsonRpc
             DB::rollBack();
             throw new OmgException(OmgException::API_FAILED);
         }
-        //抽奖完成，减去积分
+        //抽奖完成，减去1积分
         $sub = Func::subIntegralByUser($userId,$config['drew_cost'],$config['alias_name_desc']);
+        if(isset($sub['result']) && $sub['result']){//减积分成功
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $result,
+            ];
+        }else{
+            return [
+                'code' => -2,
+                'message' => 'failed',
+                'data' => '请求超时',
+            ];
+        }
 
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $result,
-        ];
     }
 
 
@@ -182,24 +196,6 @@ class FourLotteryJsonRpc extends JsonRpc
         $newSet = substr($_remainder,0,1) + 1;
         Redis::setex($key,1*3600 ,$newSet.'-'.substr($_remainder,-1) );
         return true;
-    }
-
-    /**
-     * 增加redis 中每个用户抽奖次数
-     * 每个用户限抽两次
-     *
-     */
-    private function shareAddLooteryCounts($bat,$userId){
-        $key = Config::get('fouryearlottery.alias_name') . '_' . date('Ymd') . '_'. $bat . '_' . $userId;
-        //查询用户剩余次数
-        $_remainder = $this->getLooteryCounts($bat,$userId);
-        if(substr($_remainder, -1) == 2){
-            return false;
-        }else{
-            $newRem = substr($_remainder, 0,-1).'2';
-            Redis::setex($key,1*3600 ,$newRem);
-            return true;
-        }
     }
 
     /**
@@ -301,6 +297,76 @@ class FourLotteryJsonRpc extends JsonRpc
             return true;
         }
         return false;
+    }
+
+    /**
+     * 检查特殊奖品发放
+     *
+     */
+    private function specialCheck($level){
+        //会员等级是否大于5
+        if($level < 5)
+            return false;
+
+        $_special = Config::get('fouryearlottery.specialAward');
+        //是否已经发放
+        $isSend = false;
+        $checkCache = Cache::get($_special['alias_name']);
+        if(empty($checkCache)){
+            //去数据库查询
+            $res = RichLottery::where(['award_name' => $_special['alias_name'], 'uuid' => $config['alias_name'] ])->get();
+            $isSend = $res?true:fales;
+        }else{
+            $isSend = true;
+        }
+        //********
+
+        //iphone已送出
+        if($isSend)
+            return false;
+        //计算概率
+        $target = rand(1, $_special['totalCounts']);
+        if($target == 1){
+            return true;
+        }
+
+        //未中奖
+        return false;
+    }
+
+    /**
+     * 发放iPhoneX 奖品
+     *
+     */
+    private function getiPhoneXaward($userId,$bat = 0){
+        $iphoneX = Config::get('fouryearlottery.specialAward');
+        $cacheKey = $iphoneX['alias_name'];
+
+        RichLottery::create([
+            'user_id' => $userId,
+            'amount' => 0,
+            'award_name' => $iphoneX['alias_name'],
+            'uuid' => '',
+            'ip' => Request::getClientIp(),
+            'user_agent' => Request::header('User-Agent'),
+            'status' => 1,
+            'type' => 0,
+            'remark' => $iphoneX['desp'],
+        ]);
+        //修改 用户剩余抽奖次数
+        $this->decLotteryCounts($bat,$userId);
+        //放入缓存
+        Cache::forever($cacheKey, $userId);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'awardName' => $iphoneX['alias_name'],
+                'awardType' => 0,
+                'amount' => 0,
+                'awardSigni' => $iphoneX['desp'],
+            ],
+        ]; 
     }
 
 }
