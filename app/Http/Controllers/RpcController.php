@@ -135,6 +135,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new RichLotteryJsonRpc());//8月发财 抽奖
         $jsonRpcServer->addService(new PerBaiJsonrpc());//逢百抽大奖
 
+
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
