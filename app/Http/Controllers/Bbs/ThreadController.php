@@ -17,6 +17,7 @@ use Validator;
 use App\Models\Bbs\Task;
 use App\Service\BbsSendAwardService;
 use App\Service\SendAward;
+use DB;
 
 class ThreadController extends Controller
 {
@@ -65,6 +66,27 @@ class ThreadController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
 
+    }
+
+    //删除帖子，删除帖子下的评论
+    public function postDelete(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        DB::beginTransaction();
+        $res = Thread::destroy($request->id);
+        $cRes = Comment::where('tid',$request->id)->delete();
+        if($cRes){
+            DB::commit();
+            return $this->outputJson(0);
+        }else{
+            DB::rollBack();
+            return $this->outputJson(10002,array('error_msg'=>"Database Error"));
+        }
     }
 
     //内部发帖
