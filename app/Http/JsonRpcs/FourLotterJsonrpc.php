@@ -32,7 +32,7 @@ class FourLotteryJsonRpc extends JsonRpc
         }
 
         //查询用户积分
-        $_userInfo = $islogin?call_user_func(array("App\Service\Func","getUserBasicInfo"),$userId):null;
+        $_userInfo = $islogin?call_user_func_array(array("App\Service\Func","getUserBasicInfo"),[$userId , true]):null;
         // 获取用户 抽奖次数 是否可以抽奖
         if($islogin){
             $isplay = call_user_func(function($str){
