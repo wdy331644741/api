@@ -307,8 +307,9 @@ class FourLotteryJsonRpc extends JsonRpc
         //会员等级是否大于5
         if($level < 5)
             return false;
-
-        $_special = Config::get('fouryearlottery.specialAward');
+        
+        $config = Config::get('fouryearlottery');
+        $_special = $config['specialAward'];
         //是否已经发放
         $isSend = false;
         $checkCache = Cache::get($_special['alias_name']);
