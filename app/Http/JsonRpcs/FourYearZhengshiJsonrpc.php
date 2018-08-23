@@ -18,12 +18,12 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first()->toArray();
+        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first();
         if($res){
             return [
                 'code' => 0,
                 'message' => 'success',
-                'data' => json_decode($res['text'])
+                'data' => json_decode($res->text)
             ];
         }
         $redPack = [
@@ -79,12 +79,12 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first()->toArray();
+        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first();
         if($res){
             DB::beginTransaction();
             $data = SendAward::ActiveSendAward($userId,$params->key);
             if(isset($data[0]['status'])){
-                $redPackList = json_decode($res['text'],1);
+                $redPackList = json_decode($res->text,1);
                 $redPackList[$params->key]['status'] = 1;
                 $updatestatus = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->update(['text'=>json_encode($redPackList)]);
             }
