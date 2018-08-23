@@ -13,7 +13,7 @@ use App\Service\SendAward;
 use Illuminate\Support\Facades\Redis;
 use Config, Request, DB, Cache;
 
-class FourLotteryJsonRpc extends JsonRpc
+class FourLotterJsonRpc extends JsonRpc
 {
     /**
      * 预热场 抽奖活动info
