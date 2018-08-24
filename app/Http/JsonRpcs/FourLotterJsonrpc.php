@@ -320,7 +320,7 @@ class FourLotteryJsonRpc extends JsonRpc
         if(empty($checkCache)){
             //去数据库查询
             $res = RichLottery::where(['award_name' => $_special['alias_name'], 'uuid' => $config['alias_name'] ])->get()->toArray();
-            $isSend = !empty($res)?true:fales;
+            $isSend = !empty($res)?true:false;
         }else{
             $isSend = true;
         }
