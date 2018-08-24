@@ -10,11 +10,14 @@ use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
 use App\Service\Func;
 use App\Service\SendAward;
+use App\Service\SendMessage;
 use Illuminate\Support\Facades\Redis;
 use Config, Request, DB, Cache;
 
 class FourLotteryJsonRpc extends JsonRpc
-{
+{   
+
+    const iphoneMail = "恭喜您在'4周年生日趴，1积分抽iPhone X'活动中获得'一部iPhone X手机'奖励。";
     /**
      * 预热场 抽奖活动info
      *
@@ -26,9 +29,10 @@ class FourLotteryJsonRpc extends JsonRpc
         // 用户是否登录
         $islogin  = $userId?true:false;
 
+        $activiStatus = true;
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
-            $game['available'] = false;
+            $activiStatus = false;
         }
 
         //查询用户积分
@@ -47,8 +51,8 @@ class FourLotteryJsonRpc extends JsonRpc
             'message' => 'success',
             'data'    => [
                 'islogin' => $islogin,
-                'score'   => $_userInfo['score'],
-                'isplay'  => $isplay,
+                'score'   => isset($_userInfo['score'])?$_userInfo['score']:0,
+                'isplay'  => $activiStatus?$isplay:$activiStatus,
             ],
         ];
     }
@@ -356,6 +360,8 @@ class FourLotteryJsonRpc extends JsonRpc
         ]);
         //修改 用户剩余抽奖次数
         $this->decLotteryCounts($bat,$userId);
+        //发送站内信
+        SendMessage::Mail($userId,self::iphoneMail);
         //放入缓存
         Cache::forever($cacheKey, $userId);
         return [
