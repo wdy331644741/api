@@ -319,7 +319,7 @@ class FourLotteryJsonRpc extends JsonRpc
         $checkCache = Cache::get($_special['alias_name']);
         if(empty($checkCache)){
             //去数据库查询
-            $res = RichLottery::where(['award_name' => $_special['alias_name'], 'uuid' => $config['alias_name'] ])->get()->toArray();
+            $res = RichLottery::where(['remark' => $_special['alias_name'], 'uuid' => $config['alias_name'] ])->get()->toArray();
             $isSend = !empty($res)?true:false;
         }else{
             $isSend = true;
@@ -350,13 +350,13 @@ class FourLotteryJsonRpc extends JsonRpc
         RichLottery::create([
             'user_id' => $userId,
             'amount' => 0,
-            'award_name' => $iphoneX['alias_name'],
+            'award_name' => $iphoneX['desp'],
             'uuid' => 'fouryear_pre',
             'ip' => Request::getClientIp(),
             'user_agent' => Request::header('User-Agent'),
             'status' => 1,
             'type' => 0,
-            'remark' => $iphoneX['desp'],
+            'remark' => $iphoneX['alias_name'],
         ]);
         //修改 用户剩余抽奖次数
         $this->decLotteryCounts($bat,$userId);
@@ -368,10 +368,10 @@ class FourLotteryJsonRpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'awardName' => $iphoneX['alias_name'],
+                'awardName' => $iphoneX['desp'],
                 'awardType' => 0,
                 'amount' => 0,
-                'awardSigni' => $iphoneX['desp'],
+                'awardSigni' => $iphoneX['alias_name'],
             ],
         ]; 
     }
