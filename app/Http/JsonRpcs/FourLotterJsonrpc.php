@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Redis;
 use Config, Request, DB, Cache;
 
 class FourLotteryJsonRpc extends JsonRpc
-{   
+{
 
     const iphoneMail = "恭喜您在'4周年生日趴，1积分抽iPhone X'活动中获得'一部iPhone X手机'奖励。";
     /**
