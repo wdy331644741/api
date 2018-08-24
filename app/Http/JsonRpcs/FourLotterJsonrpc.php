@@ -351,7 +351,7 @@ class FourLotteryJsonRpc extends JsonRpc
             'user_id' => $userId,
             'amount' => 0,
             'award_name' => $iphoneX['alias_name'],
-            'uuid' => '',
+            'uuid' => 'fouryear_pre',
             'ip' => Request::getClientIp(),
             'user_agent' => Request::header('User-Agent'),
             'status' => 1,
