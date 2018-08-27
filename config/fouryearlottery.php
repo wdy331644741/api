@@ -68,5 +68,5 @@ return [
         ], 
         /*********************************************************************/
     ],
-    'specialAward' =>['alias_name' =>'fouryear_pre_iPhoneX', 'desp' => 'iPhoneX', 'num' => 1, 'totalCounts' => 10000],
+    'specialAward' =>['alias_name' =>'fouryear_pre_iPhoneX', 'desp' => 'iPhoneX', 'num' => 1, 'totalCounts' => 1340],
 ];
