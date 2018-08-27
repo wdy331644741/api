@@ -218,6 +218,24 @@ class SendAward
                 break;
             /** 四周年活动投多少送多少体验金 END */
 
+            /** 逢百抽大奖 start **/
+            case 'perbai_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && $triggerData['novice_exclusive'] == 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if ( $triggerData['period'] >= 3 && $amount >= 5000 ) {
+                        $num = intval($amount/5000);
+                        PerBaiService::addDrawNum($triggerData['user_id'],$num);
+                    }
+                }
+                break;
+                //邀请人首投
+            case 'perbai_invite_investment':
+                if( isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first'] ){
+                        PerBaiService::addDrawNum($triggerData['from_user_id'],1, 'invite');
+                }
+                break;
+            /** 逢百抽大奖 end **/
+
             /** FIFA World Cup 活动 start **/
             //投资
             case 'world_cup_investment':
