@@ -15,17 +15,7 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
      */
     public function getRedPackList() {
         global $userId;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first();
-        if($res){
-            return [
-                'code' => 0,
-                'message' => 'success',
-                'data' => json_decode($res->text)
-            ];
-        }
+
         $redPack = [
             '4year_hongbao_58'=>[
                 'name'=>'58元红包',
@@ -52,6 +42,23 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
                 'status'=>0
             ]
         ];
+
+        if(!$userId) {//未登录的时候也返回红包列表
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $redPack
+            ];
+        }
+        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first();
+        if($res){
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => json_decode($res->text)
+            ];
+        }
+        
         $userAttr = new UserAttribute();
         $userAttr->user_id = $userId;
         $userAttr->key = '4year_hongbao';
