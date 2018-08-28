@@ -18,27 +18,27 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
 
         $redPack = [
             '4year_hongbao_58'=>[
-                'name'=>'58元红包',
+                'name'=>'58',
                 'status'=>0
             ],
             '4year_hongbao_88'=>[
-                'name'=>'88元红包',
+                'name'=>'88',
                 'status'=>0
             ],
             '4year_hongbao_288'=>[
-                'name'=>'288元红包',
+                'name'=>'288',
                 'status'=>0
             ],
             '4year_hongbao_508'=>[
-                'name'=>'508元红包',
+                'name'=>'508',
                 'status'=>0
             ],
             '4year_hongbao_988'=>[
-                'name'=>'988元红包',
+                'name'=>'988',
                 'status'=>0
             ],
             '4year_hongbao_1888'=>[
-                'name'=>'1888元红包',
+                'name'=>'1888',
                 'status'=>0
             ]
         ];
