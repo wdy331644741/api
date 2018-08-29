@@ -213,6 +213,11 @@ class FourLotteryJsonRpc extends JsonRpc
         }
         //Redis::SET($key,1,Array('nx', 'ex'=>100));
         $value = Redis::GET($key);
+        $config = Config::get('fouryearlottery');
+        $userAtt = UserAttribute::where(array('user_id' => $userId, 'key' => $config['drew_daily_key']))->where("created_at",">=",date("Y-m-d"))->first();
+        if(isset($userAtt['number']) && intval($userAtt['number']) >= 2){
+            return "2-2";
+        }
         return $value;
         // return substr($value,-1) - substr($value, 0,1);
     }
