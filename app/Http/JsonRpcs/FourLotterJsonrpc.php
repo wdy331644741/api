@@ -198,7 +198,7 @@ class FourLotteryJsonRpc extends JsonRpc
         //获取用户剩余抽奖信息
         $_remainder = $this->getLooteryCounts($bat,$userId);
         $newSet = substr($_remainder,0,1) + 1;
-        Redis::setex($key,1*3600 ,$newSet.'-'.substr($_remainder,-1) );
+        Redis::setex($key,24*3600 ,$newSet.'-'.substr($_remainder,-1) );
         return true;
     }
 
