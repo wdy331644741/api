@@ -209,7 +209,7 @@ class FourLotteryJsonRpc extends JsonRpc
     private function getLooteryCounts($bat,$userId){
         $key = Config::get('fouryearlottery.alias_name') . '_' . date('Ymd') . '_'. $bat . '_' . $userId;
         if( !Redis::exists($key) ){
-            Redis::setex($key,1*3600+60,'0-2');//初始化 抽奖机会
+            Redis::setex($key,24*3600+60,'0-2');//初始化 抽奖机会
         }
         //Redis::SET($key,1,Array('nx', 'ex'=>100));
         $value = Redis::GET($key);
