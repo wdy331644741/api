@@ -198,7 +198,7 @@ class FourLotteryJsonRpc extends JsonRpc
         //获取用户剩余抽奖信息
         $_remainder = $this->getLooteryCounts($bat,$userId);
         $newSet = substr($_remainder,0,1) + 1;
-        Redis::setex($key,1*3600 ,$newSet.'-'.substr($_remainder,-1) );
+        Redis::setex($key,24*3600 ,$newSet.'-'.substr($_remainder,-1) );
         return true;
     }
 
@@ -209,10 +209,15 @@ class FourLotteryJsonRpc extends JsonRpc
     private function getLooteryCounts($bat,$userId){
         $key = Config::get('fouryearlottery.alias_name') . '_' . date('Ymd') . '_'. $bat . '_' . $userId;
         if( !Redis::exists($key) ){
-            Redis::setex($key,1*3600+60,'0-2');//初始化 抽奖机会
+            Redis::setex($key,24*3600+60,'0-2');//初始化 抽奖机会
         }
         //Redis::SET($key,1,Array('nx', 'ex'=>100));
         $value = Redis::GET($key);
+        $config = Config::get('fouryearlottery');
+        $userAtt = UserAttribute::where(array('user_id' => $userId, 'key' => $config['drew_daily_key']))->where("updated_at",">=",date("Y-m-d"))->first();
+        if(isset($userAtt['number']) && intval($userAtt['number']) >= 2){
+            return "2-2";
+        }
         return $value;
         // return substr($value,-1) - substr($value, 0,1);
     }
