@@ -194,6 +194,30 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 四周年活动投多少送多少体验金 START */
+            //投资
+            case 'four_birthday_invest_experience':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if ( $amount > 0) {
+                        $awards['id'] = 0;
+                        $awards['user_id'] = $triggerData['user_id'];
+                        $awards['source_id'] = $activityInfo['id'];
+                        $awards['name'] = "四周年".$amount.'体验金';
+                        $awards['source_name'] = $activityInfo['name'];
+                        $awards['experience_amount_money'] = $amount;
+                        $awards['effective_time_type'] = 1;
+                        $awards['effective_time_day'] = 7;
+                        $awards['platform_type'] = 0;
+                        $awards['limit_desc'] = '';
+                        $awards['trigger'] = isset($activityInfo['trigger_type']) ? $activityInfo['trigger_type'] : '-1';
+                        $awards['mail'] = "恭喜您在'{{sourcename}}'活动中获得了'{{awardname}}'奖励。";
+                        $return = self::experience($awards);
+                    }
+                }
+                break;
+            /** 四周年活动投多少送多少体验金 END */
+
             /** 逢百抽大奖 start **/
             case 'perbai_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && $triggerData['novice_exclusive'] == 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2){
@@ -211,6 +235,7 @@ class SendAward
                 }
                 break;
             /** 逢百抽大奖 end **/
+
             /** FIFA World Cup 活动 start **/
             //投资
             case 'world_cup_investment':
