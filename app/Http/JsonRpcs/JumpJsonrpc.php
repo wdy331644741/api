@@ -65,6 +65,7 @@ class JumpJsonRpc extends JsonRpc
         //获取抽奖次数
         $num = isset($params->num) ? $params->num : 0;
         if($num != 1){
+
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         //获取抽奖次数

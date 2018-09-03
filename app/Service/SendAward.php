@@ -194,6 +194,29 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 跳一跳 start **/
+            case 'jump_investment':
+                if( isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && $triggerData['is_first'] ){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $num = 0;
+                    if ( $amount >= 2000 ) {
+                        $num = 3;
+                    } else if ($amount >= 1000) {
+                        $num = 2;
+                    } else if ($amount >= 500) {
+                        $num = 1;
+                    }
+                    $register_date = date('Ymd', strtotime($triggerData['register_time']));
+                    $now = date('Ymd', time());
+                    if ($register_date == $now) {
+                        $num +=1;
+                    }
+                    if ( $num > 0 ) {
+                        JumpService::addDrawNum($triggerData['user_id'],$num);
+                    }
+                }
+                break;
+            /** 跳一跳 end **/
             /** 逢百抽大奖 start **/
             case 'perbai_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && $triggerData['novice_exclusive'] == 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2){
