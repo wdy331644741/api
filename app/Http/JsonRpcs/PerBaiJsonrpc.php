@@ -257,7 +257,7 @@ class PerBaiJsonrpc extends JsonRpc
             $before_attr = GlobalAttributes::getItem($before_key);
             if ($before_attr && $before_attr['number'] > 0) {
                 //上期深证成指收盘价
-                $before_data['shenzheng'] = $before_attr['number'] / 100;
+                $before_data['shenzheng'] = sprintf("%.2f",$before_attr['number'] / 100);
                 $before_data['create_time'] = $before_attr['string'];
                 //开奖号码
                 $before_data['draw_number'] = $before_number = substr(strrev($before_attr['number']), 0, 4);
