@@ -63,7 +63,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('views DESC')
+            ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         return [
@@ -115,7 +115,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('ishot desc,views DESC')
+            ->orderByRaw('ishot DESC,created_at DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -158,7 +158,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('views DESC')
+            ->orderByRaw('isgreat DESC,created_at DESC')
             ->paginate($pageNum)
             ->toArray();
         return [
