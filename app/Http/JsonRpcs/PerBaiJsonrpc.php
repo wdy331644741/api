@@ -240,7 +240,7 @@ class PerBaiJsonrpc extends JsonRpc
         if ($data['remain_number'] == 0) {
             $attr = GlobalAttributes::getItem($perbaiService::$perbai_version_end);
             if ($attr && $attr['number'] > 0) {
-                    $data['shenzheng'] = $attr['number'] / 100;
+                    $data['shenzheng'] = sprintf("%.2f",$attr['number'] / 100);
                     $data['create_time'] = $attr['string'];
                     //开奖号码
                     $draw_number = substr(strrev($attr['number']), 0, 4);
