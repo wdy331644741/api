@@ -15,8 +15,10 @@ class HdJump extends Migration
         Schema::create('hd_jump', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id')->comment('用户id');
-            $table->string(' ')->default('')->comment('奖品名');
+            $table->string('award_name')->default('')->comment('奖品名');
             $table->string('alias_name')->default('')->comment('别名');
+            $table->tinyInteger('number')->comment('对应格子数');
+            $table->tinyInteger('dice')->comment('骰子数');
             $table->string('uuid', 64)->default('')->comment('唯一id');
             $table->string('type')->default('')->comment('类型');
             $table->tinyInteger('status')->default(0)->comment('状态0失败1成功');
