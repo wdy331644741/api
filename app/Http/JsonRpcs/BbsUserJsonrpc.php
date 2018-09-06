@@ -979,7 +979,6 @@ class BbsUserJsonRpc extends JsonRpc {
         $achieveZanCommentTaskInfo["description"] = "回复获得点赞";
         //成就主题贴点赞 achieveZanThread
         $achieveZanThreadTaskInfo["list"] = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->orderByRaw('number')->get()->toArray();
-        #TODO  发奖规则和前台展示规则不同 
         $achieveZanThreadCount["list"] = ThreadZan::where(['t_user_id'=>$this->userId])->count();
         foreach ($achieveZanThreadTaskInfo["list"] as $k=>$value){
             $res = Task::where(['task_type'=>$value['remark'],'user_id'=> $this->userId])->count();
