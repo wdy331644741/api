@@ -42,6 +42,7 @@ class Perbai extends Command
      */
     public function handle()
     {
+        return false;
         $perbaiService = new PerBaiService();
         $key = $perbaiService::$perbai_version_end;
 

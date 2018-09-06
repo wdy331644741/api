@@ -15,6 +15,7 @@ use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Pagination\Paginator;
+use App\Models\GlobalAttribute;
 
 use Config, Request, Cache,DB;
 use Illuminate\Support\Facades\Redis;
@@ -286,6 +287,63 @@ class PerBaiJsonrpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => $data,
+        ];
+    }
+    /**
+     * curl
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiBossAward()
+    {
+        $perbaiService = new PerBaiService();
+        $key = $perbaiService::$perbai_version_end;
+        $attr = GlobalAttribute::where(array('key' => $key))->first();
+        if (!$attr || $attr['number'] == 0) {
+            return [
+                'code' => -1,
+                'message' => 'fail',
+            ];
+        }
+        //次日开奖
+        $today = date('Ymd', time());
+        $oldday = date('Ymd', strtotime($attr['created_at']));
+        if ($oldday >= $today) {
+            return [
+                'code' => -1,
+                'message' => 'fail',
+            ];
+        }
+        //开奖号码
+        $draw_number = substr(strrev($attr['number']), 0, 4);
+        $config = Config::get('perbai');
+        $awards = $config['awards']['zhongjidajiang'];
+        $update['award_name'] = $awards['name'];
+        $update['alias_name'] = $awards['alias_name'];
+        $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
+        $update['status'] = 2;
+        $where = [
+            'draw_number'=>$draw_number,
+            'period'=>$perbaiService::$perbai_version
+        ];
+        $perbai_model = HdPerbai::where($where)->first();
+        $res = HdPerbai::where($where)->update($update);
+        if(!$res) {
+            return [
+                'code' => -1,
+                'message' => 'fail',
+            ];
+        }
+        $sendData = [
+            'user_id'=>$perbai_model->user_id,
+            'awardname'=>$awards['name'],
+            'aliasname'=>$awards['award_name'],
+            'code'=>$update['uuid']
+        ];
+        PerBaiService::sendMessage(array($sendData));
+        return [
+            'code' => 0,
+            'message' => 'success',
         ];
     }
 
