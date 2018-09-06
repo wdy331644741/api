@@ -61,7 +61,8 @@ use App\Http\JsonRpcs\QuickVoteJsonRpc;
 use App\Http\JsonRpcs\WorldCupJsonrpc;
 use App\Http\JsonRpcs\RichLotteryJsonRpc;
 use App\Http\JsonRpcs\FourYearZhengshiJsonrpc;
-use App\Http\JsonRpcs\FourLotteryJsonRpc; 
+use App\Http\JsonRpcs\FourLotteryJsonRpc;
+
 
 class RpcController extends Controller
 {
@@ -140,6 +141,9 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new FourLotteryJsonRpc());//4周年 抽奖 
         $jsonRpcServer->addService(new FourYearZhengshiJsonrpc());//四周年活动
         $jsonRpcServer->addService(new JumpJsonRpc());//跳一跳
+        $jsonRpcServer->addService(new FourLotteryJsonRpc());//4周年 抽奖
+        $jsonRpcServer->addService(new FourYearZhengshiJsonrpc());//四周年活动
+
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
