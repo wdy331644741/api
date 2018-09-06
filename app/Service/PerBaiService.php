@@ -73,7 +73,7 @@ class PerBaiService
                 $last_number = $per_config->numbers;
                 foreach ($info as $v) {
                     $draw_number = intval($v['draw_number']);
-                    $update = ['user_id' => $userId, 'status'=>1, 'type'=>$type];
+                    $update = ['user_id' => $userId, 'status'=>1, 'type'=>$type, 'period'=>self::$perbai_version];
                     if ( 0 === $draw_number) {
                         $update['award_name'] = $awards['yimadangxian']['name'];
                         $update['alias_name'] = $awards['yimadangxian']['alias_name'];
