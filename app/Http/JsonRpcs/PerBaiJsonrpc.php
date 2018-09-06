@@ -48,6 +48,8 @@ class PerBaiJsonrpc extends JsonRpc
             $result['login'] = true;
         }
 
+        $perbaiService = new PerBaiService();
+        $key = $perbaiService::$perbai_version_end;
         // 活动是否存在
         $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();
         if ($activityInfo) {
@@ -58,8 +60,6 @@ class PerBaiJsonrpc extends JsonRpc
                 if (time() > strtotime($activityConfig->start_time)) {
                     //活动正在进行
                     $result['available'] = 1;
-                    $perbaiService = new PerBaiService();
-                    $key = $perbaiService::$perbai_version_end;
                     $global_attr = GlobalAttributes::getItem($key);
                     if ($global_attr && $global_attr['number'] > 0) {
                         $result['available'] = 2;
@@ -89,6 +89,7 @@ class PerBaiJsonrpc extends JsonRpc
             //是否有中奖的号码
             $where['status'] = 2;
             $where['user_id'] = $userId;
+            $where['period'] = $perbaiService::$perbai_version;
             $perbai_model = HdPerbai::where($where)->orderBy('id', 'desc')->first();
             //弹框只显示一次
             if ($perbai_model && empty($perbai_model['remark'])) {
@@ -297,7 +298,8 @@ class PerBaiJsonrpc extends JsonRpc
 
     public static function getNewDrawNum($userId) {
 
-        $draw_num = HdPerbai::where(['user_id'=>$userId])->orderBy('id', 'desc')->first();
+        $perbaiService = new PerBaiService();
+        $draw_num = HdPerbai::where(['user_id'=>$userId, 'period'=>$perbaiService::$perbai_version])->orderBy('id', 'desc')->first();
         if (!$draw_num) {
             return ;
         }
