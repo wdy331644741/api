@@ -9,7 +9,9 @@ use DB;
 class FourYearZhengshiJsonrpc extends JsonRpc {
 
     /**
-     *  查询用户领奖状态
+     * 查询用户领奖状态
+     * 4周年领取红包
+     * 中秋领取红包
      *
      * @JsonRpcMethod
      */
@@ -17,28 +19,28 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         global $userId;
 
         $redPack = [
-            '4year_hongbao_58'=>[
-                'name'=>'58',
+            'zhongqiu_hongbao_16'=>[
+                'name'=>'16',
                 'status'=>0
             ],
-            '4year_hongbao_88'=>[
-                'name'=>'88',
+            'zhongqiu_hongbao_66'=>[
+                'name'=>'66',
                 'status'=>0
             ],
-            '4year_hongbao_288'=>[
-                'name'=>'288',
+            'zhongqiu_hongbao_126'=>[
+                'name'=>'126',
                 'status'=>0
             ],
-            '4year_hongbao_508'=>[
-                'name'=>'508',
+            'zhongqiu_hongbao_266'=>[
+                'name'=>'266',
                 'status'=>0
             ],
-            '4year_hongbao_988'=>[
-                'name'=>'988',
+            'zhongqiu_hongbao_506'=>[
+                'name'=>'506',
                 'status'=>0
             ],
-            '4year_hongbao_1888'=>[
-                'name'=>'1888',
+            'zhongqiu_hongbao_816'=>[
+                'name'=>'816',
                 'status'=>0
             ]
         ];
@@ -50,7 +52,7 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
                 'data' => $redPack
             ];
         }
-        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first();
+        $res = UserAttribute::where(['key'=>'zhongqiu_hongbao','user_id'=>$userId])->first();
         if($res){
             return [
                 'code' => 0,
@@ -61,7 +63,7 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         
         $userAttr = new UserAttribute();
         $userAttr->user_id = $userId;
-        $userAttr->key = '4year_hongbao';
+        $userAttr->key = 'zhongqiu_hongbao';
         $userAttr->text = json_encode($redPack);
         $res = $userAttr->save();
         if($res){
@@ -74,7 +76,9 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
     }
 
     /**
-     *  用户领取红包接口
+     * 用户领取红包接口
+     * 4周年领取红包
+     * 中秋领取红包
      *
      * @JsonRpcMethod
      */
@@ -86,14 +90,14 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->first();
+        $res = UserAttribute::where(['key'=>'zhongqiu_hongbao','user_id'=>$userId])->first();
         if($res){
             DB::beginTransaction();
             $data = SendAward::ActiveSendAward($userId,$params->key);
             if(isset($data[0]['status'])){
                 $redPackList = json_decode($res->text,1);
                 $redPackList[$params->key]['status'] = 1;
-                $updatestatus = UserAttribute::where(['key'=>'4year_hongbao','user_id'=>$userId])->update(['text'=>json_encode($redPackList)]);
+                $updatestatus = UserAttribute::where(['key'=>'zhongqiu_hongbao','user_id'=>$userId])->update(['text'=>json_encode($redPackList)]);
             }
         }
         if(isset($updatestatus)){
