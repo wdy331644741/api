@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
+use App\Service\GlobalAttributes;
 use App\Models\GlobalAttribute;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
@@ -62,7 +63,7 @@ class PerBaiService
         try {
             DB::beginTransaction();
             Attributes::getItemLock($userId, $config['drew_user_key']);
-            GlobalAttributes::where(['key' => $lockKey])->lockForUpdate()->first();
+            GlobalAttribute::where(['key' => $lockKey])->lockForUpdate()->first();
 
             //循环插入用户id和抽奖号码
             $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->take($number)->get()->toArray();
