@@ -160,10 +160,8 @@ class JumpJsonRpc extends JsonRpc
      */
     private function getAward($config, $number, $dice) {
         $id = intval($dice + $number);
-        if ($id == 24) {
+        if ($id > 18) {
             $id = 18;
-        }else if ($id > 18) {
-            return ['id'=>18,'name' => 'empty', 'alias_name' => 'empty', 'type' => 'empty'];
         }
         $awardList = $config['awards'];
         foreach ($awardList as $k=>$v) {

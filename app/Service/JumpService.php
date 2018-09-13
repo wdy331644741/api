@@ -26,19 +26,19 @@ class JumpService
         $remark = [];
         $insertData = [
             'user_id' => $userId,
-            'award_name' => isset($award['name']) ? $award['name'] : 'empty',
-            'alias_name' => isset($award['alias_name']) ? $award['alias_name'] : 'empty',
-            'number' => isset($award['id']) ? $award['id'] : 0,
-            'dice' => isset($award['dice']) ? $award['dice'] : 0,
+            'award_name' => $award['name'],
+            'alias_name' => $award['alias_name'],
+            'number' => $award['id'],
+            'dice' => $award['dice'],
             'uuid' => '',
             'status' => 1,
-            'type' => isset($award['type']) ? $award['type'] : 'empty',
+            'type' => $award['type'],
             'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
         ];
-        if (!$award || $award['type'] === 'empty') {
-            HdJump::create($insertData);
-            return true;
-        }
+//        if (!$award || $award['type'] === 'empty') {
+//            HdJump::create($insertData);
+//            return true;
+//        }
         // 根据别名发活动奖品
         if($award['type'] === 'activity' ) {
             $awards = SendAward::ActiveSendAward($userId, 'jump_' . $award['alias_name']);

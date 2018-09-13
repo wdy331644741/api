@@ -23,7 +23,7 @@ return [
         ['id'=>16,'name' => '100元直抵红包', 'alias_name' => 'hongbao100', 'type' => 'activity'],
         ['id'=>17,'name' => '50JD卡', 'alias_name' => 'jingdongka50', 'type' => 'virtual'],
         ['id'=>18, 'award'=> [
-                        ['id'=>18, 'name' => '小米手机S8', 'alias_name' => 'phone', 'type' => 'virtual', 'weight' => 100],
+                        ['id'=>18, 'name' => '小米手机S8', 'alias_name' => 'phone', 'type' => 'virtual', 'weight' => 2],
                         ['id'=>18, 'name' => '爱奇艺半年会员卡', 'alias_name' => 'aiqiyi6', 'type' => 'activity', 'weight' => 100],
                     ]
         ],
