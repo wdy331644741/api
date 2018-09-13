@@ -138,7 +138,6 @@ class PerBaiService
             if ($send_msg) {
                 self::sendMessage($send_msg);
             }
-            GlobalAttributes::increment($global_key, 0);
             //事务提交结束
             DB::commit();
         } catch (Exception $e) {
