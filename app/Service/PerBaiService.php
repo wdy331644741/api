@@ -66,7 +66,7 @@ class PerBaiService
             GlobalAttribute::where(['key' => $lockKey])->lockForUpdate()->first();
 
             //循环插入用户id和抽奖号码
-            $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->take($number)->get()->toArray();
+            $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->lockForUpdate()->take($number)->get()->toArray();
 //            var_dump($info);die;
             $send_msg = [];
             if ($info) {
@@ -116,7 +116,7 @@ class PerBaiService
                         $send_msg[] = $temp;
                     }
                     $update['created_at'] = date('Y-m-d H:i:s');
-                    HdPerbai::where(['id' => $v['id']])->update($update);
+                    HdPerbai::where(['id' => $v['id'], 'status'=>0])->update($update);
                 }
                 $count = count($info);
                 Attributes::increment($userId, $config['drew_total_key'], $count);
@@ -139,6 +139,7 @@ class PerBaiService
             if ($send_msg) {
                 self::sendMessage($send_msg);
             }
+            GlobalAttributes::increment($lockKey, 1);
             //事务提交结束
             DB::commit();
         } catch (Exception $e) {
