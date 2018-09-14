@@ -39,7 +39,7 @@ class JumpJsonRpc extends JsonRpc
         }
 
         // 活动是否存在
-        $activityInfo = ActivityService::GetActivityInfoByAlias('jump');
+        $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
         if( $activityInfo ) {
             //活动正在进行
             $result['available'] = 1;
@@ -136,11 +136,27 @@ class JumpJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function jumpList() {
-        $data = HdJump::select('user_id', 'award_name', 'created_at')->orderBy('id', 'desc')->take(20)->get();
+        $data = HdJump::select('user_id', 'award_name', 'created_at')->orderBy('id', 'desc')->take(20)->get()->toArray();
         foreach ($data as &$item){
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
                 $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+                unset($item['user_id']);
+            }
+            $item['created_at'] = date('Y-m-d', strtotime($item['created_at']));
+        }
+        $aliasName = Config::get('jump.alias_name');
+        $activityInfo = ActivityService::GetActivityInfoByAlias($aliasName);
+        if( $activityInfo ) {
+            $showDate = strtotime('-5 day', strtotime($activityInfo->end_at));
+            $currDate = time();
+            if ($currDate >= $showDate) {
+                $rand = rand(1,2);
+                //随机加入大奖
+                if ($rand == 1) {
+                    $bossAward = ['phone'=> '186******09', 'award_name'=>'iPhone X', 'created_at'=> date('Y-m-d', $showDate)];
+                    $data[] = $bossAward;
+                }
             }
         }
         return [
@@ -167,25 +183,7 @@ class JumpJsonRpc extends JsonRpc
         foreach ($awardList as $k=>$v) {
             //取出对应奖品
             if ($id == $v['id']) {
-                if (!isset($v['award'])) {
                     return $v;
-                } else {
-                    $awardList = $v['award'];
-                    break;
-                }
-            }
-        }
-        // 获取权重总值
-        $weight = 0;
-        foreach($awardList as $award) {
-            $weight += $award['weight'];
-        }
-
-        $target = rand(1, $weight);
-        foreach($awardList as $award) {
-            $target = $target - $award['weight'];
-            if($target <= 0) {
-                return $award;
             }
         }
     }
