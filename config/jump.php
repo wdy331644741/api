@@ -15,18 +15,14 @@ return [
         ['id'=>8,'name' => '30元直抵红包', 'alias_name' => 'hongbao30', 'type' => 'activity'],
         ['id'=>9,'name' => '2%加息券', 'alias_name' => 'jiaxi2', 'type' => 'activity'],
         ['id'=>10,'name' => '5元现金红包', 'alias_name' => 'xianjin5', 'type' => 'rmb', 'size' => 5],
-        ['id'=>11,'name' => '8.8元现金红包', 'alias_name' => 'xianjin8', 'type' => 'rmb', 'size' => 8.8],
+        ['id'=>11,'name' => '8元现金红包', 'alias_name' => 'xianjin8', 'type' => 'rmb', 'size' => 8],
         ['id'=>12,'name' => '爱奇艺会员季卡', 'alias_name' => 'aiqiyi3', 'type' => 'activity'],
         ['id'=>13,'name' => '50元直抵红包', 'alias_name' => 'hongbao50', 'type' => 'activity'],
         ['id'=>14,'name' => '3%加息券', 'alias_name' => 'jiaxi3', 'type' => 'activity'],
-        ['id'=>15,'name' => '18.8元现金红包', 'alias_name' => 'xianjin18', 'type' => 'rmb', 'size' => 18.8],
+        ['id'=>15,'name' => '18元现金红包', 'alias_name' => 'xianjin18', 'type' => 'rmb', 'size' => 18],
         ['id'=>16,'name' => '100元直抵红包', 'alias_name' => 'hongbao100', 'type' => 'activity'],
         ['id'=>17,'name' => '50JD卡', 'alias_name' => 'jingdongka50', 'type' => 'virtual'],
-        ['id'=>18, 'award'=> [
-                        ['id'=>18, 'name' => '小米手机S8', 'alias_name' => 'phone', 'type' => 'virtual', 'weight' => 2],
-                        ['id'=>18, 'name' => '爱奇艺半年会员卡', 'alias_name' => 'aiqiyi6', 'type' => 'activity', 'weight' => 100],
-                    ]
-        ],
+        ['id'=>18,'name' => '爱奇艺半年会员卡', 'alias_name' => 'aiqiyi6', 'type' => 'activity'],
     ]
 ];
 //（1）0.5元现金红包
