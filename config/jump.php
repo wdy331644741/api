@@ -23,7 +23,8 @@ return [
         ['id'=>16,'name' => '100元直抵红包', 'alias_name' => 'hongbao100', 'type' => 'activity'],
         ['id'=>17,'name' => '50JD卡', 'alias_name' => 'jingdongka50', 'type' => 'virtual'],
         ['id'=>18,'name' => '爱奇艺半年会员卡', 'alias_name' => 'aiqiyi6', 'type' => 'activity'],
-    ]
+    ],
+    'message'=>"恭喜您在'跳一跳 skr-iPhone X等你拿'活动中获得'{{awardname}}'奖励。",
 ];
 //（1）0.5元现金红包
 //（2）1元现金红包
