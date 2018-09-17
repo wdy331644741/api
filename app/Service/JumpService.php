@@ -60,6 +60,7 @@ class JumpService
             // 成功
             if(isset($purchaseRes['result'])) {
                 $res->update(['remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
+                self::sendMessage($userId, $award['name']);
                 return true;
             }
             $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
@@ -67,13 +68,17 @@ class JumpService
         } else if ($award['type'] == 'virtual') {
             $res = HdJump::create($insertData);
             if ($res) {
-                $message = Config::get('jump.message');
-                $arr['awardname'] = $award['name'];
-                SendMessage::Mail($userId, $message, $arr);
-                SendMessage::Message($userId, $message, $arr);
+                self::sendMessage($userId, $award['name']);
             }
             return true;
         }
         return false;
+    }
+
+    public static function sendMessage($userId, $name) {
+        $message = Config::get('jump.message');
+        $arr['awardname'] = $name;
+        SendMessage::Mail($userId, $message, $arr);
+        SendMessage::Message($userId, $message, $arr);
     }
 }
