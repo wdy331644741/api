@@ -55,7 +55,7 @@ class JumpService
             $uuid = SendAward::create_guid();
             $insertData['uuid'] = $uuid;
             $res = HdJump::create($insertData);
-            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'jump');
+            $purchaseRes = Func::incrementAvailable($userId, $res->id, $uuid, $award['size'], 'jump_jump');
             $remark['addMoneyRes'] = $purchaseRes;
             // 成功
             if(isset($purchaseRes['result'])) {
