@@ -65,7 +65,13 @@ class JumpService
             $res->update(['status' => 0, 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE)]);
             return false;
         } else if ($award['type'] == 'virtual') {
-            HdJump::create($insertData);
+            $res = HdJump::create($insertData);
+            if ($res) {
+                $message = Config::get('jump.message');
+                $arr['awardname'] = $award['name'];
+                SendMessage::Mail($userId, $message, $arr);
+                SendMessage::Message($userId, $message, $arr);
+            }
             return true;
         }
         return false;
