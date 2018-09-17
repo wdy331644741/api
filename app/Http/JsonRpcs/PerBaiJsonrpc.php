@@ -188,17 +188,27 @@ class PerBaiJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function perbaiJoinNum() {
-
-//        $join_num = Redis::get('perbai_join_num');
-//        if (!$join_num) {
-            $join_num = HdPerbai::where('user_id', '>', 0)->distinct('use_id')->count('user_id');
-//            Redis::incr('perbai_join_num', 1);
-//        }
-        $data['number'] = $join_num;
+        $global_key = 'perbai_pv';
+        $globalAttr = GlobalAttributes::getItem($global_key);
+        $data['number'] = isset($globalAttr) ? $globalAttr->number : 0;
         return [
             'code' => 0,
             'message' => 'success',
             'data' => $data,
+        ];
+    }
+
+    /**
+     * 活动 PV 记录
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiPv() {
+        $global_key = 'perbai_pv';
+        GlobalAttributes::increment($global_key);
+        return [
+            'code' => 0,
+            'message' => 'success',
         ];
     }
 
@@ -211,7 +221,7 @@ class PerBaiJsonrpc extends JsonRpc
 
         $key = 'perbai_award_pic';
         $data = Cache::remember($key, 10, function() {
-            $fields = ['ultimate_award','ultimate_img1','ultimate_img2','first_award','first_img1','first_img2','last_award','last_img1','last_img2','sunshine_award','sunshine_img1','sunshine_img2', 'ultimate_pc1','ultimate_pc2','first_pc1','first_pc2','last_pc1','last_pc2','sunshine_pc1','sunshine_pc2'];
+            $fields = ['ultimate_award','ultimate_img1','ultimate_img2','first_award','first_img1','first_img2','last_award','last_img1','last_img2','sunshine_award','sunshine_img1','sunshine_img2', 'ultimate_pc1','ultimate_pc2','first_pc1','first_pc2','last_pc1','last_pc2','sunshine_pc1','sunshine_pc2','ultimate_rule', 'first_rule', 'last_rule', 'sunshine_rule', 'activity_rule', 'award_text'];
             $list = HdPerHundredConfig::select($fields)->where('status', 1)->orderBy('id', 'desc')->first();
             return $list;
         });
