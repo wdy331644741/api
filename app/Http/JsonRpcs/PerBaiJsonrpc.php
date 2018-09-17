@@ -190,7 +190,7 @@ class PerBaiJsonrpc extends JsonRpc
     public function perbaiJoinNum() {
         $global_key = 'perbai_pv';
         $globalAttr = GlobalAttributes::getItem($global_key);
-        $data['number'] = isset($globalAttr) ? $globalAttr->number : 0;
+        $data['number'] = isset($globalAttr->number) ? $globalAttr->number : 0;
         return [
             'code' => 0,
             'message' => 'success',
