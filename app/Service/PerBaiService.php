@@ -2,6 +2,8 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
+use App\Service\GlobalAttributes;
+use App\Models\GlobalAttribute;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
 use Config, Cache,DB;
@@ -57,12 +59,14 @@ class PerBaiService
             }
         }
         Attributes::increment($userId, $config['drew_user_key'], $number);
+        $lockKey = 'lock_perbai';
         try {
             DB::beginTransaction();
             Attributes::getItemLock($userId, $config['drew_user_key']);
+            GlobalAttribute::where(['key' => $lockKey])->lockForUpdate()->first();
 
             //循环插入用户id和抽奖号码
-            $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->take($number)->get()->toArray();
+            $info = HdPerbai::select('id', 'draw_number')->where(['user_id' => 0, 'status' => 0, 'period'=>self::$perbai_version])->lockForUpdate()->take($number)->get()->toArray();
 //            var_dump($info);die;
             $send_msg = [];
             if ($info) {
@@ -73,7 +77,7 @@ class PerBaiService
                 $last_number = $per_config->numbers;
                 foreach ($info as $v) {
                     $draw_number = intval($v['draw_number']);
-                    $update = ['user_id' => $userId, 'status'=>1, 'type'=>$type];
+                    $update = ['user_id' => $userId, 'status'=>1, 'type'=>$type, 'period'=>self::$perbai_version];
                     if ( 0 === $draw_number) {
                         $update['award_name'] = $awards['yimadangxian']['name'];
                         $update['alias_name'] = $awards['yimadangxian']['alias_name'];
@@ -112,7 +116,7 @@ class PerBaiService
                         $send_msg[] = $temp;
                     }
                     $update['created_at'] = date('Y-m-d H:i:s');
-                    HdPerbai::where(['id' => $v['id']])->update($update);
+                    HdPerbai::where(['id' => $v['id'], 'status'=>0])->update($update);
                 }
                 $count = count($info);
                 Attributes::increment($userId, $config['drew_total_key'], $count);
@@ -135,6 +139,7 @@ class PerBaiService
             if ($send_msg) {
                 self::sendMessage($send_msg);
             }
+            GlobalAttributes::increment($lockKey, 1);
             //事务提交结束
             DB::commit();
         } catch (Exception $e) {

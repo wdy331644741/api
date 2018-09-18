@@ -15,6 +15,7 @@ use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Pagination\Paginator;
+use App\Models\GlobalAttribute;
 
 use Config, Request, Cache,DB;
 use Illuminate\Support\Facades\Redis;
@@ -48,6 +49,8 @@ class PerBaiJsonrpc extends JsonRpc
             $result['login'] = true;
         }
 
+        $perbaiService = new PerBaiService();
+        $key = $perbaiService::$perbai_version_end;
         // 活动是否存在
         $activityInfo = Activity::where(['enable' => 1, 'alias_name' => $config['alias_name']])->first();
         if ($activityInfo) {
@@ -58,8 +61,6 @@ class PerBaiJsonrpc extends JsonRpc
                 if (time() > strtotime($activityConfig->start_time)) {
                     //活动正在进行
                     $result['available'] = 1;
-                    $perbaiService = new PerBaiService();
-                    $key = $perbaiService::$perbai_version_end;
                     $global_attr = GlobalAttributes::getItem($key);
                     if ($global_attr && $global_attr['number'] > 0) {
                         $result['available'] = 2;
@@ -89,6 +90,7 @@ class PerBaiJsonrpc extends JsonRpc
             //是否有中奖的号码
             $where['status'] = 2;
             $where['user_id'] = $userId;
+            $where['period'] = $perbaiService::$perbai_version;
             $perbai_model = HdPerbai::where($where)->orderBy('id', 'desc')->first();
             //弹框只显示一次
             if ($perbai_model && empty($perbai_model['remark'])) {
@@ -257,7 +259,7 @@ class PerBaiJsonrpc extends JsonRpc
             $before_attr = GlobalAttributes::getItem($before_key);
             if ($before_attr && $before_attr['number'] > 0) {
                 //上期深证成指收盘价
-                $before_data['shenzheng'] = $before_attr['number'] / 100;
+                $before_data['shenzheng'] = sprintf("%.2f",$before_attr['number'] / 100);
                 $before_data['create_time'] = $before_attr['string'];
                 //开奖号码
                 $before_data['draw_number'] = $before_number = substr(strrev($before_attr['number']), 0, 4);
@@ -287,6 +289,63 @@ class PerBaiJsonrpc extends JsonRpc
             'data' => $data,
         ];
     }
+    /**
+     * curl
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiBossAward()
+    {
+        $perbaiService = new PerBaiService();
+        $key = $perbaiService::$perbai_version_end;
+        $attr = GlobalAttribute::where(array('key' => $key))->first();
+        if (!$attr || $attr['number'] == 0) {
+            return [
+                'code' => -1,
+                'message' => 'fail',
+            ];
+        }
+        //次日开奖
+        $today = date('Ymd', time());
+        $oldday = date('Ymd', strtotime($attr['created_at']));
+        if ($oldday >= $today) {
+            return [
+                'code' => -1,
+                'message' => 'fail',
+            ];
+        }
+        //开奖号码
+        $draw_number = substr(strrev($attr['number']), 0, 4);
+        $config = Config::get('perbai');
+        $awards = $config['awards']['zhongjidajiang'];
+        $update['award_name'] = $awards['name'];
+        $update['alias_name'] = $awards['alias_name'];
+        $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
+        $update['status'] = 2;
+        $where = [
+            'draw_number'=>$draw_number,
+            'period'=>$perbaiService::$perbai_version
+        ];
+        $perbai_model = HdPerbai::where($where)->first();
+        $res = HdPerbai::where($where)->update($update);
+        if(!$res) {
+            return [
+                'code' => -1,
+                'message' => 'fail',
+            ];
+        }
+        $sendData = [
+            'user_id'=>$perbai_model->user_id,
+            'awardname'=>$awards['name'],
+            'aliasname'=>$awards['award_name'],
+            'code'=>$update['uuid']
+        ];
+        PerBaiService::sendMessage(array($sendData));
+        return [
+            'code' => 0,
+            'message' => 'success',
+        ];
+    }
 
     public static function getRemainNum() {
 
@@ -297,7 +356,8 @@ class PerBaiJsonrpc extends JsonRpc
 
     public static function getNewDrawNum($userId) {
 
-        $draw_num = HdPerbai::where(['user_id'=>$userId])->orderBy('id', 'desc')->first();
+        $perbaiService = new PerBaiService();
+        $draw_num = HdPerbai::where(['user_id'=>$userId, 'period'=>$perbaiService::$perbai_version])->orderBy('id', 'desc')->first();
         if (!$draw_num) {
             return ;
         }
