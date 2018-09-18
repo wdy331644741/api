@@ -165,7 +165,7 @@ class BbsSendAwardService
         $achievePublishThreadInfo = Tasks::where(["task_mark"=>"achieveZanThread","enable"=>1])->get()->toArray();
         if($achievePublishThreadInfo) {
             //作者 处理点赞任务
-            $userDayThreadCount = ThreadZan::where(["t_user_id"=>$this->userPid,"status"=>0])->count();
+            $userDayThreadCount = ThreadZan::where(["t_user_id"=>$this->userPid/*,"status"=>0 不验证取消点赞记录*/])->count();
             foreach ($achievePublishThreadInfo as $value) {
                 //审核是否已经发过奖
                 $res = Task::where(["user_id" => $this->userPid, "task_type" => $value['remark']])->count();

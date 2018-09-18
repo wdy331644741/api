@@ -80,7 +80,7 @@ class ThreadController extends Controller
         DB::beginTransaction();
         $res = Thread::destroy($request->id);
         $cRes = Comment::where('tid',$request->id)->delete();
-        if($cRes){
+        if($cRes!== false){
             DB::commit();
             return $this->outputJson(0);
         }else{
