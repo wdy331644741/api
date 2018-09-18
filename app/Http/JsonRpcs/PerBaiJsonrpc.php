@@ -38,7 +38,7 @@ class PerBaiJsonrpc extends JsonRpc
             'countdown_status' => 0,//倒计时是否开始
             'countdown' => 0,//倒计时
             'start'=>'',
-//            'remain_number'=> 0,//剩余抽奖号码个数
+            'remain_number'=> 0,//剩余抽奖号码个数
             'alert_status'=>0,//弹框状态
             'draw_number'=> null,//我的最新的抽奖号码
             'draw_number_list'=> [],//我的的抽奖号码列表
@@ -103,6 +103,8 @@ class PerBaiJsonrpc extends JsonRpc
                 $perbai_model->save();
             }
         }
+        $result['remain_number'] = self::getRemainNum();
+        $result['period'] = $perbaiService::$perbai_version;
         return [
             'code' => 0,
             'message' => 'success',
