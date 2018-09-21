@@ -196,7 +196,7 @@ class SendAward
         switch ($activityInfo['alias_name']) {
             /** 逢百抽大奖 start **/
             case 'perbai_investment':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && $triggerData['novice_exclusive'] == 0 && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     if ( $triggerData['period'] >= 3 && $amount >= 5000 ) {
                         $num = intval($amount/5000);
