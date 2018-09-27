@@ -118,8 +118,7 @@ class PerBaiService
                     $update['created_at'] = date('Y-m-d H:i:s');
                     $updateRes = HdPerbai::where(['id' => $v['id'], 'status'=>0])->update($update);
                     if (!$updateRes) {
-                        DB::rollBack();
-                        return ;
+                        throw new OmgException(OmgException::DATABASE_ERROR);
                     }
                 }
                 $count = count($info);
