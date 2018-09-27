@@ -116,7 +116,11 @@ class PerBaiService
                         $send_msg[] = $temp;
                     }
                     $update['created_at'] = date('Y-m-d H:i:s');
-                    HdPerbai::where(['id' => $v['id'], 'status'=>0])->update($update);
+                    $updateRes = HdPerbai::where(['id' => $v['id'], 'status'=>0])->update($update);
+                    if (!$updateRes) {
+                        DB::rollBack();
+                        return ;
+                    }
                 }
                 $count = count($info);
                 Attributes::increment($userId, $config['drew_total_key'], $count);
