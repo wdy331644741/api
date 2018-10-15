@@ -2,7 +2,6 @@
 return [
     'alias_name' => 'oct_lottery',
     'alias_name_desc' => '十月份抽奖',
-    'drew_cost' => 1,//1积分抽奖
     'interval' => 3, // 两次抽奖间隔秒数
     'drew_daily_key' => 'oct_drew_daily', // 两次抽奖间隔秒数
     'drew_total_key' => 'oct_drew_total', // 两次抽奖间隔秒数

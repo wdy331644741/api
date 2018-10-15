@@ -17,7 +17,7 @@ use Config, Request, DB, Cache;
 class OctLotteryJsonRpc extends JsonRpc
 {
 
-    const iphoneMail = "恭喜您在'4周年生日趴，1积分抽iPhone X'活动中获得'一部iPhone X手机'奖励。";
+    const iphoneMail = "10月新存管活动抽奖";//注释 nothing
     /**
      * 抽奖info
      *
@@ -150,7 +150,7 @@ class OctLotteryJsonRpc extends JsonRpc
      *
      * @JsonRpcMethod
      */
-    public function preFourLotteryBingo(){
+    public function octLotteryBingo(){
         global $userId;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -165,19 +165,6 @@ class OctLotteryJsonRpc extends JsonRpc
         ];
     }
 
-
-    /**
-     * 抽奖完成 减少用户抽奖次数
-     *
-     */
-    private function decLotteryCounts($bat,$userId){
-        $key = Config::get('octlottery.alias_name') . '_' . date('Ymd') . '_'. $bat . '_' . $userId;
-        //获取用户剩余抽奖信息
-        $_remainder = $this->getLooteryCounts($userId);
-        $newSet = substr($_remainder,0,1) + 1;
-        Redis::setex($key,24*3600 ,$newSet.'-'.substr($_remainder,-1) );
-        return true;
-    }
 
     /**
      * 用户剩余抽奖次数(当天)
@@ -199,7 +186,7 @@ class OctLotteryJsonRpc extends JsonRpc
      */
     private function initLotteryCounts($userId){
         $config = Config::get('octlottery');
-        return Attributes::increment($userId , $config['drew_daily_key']);
+        return Attributes::incrementItemByDay($userId , $config['drew_daily_key'] ,$initNum=1 ,$initStr=1);
     }
 
     /**
@@ -288,78 +275,7 @@ class OctLotteryJsonRpc extends JsonRpc
         return false;
     }
 
-    /**
-     * 检查特殊奖品发放
-     *
-     */
-    private function specialCheck($level){
-        //会员等级是否大于5
-        if($level < 5)
-            return false;
-        
-        $config = Config::get('octlottery');
-        $_special = $config['specialAward'];
-        //是否已经发放
-        $isSend = false;
-        $checkCache = Cache::get($_special['alias_name']);
-        if(empty($checkCache)){
-            //去数据库查询
-            $res = RichLottery::where(['remark' => $_special['alias_name'], 'uuid' => $config['alias_name'] ])->get()->toArray();
-            $isSend = !empty($res)?true:false;
-        }else{
-            $isSend = true;
-        }
-        //********
 
-        //iphone已送出
-        if($isSend)
-            return false;
-        //计算概率
-        $target = rand(1, $_special['totalCounts']);
-        if($target == 1){
-            return true;
-        }
-
-        //未中奖
-        return false;
-    }
-
-    /**
-     * 发放iPhoneX 奖品
-     *
-     */
-    private function getiPhoneXaward($userId,$bat = 0){
-        $iphoneX = Config::get('octlottery.specialAward');
-        $cacheKey = $iphoneX['alias_name'];
-
-        RichLottery::create([
-            'user_id' => $userId,
-            'amount' => 0,
-            'award_name' => $iphoneX['desp'],
-            'uuid' => 'fouryear_pre',
-            'ip' => Request::getClientIp(),
-            'user_agent' => Request::header('User-Agent'),
-            'status' => 1,
-            'type' => 0,
-            'remark' => $iphoneX['alias_name'],
-        ]);
-        //修改 用户剩余抽奖次数
-        $this->decLotteryCounts($bat,$userId);
-        //发送站内信
-        SendMessage::Mail($userId,self::iphoneMail);
-        //放入缓存
-        Cache::forever($cacheKey, $userId);
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => [
-                'awardName' => $iphoneX['desp'],
-                'awardType' => 0,
-                'amount' => 0,
-                'awardSigni' => $iphoneX['alias_name'],
-            ],
-        ]; 
-    }
 
 }
 

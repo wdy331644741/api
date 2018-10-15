@@ -214,6 +214,7 @@ class SendAward
                             ->lockForUpdate()
                             ->first();
                         if(isset($beforeCount->number) ){
+                            if($beforeCount->string >= 3) throw new \Exception('每日最多3次抽奖机会');
                             $beforeString = $beforeCount->string;//今天赠送了多少次抽奖机会
                             //今天还能送多少次机会
                             $invest_switch = $invest_switch > (3-$beforeString)?(3-$beforeString):$invest_switch;
@@ -254,6 +255,7 @@ class SendAward
                             ->lockForUpdate()
                             ->first();
                         if(isset($beforeCount->number) ){
+                            if($beforeCount->string >= 3) throw new \Exception('每日最多3次抽奖机会');
                             $beforeString = $beforeCount->string;//今天赠送了多少次抽奖机会
                             //今天还能送多少次机会
                             $invest_switch = $invest_switch > 3-$beforeString?3-$beforeString:$invest_switch;
