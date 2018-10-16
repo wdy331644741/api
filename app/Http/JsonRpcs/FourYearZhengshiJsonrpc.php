@@ -90,9 +90,9 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = UserAttribute::where(['key'=>'zhongqiu_hongbao','user_id'=>$userId])->first();
+        DB::beginTransaction();
+        $res = UserAttribute::where(['key'=>'zhongqiu_hongbao','user_id'=>$userId])->lockForUpdate()->first();
         if($res){
-            DB::beginTransaction();
             $data = SendAward::ActiveSendAward($userId,$params->key);
             if(isset($data[0]['status'])){
                 $redPackList = json_decode($res->text,1);

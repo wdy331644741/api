@@ -96,6 +96,35 @@ class Attributes
     }
 
     /**
+     * 同上
+     */
+    static public function incrementItemByDay($userId, $key, $num=1 ,$string=null,$text=null){
+        $res = UserAttribute::where(['user_id' => $userId, 'key' => $key])->first();
+
+        if(!$res) {
+            $res = UserAttribute::create(['user_id' => $userId, 'key' => $key,  'number' => $num ,'string' => $string ,'text' => $text]);
+            return $res->number;
+        }
+
+        if(date('Ymd', strtotime($res['updated_at'])) !== date('Ymd')) {
+            $res->number = $num;
+            $res->string = $string;
+            $res->text   = $text;
+            $res->updated_at = date('Y-m-d H:i:s');
+            $res->save();
+            return $res->number;
+        }
+        //如果sting 和 text不为空   保存
+        if(!empty($string) || !empty($text)){
+            $res->string = $string;
+            $res->text   = $text;
+            $res->save();
+        }
+
+        $res->increment('number', $num);
+        return $res->number;
+    }
+    /**
      * 根据$key获取number,每日number清空
      *
      * @param $key
