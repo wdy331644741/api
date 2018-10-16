@@ -174,7 +174,10 @@ class OctLotteryJsonRpc extends JsonRpc
         $userAtt = UserAttribute::where(array('user_id' => $userId, 'key' => $config['drew_daily_key']))->where("updated_at",">=",date("Y-m-d"))->first();
         //如果存在 返回，如果不存在  init用户抽奖次数
         $counts = isset($userAtt['number'])?$userAtt['number']:$this->initLotteryCounts($userId);
-        
+        if($counts >3){
+            $userAtt->number = 3;
+            $userAtt->save();
+        }
         return $counts>3?3:$counts;
     }
 
