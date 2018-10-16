@@ -164,6 +164,23 @@ class OctLotteryJsonRpc extends JsonRpc
         ];
     }
 
+    /**
+     * 获奖列表(全部) 缓存5分钟
+     *
+     * @JsonRpcMethod
+     */
+    public function octLotteryList(){
+        $key = "octLotteryList";
+        $config = Config::get('octlottery');
+        return Cache::remember($key,5, function() use($config){
+            $list = RichLottery::select('award_name', 'created_at')->where(['uuid' => $config['alias_name'] ])->latest()->limit(30)->get();
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $list,
+            ];
+        });
+    }
 
     /**
      * 用户剩余抽奖次数(当天)
