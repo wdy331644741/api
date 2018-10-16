@@ -17,7 +17,7 @@ use Config, Request, DB, Cache;
 class OctLotteryJsonRpc extends JsonRpc
 {
 
-    const iphoneMail = "10月新存管活动抽奖";//注释 nothing
+    const iphoneMail = "10月新存管活动抽奖-无iphone x";//注释 nothing
     /**
      * 抽奖info
      *
@@ -85,7 +85,6 @@ class OctLotteryJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
 
-        // $item = $this->selectList();
         //符合用户会员等级的奖品列表
         $item = $config['lists'][max($_userInfo['level'],0)];
         //查询是否 剩余抽奖次数
@@ -226,36 +225,6 @@ class OctLotteryJsonRpc extends JsonRpc
         throw new OmgException(OmgException::NUMBER_IS_NULL);
     }
 
-
-
-    /**
-     * 选择 抽奖时间段、奖品
-     *
-     * @param $lists
-     * @return mixed
-     * @throws OmgException
-     */
-    private function selectList($lists) {
-        foreach($lists as $item) {
-            $startTimestamps = strtotime(date("Y-m-d {$item['start']}:00:00"));
-            $endTimestamps = strtotime(date("Y-m-d {$item['end']}:00:00"));
-            $now = time();
-            if($item['start'] > $item['end']) {
-                if($now < $endTimestamps){
-                    $startTimestamps -= 3600*24;
-                }else {
-                    $endTimestamps += 3600*24;
-                }
-            }
-
-            if($startTimestamps < $now && $now < $endTimestamps) {
-                $item['startTimestamps'] = $startTimestamps;
-                $item['endTimestamps'] = $endTimestamps;
-                return $item;
-            }
-        }
-        throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-    }
 
 
     /**
