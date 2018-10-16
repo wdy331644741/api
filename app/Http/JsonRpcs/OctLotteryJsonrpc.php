@@ -38,8 +38,10 @@ class OctLotteryJsonRpc extends JsonRpc
         // 获取用户 抽奖次数 是否可以抽奖
         if($islogin){
             $num = $this->getLooteryCounts($userId);
+            $getNum = $this->getGiveCounts($userId);
         }else{
             $num = 0;
+            $getNum = 0;
         }
 
         return [
@@ -48,6 +50,7 @@ class OctLotteryJsonRpc extends JsonRpc
             'data'    => [
                 'islogin' => $islogin,
                 'num'   => $num,
+                'getNum'   => intval($getNum),
             ],
         ];
     }
@@ -201,6 +204,18 @@ class OctLotteryJsonRpc extends JsonRpc
         return $counts>3?3:$counts;
     }
 
+    /**
+     * 获取用户赠送抽奖次数(当天)
+     *
+     */
+    private function getGiveCounts($userId){
+        $config = Config::get('octlottery');
+        $userAtt = UserAttribute::where(array('user_id' => $userId, 'key' => $config['drew_daily_key']))->where("updated_at",">=",date("Y-m-d"))->first();
+        //如果存在 返回，如果不存在  init用户抽奖次数
+        $getString = isset($userAtt['string'])?$userAtt['string']:$this->initLotteryCounts($userId);
+
+        return $getString>3?3:$getString;
+    }
 
     /**
      * 初始化用户抽奖次数(当天)
