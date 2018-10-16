@@ -38,6 +38,7 @@ use App\Service\AfterSendAward;
 use App\Service\TzyxjService;
 use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
+use App\Service\OctLotteryService;
 
 class SendAward
 {
@@ -205,37 +206,10 @@ class SendAward
                     $reference_date = date("Y-m-d");//时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
                     $user_inc = $triggerData['from_user_id'];
                     $invest_switch = 1;//注册给一次
-
-                    $config = Config::get('octlottery');
-                    //事务开始
-                    DB::beginTransaction();
-                    try{
-                        $beforeCount = UserAttribute::where(array('user_id' => $user_inc, 'key' => $config['drew_daily_key']))
-                            ->whereDate('updated_at','=',$reference_date)
-                            ->lockForUpdate()
-                            ->first();
-                        if(isset($beforeCount->number) ){
-                            if($beforeCount->string >= 3) throw new \Exception('每日最多3次抽奖机会');
-                            $beforeString = $beforeCount->string;//今天赠送了多少次抽奖机会
-                            //今天还能送多少次机会
-                            $invest_switch = $invest_switch > (3-$beforeString)?(3-$beforeString):$invest_switch;
-                            $afterString = $beforeString+$invest_switch;
-                            $res = Attributes::incrementItemByDay($user_inc,$config['drew_daily_key'],$invest_switch,$afterString);
-                        }else{//每天初始化 额外给用户一次抽奖次数
-                            $res = Attributes::incrementItemByDay($user_inc,$config['drew_daily_key'],$invest_switch+1,$invest_switch+1);
-                        }
-
-                        if($res){
-                            DB::commit();
-                        }else{
-                            throw new \Exception('增加抽奖次数失败');
-                        }
-                    }catch(\Exception $e){
-                        echo $e->getMessage();
-                        DB::rollBack();
-                    }
+                    OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
 
                 }
+                break;
             case 'oct_lottery_investgive'://投资送抽奖
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
                     && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
@@ -246,37 +220,10 @@ class SendAward
                     $user_inc = $triggerData['user_id'];
                     //最大赠送2次
                     $invest_switch = intval($triggerData['Investment_amount']/10000) > 2?2:intval($triggerData['Investment_amount']/10000);
-
-                    $config = Config::get('octlottery');
-                    //事务开始
-                    DB::beginTransaction();
-                    try{
-                        $beforeCount = UserAttribute::where(array('user_id' => $user_inc, 'key' => $config['drew_daily_key']))
-                            ->whereDate('updated_at','=',$reference_date)
-                            ->lockForUpdate()
-                            ->first();
-                        if(isset($beforeCount->number) ){
-                            if($beforeCount->string >= 3) throw new \Exception('每日最多3次抽奖机会');
-                            $beforeString = $beforeCount->string;//今天赠送了多少次抽奖机会
-                            //今天还能送多少次机会
-                            $invest_switch = $invest_switch > 3-$beforeString?3-$beforeString:$invest_switch;
-                            $afterString = $beforeString+$invest_switch;
-                            $res = Attributes::incrementItemByDay($user_inc,$config['drew_daily_key'],$invest_switch,$afterString);
-                        }else{//每天初始化 用户一次抽奖次数
-                            $res = Attributes::incrementItemByDay($user_inc,$config['drew_daily_key'],$invest_switch+1,$invest_switch+1);
-                        }
-
-                        if($res){
-                            DB::commit();
-                        }else{
-                            throw new \Exception('增加抽奖次数失败');
-                        }
-                    }catch(\Exception $e){
-                        echo $e->getMessage();
-                        DB::rollBack();
-                    }
+                    OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
 
                 }
+                break;
             /** 十月份抽奖投资送次数 end */
 
             /** 四周年活动投多少送多少体验金 START */
