@@ -173,7 +173,10 @@ class OctLotteryJsonRpc extends JsonRpc
         $key = "octLotteryList";
         $config = Config::get('octlottery');
         return Cache::remember($key,5, function() use($config){
-            $list = RichLottery::select('award_name', 'created_at')->where(['uuid' => $config['alias_name'] ])->latest()->limit(30)->get();
+            $list = RichLottery::select('user_id' ,'award_name')->where(['uuid' => $config['alias_name'] ])->latest()->limit(30)->get();
+            foreach ($list as $key => & $value) {
+                $value['user_id'] = Func::getUserPhone($value['user_id']);
+            }
             return [
                 'code' => 0,
                 'message' => 'success',
