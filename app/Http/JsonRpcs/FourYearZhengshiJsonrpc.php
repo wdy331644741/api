@@ -93,9 +93,17 @@ class FourYearZhengshiJsonrpc extends JsonRpc {
         DB::beginTransaction();
         $res = UserAttribute::where(['key'=>'shuang11_hongbao','user_id'=>$userId])->lockForUpdate()->first();
         if($res){
+            $redPackList = json_decode($res->text,1);
+            if($redPackList[$params->key]['status'] == 1){
+                DB::rollback();
+                return [
+                    'code' => -1,
+                    'message' => 'fail',
+                    'data' =>'已领取'
+                ];
+            }
             $data = SendAward::ActiveSendAward($userId,$params->key);
             if(isset($data[0]['status'])){
-                $redPackList = json_decode($res->text,1);
                 $redPackList[$params->key]['status'] = 1;
                 $updatestatus = UserAttribute::where(['key'=>'shuang11_hongbao','user_id'=>$userId])->update(['text'=>json_encode($redPackList)]);
             }
