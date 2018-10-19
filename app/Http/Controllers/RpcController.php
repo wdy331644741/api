@@ -10,6 +10,7 @@ use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
 use App\Http\JsonRpcs\CollectCardJsonrpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
+use App\Http\JsonRpcs\DoubleElevenJsonrpc;
 use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\JumpJsonRpc;
@@ -23,6 +24,7 @@ use App\Http\JsonRpcs\SignInSystemJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
 use App\Models\PoBaiYi;
+use App\Service\DoubleElevenService;
 use App\Service\NvshenyueService;
 use Illuminate\Http\Request;
 
@@ -130,6 +132,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new FourLotteryJsonRpc());//4周年 抽奖
         $jsonRpcServer->addService(new FourYearZhengshiJsonrpc());//四周年活动
         $jsonRpcServer->addService(new JumpJsonRpc());//跳一跳
+        $jsonRpcServer->addService(new DoubleElevenJsonrpc());//双11 -- 集卡
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
