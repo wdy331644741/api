@@ -202,8 +202,8 @@ class SendAward
                     && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' 
                     && $triggerData['from_user_id'] != 0
                     ){
-                    // $reference_date = substr($triggerData['time'], 10);
-                    $reference_date = date("Y-m-d");//时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
+                    $reference_date = $triggerData['time'];
+                    //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
                     $user_inc = $triggerData['from_user_id'];
                     $invest_switch = 1;//注册给一次
                     OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
@@ -215,8 +215,8 @@ class SendAward
                     && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
                     && $triggerData['tag'] == 'investment' 
                     ){
-                    // $reference_date = substr($triggerData['buy_time'], 10);
-                    $reference_date = date("Y-m-d");//时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
+                    $reference_date = $triggerData['buy_time'];
+                    //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
                     $user_inc = $triggerData['user_id'];
                     //最大赠送2次
                     $invest_switch = intval($triggerData['Investment_amount']/10000) > 2?2:intval($triggerData['Investment_amount']/10000);

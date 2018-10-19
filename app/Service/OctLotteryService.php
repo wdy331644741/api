@@ -3,6 +3,7 @@ namespace App\Service;
 
 use App\Models\UserAttribute;
 use App\Service\Attributes;
+use App\Service\ActivityService;
 use Config;
 use DB;
 
@@ -13,9 +14,18 @@ class OctLotteryService
      * 传用户id ，赠送次数，日期
      */
     static function ctlUserAttributes($user_inc ,$invest_switch ,$reference_date){
+
         $config = Config::get('octlottery');
+        $actInfo = ActivityService::GetActivityedInfoByAlias($config['alias_name']);
+        if(isset($actInfo) ){
+            if($reference_date < $actInfo->start_at){
+                return "活动未开始";
+            }else if($reference_date > $actInfo->end_at){
+                return "活动已结束";
+            }
+        }
         $beforeCount = UserAttribute::where(array('user_id' => $user_inc, 'key' => $config['drew_daily_key']))
-                        ->whereDate('updated_at','=',$reference_date)
+                        ->whereDate('updated_at','=',date("Y-m-d"))
                         // ->lockForUpdate()
                         ->first();
         if(isset($beforeCount->number) ){
