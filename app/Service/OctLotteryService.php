@@ -20,7 +20,7 @@ class OctLotteryService
         if(isset($actInfo) ){
             if($reference_date < $actInfo->start_at){
                 return "活动未开始";
-            }else if($reference_date > $actInfo->end_at){
+            }else if($reference_date >= $actInfo->end_at){
                 return "活动已结束";
             }
         }
