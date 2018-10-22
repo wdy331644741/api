@@ -102,6 +102,9 @@ class DoubleElevenJsonrpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $aliasName = Config::get('doubleeleven.alias_name');
+        if (!ActivityService::isExistByAlias($aliasName)) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         DB::beginTransaction();
         $res = UserAttribute::where(['key'=>$aliasName,'user_id'=>$userId])->lockForUpdate()->first();
         if($res){
@@ -135,17 +138,17 @@ class DoubleElevenJsonrpc extends JsonRpc
         if(!$userId || !$ids) {
             return false;
         }
-        $url = env('ACCOUNT_HTTP_URL');
+        $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
         $params['user_id'] = $userId;
         $params['ids'] = $ids;
-        //todo 用户组提供数据
-        $result = $client->couponUseStatus($params);
-        if ( !empty($result['result']) && $result['result']['status'] == 1) {//成功
-            $number = intval($result['result']['number']);
+        $result = $client->getRedpacketIsUseNum($params);
+        $number = 0;
+        if ( isset($result['result']) && isset($result['result']['num']) ) {//成功
+            $number = intval($result['result']['num']);
             //改状态属性表
         }
-        return 0;
+        return $number;
     }
 }
 
