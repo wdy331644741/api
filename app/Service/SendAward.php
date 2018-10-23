@@ -38,6 +38,7 @@ use App\Service\Open;
 use App\Service\AfterSendAward;
 use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
+use App\Service\OctLotteryService;
 
 class SendAward
 {
@@ -229,6 +230,37 @@ class SendAward
                 }
                 break;
             /** 曲棍球正式场活动 END */
+
+            /** 十月份抽奖投资送次数 START */
+            case 'oct_lottery_registergive'://注册送抽奖
+                if(isset($triggerData['tag']) 
+                    && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' 
+                    && $triggerData['from_user_id'] != 0
+                    ){
+                    $reference_date = $triggerData['time'];
+                    //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
+                    $user_inc = $triggerData['from_user_id'];
+                    $invest_switch = 1;//注册给一次
+                    OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
+
+                }
+                break;
+            case 'oct_lottery_investgive'://投资送抽奖
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                    && $triggerData['tag'] == 'investment' 
+                    ){
+                    $reference_date = $triggerData['buy_time'];
+                    //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
+                    $user_inc = $triggerData['user_id'];
+                    //最大赠送2次
+                    $invest_switch = intval($triggerData['Investment_amount']/10000) > 2?2:intval($triggerData['Investment_amount']/10000);
+                    OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
+
+                }
+                break;
+            /** 十月份抽奖投资送次数 end */
+
             /** 四周年活动投多少送多少体验金 START */
             //投资
             case 'four_birthday_invest_experience':

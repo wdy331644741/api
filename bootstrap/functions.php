@@ -258,7 +258,7 @@ if (!function_exists('in_array_mul')) {
 if (!function_exists('getallheaders')) {
     function getallheaders()
     {
-        $headers = '';
+        $headers = null;//php7 版本强类型，初始赋值为字符串会报错
         foreach ($_SERVER as $name => $value) {
             if (substr($name, 0, 5) == 'HTTP_') {
                 $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
