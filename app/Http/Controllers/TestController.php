@@ -6,7 +6,6 @@ use App\Models\HdAmountShareRich;
 use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Service\Func;
-use App\Service\Hockey;
 use App\Service\Scratch;
 use App\Service\SendAward;
 use Illuminate\Http\Request;
