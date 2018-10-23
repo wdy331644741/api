@@ -29,10 +29,6 @@ use Excel;
 
 class TestController extends Controller
 {
-    public function getTest(){
-        $res = Hockey::HockeyCardObtain(2348732,16530);
-        dd($res);
-    }
     public function getCustomExperience(){
         return view('custom_experience');
     }
