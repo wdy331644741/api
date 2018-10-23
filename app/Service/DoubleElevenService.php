@@ -102,6 +102,7 @@ class DoubleElevenService
     static function sendAward($userId, $type) {
         $remark = [];
         $aliasName = Config::get('doubleeleven.alias_name');
+        $template = "恭喜您在'乐赚双十一 狂欢不剁手'活动中获得'{{awardname}}'奖励。";
         //谢谢参与
         if ($type == 3 || $type == 5) {
             $award_aliasname = $type == 3 ? $aliasName . '_jifen100' : $aliasName . '_jiaxi18';
@@ -125,9 +126,10 @@ class DoubleElevenService
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
         } else if($type == 7 ) {
-            return HdDoubleEleven::create([
+            $awardName = "200元京东卡";
+            $ret = HdDoubleEleven::create([
                 'user_id' => $userId,
-                'award_name'=> '200元京东卡',
+                'award_name'=> $awardName,
                 'alias_name' => 'jingdongka',
                 'uuid' => '',
                 'ip' => Request::getClientIp(),
@@ -136,10 +138,15 @@ class DoubleElevenService
                 'type' => 'virtual',
                 'remark' => '',
             ]);
+            $arr = ['awardname'=>$awardName];
+            SendMessage::Mail($userId, $template, $arr);
+            SendMessage::Message($userId, $template, $arr);
+            return $ret;
         } else if($type == 8 ) {
-            return HdDoubleEleven::create([
+            $awardName = "1111元专属返现";
+            $ret = HdDoubleEleven::create([
                 'user_id' => $userId,
-                'award_name' => '1111元专属返现',
+                'award_name' => $awardName,
                 'alias_name' => 'fanxian',
                 'uuid' => '',
                 'ip' => Request::getClientIp(),
@@ -148,6 +155,11 @@ class DoubleElevenService
                 'type' => 'virtual',
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
+            //短信站内信
+            $arr = ['awardname'=>$awardName];
+            SendMessage::Mail($userId, $template, $arr);
+            SendMessage::Message($userId, $template, $arr);
+            return $ret;
         }
         return false;
     }
