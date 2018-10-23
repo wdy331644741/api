@@ -194,6 +194,41 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 曲棍球正式场活动 START */
+            //投资得卡
+            case 'hockey_card_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $userId = intval($triggerData['user_id']);
+                    if ( $amount > 10000 && $userId > 0 && !empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['buy_time']) {
+                        //添加集卡和竞猜机会
+                        Hockey::HockeyCardObtain($userId,$amount);
+                    }
+                }
+                break;
+            //投资得竞猜
+            case 'hockey_guess_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $amount = isset($triggerData['Investment_amount']) ? $triggerData['Investment_amount'] : 0;
+                    $userId = intval($triggerData['user_id']);
+                    if ( $amount > 0 && $userId > 0 && !empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['buy_time']) {
+                        //添加集卡和竞猜机会
+                        Hockey::HockeyGuessObtain($userId,$amount,0);
+                    }
+                }
+                break;
+            //注册-邀请人和注册人都获取竞猜机会
+            case 'hockey_invite':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $userId = intval($triggerData['user_id']);
+                    $fromUserId = intval($triggerData['from_user_id']);
+                    if ( $userId > 0 && !empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['time']) {
+                        //添加集卡和竞猜机会
+                        Hockey::HockeyGuessObtain($userId,0,$fromUserId);
+                    }
+                }
+                break;
+            /** 曲棍球正式场活动 END */
             /** 四周年活动投多少送多少体验金 START */
             //投资
             case 'four_birthday_invest_experience':

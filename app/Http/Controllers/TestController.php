@@ -6,6 +6,7 @@ use App\Models\HdAmountShareRich;
 use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Service\Func;
+use App\Service\Hockey;
 use App\Service\Scratch;
 use App\Service\SendAward;
 use Illuminate\Http\Request;
@@ -28,6 +29,10 @@ use Excel;
 
 class TestController extends Controller
 {
+    public function getTest(){
+        $res = Hockey::HockeyCardObtain(2348732,16530);
+        dd($res);
+    }
     public function getCustomExperience(){
         return view('custom_experience');
     }
