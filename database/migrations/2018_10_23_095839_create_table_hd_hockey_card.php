@@ -19,6 +19,7 @@ class CreateTableHdHockeyCard extends Migration
             $table->text('after')->default('')->comment('和卡之后');
             $table->tinyInteger('type')->default(0)->comment('类型1冠军卡，2兑换实物卡');
             $table->tinyInteger('status')->default(0)->comment('实物卡兑换状态0未兑换，1已兑换');
+            $table->timestamp('object_card_time')->nullable()->comment('实物卡获得时间');
             $table->integer('award_id')->default(0)->comment('实物奖id');
             $table->string('award_name')->default('')->comment('实物奖名字');
             $table->timestamps();

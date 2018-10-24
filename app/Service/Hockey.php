@@ -2,6 +2,7 @@
 namespace App\Service;
 
 
+use App\Models\HdHockeyCard;
 use App\Models\HdHockeyCardMsg;
 use App\Models\UserAttribute;
 use Config;
@@ -65,7 +66,19 @@ class Hockey
         $id = HdHockeyCardMsg::insertGetId(['user_id'=>$userId,'msg'=>$msg,'remark'=>json_encode($remark),'type'=>1,'created_at'=>date("Y-m-d H:i:s")]);
         return $id;
     }
-
+    static function getHockeyCardExchangeAward($userId){
+        $config = Config::get("hockey");
+        //获取用户冠军卡是否有未领取的
+        $already = HdHockeyCard::where(['user_id'=>$userId,'type'=>1,'status'=>1])->count();
+        if($already <= 0){
+            return $config['cash_list'][0];
+        }elseif($already == 1){
+            return $config['cash_list'][1];
+        }elseif($already >= 2){
+            return $config['cash_list'][2];
+        }
+        return '';
+    }
     /**
      * 投资或者邀请好友送卡接口
      *
