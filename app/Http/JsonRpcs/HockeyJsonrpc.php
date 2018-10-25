@@ -7,6 +7,8 @@ use App\Models\GlobalAttribute;
 use App\Models\HdHockeyCard;
 use App\Models\HdHockeyCardAward;
 use App\Models\HdHockeyCardMsg;
+use App\Models\HdHockeyGuess;
+use App\Models\HdHockeyGuessConfig;
 use App\Models\UserAttribute;
 use App\Exceptions\OmgException;
 use App\Service\ActivityService;
@@ -47,8 +49,8 @@ class HockeyJsonRpc extends JsonRpc {
             $res['is_login'] = true;
         }
         // 活动是否存在
-        if(ActivityService::isExistByAlias($config['alias_name'])) {
-            $game['available'] = true;
+        if(ActivityService::isExistByAlias($config['card_alias_name'])) {
+            $res['available'] = true;
         }
         //登陆状态
         if($res['is_login'] == true){
@@ -119,7 +121,7 @@ class HockeyJsonRpc extends JsonRpc {
         $config = Config::get("hockey");
         $cardKey = isset($config['card_key']) ? $config['card_key'] : '';
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($config['alias_name'])) {
+        if(!ActivityService::isExistByAlias($config['card_alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         DB::beginTransaction();
@@ -173,11 +175,14 @@ class HockeyJsonRpc extends JsonRpc {
         }
         $config = Config::get("hockey");
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($config['alias_name'])) {
+        if(!ActivityService::isExistByAlias($config['card_alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //兑换类型1是现金2是实物
         $type = isset($params->type) && $params->type > 0 ? intval($params->type) : 0;
+        if($type <= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
         DB::beginTransaction();
         UserAttribute::where(['user_id'=>$userId,'key'=>$config['card_key']])->lockForUpdate()->first();
         if($type == 1){//兑换现金
@@ -250,7 +255,7 @@ class HockeyJsonRpc extends JsonRpc {
         }
         $config = Config::get('hockey');
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($config['alias_name'])) {
+        if(!ActivityService::isExistByAlias($config['card_alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $key = "hockey_card_award_key_".date("Ymd");
@@ -297,7 +302,52 @@ class HockeyJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function HockeyGuessInfo($params) {
-
+        global $userId;
+        $res = [
+            'is_login'=>false,
+            'available'=>false,
+            'team_list'=>[]
+            ];
+        //登陆状态
+        if($userId > 0){
+            $res['is_login'] = true;
+        }
+        $config = Config::get("hockey");
+        // 活动是否存在
+        if(ActivityService::isExistByAlias($config['guess_alias_name'])) {
+            $res['available'] = true;
+        }
+        //比赛日期
+        $match = isset($params->match) ? $params->match : '';
+        if(empty($match)){//没传日期默认第一天
+            $configList = HdHockeyGuessConfig::orderBy('match_date', 'asc')->first();
+        }else{//获取传送的日期
+            $configList = HdHockeyGuessConfig::where('match_date', $match)->first();
+        }
+        $res['team_list'] = Hockey::formatHockeyGuessData($configList);
+        //登陆获取用户的投注情况
+        if($res['is_login'] && !empty($res['config_list']) && isset($configList['id'])){
+            //登陆获取用户的投注情况
+            $userStake = HdHockeyGuess::where(["user_id"=>$userId,"config_id"=>$configList['id']])->select(DB::raw("sum(`num`) as nums"),"field","config_id")->groupBy("field")->get()->toArray();
+            if(!empty($userStake)){
+                $stakeArr = [];
+                //格式化数据
+                foreach($userStake as $value){
+                    $stakeArr[$value['config_id']][$value['field']] = $value['nums'];
+                }
+            }
+        }
+        //第一场个人投注
+        $res['team_list']['first_stake'] = isset($stakeArr[$configList['id']]['first']) ? $stakeArr[$configList['id']]['first'] : 0;
+        //第二场个人投注
+        $res['team_list']['second_stake'] = isset($stakeArr[$configList['id']]['second']) ? $stakeArr[$configList['id']]['second'] : 0;
+        //第三场个人投注
+        $res['team_list']['third_stake'] = isset($stakeArr[$configList['id']]['third']) ? $stakeArr[$configList['id']]['third'] : 0;
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res,
+        ];
     }
     /**
      * 竞猜接口
@@ -305,14 +355,112 @@ class HockeyJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function HockeyGuessDrew($params) {
-
+        global $userId;
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //后台配置的赛程id
+        $id = isset($params->id) ? $params->id : 0;
+        //后台配置的场次
+        $field = isset($params->field) ? $params->field : '';
+        //押注
+        $stake = isset($params->stake) && $params->stake > 0 ? $params->stake : 0;
+        if($id <= 0 || empty($field) || $stake<= 0){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $config = Config::get("hockey");
+        DB::beginTransaction();
+        //获取用户抽奖次数
+        $userAttr = Attributes::getItemLock($userId,$config['guess_key']);
+        $num = isset($userAttr['number']) ? $userAttr['number'] : 0;
+        if($num <= 0){
+            DB::rollBack();
+            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
+        }
+        //插入到押注表
+        $insertData['user_id'] = $userId;
+        $insertData['config_id'] = $id;
+        $insertData['field'] = $field;
+        $insertData['stake'] = $stake;
+        $insertData['num'] = 1;
+        $insertData['type'] = isset($userAttr['champion_status']) && $userAttr['champion_status'] == 1 ? 2 : 1;
+        $insertData['created_at'] = date("Y-m-d H:i:s");
+         HdHockeyGuess::insertGetId($insertData);
+        //减少竞猜次数
+        $userAttr->number -= 1;
+        $userAttr->save();
+        DB::commit();
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>'下注成功'
+        ];
     }
     /**
      * 竞猜榜单接口
      *
      * @JsonRpcMethod
      */
-    public function HockeyGuessTop($params) {
+    public function HockeyGuessTop() {
+        Hockey::openGuess('1_first_1',10000);exit;
+        global $userId;
+        $res = ['total_list'=>[],"my_list"=>[]];
+        //获取已开奖的对阵
+        $openList = HdHockeyGuessConfig::where('draw_info','!=','')->select('draw_info')->get()->toArray();
+        if(!empty($openList)){
+            $condition = [];
+            foreach($openList as $item){
+                $tmp = explode(',',$item['draw_info']);
+                foreach($tmp as $v){
+                    $condition[] = $v;
+                }
+            }
+            if(!empty($condition)) {
+                //查询普通下注
+                $count = HdHockeyGuess::whereIn("find_name", $condition)->select("type", DB::raw("count(1) as count"))->groupBy("type")->get()->toArray();
+                if (isset($count[0]['type']) && $count[0]['type'] == 1 && $count[0]['count'] > 0) {
+                    $average = round((10000 / $count[0]['count']), 2);
+                    $data1 = HdHockeyGuess::whereIn("find_name", $condition)->where("type", 1)->select("user_id", DB::raw("count(1) * $average as money"))->groupBy("user_id")->get()->toArray();
+                }
+                //查询冠军下注
+                if (isset($count[1]['type']) && $count[1]['type'] == 2 && $count[1]['count'] > 0) {
+                    $average = round((50000 / $count[1]['count']), 2);
+                    $data2 = HdHockeyGuess::whereIn("find_name", $condition)->where("type", 2)->select("user_id", DB::raw("count(1) * $average as money"))->groupBy("user_id")->get()->toArray();
+                }
+                $total = array_merge($data1, $data2);
+                $totalList = [];
+                foreach ($total as $key => $item) {
+                    if (isset($totalList[$item['user_id']])) {
+                        $totalList[$item['user_id']] += $item['money'];
+                    } else {
+                        $totalList[$item['user_id']] = $item['money'];
+                    }
+                }
+                arsort($totalList);
+                if (count($totalList) >= 1){
+                    $i = 1;
+                    foreach ($totalList as $k => $v) {
+                        if($i > 5){
+                            break;
+                        }
+                        if($k > 0){
+                            $userInfo = Func::getUserBasicInfo($k);
+                            $phone = isset($userInfo['username']) ? trim($userInfo['username']) : '';
+                            $displayName = substr_replace($phone, '******', 3, 6);
+                            $res['total_list'][] = ['top'=>$i,'display_name'=>$displayName,'amount'=>$v];
+                            $i++;
+                        }
+                    }
+                }
+                //获取本人现金记录
+                if($userId > 0){
+                    //获取本人现金记录
+                    $count = HdHockeyGuess::whereIn("find_name", $condition)->select("type", DB::raw("count(1) as count"))->groupBy("type")->get()->toArray();
 
+                }
+            }
+
+        }
     }
+
 }

@@ -201,7 +201,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount > 10000 && $userId > 0 && !empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['buy_time']) {
+                    if ( $amount > 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加集卡和竞猜机会
                         Hockey::HockeyCardObtain($userId,$amount);
                     }
@@ -210,11 +210,16 @@ class SendAward
             //投资得竞猜
             case 'hockey_guess_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
-                    $amount = isset($triggerData['Investment_amount']) ? $triggerData['Investment_amount'] : 0;
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount > 0 && $userId > 0 && !empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['buy_time']) {
-                        //添加集卡和竞猜机会
-                        Hockey::HockeyGuessObtain($userId,$amount,0);
+                    if ( $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                        //添加投资竞猜机会
+                        $num = intval($amount/10000);
+                        $config = Config::get("hockey");
+                        Attributes::increment($userId,$config['guess_key'],$num);
+                        //发送站内信
+                        $msg = "恭喜您在'曲棍球投资'活动中获得'".$num."次竞猜机会'奖励。";
+                        SendMessage::Mail($userId,$msg);
                     }
                 }
                 break;
@@ -223,9 +228,16 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $userId = intval($triggerData['user_id']);
                     $fromUserId = intval($triggerData['from_user_id']);
-                    if ( $userId > 0 && !empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['time']) {
-                        //添加集卡和竞猜机会
-                        Hockey::HockeyGuessObtain($userId,0,$fromUserId);
+                    if ( $userId > 0 && (empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['time'])) {
+                        $config = Config::get("hockey");
+                        //添加邀请人竞猜机会
+                        Attributes::increment($fromUserId,$config['guess_key'],1);
+                        //添加注册人竞猜机会
+                        Attributes::increment($userId,$config['guess_key'],1);
+                        //发送站内信
+                        $msg = "恭喜您在'曲棍球邀请注册'活动中获得'1次竞猜机会'奖励。";
+                        SendMessage::Mail($fromUserId,$msg);
+                        SendMessage::Mail($userId,$msg);
                     }
                 }
                 break;
