@@ -411,7 +411,6 @@ class BannerJsonRpc extends JsonRpc {
 		}
 
 		$where = array(
-			'can_use' => 1,
 			'position' => 'pop',
 		);
 		if ($bindStatus) {
