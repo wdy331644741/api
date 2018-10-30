@@ -438,6 +438,42 @@ class BannerJsonRpc extends JsonRpc {
 		);
 	}
 
+    /**
+     * 移动端锁定页
+     *
+     * @JsonRpcMethod
+     */
+    public function bannerMobilePop($params) {
+        $version = $params->version;
+        if (!$version) {
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        $where = array(
+            'can_use' => 1,
+            'position' => 'mobile_pop',
+            'short_desc'=>$version,
+        );
+        $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'url_ios', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time', 'view_frequency')->where($where)
+            ->where(function ($query) {
+                $query->whereNull('start')->orWhereRaw('start < now()');
+            })
+            ->where(function ($query) {
+                $query->whereNull('end')->orWhereRaw('end > now()');
+            })
+            ->orderByRaw('sort DESC')->first();
+
+        if (!$data) {
+            throw new OmgException(OmgException::NO_DATA);
+        }
+        $data['version'] = $version;
+        $data['Etag'] = $data['release_time'];
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        );
+    }
+
 	//特定渠道添加图片
 	private function addChannelImg($data, $position) {
 		global $userId;
