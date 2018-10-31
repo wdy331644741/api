@@ -225,6 +225,14 @@ class SendAward
                 }
                 break;
             /** 十月份抽奖投资送次数 end */
+            /** 双11 START */
+            //签到
+            case 'nov_eleven_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    DoubleElevenService::signInCard($triggerData['user_id'], 'nov_eleven_sign_in');
+                }
+                break;
+            /** 双11 END */
             /** 四周年活动投多少送多少体验金 START */
             //投资
             case 'four_birthday_invest_experience':
