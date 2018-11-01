@@ -444,6 +444,7 @@ class BannerJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function bannerMobilePop($params) {
+        
         $version = $params->version;
         if (!$version) {
             throw new OmgException(OmgException::PARAMS_ERROR);
