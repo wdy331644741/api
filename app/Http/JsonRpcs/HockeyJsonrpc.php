@@ -31,7 +31,7 @@ class HockeyJsonRpc extends JsonRpc {
 
         //活动倒计时
         $next_time = date("Y-m-d H:i:s") > date("Y-m-d 10:00:00") ? date("Y-m-d 10:00:00",strtotime("+1 day")) : date("Y-m-d 10:00:00");
-
+        $next_time = strtotime($next_time) - time();
         $res = [
             'is_login'=>false,
             'available'=>false,
@@ -42,7 +42,6 @@ class HockeyJsonRpc extends JsonRpc {
             'num'=>0,
             'cards'=>$cards,
             'awards'=>[],
-            'time'=>date("Y-m-d H:i:s"),
             'next_time'=>$next_time];
         //登陆状态
         if($userId > 0){
