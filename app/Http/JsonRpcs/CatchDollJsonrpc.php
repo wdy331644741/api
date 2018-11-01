@@ -38,7 +38,7 @@ class CatchDollJsonRpc extends JsonRpc
         'England'     =>'英国',
         'Australia'   =>'澳大利亚',
         'Argentina'   =>'阿根廷',
-        'Netherlands' =>'新西兰',
+        'Netherlands' =>'荷兰',
     ];
 
     protected $attr_key = 'catch_doll_game';//储存在用户属性表中的key && 活动名称(时间控制)
@@ -66,15 +66,21 @@ class CatchDollJsonRpc extends JsonRpc
         global $userId;
 
         $res = [
-            'is_login'    => false,
-            'cards'       => $this->doll_list,
-            'chance'      => 0,
-            'is_exchange' => false,
-            'list'        => [],
-            ];
+            'is_login'      => false,
+            'is_share_game' => false,
+            'score'         => 0,
+            'cards'         => $this->doll_list,
+            'chance'        => 0,
+            'is_exchange'   => false,
+            'list'          => [],
+        ];
         //登陆状态
         if($userId > 0){
             $res['is_login'] = true;
+            //查询用户积分
+            $_userInfo = call_user_func_array(array("App\Service\Func","getUserBasicInfo"),[$userId , true]);
+            $res['score'] = isset($_userInfo['score'])?$_userInfo['score']:0;
+
         }
         // 活动是否存在
         if(!ActivityService::isExistByAlias($this->attr_key )) {
@@ -93,6 +99,8 @@ class CatchDollJsonRpc extends JsonRpc
             }
             $res['is_exchange'] = $this->isExchangehan($res['cards']);
             $res['list'] = $this->getUserAwards($userId);
+            //今天是否已经分享过
+            $res['is_share_game'] = $attr->text > date('Y-m-d') ?true:false;
         }
 
         return [
@@ -273,6 +281,12 @@ class CatchDollJsonRpc extends JsonRpc
             if(--$cards[$params->country] < 0){
                 throw new OmgException(OmgException::NUMBER_IS_NULL);
             }
+
+            //减去他本人的数量
+            $attr->string = json_encode($cards);
+            $attr->timestamps = false;//更改用户属性时  不更新时间戳。
+            $attr->save();
+            //分享表
             $encryStr = md5($userId.$params->country.time());
             HdShareCards::create([
                 'user_id' => $userId,
@@ -296,6 +310,111 @@ class CatchDollJsonRpc extends JsonRpc
                 'share' => $params->country,
                 'encry' => $encryStr
             ]
+        ];
+    }
+
+    /**
+     * 领取分享
+     * @JsonRpcMethod
+     */
+    public function receiveDoll($params) {
+
+        global $userId;
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //事务开始
+        DB::beginTransaction();
+        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => $this->attr_key])->lockForUpdate()->first();
+        if(!$shareCardsTable) {
+            DB::rollBack();//数据有误
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        if($shareCardsTable->receive_user){
+            //奖品已经领取
+            DB::rollBack();
+            throw new OmgException(OmgException::ALREADY_AWARD);
+        }
+        if($shareCardsTable->user_id == $userId){
+            //分享人和领取人相同
+            DB::rollBack();
+            throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
+        }
+
+        $userStr = isset($attr)?json_decode($attr->string,1):$this->doll_list;
+        $userStr[$shareCardsTable->share]++;
+        //领取国家队
+        $attr->string = json_encode($userStr);
+        $attr->timestamps = false;//更改用户属性时  不更新时间戳。
+        $attr->save();
+        //分享表 更新
+        $shareCardsTable->receive_user = $userId;
+        $shareCardsTable->status = 1;
+        $shareCardsTable->type = Request::getClientIp();
+        $shareCardsTable->remark = Request::header('User-Agent');
+        $shareCardsTable->save();
+        DB::commit();
+
+        return [
+            'code' => 0,
+            'message' => '领取成功',
+            // 'data' => [
+            //     'user_id' => $userId,
+            //     'share' => $params->country,
+            //     'encry' => $encryStr
+            // ]
+        ];
+    }
+
+    /**
+     * 分享游戏获得机会
+     * @JsonRpcMethod
+     */
+    public function getGameChange($params) {
+        global $userId;
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+
+        $havedCounts = $this->getChanceCounts($userId);//初始化
+        //事务开始
+        DB::beginTransaction();
+        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+
+        if(is_numeric($params->data) ){
+            $changeC = intval($params->data/200);
+            //查询用户积分
+            $_userInfo = call_user_func_array(array("App\Service\Func","getUserBasicInfo"),[$userId , true]);
+            if(isset($_userInfo['score']) && $_userInfo['score'] > $params->data){
+                
+                //抽奖完成，减去积分
+                $sub = Func::subIntegralByUser($userId,$changeC*200,'娃娃机消费积分');
+            }else{
+                //积分不足
+                DB::rollBack();
+                throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
+            }
+        }else{
+            //今天是否已经分享过
+            if($attr->text > date('Y-m-d') ){
+                DB::rollBack();
+                return [
+                    'code' => 0,
+                    'message' => '今天已经分享过'
+                ];
+            }
+            //分享链接获得，每天一次
+            $changeC = 1;
+            $attr->text = date('Y-m-d H:i:s');
+        }
+        $attr->number += $changeC;
+        $attr->save();
+        DB::commit();
+
+        return [
+            'code' => 0,
+            'message' => 'success'
         ];
     }
 
