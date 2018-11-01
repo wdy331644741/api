@@ -85,6 +85,9 @@ Route::group(['middleware' => 'admin'], function(){
     // 逢百活动配置
     Route::controller('perhundred', 'PerHundredController');
 
+    // 曲棍球正式场活动
+    Route::controller('hockey','HockeyController');
+
 });
 
 // 对外接口

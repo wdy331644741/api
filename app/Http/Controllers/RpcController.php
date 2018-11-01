@@ -12,12 +12,14 @@ use App\Http\JsonRpcs\CollectCardJsonrpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
 use App\Http\JsonRpcs\DoubleElevenJsonrpc;
 use App\Http\JsonRpcs\EndYearInvestJsonrpc;
+use App\Http\JsonRpcs\HockeyJsonRpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\JumpJsonRpc;
 use App\Http\JsonRpcs\NetworkDramaDzpJsonRpc;
 use App\Http\JsonRpcs\OpenJsonRpc;
 use App\Http\JsonRpcs\PerBaiJsonrpc;
 use App\Http\JsonRpcs\QuestionJsonrpc;
+use App\Http\JsonRpcs\RedEnvelopesJsonRpc;
 use App\Http\JsonRpcs\RobRateCouponJsonRpc;
 use App\Http\JsonRpcs\ScratchJsonRpc;
 use App\Http\JsonRpcs\SignInSystemJsonRpc;
@@ -145,6 +147,8 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new OctLotteryJsonRpc());//10月份抽奖
         $jsonRpcServer->addService(new DoubleElevenJsonrpc());//双11 -- 集卡
         $jsonRpcServer->addService(new CatchDollJsonRpc());//抓娃娃机
+        $jsonRpcServer->addService(new RedEnvelopesJsonRpc());//领取红包活动
+        $jsonRpcServer->addService(new HockeyJsonRpc());//曲棍球正式场
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');

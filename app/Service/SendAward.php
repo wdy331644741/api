@@ -196,6 +196,54 @@ class SendAward
 
         switch ($activityInfo['alias_name']) {
 
+            /** 曲棍球正式场活动 START */
+            //投资得卡
+            case 'hockey_card_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $userId = intval($triggerData['user_id']);
+                    if ( $amount > 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                        //添加集卡和竞猜机会
+                        Hockey::HockeyCardObtain($userId,$amount);
+                    }
+                }
+                break;
+            //投资得竞猜
+            case 'hockey_guess_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    $userId = intval($triggerData['user_id']);
+                    if ( $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                        //添加投资竞猜机会
+                        $num = intval($amount/10000);
+                        $config = Config::get("hockey");
+                        Attributes::increment($userId,$config['guess_key'],$num);
+                        //发送站内信
+                        $msg = "恭喜您在'曲棍球投资'活动中获得'".$num."次竞猜机会'奖励。";
+                        SendMessage::Mail($userId,$msg);
+                    }
+                }
+                break;
+            //注册-邀请人和注册人都获取竞猜机会
+            case 'hockey_invite':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
+                    $userId = intval($triggerData['user_id']);
+                    $fromUserId = intval($triggerData['from_user_id']);
+                    if ( $userId > 0 && (empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['time'])) {
+                        $config = Config::get("hockey");
+                        //添加邀请人竞猜机会
+                        Attributes::increment($fromUserId,$config['guess_key'],1);
+                        //添加注册人竞猜机会
+                        Attributes::increment($userId,$config['guess_key'],1);
+                        //发送站内信
+                        $msg = "恭喜您在'曲棍球邀请注册'活动中获得'1次竞猜机会'奖励。";
+                        SendMessage::Mail($fromUserId,$msg);
+                        SendMessage::Mail($userId,$msg);
+                    }
+                }
+                break;
+            /** 曲棍球正式场活动 END */
+
             /** 十月份抽奖投资送次数 START */
             case 'oct_lottery_registergive'://注册送抽奖
                 if(isset($triggerData['tag']) 
@@ -234,6 +282,7 @@ class SendAward
                 }
                 break;
             /** 双11 END */
+
             /** 四周年活动投多少送多少体验金 START */
             //投资
             case 'four_birthday_invest_experience':
