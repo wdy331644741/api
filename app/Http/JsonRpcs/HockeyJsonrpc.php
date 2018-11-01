@@ -296,6 +296,9 @@ class HockeyJsonRpc extends JsonRpc {
         }
         throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
     }
+
+    /***********************************竞猜活动接口********************************/
+
     /**
      * 竞猜信息接口
      *
@@ -306,6 +309,7 @@ class HockeyJsonRpc extends JsonRpc {
         $res = [
             'is_login'=>false,
             'available'=>false,
+            'stake_status'=>false,
             'team_list'=>[]
             ];
         //登陆状态
@@ -343,6 +347,10 @@ class HockeyJsonRpc extends JsonRpc {
         $res['team_list']['second_stake'] = isset($stakeArr[$configList['id']]['second']) ? $stakeArr[$configList['id']]['second'] : 0;
         //第三场个人投注
         $res['team_list']['third_stake'] = isset($stakeArr[$configList['id']]['third']) ? $stakeArr[$configList['id']]['third'] : 0;
+        //押注状态
+        if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") < date("Y-m-d 21:00:00")){
+            $res['stake_status'] = true;
+        }
         return [
             'code' => 0,
             'message' => 'success',
@@ -371,21 +379,36 @@ class HockeyJsonRpc extends JsonRpc {
         $config = Config::get("hockey");
         DB::beginTransaction();
         //获取用户抽奖次数
-        $userAttr = Attributes::getItemLock($userId,$config['guess_key']);
+        $userAttr = Attributes::getItemLock($userId,$config['guess_key']);//锁住用户抽奖次数
         $num = isset($userAttr['number']) ? $userAttr['number'] : 0;
         if($num <= 0){
             DB::rollBack();
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
-        //插入到押注表
-        $insertData['user_id'] = $userId;
-        $insertData['config_id'] = $id;
-        $insertData['field'] = $field;
-        $insertData['stake'] = $stake;
-        $insertData['num'] = 1;
-        $insertData['type'] = isset($userAttr['champion_status']) && $userAttr['champion_status'] == 1 ? 2 : 1;
-        $insertData['created_at'] = date("Y-m-d H:i:s");
-         HdHockeyGuess::insertGetId($insertData);
+        //判断是否可以下注
+        $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
+        if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 21:00:00"){
+            DB::rollBack();
+            throw new OmgException(OmgException::ACTIVITY_IS_END);
+        }
+        $find_name = $id."_".$field."_".$stake;
+        //获取投注记录
+        $stakeData = HdHockeyGuess::where(['config_id'=>$id,'user_id'=>$userId,'find_name'=>$find_name])->first();
+        //判断是否存在
+        if(!isset($stakeData->id)){
+            //添加
+            $stakeData = new HdHockeyGuess();
+            $stakeData->config_id = $id;
+            $stakeData->match_date = $guessConfig['match_date'];
+            $stakeData->user_id = $userId;
+            $stakeData->num = 1;
+            $stakeData->find_name = $id."_".$field."_".$stake;
+            $stakeData->type = isset($userAttr['champion_status']) && $userAttr['champion_status'] == 1 ? 2 : 1;
+            $stakeData->created_at = date("Y-m-d H:i:s");
+        }else{
+            $stakeData->increment('num',1);
+        }
+        $stakeData->save();
         //减少竞猜次数
         $userAttr->number -= 1;
         $userAttr->save();
@@ -401,66 +424,40 @@ class HockeyJsonRpc extends JsonRpc {
      *
      * @JsonRpcMethod
      */
-    public function HockeyGuessTop() {
-        Hockey::openGuess('1_first_1',10000);exit;
+    public function HockeyGuessTop()
+    {
         global $userId;
-        $res = ['total_list'=>[],"my_list"=>[]];
-        //获取已开奖的对阵
-        $openList = HdHockeyGuessConfig::where('draw_info','!=','')->select('draw_info')->get()->toArray();
-        if(!empty($openList)){
-            $condition = [];
-            foreach($openList as $item){
-                $tmp = explode(',',$item['draw_info']);
-                foreach($tmp as $v){
-                    $condition[] = $v;
+        $res = [
+            'total_list' => [['top'=>'--','display_name'=>'--','amount'=>'--']],
+            "my_list" => []
+        ];
+
+        if($userId > 0){
+            //我的竞猜
+            $myList = HdHockeyGuess::where('user_id',$userId)->orderBy("match_date",'asc')->orderBy("updated_at",'asc')->get()->toArray();
+            //格式化数据
+            foreach($myList as $key => $val){
+                $res['my_list'][$val['match_date']]['date'] = $val['match_date'];
+                $res['my_list'][$val['match_date']]['total_num'] = isset($res['my_list'][$val['match_date']]['total_num']) ? $res['my_list'][$val['match_date']]['total_num'] + $val['num'] : $val['num'];
+                if($val['status'] == 1 && $val['amount'] > 0){
+                    $res['my_list'][$val['match_date']]['num'] += $val['num'];
+                    $res['my_list'][$val['match_date']]['amount'] += $val['amount'];
+                }else{
+                    $res['my_list'][$val['match_date']]['num'] = '--';
+                    $res['my_list'][$val['match_date']]['amount'] = '--';
                 }
             }
-            if(!empty($condition)) {
-                //查询普通下注
-                $count = HdHockeyGuess::whereIn("find_name", $condition)->select("type", DB::raw("count(1) as count"))->groupBy("type")->get()->toArray();
-                if (isset($count[0]['type']) && $count[0]['type'] == 1 && $count[0]['count'] > 0) {
-                    $average = round((10000 / $count[0]['count']), 2);
-                    $data1 = HdHockeyGuess::whereIn("find_name", $condition)->where("type", 1)->select("user_id", DB::raw("count(1) * $average as money"))->groupBy("user_id")->get()->toArray();
-                }
-                //查询冠军下注
-                if (isset($count[1]['type']) && $count[1]['type'] == 2 && $count[1]['count'] > 0) {
-                    $average = round((50000 / $count[1]['count']), 2);
-                    $data2 = HdHockeyGuess::whereIn("find_name", $condition)->where("type", 2)->select("user_id", DB::raw("count(1) * $average as money"))->groupBy("user_id")->get()->toArray();
-                }
-                $total = array_merge($data1, $data2);
-                $totalList = [];
-                foreach ($total as $key => $item) {
-                    if (isset($totalList[$item['user_id']])) {
-                        $totalList[$item['user_id']] += $item['money'];
-                    } else {
-                        $totalList[$item['user_id']] = $item['money'];
-                    }
-                }
-                arsort($totalList);
-                if (count($totalList) >= 1){
-                    $i = 1;
-                    foreach ($totalList as $k => $v) {
-                        if($i > 5){
-                            break;
-                        }
-                        if($k > 0){
-                            $userInfo = Func::getUserBasicInfo($k);
-                            $phone = isset($userInfo['username']) ? trim($userInfo['username']) : '';
-                            $displayName = substr_replace($phone, '******', 3, 6);
-                            $res['total_list'][] = ['top'=>$i,'display_name'=>$displayName,'amount'=>$v];
-                            $i++;
-                        }
-                    }
-                }
-                //获取本人现金记录
-                if($userId > 0){
-                    //获取本人现金记录
-                    $count = HdHockeyGuess::whereIn("find_name", $condition)->select("type", DB::raw("count(1) as count"))->groupBy("type")->get()->toArray();
-
-                }
-            }
-
         }
+        $where['status'] = 1;
+        $totalList = HdHockeyGuess::where($where)->select("match_date","user_id",DB::raw("sum(amount) as amount"),"updated_at")->groupBy("user_id")->orderBy("updated_at",'desc')->having('amount', '>', 0)->take(5)->get()->toArray();
+        foreach($totalList as $k => $v){
+            $res['total_list'][$k]['top'] = $k+1;
+            $userInfo = Func::getUserBasicInfo($v['user_id']);
+            $display_name = isset($userInfo['username']) ? substr_replace(trim($phone), '******', 3, 6) : '';
+            $res['total_list'][$k]['display_name'] = $display_name;
+            $res['total_list'][$k]['amount'] = isset($res['total_list'][$k]['amount']) ? $res['total_list'][$k]['amount'] + $v['amount'] : $v['amount'];
+        }
+        return $res;
     }
 
 }
