@@ -65,17 +65,13 @@ class HockeyController extends Controller
     //竞猜活动添加
     public function postGuessAdd(Request $request){
         $validator = Validator::make($request->all(), [
-            'id' => 'required|integer|min:1',
             'match_date' => 'required|date',
-            'first_master_score' => 'required|integer|min:0',
-            'first_visiting_score' => 'required|integer|min:0',
-            'first_result' => 'required|integer|min:0',
-            'second_master_score' => 'required|integer|min:0',
-            'second_visiting_score' => 'required|integer|min:0',
-            'second_result' => 'required|integer|min:0',
-            'third_master_score' => 'required|integer|min:0',
-            'third_visiting_score' => 'required|integer|min:0',
-            'third_result' => 'required|integer|min:0',
+            'first_master' => 'required|integer|min:0',
+            'first_visiting' => 'required|integer|min:0',
+            'second_master' => 'required|integer|min:0',
+            'second_visiting' => 'required|integer|min:0',
+            'third_master' => 'required|integer|min:0',
+            'third_visiting' => 'required|integer|min:0',
             'champion_status' => 'required|integer|min:0'
         ]);
         if($validator->fails()){
@@ -88,15 +84,7 @@ class HockeyController extends Controller
         $first_visiting = intval($request['first_visiting']);
         if($first_master != 0 || $first_visiting != 0){
             //第一场对阵
-            $inData['first_score'] = $first_master."-".$first_visiting;
-        }
-        //第一场主队比分
-        $first_master_score = intval($request['first_master_score']);
-        //第一场客队比分
-        $first_visiting_score = intval($request['first_visiting_score']);
-        if($first_master_score != 0 || $first_visiting_score != 0){
-            //第一场比分
-            $inData['first_score'] = $first_master_score."-".$first_visiting_score;
+            $inData['first'] = $first_master."-".$first_visiting;
         }
         //第二场主队比分
         $second_master = intval($request['second_master']);
@@ -104,15 +92,7 @@ class HockeyController extends Controller
         $second_visiting = intval($request['second_visiting']);
         if($second_master != 0 || $second_visiting != 0){
             //第二场对阵
-            $inData['second_score'] = $second_master."-".$second_visiting;
-        }
-        //第二场主队比分
-        $second_master_score = intval($request['second_master_score']);
-        //第二场客队比分
-        $second_visiting_score = intval($request['second_visiting_score']);
-        if($second_master_score != 0 || $second_visiting_score != 0){
-            //第二场比分
-            $inData['second_score'] = $second_master_score."-".$second_visiting_score;
+            $inData['second'] = $second_master."-".$second_visiting;
         }
         //第三场主队
         $third_master = intval($request['third_master']);
@@ -120,15 +100,7 @@ class HockeyController extends Controller
         $third_visiting = intval($request['third_visiting']);
         if($third_master != 0 || $third_visiting != 0){
             //第三场对阵
-            $inData['third_score'] = $third_master."-".$third_visiting;
-        }
-        //第三场主队比分
-        $third_master_score = intval($request['third_master_score']);
-        //第三场客队比分
-        $third_visiting_score = intval($request['third_visiting_score']);
-        if($third_master_score != 0 || $third_visiting_score != 0){
-            //第三场比分
-            $inData['third_score'] = $third_master_score."-".$third_visiting_score;
+            $inData['third'] = $third_master."-".$third_visiting;
         }
         //对阵类型0普通场1冠军场
         $inData['champion_status'] = intval($request['champion_status']);

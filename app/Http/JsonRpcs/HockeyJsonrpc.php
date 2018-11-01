@@ -40,6 +40,7 @@ class HockeyJsonRpc extends JsonRpc {
             'is_object_exchange'=>false,
             'cash_exchange_num' => 0,
             'num'=>0,
+            'gold_card_num'=>0,
             'cards'=>$cards,
             'awards'=>[],
             'next_time'=>$next_time];
@@ -71,6 +72,8 @@ class HockeyJsonRpc extends JsonRpc {
             }
             //获取已兑换多少现金奖品
             $res['cash_exchange_num'] = HdHockeyCard::where(["user_id"=>$userId,"type"=>1,"status"=>1])->count();
+            //获取冠军卡数量
+            $res['gold_card_num'] = HdHockeyCard::where(["user_id"=>$userId,"type"=>1,"status"=>0])->count();
         }
         //判读是否可以合成关键卡
         foreach($res['cards'] as $item){
@@ -94,12 +97,33 @@ class HockeyJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function HockeyCardAwardList($params) {
+        global $userId;
         $page = $params->page == 0 ? 5 : $params->page;
-        $res = ['award_list'=>[],'msg_list'=>[]];
-        $awardList = HdHockeyCard::where('status',1)->orderBy('updated_at', 'desc')->take($page)->get()->toArray();
+        $res = ['award_list'=>[],'msg_list'=>[],'my_list'=>[]];
+        $awardList = HdHockeyCard::where('status',1)->select("user_id","award_name","updated_at")->orderBy('updated_at', 'desc')->take($page)->get()->toArray();
         $msgList = HdHockeyCardMsg::where('type',1)->select('id','user_id','msg','created_at')->orderBy('created_at', 'desc')->take($page)->get()->toArray();
+        if(!empty($awardList)){
+            foreach ($awardList as &$item){
+                if($item['user_id'] > 0){
+                    $userInfo = Func::getUserBasicInfo($item['user_id']);
+                    $item['display_name'] = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
+                }
+                $item['updated_at'] = date("Y-m-d",strtotime($item['updated_at']));
+            }
+        }
         $res['award_list'] = $awardList;
         $res['msg_list'] = $msgList;
+        if($userId > 0){
+            $userInfo = Func::getUserBasicInfo($userId);
+            $display_name = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
+            $res['my_list'] = HdHockeyCard::where('user_id',$userId)->where('status',1)->select("user_id","award_name","updated_at")->orderBy('updated_at', 'desc')->take($page)->get()->toArray();
+            if(!empty($res['my_list'])){
+                foreach ($res['my_list'] as &$v){
+                    $v['display_name'] = $display_name;
+                    $v['updated_at'] = date("Y-m-d",strtotime($v['updated_at']));
+                }
+            }
+        }
         return [
             'code' => 0,
             'message' => 'success',
@@ -452,7 +476,7 @@ class HockeyJsonRpc extends JsonRpc {
         foreach($totalList as $k => $v){
             $res['total_list'][$k]['top'] = $k+1;
             $userInfo = Func::getUserBasicInfo($v['user_id']);
-            $display_name = isset($userInfo['username']) ? substr_replace(trim($phone), '******', 3, 6) : '';
+            $display_name = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
             $res['total_list'][$k]['display_name'] = $display_name;
             $res['total_list'][$k]['amount'] = isset($res['total_list'][$k]['amount']) ? $res['total_list'][$k]['amount'] + $v['amount'] : $v['amount'];
         }
