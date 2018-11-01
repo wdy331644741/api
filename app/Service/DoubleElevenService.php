@@ -64,11 +64,29 @@ class DoubleElevenService
         if ($number == 1 && $text['eleven'] == 0) {
             $text['eleven'] = 1;
         } else if ($number == 2 && $text['kuang'] == 0) {
-            $text['eleven'] = $text['kuang'] = 1;
+            if ($text['eleven'] == 0) {
+                $text['eleven'] = 1;
+            }
+            $text['kuang'] = 1;
         } else if ($number == 3  && $text['huan'] == 0) {
-            $text['eleven'] = $text['kuang'] = $text['huan'] = 1;
+            if ($text['eleven'] == 0) {
+                $text['eleven'] = 1;
+            }
+            if ($text['kuang'] == 0) {
+                $text['kuang'] = 1;
+            }
+            $text['huan'] = 1;
         } else if ($number >= 4 && $text['lai'] == 0) {
-            $text['eleven'] = $text['kuang'] = $text['huan'] = $text['lai'] = 1;
+            if ($text['eleven'] == 0) {
+                $text['eleven'] = 1;
+            }
+            if ($text['kuang'] == 0) {
+                $text['kuang'] = 1;
+            }
+            if ($text['huan'] == 0) {
+                $text['huan'] = 1;
+            }
+            $text['lai'] = 1;
         } else {
             return ;
         }
