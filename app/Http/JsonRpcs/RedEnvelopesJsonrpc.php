@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 
 use App\Models\UserAttribute;
+use App\Exceptions\OmgException;
 use Config,DB;
 
 class RedEnvelopesJsonRpc extends JsonRpc {

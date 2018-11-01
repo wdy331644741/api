@@ -81,7 +81,7 @@ class HockeyJsonRpc extends JsonRpc {
             }
         }
         //获取实物奖励信息
-        $res['awards']['object'] = HdHockeyCard::where(['status'=>1])->get()->toArray();
+        $res['awards']['object'] = HdHockeyCardAward::where(['status'=>1])->get()->toArray();
         $res['awards']['cash'] = $config['cash_list'];
         return [
             'code' => 0,
