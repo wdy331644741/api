@@ -28,6 +28,22 @@ class HockeyController extends Controller
                 if(isset($item['first']) && !empty($item['first'])){
                     $item = Hockey::formatHockeyGuessData($item);
                 }
+                //比分拆开
+                $first = explode('-',$item['first_score']);
+                $second = explode('-',$item['second_score']);
+                $third = explode('-',$item['third_score']);
+                if(!empty($first)){
+                    $item['first_master_score'] = $first[0];
+                    $item['first_visiting_score'] = $first[0];
+                }
+                if(!empty($second)){
+                    $item['second_master_score'] = $second[0];
+                    $item['second_visiting_score'] = $second[0];
+                }
+                if(!empty($third)){
+                    $item['third_master_score'] = $third[0];
+                    $item['third_visiting_score'] = $third[0];
+                }
             }
             return $this->outputJson(0,$data);
         }
