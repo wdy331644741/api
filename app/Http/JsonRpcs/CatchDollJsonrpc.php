@@ -5,6 +5,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\UserAttribute;
 use App\Models\SendRewardLog;
+use App\Models\HdShareCards;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
@@ -30,8 +31,17 @@ class CatchDollJsonRpc extends JsonRpc
         'Argentina'   =>0,
         'Netherlands' =>0,
     ];
+    //描述
+    protected $doll_list_desc = [
+        'China'       =>'中国',
+        'Japan'       =>'日本',
+        'England'     =>'英国',
+        'Australia'   =>'澳大利亚',
+        'Argentina'   =>'阿根廷',
+        'Netherlands' =>'新西兰',
+    ];
 
-    protected $attr_key = 'catch_doll_game';//储存在用户属性表中的key && 活动名称
+    protected $attr_key = 'catch_doll_game';//储存在用户属性表中的key && 活动名称(时间控制)
 
     /**
      *  老用户中奖概率
@@ -172,7 +182,7 @@ class CatchDollJsonRpc extends JsonRpc
         return [
             'code'    => 0,
             'message' => 'success',
-            'data'    => $_doll
+            'data'    => [$_doll,$this->doll_list_desc[$_doll]]
         ];
 
     }
@@ -235,6 +245,58 @@ class CatchDollJsonRpc extends JsonRpc
             'data' => $awards[0]['award_name']
         ];
 
+    }
+
+
+    /**
+     * 分享
+     * @JsonRpcMethod
+     */
+    public function shareDoll($params) {
+        if(!in_array($params->country, array_keys($this->doll_list)) ){
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+
+        global $userId;
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //事务开始
+        DB::beginTransaction();
+        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        if(!$attr ){
+            DB::rollBack();//回滚 
+            throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
+        }
+        if($attr->string){
+            $cards = json_decode($attr->string,1);
+            if(--$cards[$params->country] < 0){
+                throw new OmgException(OmgException::NUMBER_IS_NULL);
+            }
+            $encryStr = md5($userId.$params->country.time());
+            HdShareCards::create([
+                'user_id' => $userId,
+                'share' => $params->country,
+                'alias_name' => $this->attr_key,
+                'encry' => $encryStr,
+                // 'ip' => Request::getClientIp(),
+                // 'user_agent' => Request::header('User-Agent'),
+            ]);
+            DB::commit();
+        }else{
+            DB::rollBack();//回滚 
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => [
+                'user_id' => $userId,
+                'share' => $params->country,
+                'encry' => $encryStr
+            ]
+        ];
     }
 
     /**
