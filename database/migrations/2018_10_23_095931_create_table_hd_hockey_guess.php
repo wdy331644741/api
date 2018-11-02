@@ -25,7 +25,7 @@ class CreateTableHdHockeyGuess extends Migration
             $table->timestamps();
             $table->index('user_id');
             $table->index('config_id');
-            $table->index('math_date');
+            $table->index('match_date');
             $table->index('find_name');
             $table->index('type');
             $table->comment = '曲棍球压注表';
