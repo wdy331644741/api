@@ -183,13 +183,16 @@ class HockeyController extends Controller
             $upData['first_result'] = $first_result;
             $upData['second_result'] = $second_result;
             $upData['third_result'] = $third_result;
-            $upData['draw_info'] = $id."_first_".$first_result.",".$id."_second_".$second_result.",".$id."_third_".$third_result.",";
+            $upData['draw_info'] = $id."_first_".$first_result.",".$id."_second_".$second_result.",".$id."_third_".$third_result;
             $upData['open_status'] = 1;//状态0未开奖1已开奖2已发送开奖结果
         }
         $upData['updated_at'] = date("Y-m-d H:i:s");
         //修改
-        $res = HdHockeyGuessConfig::where("id",$id)->update($upData);
-        return $this->outputJson(0, $res);
+        $res = HdHockeyGuessConfig::where("id",$id)->where("open_status",0)->update($upData);
+        if($res){
+            return $this->outputJson(0, $res);
+        }
+        return $this->outputJson(10002,array('error_msg'=>"修改失败"));
     }
     //竞猜活动开奖结果发送
     public function postGuessSendOpenResult(Request $request){
@@ -200,12 +203,17 @@ class HockeyController extends Controller
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
         }
         $id = intval($request['id']);
-        $config = HdHockeyGuessConfig::where("id",$id)->first();
+        DB::beginTransaction();
+        $config = HdHockeyGuessConfig::where("id",$id)->lockForUpdate()->first();
         if(isset($config['id']) && $config['open_status'] = 1 && !empty($config['first_result']) && !empty($config['second_result']) && !empty($config['third_result'])){
+            $config->open_status = 2;//0未开奖，1已公布结果，2开奖中，3已发送奖励
+            $config->save();
             //放入队列修改相关中奖信息
             $this->dispatch((new HockeyGuessJob($config))->onQueue('hockey'));
+            DB::commit();
             return $this->outputJson(0, $config);
         }
+        DB::rollBack();
         return $this->outputJson(10002,array('error_msg'=>"发送失败"));
     }
 }

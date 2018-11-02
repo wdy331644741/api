@@ -132,8 +132,8 @@ class Hockey
      */
     static function openGuess($openName,$amount){
         if(!empty($openName) && $amount > 0){
-            $data = HdHockeyGuess::where('find_name',$openName)->where('status',1)->where('send_status',0)->select("id","user_id",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
-            if(!empty($data)){
+            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
+            if(isset($data[0]['user_id'])){
                 //计算总押注数
                 $total = 0;
                 foreach($data as $item){
@@ -141,8 +141,12 @@ class Hockey
                 }
                 $avg = round($amount/$total,2);//保留两位小数
                 foreach($data as $value){
-                    $value->amount = $value['user_total'] * $avg;
-                    $value->send_status = 1;
+                    $sumAmount = round($value['user_total'] * $avg);
+                    if($sumAmount > $amount){
+                        $sumAmount = $amount;
+                    }
+                    $value->amount = $sumAmount;
+                    $value->status = 1;
                     $value->save();
                     //发送站内信
                     $msg = "尊敬的用户恭喜您在昨天竞猜的活动中获得".$value->amount."元现金奖励，将在比赛休息日下发到您的账户";
