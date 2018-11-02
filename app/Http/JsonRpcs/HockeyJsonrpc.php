@@ -72,7 +72,7 @@ class HockeyJsonRpc extends JsonRpc {
             }
             //获取已兑换多少现金奖品
             $res['cash_exchange_num'] = HdHockeyCard::where(["user_id"=>$userId,"type"=>1,"status"=>1])->count();
-            //获取冠军卡数量
+            //获取冠军卡剩余数量
             $res['gold_card_num'] = HdHockeyCard::where(["user_id"=>$userId,"type"=>1,"status"=>0])->count();
         }
         //判读是否可以合成关键卡
