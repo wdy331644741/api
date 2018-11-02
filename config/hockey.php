@@ -17,6 +17,7 @@ return [
     //竞猜场配置
     'guess_alias_name'=>"hockey_guess",//活动时间别名
     'guess_key'=> "hockey_guess",
+    'expire_time' => "2018-11-24 00:00:00",
     'mail_invest_temp'=> "恭喜您在'曲棍球投资'活动中获得'{{awardname}}'奖励。",
     'mail_invite_temp'=> "",
     'guess_team'=>[

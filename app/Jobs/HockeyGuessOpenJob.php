@@ -40,7 +40,17 @@ class HockeyGuessJob extends Job implements ShouldQueue
             return false;
         }
         $res = [];
-        $amount = $this->data->champion_status == 0 ? 10000 : 50000;
+        if($this->data->champion_status == 1){
+            if(count($openName) == 1){
+                $amount = 50000;
+            }
+            if(count($openName) == 2){
+                $amount = 25000;
+            }
+        }
+        if($this->data->champion_status == 0){
+            $amount = 10000;
+        }
         foreach($openName as $value){
             $res[] = Hockey::openGuess($value,$amount);
         }

@@ -28,22 +28,15 @@ class HockeyController extends Controller
                 if(isset($item['first']) && !empty($item['first'])){
                     $item = Hockey::formatHockeyGuessData($item);
                 }
-                //比分拆开
-                $first = explode('-',$item['first_score']);
-                $second = explode('-',$item['second_score']);
-                $third = explode('-',$item['third_score']);
-                if(!empty($first)){
-                    $item['first_master_score'] = $first[0];
-                    $item['first_visiting_score'] = $first[0];
-                }
-                if(!empty($second)){
-                    $item['second_master_score'] = $second[0];
-                    $item['second_visiting_score'] = $second[0];
-                }
-                if(!empty($third)){
-                    $item['third_master_score'] = $third[0];
-                    $item['third_visiting_score'] = $third[0];
-                }
+                //第一场比分
+                $item['first_master_score'] = !empty(substr($item['first_score'],0,1)) ? substr($item['first_score'],0,1) : 0;
+                $item['first_visiting_score'] = !empty(substr($item['first_score'],2,1)) ? substr($item['first_score'],2,1) : 0;
+                //第二场比分
+                $item['second_master_score'] = !empty(substr($item['second_score'],0,1)) ? substr($item['second_score'],0,1) : 0;
+                $item['second_visiting_score'] = !empty(substr($item['second_score'],2,1)) ? substr($item['second_score'],2,1) : 0;
+                //第三场比分
+                $item['third_master_score'] = !empty(substr($item['third_score'],0,1)) ? substr($item['third_score'],0,1) : 0;
+                $item['third_visiting_score'] = !empty(substr($item['third_score'],2,1)) ? substr($item['third_score'],2,1) : 0;
             }
             return $this->outputJson(0,$data);
         }
@@ -178,12 +171,33 @@ class HockeyController extends Controller
         //第三场比赛结果
         $third_result = intval($request['third_result']);
         $id = intval($request['id']);
-        if($first_result > 0 && $second_result > 0 && $third_result > 0){
+        //判断是否是冠军场
+        $dataFirst = HdHockeyGuessConfig::where("id",$id)->first();
+        if(($first_result > 0 && $second_result > 0 && $third_result > 0) || (isset($dataFirst['champion_status']) && $dataFirst['champion_status'] == 1 && $first_result > 0)){
             //开奖
             $upData['first_result'] = $first_result;
             $upData['second_result'] = $second_result;
             $upData['third_result'] = $third_result;
-            $upData['draw_info'] = $id."_first_".$first_result.",".$id."_second_".$second_result.",".$id."_third_".$third_result;
+            //冠军场
+            if($dataFirst['champion_status'] == 1){
+                $thirdStr = '';
+                if($first_result == 1){
+                    $c_id = substr($dataFirst['first'],0,1);//国家队id
+                    $thirdStr = $c_id."_champion";
+                }elseif($first_result == 2){
+                    $c_id1 = substr($dataFirst['first'],0,1);
+                    $c_id2 = substr($dataFirst['first'],2,1);
+                    $thirdStr = $c_id1."_champion".",".$c_id2."_champion";
+                }elseif($first_result == 3){
+                    $c_id = substr($dataFirst['first'],2,1);
+                    $thirdStr = $c_id."_champion";
+                }
+                $upData['draw_info'] = $thirdStr;
+            }
+            //普通场
+            if($dataFirst['champion_status'] == 0){
+                $upData['draw_info'] = $id."_first_".$first_result.",".$id."_second_".$second_result.",".$id."_third_".$third_result;
+            }
             $upData['open_status'] = 1;//状态0未开奖1已开奖2已发送开奖结果
         }
         $upData['updated_at'] = date("Y-m-d H:i:s");
@@ -205,7 +219,13 @@ class HockeyController extends Controller
         $id = intval($request['id']);
         DB::beginTransaction();
         $config = HdHockeyGuessConfig::where("id",$id)->lockForUpdate()->first();
-        if(isset($config['id']) && $config['open_status'] = 1 && !empty($config['first_result']) && !empty($config['second_result']) && !empty($config['third_result'])){
+        if(
+            isset($config['id']) && $config['open_status'] = 1 &&
+            (
+                (!empty($config['first_result']) && !empty($config['second_result']) && !empty($config['third_result']) && $config['champion_status'] == 0)
+                ||
+                (!empty($config['first_result']) && $config['champion_status'] == 1))
+            ){
             $config->open_status = 2;//0未开奖，1已公布结果，2开奖中，3已发送奖励
             $config->save();
             //放入队列修改相关中奖信息

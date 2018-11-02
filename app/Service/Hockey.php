@@ -131,8 +131,8 @@ class Hockey
      * 竞猜后台开奖的时候将奖励生成展示给用户
      */
     static function openGuess($openName,$amount){
-        if(!empty($openName) && $amount > 0){
-            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
+        if(!empty($openName)){
+            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id","type",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
             if(isset($data[0]['user_id'])){
                 //计算总押注数
                 $total = 0;
