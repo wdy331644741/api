@@ -39,6 +39,7 @@ use App\Service\TzyxjService;
 use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
+use App\Http\JsonRpcs\CatchDollJsonRpc;//邀请注册送 抓娃娃机会
 
 class SendAward
 {
@@ -243,6 +244,23 @@ class SendAward
                 }
                 break;
             /** 曲棍球正式场活动 END */
+
+            
+            /** 抓娃娃机 邀请注册送机会 START */
+            case 'catch_doll_register_change'://注册送抽奖
+                if(isset($triggerData['tag']) 
+                    && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' 
+                    && $triggerData['from_user_id'] != 0
+                    ){
+                    $reference_date = $triggerData['time'];
+                    //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
+                    $user_inc = $triggerData['from_user_id'];
+                    CatchDollJsonRpc::registerGiveChange($user_inc);
+                    // OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
+
+                }
+                break;
+            /** 抓娃娃机 邀请注册送机会 end */
 
             /** 十月份抽奖投资送次数 START */
             case 'oct_lottery_registergive'://注册送抽奖
