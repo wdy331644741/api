@@ -36,13 +36,25 @@ class HockeyGuessJob extends Job implements ShouldQueue
         if(empty($openName)){
             return false;
         }
+        if($this->data->open_status == 3){
+            return false;
+        }
         $res = [];
         $amount = $this->data->champion_status == 0 ? 10000 : 50000;
         foreach($openName as $value){
             $res[] = Hockey::openGuess($value,$amount);
         }
+        foreach($res as $item){
+            if($item == false){
+                $this->data->open_status = 4;//状态0未开奖，1已公布结果，2开奖中，3已发送奖励,4已发送有未猜中
+                $this->data->remark = json_encode($res);
+                $this->data->save();
+                return false;
+                break;
+            }
+        }
         //修改状态为成功
-        $this->data->open_status = 2;//状态0未开奖1已开奖2已发送开奖结果
+        $this->data->open_status = 3;//状态0未开奖，1已公布结果，2开奖中，3已发送奖励,4发送失败
         $this->data->remark = json_encode($res);
         $this->data->save();
         return true;

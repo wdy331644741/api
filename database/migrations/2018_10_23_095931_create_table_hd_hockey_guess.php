@@ -16,7 +16,7 @@ class CreateTableHdHockeyGuess extends Migration
             $table->increments('id');
             $table->integer('user_id')->default(0)->comment('用户id');
             $table->integer('config_id')->default(0)->comment('关联配置id');
-            $table->string('math_date',10)->default('')->comment('押注的对阵1-2 意思：（中国-荷兰）');
+            $table->string('match_date',10)->default('')->comment('押注的对阵1-2 意思：（中国-荷兰）');
             $table->string('find_name',64)->default('')->comment('押注的第几场first、second、third');
             $table->integer('num')->default(0)->comment('押注数量');
             $table->decimal('amount',10,2)->default(0)->comment('获取现金金额');
