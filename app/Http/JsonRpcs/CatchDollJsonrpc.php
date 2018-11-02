@@ -116,7 +116,11 @@ class CatchDollJsonRpc extends JsonRpc
      * 返回 国家队
      * @JsonRpcMethod
      */
-    public function gameDollDraw() {
+    public function gameDollDraw($params) {
+        if(empty($params->catch)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+
         global $userId;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -136,6 +140,18 @@ class CatchDollJsonRpc extends JsonRpc
         DB::beginTransaction();
         $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
 
+        //如果没有抓中，只减次数
+        if($params->catch != 'success'){
+            $attr->timestamps = false;//更改用户属性时  不更新时间戳。
+            $attr->decrement('number', 1);
+            $attr->save();
+            DB::commit();
+            return [
+                'code'    => 0,
+                'message' => 'success',
+                'data'    => false
+            ];
+        }
         if( (isset($attr)?$attr['number']:0 )< 1){
             DB::rollBack();//回滚  
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
@@ -261,6 +277,9 @@ class CatchDollJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function shareDoll($params) {
+        if(empty($params->country)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
         if(!in_array($params->country, array_keys($this->doll_list)) ){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
@@ -301,12 +320,12 @@ class CatchDollJsonRpc extends JsonRpc
             DB::rollBack();//回滚 
             throw new OmgException(OmgException::DATA_ERROR);
         }
-
+        $phone = call_user_func_array(array("App\Service\Func","getUserPhone"),[$userId , true]);
         return [
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'user_id' => $userId,
+                'user_id' => protectPhone($phone),
                 'share' => $params->country,
                 'encry' => $encryStr
             ]
@@ -318,7 +337,9 @@ class CatchDollJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function receiveDoll($params) {
-
+        if(empty($params->code)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
         global $userId;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
