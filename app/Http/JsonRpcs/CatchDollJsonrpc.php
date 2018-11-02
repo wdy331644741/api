@@ -41,7 +41,7 @@ class CatchDollJsonRpc extends JsonRpc
         'Netherlands' =>'荷兰',
     ];
 
-    protected $attr_key = 'catch_doll_game';//储存在用户属性表中的key && 活动名称(时间控制)
+    protected static $attr_key = 'catch_doll_game';//储存在用户属性表中的key && 活动名称(时间控制)
 
     /**
      *  老用户中奖概率
@@ -83,13 +83,13 @@ class CatchDollJsonRpc extends JsonRpc
 
         }
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($this->attr_key )) {
+        if(!ActivityService::isExistByAlias(self::$attr_key )) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //登陆状态
         if($res['is_login'] == true){
             //获取卡片信息
-            $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->first();
+            $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->first();
             if(!$attr){
                 //初始化用户 抓娃娃机会
                 $res['chance'] = $this->initChance($userId);
@@ -131,14 +131,14 @@ class CatchDollJsonRpc extends JsonRpc
             throw new OmgException(OmgException::API_BUSY);
         }
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($this->attr_key )) {
+        if(!ActivityService::isExistByAlias(self::$attr_key )) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //获取的国家队球
         $_doll = null;
         //事务开始
         DB::beginTransaction();
-        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
 
         //如果没有抓中，只减次数
         if($params->catch != 'success'){
@@ -166,7 +166,7 @@ class CatchDollJsonRpc extends JsonRpc
             $bin = rand(0,5);
             $this->doll_list[$list_key_arr[$bin]]++;
             //减少 抓娃娃机会
-            // Attributes::increment($userId ,$this->attr_key ,-1 ,json_encode($this->doll_list));
+            // Attributes::increment($userId ,self::$attr_key ,-1 ,json_encode($this->doll_list));
             $_string = json_encode($this->doll_list);
             $_doll = $list_key_arr[$bin];
         }else{
@@ -221,12 +221,12 @@ class CatchDollJsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         // 活动是否存在
-        if(!ActivityService::isExistByAlias($this->attr_key )) {
+        if(!ActivityService::isExistByAlias(self::$attr_key )) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //事务开始
         DB::beginTransaction();
-        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
         $ready = isset($attr->string)?$this->isExchangehan($attr->string) : false;
         if(!$ready ){
             DB::rollBack();//回滚 
@@ -290,7 +290,7 @@ class CatchDollJsonRpc extends JsonRpc
         }
         //事务开始
         DB::beginTransaction();
-        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
         if(!$attr ){
             DB::rollBack();//回滚 
             throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
@@ -310,7 +310,7 @@ class CatchDollJsonRpc extends JsonRpc
             HdShareCards::create([
                 'user_id' => $userId,
                 'share' => $params->country,
-                'alias_name' => $this->attr_key,
+                'alias_name' => self::$attr_key,
                 'encry' => $encryStr,
                 // 'ip' => Request::getClientIp(),
                 // 'user_agent' => Request::header('User-Agent'),
@@ -346,8 +346,8 @@ class CatchDollJsonRpc extends JsonRpc
         }
         //事务开始
         DB::beginTransaction();
-        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
-        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => $this->attr_key])->lockForUpdate()->first();
+        $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => self::$attr_key])->lockForUpdate()->first();
         if(!$shareCardsTable) {
             DB::rollBack();//数据有误
             throw new OmgException(OmgException::DATA_ERROR);
@@ -357,11 +357,12 @@ class CatchDollJsonRpc extends JsonRpc
             DB::rollBack();
             throw new OmgException(OmgException::ALREADY_AWARD);
         }
-        if($shareCardsTable->user_id == $userId){
-            //分享人和领取人相同
-            DB::rollBack();
-            throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
-        }
+        //自己可以领取自己的
+        // if($shareCardsTable->user_id == $userId){
+        //     //分享人和领取人相同
+        //     DB::rollBack();
+        //     throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
+        // }
 
         $userStr = isset($attr)?json_decode($attr->string,1):$this->doll_list;
         $userStr[$shareCardsTable->share]++;
@@ -393,6 +394,10 @@ class CatchDollJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function getGameChange($params) {
+        if(empty($params->data)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+
         global $userId;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -401,7 +406,7 @@ class CatchDollJsonRpc extends JsonRpc
         $havedCounts = $this->getChanceCounts($userId);//初始化
         //事务开始
         DB::beginTransaction();
-        $attr = UserAttribute::where(['key'=>$this->attr_key,'user_id'=>$userId])->lockForUpdate()->first();
+        $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
 
         if(is_numeric($params->data) ){
             $changeC = intval($params->data/200);
@@ -429,6 +434,7 @@ class CatchDollJsonRpc extends JsonRpc
             $changeC = 1;
             $attr->text = date('Y-m-d H:i:s');
         }
+
         $attr->number += $changeC;
         $attr->save();
         DB::commit();
@@ -439,6 +445,45 @@ class CatchDollJsonRpc extends JsonRpc
         ];
     }
 
+    //SendAward.php 邀请注册送 2次机会
+    public static function registerGiveChange($userId) {
+        
+        $actInfo = ActivityService::GetActivityedInfoByAlias(self::$attr_key);
+        if(isset($actInfo) ){
+            if(!empty($actInfo->start_at) && $reference_date < $actInfo->start_at){
+                return "活动未开始";
+            }else if(!empty($actInfo->end_at) && $reference_date >= $actInfo->end_at){
+                return "活动已结束";
+            }
+        }
+        // $attr = $this->getChanceCounts($userId);//起更新作用
+        DB::beginTransaction();
+        $attr = UserAttribute::where(array('user_id' => $userId, 'key' => self::$attr_key))
+                        // ->whereDate('updated_at','=',date("Y-m-d"))
+                        ->lockForUpdate()
+                        ->first();
+        if(isset($attr->updated_at) ){
+            if($attr->updated_at < date('Y-m-d')){
+                $attr->number = 2+2;//加上初始化的2次机会
+            }else{
+                $attr->number += 2;//
+            }
+
+            $attr->save();
+            DB::commit();
+
+        }else{
+            UserAttribute::create([
+                'user_id' => $userId,
+                'number'  => 2+2 ,//加上初始化的2次机会,
+                'key'     => self::$attr_key,
+            ]);
+
+        }
+        
+        return 0;
+
+    }
     /**
      * 是否集齐
      *
@@ -460,7 +505,7 @@ class CatchDollJsonRpc extends JsonRpc
      *
      */
     private function getChanceCounts($userId){
-        $userAtt = UserAttribute::where(array('user_id' => $userId, 'key' => $this->attr_key))->first();
+        $userAtt = UserAttribute::where(array('user_id' => $userId, 'key' => self::$attr_key))->first();
 
         if(isset($userAtt->updated_at) ){
             if($userAtt->updated_at < date('Y-m-d')){
@@ -483,7 +528,7 @@ class CatchDollJsonRpc extends JsonRpc
      *
      */
     private function initChance($userId ,$str = null){
-        return Attributes::incrementItemByDay($userId , $this->attr_key ,$this->chance_day ,$str);
+        return Attributes::incrementItemByDay($userId , self::$attr_key ,$this->chance_day ,$str);
     }
 
     /**
