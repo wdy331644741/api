@@ -263,7 +263,7 @@ class HockeyJsonRpc extends JsonRpc {
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>'兑换奖品成功'
+            'data' =>$award['award_name']
         ];
     }
     /**
@@ -335,7 +335,8 @@ class HockeyJsonRpc extends JsonRpc {
             'available'=>false,
             'stake_status'=>false,
             'team'=>$config['guess_team'],
-            'team_list'=>[]
+            'team_list'=>[],
+            'champion_stake'=>[]
             ];
         //登陆状态
         if($userId > 0){
@@ -377,8 +378,12 @@ class HockeyJsonRpc extends JsonRpc {
                 }
             }
             //获取冠军场押注情况
-            $userChampionStake = HdHockeyGuess::where(["user_id"=>$userId,"type"=>2])->select(DB::raw("sum(`num`) as nums"),"find_name")->groupBy("find_name")->get()->toArray();
-            dd($userChampionStake);
+            $userChampionStake = HdHockeyGuess::where(["user_id"=>$userId,"type"=>2])->select(DB::raw("sum(`num`) as nums"),"config_id")->groupBy("find_name")->get()->toArray();
+            $championStake = [];
+            foreach($userChampionStake as &$item){
+                $championStake[$item['config_id']] = $item;
+            }
+            $res['champion_stake'] = $championStake;
         }
         //第一场个人投注
         $res['team_list']['first_stake'] = isset($stakeArr['first']) ? $stakeArr['first'] : [];
@@ -403,7 +408,6 @@ class HockeyJsonRpc extends JsonRpc {
      */
     public function HockeyGuessDrew($params) {
         global $userId;
-        $userId = 20008;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -429,16 +433,17 @@ class HockeyJsonRpc extends JsonRpc {
             DB::rollBack();
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
+        if($field == 'champion'){
+            $find_name = $id."_".$field;
+            $guessConfig = HdHockeyGuessConfig::where('champion_status',1)->first();
+        }else{
+            $find_name = $id."_".$field."_".$stake;
+            $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
+        }
         //判断是否可以下注
-        $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
         if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 21:00:00"){
             DB::rollBack();
             throw new OmgException(OmgException::ACTIVITY_IS_END);
-        }
-        if($field == 'champion'){
-            $find_name = $id."_".$field;
-        }else{
-            $find_name = $id."_".$field."_".$stake;
         }
         //获取投注记录
         $stakeData = HdHockeyGuess::where(['config_id'=>$id,'user_id'=>$userId,'find_name'=>$find_name])->first();
