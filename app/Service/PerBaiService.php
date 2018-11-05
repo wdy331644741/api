@@ -26,7 +26,7 @@ class PerBaiService
     }
 
     //用户随机中奖号码发放
-    public  static function addDrawNum($userId, $number, $type='investment')
+    public  static function addDrawNum($userId, $number, $type, $createTime)
     {
             $activityConfig = HdPerHundredConfig::where(['status' => 1])->orderBy('id','desc')->first();
             if (!$activityConfig) {
@@ -37,10 +37,10 @@ class PerBaiService
                 return false;
             }
             $model = new self();
-            $model->addDrawNumByInvestment($userId, $number, $type);
+            $model->addDrawNumByInvestment($userId, $number, $type, $createTime);
     }
 
-    public function addDrawNumByInvestment($userId, $number, $type)
+    public function addDrawNumByInvestment($userId, $number, $type, $createTime)
     {
         $global_key = self::$perbai_version_end;
         //判断活动结束了
@@ -115,7 +115,8 @@ class PerBaiService
                         ];
                         $send_msg[] = $temp;
                     }
-                    $update['created_at'] = date('Y-m-d H:i:s');
+                    $update['created_at'] = $createTime;
+                    $update['updated_at'] = $createTime;
                     $updateRes = HdPerbai::where(['id' => $v['id'], 'status'=>0])->update($update);
                     if (!$updateRes) {
                         throw new OmgException(OmgException::DATABASE_ERROR);

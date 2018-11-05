@@ -359,6 +359,56 @@ class PerBaiJsonrpc extends JsonRpc
         ];
     }
 
+    /**
+     * 往期
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiAgo()
+    {
+        global $userId;
+        // 是否登录
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $key = 'perbai_end_';
+        $cache_key = $key . $userId;
+        $data = Cache::remember($cache_key, 10, function() use($userId, $key) {
+            $data = GlobalAttribute::select('key', 'number', 'string')->where('key','like', "{$key}%" )->get();
+            $perbaiService = new PerBaiService();
+            $period = $perbaiService::$perbai_version;
+            $return = [];
+            foreach ($data as $k=>$v){
+                $old_period = intval(str_replace($key, '', $v['key']));
+                if ($old_period == $period) {
+                    continue;
+                }
+                $return[$k]['period'] = $old_period;
+                $draw_number = substr(strrev($v['number']), 0, 4);
+                $award = HdPerbai::where(['user_id'=>$userId, 'period'=>$old_period, 'draw_number'=>$draw_number])->first();
+                $return[$k]['award'] = isset($award) ? $award['award_name'] : '未中奖';
+                $return[$k]['number'] = sprintf("%.2f",$v['number'] / 100);
+                $return[$k]['date'] = $v['string'];
+            }
+            return $return;
+        });
+        return $data;
+    }
+
+    /**
+     * 往期
+     *
+     * @JsonRpcMethod
+     */
+    public  function perbaiRemind()
+    {
+        global $userId;
+        // 是否登录
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //todo push接口
+    }
     public static function getRemainNum() {
 
         $perbaiService = new PerBaiService();
