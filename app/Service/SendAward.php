@@ -217,6 +217,9 @@ class SendAward
                     if ( $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加投资竞猜机会
                         $num = intval($amount/10000);
+                        if($num < 1){
+                            return false;
+                        }
                         $config = Config::get("hockey");
                         Attributes::increment($userId,$config['guess_key'],$num);
                         //发送站内信
