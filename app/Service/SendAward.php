@@ -201,7 +201,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount > 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                    if ( $amount >= 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加集卡和竞猜机会
                         Hockey::HockeyCardObtain($userId,$amount);
                     }
