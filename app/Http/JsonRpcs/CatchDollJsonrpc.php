@@ -139,7 +139,10 @@ class CatchDollJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
-
+        if( (isset($attr)?$attr['number']:0 )< 1){
+            DB::rollBack();//回滚  
+            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
+        }
         //如果没有抓中，只减次数
         if($params->catch != 'success'){
             $attr->timestamps = false;//更改用户属性时  不更新时间戳。
@@ -152,10 +155,7 @@ class CatchDollJsonRpc extends JsonRpc
                 'data'    => false
             ];
         }
-        if( (isset($attr)?$attr['number']:0 )< 1){
-            DB::rollBack();//回滚  
-            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
-        }
+        
         $cards = isset($attr['string']) ? json_decode($attr['string'],1) : [];
         /*属性 及 抽奖国家队*/
         $_string = null;
