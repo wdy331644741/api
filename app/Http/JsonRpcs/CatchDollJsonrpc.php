@@ -446,7 +446,8 @@ class CatchDollJsonRpc extends JsonRpc
     }
 
     //SendAward.php 邀请注册送 2次机会
-    public static function registerGiveChange($userId) {
+    // 被邀请者 送1次机会
+    public static function registerGiveChange($userId,$inc = 2) {
         
         $actInfo = ActivityService::GetActivityedInfoByAlias(self::$attr_key);
         if(isset($actInfo) ){
@@ -464,9 +465,9 @@ class CatchDollJsonRpc extends JsonRpc
                         ->first();
         if(isset($attr->updated_at) ){
             if($attr->updated_at < date('Y-m-d')){
-                $attr->number = 2+2;//加上初始化的2次机会
+                $attr->number = 2+$inc;//加上初始化的2次机会
             }else{
-                $attr->number += 2;//
+                $attr->number += $inc;//
             }
 
             $attr->save();
@@ -475,7 +476,7 @@ class CatchDollJsonRpc extends JsonRpc
         }else{
             UserAttribute::create([
                 'user_id' => $userId,
-                'number'  => 2+2 ,//加上初始化的2次机会,
+                'number'  => 2+$inc ,//加上初始化的2次机会,
                 'key'     => self::$attr_key,
             ]);
 
