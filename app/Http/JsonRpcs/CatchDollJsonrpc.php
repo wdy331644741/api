@@ -471,8 +471,6 @@ class CatchDollJsonRpc extends JsonRpc
             }
 
             $attr->save();
-            DB::commit();
-
         }else{
             UserAttribute::create([
                 'user_id' => $userId,
@@ -481,7 +479,7 @@ class CatchDollJsonRpc extends JsonRpc
             ]);
 
         }
-        
+        DB::commit();
         return 0;
 
     }
