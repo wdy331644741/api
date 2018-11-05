@@ -33,17 +33,17 @@ class HockeyJsonRpc extends JsonRpc {
         $next_time = date("Y-m-d H:i:s") > date("Y-m-d 10:00:00") ? date("Y-m-d 10:00:00",strtotime("+1 day")) : date("Y-m-d 10:00:00");
         $next_time = strtotime($next_time) - time();
         $res = [
-            'is_login'=>false,
-            'available'=>false,
-            'is_synthesis'=>true,
-            'is_cash_exchange'=>false,
-            'is_object_exchange'=>false,
-            'cash_exchange_num' => 0,
-            'num'=>0,
-            'gold_card_num'=>0,
-            'cards'=>$cards,
-            'awards'=>[],
-            'next_time'=>$next_time];
+            'is_login'=>false,//是否登录
+            'available'=>false,//活动是否有效
+            'is_synthesis'=>true,//是否可以合成冠军卡
+            'is_cash_exchange'=>false,//是否可以兑换现金
+            'is_object_exchange'=>false,//是否可以兑换实物
+            'cash_exchange_num' => 0,//已兑换的现金奖品数量
+            'num'=>0,//冠军卡数量
+            'gold_card_num'=>0,//实物卡数量
+            'cards'=>$cards,//卡片信息
+            'awards'=>[],//实物奖信息
+            'next_time'=>$next_time];//下次开抢实物卡时间
         //登陆状态
         if($userId > 0){
             $res['is_login'] = true;
@@ -75,7 +75,7 @@ class HockeyJsonRpc extends JsonRpc {
             //获取冠军卡剩余数量
             $res['gold_card_num'] = HdHockeyCard::where(["user_id"=>$userId,"type"=>1,"status"=>0])->count();
         }
-        //判读是否可以合成关键卡
+        //判读是否可以合成冠军卡
         foreach($res['cards'] as $item){
             if($item <=0){
                 $res['is_synthesis'] = false;
@@ -84,6 +84,7 @@ class HockeyJsonRpc extends JsonRpc {
         }
         //获取实物奖励信息
         $res['awards']['object'] = HdHockeyCardAward::where(['status'=>1])->get()->toArray();
+        //现金奖品列表
         $res['awards']['cash'] = $config['cash_list'];
         return [
             'code' => 0,
@@ -100,7 +101,9 @@ class HockeyJsonRpc extends JsonRpc {
         global $userId;
         $page = $params->page == 0 ? 5 : $params->page;
         $res = ['award_list'=>[],'msg_list'=>[],'my_list'=>[]];
+        //获取中奖金额倒序排行
         $awardList = HdHockeyCard::where('status',1)->select("user_id","award_name","updated_at")->orderBy('updated_at', 'desc')->take($page)->get()->toArray();
+        //获取投资获取卡片消息列表记录
         $msgList = HdHockeyCardMsg::where('type',1)->select('id','user_id','msg','created_at')->orderBy('created_at', 'desc')->take($page)->get()->toArray();
         if(!empty($awardList)){
             foreach ($awardList as &$item){
@@ -113,7 +116,7 @@ class HockeyJsonRpc extends JsonRpc {
         }
         $res['award_list'] = $awardList;
         $res['msg_list'] = $msgList;
-        if($userId > 0){
+        if($userId > 0){//获取自己的获奖记录
             $userInfo = Func::getUserBasicInfo($userId);
             $display_name = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
             $res['my_list'] = HdHockeyCard::where('user_id',$userId)->where('status',1)->select("user_id","award_name","updated_at")->orderBy('updated_at', 'desc')->take($page)->get()->toArray();
@@ -207,24 +210,26 @@ class HockeyJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         DB::beginTransaction();
+        //锁住该用户属性
         UserAttribute::where(['user_id'=>$userId,'key'=>$config['card_key']])->lockForUpdate()->first();
         if($type == 1){//兑换现金
+            //锁住用户未使用的冠军卡
             $cashCard = HdHockeyCard::where(['user_id'=>$userId,'type'=>1,'status'=>0])->lockForUpdate()->first();
             if(!isset($cashCard['type'])){
                 DB::rollBack();
                 throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
             }
-            //获取应得奖励
+            //获取应得奖励（应该获取的现金奖励）
             $cashName = Hockey::getHockeyCardExchangeAward($userId);
             if($cashName > 0){
                 //发送现金奖励
                 $uuid = Func::create_guid();
-                $res = Func::incrementAvailable($userId,$cashCard['id'],$uuid,intval($cashName),'cash_type');
+                $res = Func::incrementAvailable($userId,$cashCard['id'],$uuid,intval($cashName),'hockey_card');
                 if (!isset($res['result']['code'])) {
                     DB::rollBack();
                     throw new OmgException(OmgException::API_FAILED);
                 }
-                $cashCard->status = 1;
+                $cashCard->status = 1;//修改冠军卡为已使用
                 $cashCard->award_id = intval($cashName);
                 $cashCard->award_name = $cashName;
                 $cashCard->save();
@@ -248,14 +253,14 @@ class HockeyJsonRpc extends JsonRpc {
         if(!isset($award['id'])){
             throw new OmgException(OmgException::AWARD_NOT_EXIST);
         }
-        //兑换实物
+        //获取实物卡信息（锁住）
         $goldCard = HdHockeyCard::where(['user_id'=>$userId,'type'=>2,'status'=>0])->lockForUpdate()->first();
         if(!isset($goldCard['type'])){
             DB::rollBack();
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
         //兑换实物
-        $goldCard->status = 1;
+        $goldCard->status = 1;//修改实物卡为已使用
         $goldCard->award_id = $awardId;
         $goldCard->award_name = isset($award['award_name']) ? $award['award_name'] : '';
         $goldCard->save();
@@ -282,29 +287,29 @@ class HockeyJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $key = "hockey_card_award_key_".date("Ymd");
-        if(date("Y-m-d H:i:s") >= date("Y-m-d 10:00:00")){
+        if(date("Y-m-d H:i:s") >= date("Y-m-d 10:00:00")){//判断时间是否可以抢实物卡
             DB::beginTransaction();
-            $luckAwardKey = "hockey_card_luck_award_key";
+            $luckAwardKey = "hockey_card_luck_award_key";//redis key
             $lockAwardCount = GlobalAttribute::where('key',$luckAwardKey)->count();
-            if($lockAwardCount < 1){
+            if($lockAwardCount < 1){//全局属性是否存在
                 GlobalAttribute::create(['key'=>$luckAwardKey,'number'=>0]);
             }
-            GlobalAttribute::where('key',$luckAwardKey)->lockForUpdate()->first();
-            $isExist = Cache::get($key,0);
-            if($isExist > 0){
+            GlobalAttribute::where('key',$luckAwardKey)->lockForUpdate()->first();//锁住属性记录
+            $isExist = Cache::get($key,0);//判断rediskey是否存在
+            if($isExist > 0){//如果存在说明有人中奖
                 DB::rollBack();
                 throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);
-            }else{
+            }else{//不存在就记录第一个用户id
                 Cache::forever($key,$userId);
                 $luckUser = Cache::get($key);
-                //查看有没有兑换实物的数据
+                //查看有没有冠军卡
                 $goldCard = HdHockeyCard::where(['user_id'=>$luckUser,'type'=>1,"status"=>0])->first();
-                if(!isset($goldCard['id'])){
-                    Cache::forget($key);
+                if(!isset($goldCard['id'])){//没有冠军卡直接返回错误代码
+                    DB::rollBack();
                     throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
                 }
                 //修改为已获得实物抽奖卡状态
-                $goldCard->type = 2;
+                $goldCard->type = 2;//修改为可兑换实物类型（实物卡）
                 $goldCard->updated_at = date("Y-m-d H:i:s");
                 $goldCard->save();
                 //修改锁住的key加1
@@ -331,13 +336,12 @@ class HockeyJsonRpc extends JsonRpc {
         global $userId;
         $config = Config::get("hockey");
         $res = [
-            'is_login'=>false,
-            'available'=>false,
-            'stake_status'=>false,
-            'time_end'=> strtotime($config['expire_time']) - time(),
-            'team'=>$config['guess_team'],
-            'team_list'=>[],
-            'champion_stake'=>[]
+            'is_login'=>false,//是否登录
+            'available'=>false,//获取是否存在
+            'stake_status'=>false,//押注状态
+            'time_end'=> strtotime($config['expire_time']) - time(),//押注过期时间
+            'team'=>$config['guess_team'],//国家队信息
+            'team_list'=>[],//国家队对阵信息及押注情况
             ];
         //登陆状态
         if($userId > 0){
@@ -384,7 +388,6 @@ class HockeyJsonRpc extends JsonRpc {
             foreach($userChampionStake as &$item){
                 $championStake[$item['config_id']] = $item;
             }
-            $res['champion_stake'] = $championStake;
         }
         //第一场个人投注
         $res['team_list']['first_stake'] = isset($stakeArr['first']) ? $stakeArr['first'] : [];
@@ -395,6 +398,12 @@ class HockeyJsonRpc extends JsonRpc {
         //押注状态
         if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00"){
             $res['stake_status'] = true;
+        }
+        //冠军场押注
+        foreach($res['team'] as $key => $value){
+            $tmpData['num'] = isset($championStake[$key]['nums']) ? $championStake[$key]['nums'] : 0;
+            $tmpData['country'] = $value;
+            $res['team'][$key] = $tmpData;
         }
         return [
             'code' => 0,
@@ -418,7 +427,7 @@ class HockeyJsonRpc extends JsonRpc {
         $field = isset($params->field) ? $params->field : '';
         //押注
         $stake = isset($params->stake) && $params->stake > 0 ? $params->stake : 0;
-        if($id <= 0 || empty($field) || $stake<= 0 || !in_array($field,['first','second','third','champion'])){
+        if($id <= 0 || empty($field) || $stake<= 0 || !in_array($field,['first','second','third','champion'])){//判断必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $config = Config::get("hockey");
@@ -434,14 +443,14 @@ class HockeyJsonRpc extends JsonRpc {
             DB::rollBack();
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
-        if($field == 'champion'){
+        if($field == 'champion'){//冠军场下注
             $find_name = $id."_".$field;
             $guessConfig = HdHockeyGuessConfig::where('champion_status',1)->first();
-        }else{
+        }else{//普通对阵下注
             $find_name = $id."_".$field."_".$stake;
             $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
         }
-        //判断是否可以下注
+        //根据开奖状态和下注时间-判断是否可以下注
         if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00"){
             DB::rollBack();
             throw new OmgException(OmgException::ACTIVITY_IS_END);
@@ -460,7 +469,7 @@ class HockeyJsonRpc extends JsonRpc {
             $stakeData->type = $field == 'champion' ? 2 : 1;
             $stakeData->created_at = date("Y-m-d H:i:s");
         }else{
-            $stakeData->increment('num',1);
+            $stakeData->increment('num',1);//注数+1
         }
         $stakeData->save();
         //减少竞猜次数
@@ -482,8 +491,8 @@ class HockeyJsonRpc extends JsonRpc {
     {
         global $userId;
         $res = [
-            'total_list' => [['top'=>'--','display_name'=>'--','amount'=>'--']],
-            "my_list" => []
+            'total_list' => [['top'=>'--','display_name'=>'--','amount'=>'--']],//竞猜获取现金列表
+            "my_list" => []//我的竞猜信息列表
         ];
 
         if($userId > 0){

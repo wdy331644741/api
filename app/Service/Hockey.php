@@ -78,6 +78,7 @@ class Hockey
         $config = Config::get("hockey");
         //获取用户冠军卡是否有未领取的
         $already = HdHockeyCard::where(['user_id'=>$userId,'type'=>1,'status'=>1])->count();
+        //判断用户应该获取哪一个现金奖励
         if($already <= 0){
             return $config['cash_list'][0];
         }elseif($already == 1){
