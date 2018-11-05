@@ -52,6 +52,10 @@ class PerHundredController extends Controller
             'last_rule' => 'required|min:1|max:2000',
             'sunshine_rule' => 'required|min:1|max:2000',
             'activity_rule' => 'required|min:1',
+            'ultimate_price' => 'required|numeric',
+            'first_price' => 'required|numeric',
+            'last_price' => 'required|numeric',
+            'sunshine_price' => 'required|numeric',
         ];
         if($id > 0){
             unset($filter['numbers']);
@@ -93,6 +97,11 @@ class PerHundredController extends Controller
         $data['last_rule'] = trim($request->last_rule);
         $data['sunshine_rule'] = trim($request->sunshine_rule);
         $data['activity_rule'] = trim($request->activity_rule);
+
+        $data['ultimate_price'] = trim($request->ultimate_price);
+        $data['first_price'] = trim($request->first_price);
+        $data['last_price'] = trim($request->last_price);
+        $data['sunshine_price'] = trim($request->sunshine_price);
         //添加
         if($id <= 0){
             $data['numbers'] = intval($request->numbers);
