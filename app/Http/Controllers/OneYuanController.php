@@ -212,6 +212,7 @@ class OneYuanController extends Controller
     
     //生成时时彩记录
     function getAutoOpen() {
+        return false;
         $this->dispatch((new Cqssc())->onQueue('oneyuan')->delay(60));
         return $this->outputJson(0, array('error_msg' => '成功')); 
     }
