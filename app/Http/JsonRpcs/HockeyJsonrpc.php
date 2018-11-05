@@ -334,6 +334,7 @@ class HockeyJsonRpc extends JsonRpc {
             'is_login'=>false,
             'available'=>false,
             'stake_status'=>false,
+            'time_end'=> strtotime($config['expire_time']) - time(),
             'team'=>$config['guess_team'],
             'team_list'=>[],
             'champion_stake'=>[]
@@ -392,7 +393,7 @@ class HockeyJsonRpc extends JsonRpc {
         //第三场个人投注
         $res['team_list']['third_stake'] = isset($stakeArr['third']) ? $stakeArr['third'] : [];
         //押注状态
-        if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") < date("Y-m-d 21:00:00")){
+        if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00"){
             $res['stake_status'] = true;
         }
         return [
@@ -423,7 +424,7 @@ class HockeyJsonRpc extends JsonRpc {
         $config = Config::get("hockey");
         //判断是否超过下注时间
         if(date("Y-m-d H:i:s") >= $config["expire_time"]){
-            throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);
+            throw new OmgException(OmgException::ACTIVITY_IS_END);
         }
         DB::beginTransaction();
         //获取用户抽奖次数
@@ -441,7 +442,7 @@ class HockeyJsonRpc extends JsonRpc {
             $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
         }
         //判断是否可以下注
-        if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 21:00:00"){
+        if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00"){
             DB::rollBack();
             throw new OmgException(OmgException::ACTIVITY_IS_END);
         }
@@ -457,66 +458,6 @@ class HockeyJsonRpc extends JsonRpc {
             $stakeData->num = 1;
             $stakeData->find_name = $find_name;
             $stakeData->type = $field == 'champion' ? 2 : 1;
-            $stakeData->created_at = date("Y-m-d H:i:s");
-        }else{
-            $stakeData->increment('num',1);
-        }
-        $stakeData->save();
-        //减少竞猜次数
-        $userAttr->number -= 1;
-        $userAttr->save();
-        DB::commit();
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' =>'下注成功'
-        ];
-    }
-    /**
-     * 竞猜接口
-     *
-     * @JsonRpcMethod
-     */
-    public function HockeyGuessDrewChampion($params) {
-        global $userId;
-        if(!$userId){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        //后台配置的国家队id
-        $id = isset($params->id) ? $params->id : 0;
-        //押注
-        $stake = isset($params->stake) && $params->stake > 0 ? $params->stake : 0;
-        if($id <= 0 || empty($field) || $stake<= 0){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-        $config = Config::get("hockey");
-        DB::beginTransaction();
-        //获取用户抽奖次数
-        $userAttr = Attributes::getItemLock($userId,$config['guess_key']);//锁住用户抽奖次数
-        $num = isset($userAttr['number']) ? $userAttr['number'] : 0;
-        if($num <= 0){
-            DB::rollBack();
-            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
-        }
-        //判断是否可以下注
-        $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
-        if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 21:00:00"){
-            DB::rollBack();
-            throw new OmgException(OmgException::ACTIVITY_IS_END);
-        }
-        $find_name = $id."_Champion_".$stake;
-        //获取投注记录
-        $stakeData = HdHockeyGuess::where(['config_id'=>$id,'user_id'=>$userId,'find_name'=>$find_name])->first();
-        //判断是否存在
-        if(!isset($stakeData->id)){
-            //添加
-            $stakeData = new HdHockeyGuess();
-            $stakeData->config_id = $id;
-            $stakeData->match_date = $guessConfig['match_date'];
-            $stakeData->user_id = $userId;
-            $stakeData->num = 1;
-            $stakeData->find_name = $id."_".$field."_".$stake;
-            $stakeData->type = isset($userAttr['champion_status']) && $userAttr['champion_status'] == 1 ? 2 : 1;
             $stakeData->created_at = date("Y-m-d H:i:s");
         }else{
             $stakeData->increment('num',1);
@@ -553,8 +494,16 @@ class HockeyJsonRpc extends JsonRpc {
                 $res['my_list'][$val['match_date']]['date'] = $val['match_date'];
                 $res['my_list'][$val['match_date']]['total_num'] = isset($res['my_list'][$val['match_date']]['total_num']) ? $res['my_list'][$val['match_date']]['total_num'] + $val['num'] : $val['num'];
                 if($val['status'] == 1 && $val['amount'] > 0){
-                    $res['my_list'][$val['match_date']]['num'] += $val['num'];
-                    $res['my_list'][$val['match_date']]['amount'] += $val['amount'];
+                    if(isset($res['my_list'][$val['match_date']]['num'])){
+                        $res['my_list'][$val['match_date']]['num'] += $val['num'];
+                    }else{
+                        $res['my_list'][$val['match_date']]['num'] = $val['num'];
+                    }
+                    if(isset($res['my_list'][$val['match_date']]['amount'])) {
+                        $res['my_list'][$val['match_date']]['amount'] += $val['amount'];
+                    }else{
+                        $res['my_list'][$val['match_date']]['amount'] = $val['amount'];
+                    }
                 }else{
                     $res['my_list'][$val['match_date']]['num'] = '--';
                     $res['my_list'][$val['match_date']]['amount'] = '--';
@@ -562,7 +511,7 @@ class HockeyJsonRpc extends JsonRpc {
             }
         }
         $where['status'] = 1;
-        $totalList = HdHockeyGuess::where($where)->select("match_date","user_id",DB::raw("sum(amount) as amount"),"updated_at")->groupBy("user_id")->orderBy("updated_at",'desc')->having('amount', '>', 0)->take(5)->get()->toArray();
+        $totalList = HdHockeyGuess::where($where)->select("match_date","user_id",DB::raw("sum(amount) as amount"),"updated_at")->groupBy("user_id")->orderBy("amount",'desc')->having('amount', '>', 0)->take(5)->get()->toArray();
         foreach($totalList as $k => $v){
             $res['total_list'][$k]['top'] = $k+1;
             $userInfo = Func::getUserBasicInfo($v['user_id']);
