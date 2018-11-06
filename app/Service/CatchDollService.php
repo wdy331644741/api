@@ -9,6 +9,8 @@ use DB;
 
 class CatchDollService
 {
+    protected static $attr_key = 'catch_doll_game';//储存在用户属性表中的key && 活动名称(时间控制)
+
     //SendAward.php 邀请注册送 2次机会
     // 被邀请者 送1次机会
     static function registerGiveChange($userId,$inc = 2) {
