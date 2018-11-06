@@ -271,6 +271,56 @@ class CatchDollJsonRpc extends JsonRpc
 
     }
 
+    /**
+     * 激活分享
+     * @JsonRpcMethod
+     */
+    public function activiteShareDoll($params) {
+        if(empty($params->code)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        // global $userId;
+        // if(!$userId){
+        //     throw new OmgException(OmgException::NO_LOGIN);
+        // }
+        //事务开始
+        DB::beginTransaction();
+        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => self::$attr_key])->first();
+        if(!$shareCardsTable) {
+            DB::rollBack();//数据有误
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        
+        $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$shareCardsTable->user_id])->lockForUpdate()->first();
+
+        if(!$attr ){
+            DB::rollBack();//回滚 
+            throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
+        }
+        if($attr->string){
+            $cards = json_decode($attr->string,1);
+            if(--$cards[$shareCardsTable->share] < 0){
+                throw new OmgException(OmgException::NUMBER_IS_NULL);
+            }
+            //减去他本人的数量
+            $attr->string = json_encode($cards);
+            $attr->timestamps = false;//更改用户属性时  不更新时间戳。
+            $attr->save();
+            //更改分享表 分享状态
+            $shareCardsTable->status = 1;
+            $shareCardsTable->save();
+            DB::commit();
+        }else{
+            DB::rollBack();//回滚 
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => '分享成功',
+        ];
+
+    }
 
     /**
      * 分享
@@ -289,10 +339,10 @@ class CatchDollJsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         //事务开始
-        DB::beginTransaction();
+        // DB::beginTransaction();//分享前一步 获取数据不需要 事物
         $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
         if(!$attr ){
-            DB::rollBack();//回滚 
+            // DB::rollBack();//回滚 
             throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
         }
         if($attr->string){
@@ -301,10 +351,6 @@ class CatchDollJsonRpc extends JsonRpc
                 throw new OmgException(OmgException::NUMBER_IS_NULL);
             }
 
-            //减去他本人的数量
-            $attr->string = json_encode($cards);
-            $attr->timestamps = false;//更改用户属性时  不更新时间戳。
-            $attr->save();
             //分享表
             $encryStr = md5($userId.$params->country.time());
             HdShareCards::create([
@@ -312,12 +358,8 @@ class CatchDollJsonRpc extends JsonRpc
                 'share' => $params->country,
                 'alias_name' => self::$attr_key,
                 'encry' => $encryStr,
-                // 'ip' => Request::getClientIp(),
-                // 'user_agent' => Request::header('User-Agent'),
             ]);
-            DB::commit();
         }else{
-            DB::rollBack();//回滚 
             throw new OmgException(OmgException::DATA_ERROR);
         }
         $phone = call_user_func_array(array("App\Service\Func","getUserPhone"),[$userId , true]);
@@ -347,7 +389,7 @@ class CatchDollJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
-        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => self::$attr_key])->lockForUpdate()->first();
+        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => self::$attr_key ,'status' => 1])->lockForUpdate()->first();
         if(!$shareCardsTable) {
             DB::rollBack();//数据有误
             throw new OmgException(OmgException::DATA_ERROR);
@@ -372,7 +414,7 @@ class CatchDollJsonRpc extends JsonRpc
         $attr->save();
         //分享表 更新
         $shareCardsTable->receive_user = $userId;
-        $shareCardsTable->status = 1;
+        $shareCardsTable->status = 2;
         $shareCardsTable->type = Request::getClientIp();
         $shareCardsTable->remark = Request::header('User-Agent');
         $shareCardsTable->save();
@@ -381,11 +423,6 @@ class CatchDollJsonRpc extends JsonRpc
         return [
             'code' => 0,
             'message' => '领取成功',
-            // 'data' => [
-            //     'user_id' => $userId,
-            //     'share' => $params->country,
-            //     'encry' => $encryStr
-            // ]
         ];
     }
 
