@@ -133,7 +133,7 @@ class Hockey
      */
     static function openGuess($openName,$amount){
         if(!empty($openName)){
-            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id","type",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
+            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id","type","match_date","find_name",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
             if(isset($data[0]['user_id'])){
                 //计算总押注数
                 $total = 0;
@@ -141,6 +141,7 @@ class Hockey
                     $total += $item['user_total'];
                 }
                 $avg = round($amount/$total,2);//保留两位小数
+                $tmpAmount = 0;
                 foreach($data as $value){
                     $sumAmount = round($value['user_total'] * $avg);
                     if($sumAmount > $amount){
@@ -149,9 +150,24 @@ class Hockey
                     $value->amount = $sumAmount;
                     $value->status = 1;
                     $value->save();
+                    //判断第一场
+                    $site = '';
+                    if(strpos($value->find_name,"first")){
+                        $site = "第一场";
+                    }elseif(strpos($value->find_name,"second")){
+                        $site = "第二场";
+                    }elseif(strpos($value->find_name,"third")){
+                        $site = "第三场";
+                    }elseif(strpos($value->find_name,"hampion")){
+                        $site = "冠军场";
+                    }
                     //发送站内信
-                    $msg = "尊敬的用户恭喜您在昨天竞猜的活动中获得".$value->amount."元现金奖励，将在比赛休息日下发到您的账户";
+                    $msg = "亲爱的用户，曲棍球竞猜场 ".$value->match_date.$site."已开奖，恭喜您获得现金".$value->amount."元，奖励将于比赛休息日发放至您的网利宝账户，请届时注意查收。客服电话：400-858-8066。";
                     SendMessage::Mail($value->user_id,$msg);
+                    $tmpAmount += $value->amount;
+                    if($tmpAmount > $amount){
+                        break;
+                    }
                 }
                 return true;
             }
