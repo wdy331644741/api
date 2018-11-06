@@ -40,6 +40,7 @@ use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
 use App\Http\JsonRpcs\CatchDollJsonRpc;//邀请注册送 抓娃娃机会
+use App\Service\Hockey;
 
 class SendAward
 {
