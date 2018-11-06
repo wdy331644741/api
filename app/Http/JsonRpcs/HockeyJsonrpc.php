@@ -30,8 +30,13 @@ class HockeyJsonRpc extends JsonRpc {
         $cards = isset($config['user_attr']) ? $config['user_attr'] : [];
 
         //活动倒计时
-        $next_time = date("Y-m-d H:i:s") > date("Y-m-d 10:00:00") ? date("Y-m-d 10:00:00",strtotime("+1 day")) : date("Y-m-d 10:00:00");
-        $next_time = strtotime($next_time) - time();
+        $next_time = date("Y-m-d H:i:s") > $config['today_start'] ? $config['next_day_start'] : $config['today_start'];
+        //判断抽奖时间是否在有效时间内
+        if(date("Y-m-d H:i:s") >= $config['today_start'] && date("Y-m-d H:i:s") <= $config['today_end']){
+            $next_time = 0;//1分钟内可以抽奖
+        }else{
+            $next_time = strtotime($next_time) - time();//倒计时
+        }
         $res = [
             'is_login'=>false,//是否登录
             'available'=>false,//活动是否有效
@@ -287,7 +292,7 @@ class HockeyJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $key = "hockey_card_award_key_".date("Ymd");
-        if(date("Y-m-d H:i:s") >= date("Y-m-d 10:00:00") && date("Y-m-d H:i:s") <= date("Y-m-d 10:00:10")){//判断时间是否可以抢实物卡
+        if(date("Y-m-d H:i:s") >= $config['today_start'] && date("Y-m-d H:i:s") <= $config['today_end']){//判断时间是否可以抢实物卡
             DB::beginTransaction();
             $luckAwardKey = "hockey_card_luck_award_key";//redis key
             $lockAwardCount = GlobalAttribute::where('key',$luckAwardKey)->count();
