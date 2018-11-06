@@ -39,6 +39,7 @@ use App\Service\AfterSendAward;
 use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
+use App\Service\Hockey;
 
 class SendAward
 {
