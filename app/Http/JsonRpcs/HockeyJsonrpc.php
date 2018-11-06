@@ -287,7 +287,7 @@ class HockeyJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $key = "hockey_card_award_key_".date("Ymd");
-        if(date("Y-m-d H:i:s") >= date("Y-m-d 10:00:00")){//判断时间是否可以抢实物卡
+        if(date("Y-m-d H:i:s") >= date("Y-m-d 10:00:00") && date("Y-m-d H:i:s") <= date("Y-m-d 10:00:10")){//判断时间是否可以抢实物卡
             DB::beginTransaction();
             $luckAwardKey = "hockey_card_luck_award_key";//redis key
             $lockAwardCount = GlobalAttribute::where('key',$luckAwardKey)->count();
