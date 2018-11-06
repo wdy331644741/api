@@ -40,7 +40,8 @@ use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
 use App\Http\JsonRpcs\CatchDollJsonRpc;//邀请注册送 抓娃娃机会
-use App\Service\Hockey;
+use App\Service\CatchDollService;//邀请注册送 抓娃娃机会
+use App\Service\Hockey;//曲棍球活动
 
 class SendAward
 {
@@ -259,8 +260,8 @@ class SendAward
                     $reference_date = $triggerData['time'];
                     //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
                     $user_inc = $triggerData['from_user_id'];
-                    CatchDollJsonRpc::registerGiveChange($user_inc,2);
-                    CatchDollJsonRpc::registerGiveChange($triggerData['user_id'],1);//注册人给一次
+                    CatchDollService::registerGiveChange($user_inc,2);
+                    CatchDollService::registerGiveChange($triggerData['user_id'],1);//注册人给一次
                     // OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
 
                 }
