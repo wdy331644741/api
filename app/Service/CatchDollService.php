@@ -14,7 +14,7 @@ class CatchDollService
     //SendAward.php 邀请注册送 2次机会
     // 被邀请者 送1次机会
     static function registerGiveChange($userId,$inc = 2) {
-        
+        $reference_date = date("Y-m-d H:i:s");
         $actInfo = ActivityService::GetActivityedInfoByAlias(self::$attr_key);
         if(isset($actInfo) ){
             if(!empty($actInfo->start_at) && $reference_date < $actInfo->start_at){
