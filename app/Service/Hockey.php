@@ -158,7 +158,7 @@ class Hockey
                         $site = "第二场";
                     }elseif(strpos($value->find_name,"third")){
                         $site = "第三场";
-                    }elseif(strpos($value->find_name,"hampion")){
+                    }elseif(strpos($value->find_name,"champion")){
                         $site = "冠军场";
                     }
                     //发送站内信
