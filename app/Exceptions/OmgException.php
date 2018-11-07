@@ -94,6 +94,8 @@ class OmgException extends BasicException
     const HELP_ERROR = 4326;
     const EXCHANGE_ERROR = 4327;
 
+    const TODAY_ACTIVITY_IS_END = 4328;
+
     protected static $errorArray = array(
         //接口调用错误
         self::API_MIS_PARAMS => "缺少必要参数",
@@ -170,6 +172,7 @@ class OmgException extends BasicException
 
         self::HELP_ERROR=>"一天只能为一名好友助力一次呦～",
         self::EXCHANGE_ERROR=>"已经兑换",
+        self::TODAY_ACTIVITY_IS_END => "今天活动已结束",
     );
 
     public function __construct($code, $data = array())

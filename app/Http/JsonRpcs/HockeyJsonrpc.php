@@ -327,7 +327,7 @@ class HockeyJsonRpc extends JsonRpc {
                 'data' =>'成功活动兑换奖品卡'
             ];
         }
-        throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        throw new OmgException(OmgException::TODAY_ACTIVITY_IS_END);
     }
 
     /***********************************竞猜活动接口********************************/
@@ -436,6 +436,10 @@ class HockeyJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $config = Config::get("hockey");
+        // 活动是否存在
+        if(!ActivityService::isExistByAlias($config['guess_alias_name'])) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //判断是否超过下注时间
         if(date("Y-m-d H:i:s") >= $config["expire_time"]){
             throw new OmgException(OmgException::ACTIVITY_IS_END);
