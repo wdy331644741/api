@@ -404,7 +404,7 @@ class CatchDollJsonRpc extends JsonRpc
         $attr_share_array = json_decode($attr_share->string,1);
         if( --$attr_share_array[$shareCardsTable->share] < 0){
             DB::rollBack();//分享人的球数量不够减
-            throw new OmgException(OmgException::DATA_ERROR);
+            throw new OmgException(OmgException::ALREADY_AWARD);
         }
         $attr_share->string = json_encode($attr_share_array);
         $attr_share->timestamps = false;//更改用户属性时  不更新时间戳。
