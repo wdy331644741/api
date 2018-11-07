@@ -409,6 +409,11 @@ class CatchDollJsonRpc extends JsonRpc
         $userStr = isset($attr)?json_decode($attr->string,1):$this->doll_list;
         $userStr[$shareCardsTable->share]++;
         //领取国家队
+        if(empty($attr)){//新用户领取
+            $attr = new UserAttribute();
+            $attr->key     = self::$attr_key;
+            $attr->user_id = $userId;
+        }
         $attr->string = json_encode($userStr);
         $attr->timestamps = false;//更改用户属性时  不更新时间戳。
         $attr->save();
@@ -449,7 +454,7 @@ class CatchDollJsonRpc extends JsonRpc
             $changeC = intval($params->data/200);
             //查询用户积分
             $_userInfo = call_user_func_array(array("App\Service\Func","getUserBasicInfo"),[$userId , true]);
-            if(isset($_userInfo['score']) && $_userInfo['score'] > $params->data){
+            if(isset($_userInfo['score']) && $_userInfo['score'] >= $params->data){
                 
                 //抽奖完成，减去积分
                 $sub = Func::subIntegralByUser($userId,$changeC*200,'娃娃机消费积分');
