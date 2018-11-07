@@ -345,6 +345,7 @@ class HockeyJsonRpc extends JsonRpc {
             'available'=>false,//获取是否存在
             'stake_status'=>false,//押注状态
             'time_end'=> strtotime($config['expire_time']) - time(),//押注过期时间
+            'champion_user_count'=>0,
             'team'=>$config['guess_team'],//国家队信息
             'team_list'=>[],//国家队对阵信息及押注情况
             ];
@@ -410,6 +411,9 @@ class HockeyJsonRpc extends JsonRpc {
             $tmpData['country'] = $value;
             $res['team'][$key] = $tmpData;
         }
+        //冠军场参与人数
+        $championUserCount = HdHockeyGuess::where("type",2)->select(DB::raw("COUNT(DISTINCT user_id) as count"))->first();
+        $res['champion_user_count'] = isset($championUserCount['count']) ? $championUserCount['count'] : 0;
         return [
             'code' => 0,
             'message' => 'success',
