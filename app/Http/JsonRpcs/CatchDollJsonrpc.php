@@ -272,7 +272,7 @@ class CatchDollJsonRpc extends JsonRpc
     }
 
     /**
-     * 激活分享
+     * 激活分享 弃用
      * @JsonRpcMethod
      */
     public function activiteShareDoll($params) {
@@ -389,7 +389,7 @@ class CatchDollJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         $attr = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$userId])->lockForUpdate()->first();
-        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => self::$attr_key ,'status' => 1])->lockForUpdate()->first();
+        $shareCardsTable = HdShareCards::where(['encry' => $params->code , 'alias_name' => self::$attr_key ])->lockForUpdate()->first();
         if(!$shareCardsTable) {
             DB::rollBack();//数据有误
             throw new OmgException(OmgException::DATA_ERROR);
@@ -399,7 +399,18 @@ class CatchDollJsonRpc extends JsonRpc
             DB::rollBack();
             throw new OmgException(OmgException::ALREADY_AWARD);
         }
-        //自己可以领取自己的
+        //领取的时候减去分享人的球数量
+        $attr_share = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$shareCardsTable->user_id])->lockForUpdate()->first();
+        $attr_share_array = json_decode($attr_share->string,1);
+        if( --$attr_share_array[$shareCardsTable->share] < 0){
+            DB::rollBack();//分享人的球数量不够减
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
+        $attr_share->string = json_encode($attr_share_array);
+        $attr_share->timestamps = false;//更改用户属性时  不更新时间戳。
+        $attr_share->save();
+
+        //增加领取人的球数量 自己可以领取自己的
         // if($shareCardsTable->user_id == $userId){
         //     //分享人和领取人相同
         //     DB::rollBack();
