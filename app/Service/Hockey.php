@@ -76,7 +76,7 @@ class Hockey
      */
     static function getHockeyCardExchangeAward($userId){
         $config = Config::get("hockey");
-        //获取用户冠军卡是否有未领取的
+        //获取用户冠军卡已兑换现金的个数
         $already = HdHockeyCard::where(['user_id'=>$userId,'type'=>1,'status'=>1])->count();
         //判断用户应该获取哪一个现金奖励
         if($already <= 0){
@@ -118,7 +118,7 @@ class Hockey
         $array = explode("-",$string);
         if(is_array($array) && count($array) == 2){
             $config = Config::get("hockey");
-            foreach($array as $key => $val){
+            foreach($array as $key => $val){//循环获取每一场对应的国家队
                 if($key == 0){
                     $data[$type.'_master'] = $config['guess_team'][$val];
                 }
@@ -133,24 +133,25 @@ class Hockey
      */
     static function openGuess($openName,$amount){
         if(!empty($openName)){
+            //获取场次的中奖列表
             $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id","type","match_date","find_name",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
             if(isset($data[0]['user_id'])){
                 //计算总押注数
                 $total = 0;
-                foreach($data as $item){
+                foreach($data as $item){//循环计算中奖的总押注数
                     $total += $item['user_total'];
                 }
                 $avg = round($amount/$total,2);//保留两位小数
                 $tmpAmount = 0;
                 foreach($data as $value){
-                    $sumAmount = round($value['user_total'] * $avg);
-                    if($sumAmount > $amount){
+                    $sumAmount = round($value['user_total'] * $avg);//用户应得金额
+                    if($sumAmount > $amount){//如果大于总奖金，置为总奖金
                         $sumAmount = $amount;
                     }
-                    $value->amount = $sumAmount;
-                    $value->status = 1;
-                    $value->save();
-                    //判断第一场
+                    $value->amount = $sumAmount;//修改中奖金额
+                    $value->status = 1;//改为中奖
+                    $value->save();//保存
+                    //判断场次
                     $site = '';
                     if(strpos($value->find_name,"first")){
                         $site = "第一场";
@@ -164,8 +165,8 @@ class Hockey
                     //发送站内信
                     $msg = "亲爱的用户，曲棍球竞猜场 ".$value->match_date.$site."已开奖，恭喜您获得现金".$value->amount."元，奖励将于比赛休息日发放至您的网利宝账户，请届时注意查收。客服电话：400-858-8066。";
                     SendMessage::Mail($value->user_id,$msg);
-                    $tmpAmount += $value->amount;
-                    if($tmpAmount > $amount){
+                    $tmpAmount += $value->amount;//发放累计总金额
+                    if($tmpAmount >= $amount){//防止发送超出总金额
                         break;
                     }
                 }
