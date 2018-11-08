@@ -458,11 +458,11 @@ class HockeyJsonRpc extends JsonRpc {
         //获取用户抽奖次数
         $userAttr = Attributes::getItemLock($userId,$config['guess_key']);//锁住用户抽奖次数
         $num = isset($userAttr['number']) ? $userAttr['number'] : 0;
-        if($num <= 0){
-            DB::rollBack();
-            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
-        }
         if($field == 'champion'){//冠军场下注
+            if($num < 3){
+                DB::rollBack();
+                throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
+            }
             //判断冠军场是否超过下注时间
             if(date("Y-m-d H:i:s") >= $config["expire_time"]){
                 DB::rollBack();
@@ -471,6 +471,10 @@ class HockeyJsonRpc extends JsonRpc {
             $find_name = $id."_".$field;
             $guessConfig = HdHockeyGuessConfig::where('champion_status',1)->first();
         }else{//普通对阵下注
+            if($num <= 0){
+                DB::rollBack();
+                throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
+            }
             $find_name = $id."_".$field."_".$stake;
             $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
             //判断普通场是否超过下注时间
