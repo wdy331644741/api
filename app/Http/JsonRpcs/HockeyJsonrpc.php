@@ -344,7 +344,8 @@ class HockeyJsonRpc extends JsonRpc {
             'is_login'=>false,//是否登录
             'available'=>false,//获取是否存在
             'stake_status'=>false,//押注状态
-            'time_end'=> strtotime($config['expire_time']) - time(),//押注过期时间
+            'time_end'=> strtotime($config['expire_time']) - time(),//活动总体押注过期时间
+            'today_time_end'=> strtotime(date("Y-m-d 14:00:00")) - time(),//当天押注过期时间
             'champion_user_count'=>0,
             'user_count'=>0,
             'team'=>$config['guess_team'],//国家队信息
