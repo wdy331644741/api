@@ -50,6 +50,11 @@ class PerBaiService
         }
         $config = Config::get('perbai');
         $awards = $config['awards'];
+        $awardsName  = HdPerHundredConfig::select(['ultimate_award', 'first_award', 'last_award', 'sunshine_award'])->where('status', 1)->first();
+        $awards['puzhao'] = $awardsName['sunshine_award'];
+        $awards['yichuidingyin'] = $awardsName['last_award'];
+        $awards['yimadangxian'] = $awardsName['first_award'];
+        $awards['zhongjidajiang'] = $awardsName['ultimate_award'];
         if ($type == 'invite') {
             //1.判断用户邀请得到的抽奖号的数量 ， >=50,  就不能得到了，每天
             $where = ['user_id' => $userId, 'period'=>self::$perbai_version, 'type'=>$type];

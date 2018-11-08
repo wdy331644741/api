@@ -7,12 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
+use App\Models\SendPush;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\Func;
 use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
+use App\Service\SendMessage;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Pagination\Paginator;
 use App\Models\GlobalAttribute;
@@ -42,6 +44,7 @@ class PerBaiJsonrpc extends JsonRpc
             'alert_status'=>0,//弹框状态
             'draw_number'=> null,//我的最新的抽奖号码
             'draw_number_list'=> [],//我的的抽奖号码列表
+            'node'=> 0,//提醒我
         ];
 
         // 用户是否登录
@@ -101,6 +104,12 @@ class PerBaiJsonrpc extends JsonRpc
                 $perbai_model->timestamps = false;
                 $perbai_model->remark = 'alert';//弹框只显示一次
                 $perbai_model->save();
+            }
+
+            //
+            $pushInfo = SendPush::where(['user_id'=>$userId, 'type'=>$config['node']])->exists();
+            if ($pushInfo) {
+                $result['node'] = 1;
             }
         }
         $result['remain_number'] = self::getRemainNum();
@@ -330,6 +339,9 @@ class PerBaiJsonrpc extends JsonRpc
         $draw_number = substr(strrev($attr['number']), 0, 4);
         $config = Config::get('perbai');
         $awards = $config['awards']['zhongjidajiang'];
+        //
+        $awardsName  = HdPerHundredConfig::where('status', 1)->value('ultimate_award');
+        $awards['name'] = $awardsName;
         $update['award_name'] = $awards['name'];
         $update['alias_name'] = $awards['alias_name'];
         $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
@@ -396,7 +408,7 @@ class PerBaiJsonrpc extends JsonRpc
     }
 
     /**
-     * 往期
+     * 提醒我
      *
      * @JsonRpcMethod
      */
@@ -407,7 +419,19 @@ class PerBaiJsonrpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        //todo push接口
+        $type = Config::get('perbai.node');
+        $where['user_id'] = $userId;
+        $where['type'] = $type;
+        $data = SendPush::where($where)->first();
+        if ($data) {
+            SendPush::where($where)->delete();
+        } else {
+            SendPush::create($where);
+        }
+        return [
+            'code' => 0,
+            'message' => 'success'
+        ];
     }
     public static function getRemainNum() {
 

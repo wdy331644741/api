@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         // Commands\Inspire::class,
         Commands\VoteAwardDebug::class,
         Commands\Perbai::class,
+        Commands\SendPush::class,
     ];
 
     /**
