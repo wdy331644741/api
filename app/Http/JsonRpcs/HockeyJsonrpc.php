@@ -450,10 +450,6 @@ class HockeyJsonRpc extends JsonRpc {
         if(!ActivityService::isExistByAlias($config['guess_alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        //判断是否超过下注时间
-        if(date("Y-m-d H:i:s") >= $config["expire_time"]){
-            throw new OmgException(OmgException::ACTIVITY_IS_END);
-        }
         DB::beginTransaction();
         //获取用户抽奖次数
         $userAttr = Attributes::getItemLock($userId,$config['guess_key']);//锁住用户抽奖次数
@@ -463,14 +459,24 @@ class HockeyJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
         if($field == 'champion'){//冠军场下注
+            //判断冠军场是否超过下注时间
+            if(date("Y-m-d H:i:s") >= $config["expire_time"]){
+                DB::rollBack();
+                throw new OmgException(OmgException::ACTIVITY_IS_END);
+            }
             $find_name = $id."_".$field;
             $guessConfig = HdHockeyGuessConfig::where('champion_status',1)->first();
         }else{//普通对阵下注
             $find_name = $id."_".$field."_".$stake;
             $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
+            //判断普通场是否超过下注时间
+            if(date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00"){
+                DB::rollBack();
+                throw new OmgException(OmgException::ACTIVITY_IS_END);
+            }
         }
-        //根据开奖状态和下注时间-判断是否可以下注
-        if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0 || date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00"){
+        //根据开奖状态是否可以下注
+        if(isset($guessConfig['open_status']) && $guessConfig['open_status'] > 0){
             DB::rollBack();
             throw new OmgException(OmgException::ACTIVITY_IS_END);
         }
