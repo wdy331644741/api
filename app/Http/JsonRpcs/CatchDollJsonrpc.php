@@ -611,7 +611,7 @@ class CatchDollJsonRpc extends JsonRpc
         $resArr = array();
         array_push($resArr, ActivityService::GetActivityInfoByAlias('catch_doll_8888_ex')->id);
         array_push($resArr, ActivityService::GetActivityInfoByAlias('catch_doll_5_ca')->id);
-        $awardsArr = SendRewardLog::where('user_id',$userId)->where('status','>=',1)->whereIn('activity_id',$resArr)->get()->toArray();
+        $awardsArr = SendRewardLog::where('user_id',$userId)->where('status','>=',1)->whereIn('activity_id',$resArr)->orderBy('created_at','DESC')->get()->toArray();
         $newArr = array();
         foreach ($awardsArr as $key => $value) {
             $remarkTmp = json_decode($value['remark'] ,1);
