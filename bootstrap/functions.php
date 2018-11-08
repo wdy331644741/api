@@ -6,6 +6,20 @@
  * Time: 下午4:35
  */
 
+/*
+ *乱序数组 保留数组的 健值不变
+ */
+function retain_key_shuffle(array &$arr){
+  if (!empty($arr)) {
+    $key = array_keys($arr);
+    shuffle($key);
+    foreach ($key as $value) {
+      $arr2[$value] = $arr[$value];
+    }
+    $arr = $arr2;
+  }
+}
+
 function protectPhone($phone) {
     $prefix = substr($phone, 0, 3);
     $suffix = substr($phone, -4, 4);

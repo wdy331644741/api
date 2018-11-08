@@ -177,6 +177,7 @@ class CatchDollJsonRpc extends JsonRpc
 
                 /*用户全有球，按照最少的球的给*/
                 if(!isset($c_values[0]) ){
+                    retain_key_shuffle($c);
                     return array_search(min($c) ,$c);
                 }
                 /*判断用户是否拥有5个不同的球，如果不是，则夹中的球开出需与拥有的球不同，若已拥有5个不同的球，最后一个随机给出（每个球1/6概率）*/
