@@ -346,6 +346,7 @@ class HockeyJsonRpc extends JsonRpc {
             'stake_status'=>false,//押注状态
             'time_end'=> strtotime($config['expire_time']) - time(),//押注过期时间
             'champion_user_count'=>0,
+            'user_count'=>0,
             'team'=>$config['guess_team'],//国家队信息
             'team_list'=>[],//国家队对阵信息及押注情况
             ];
@@ -373,19 +374,25 @@ class HockeyJsonRpc extends JsonRpc {
             unset($res['team_list']['remark']);
         }
         //登陆获取用户的投注情况
-        if($res['is_login'] && !empty($res['team_list']) && isset($configList['id'])){
-            //登陆获取用户的投注情况
-            $userStake = HdHockeyGuess::where(["user_id"=>$userId,"config_id"=>$configList['id'],"type"=>1])->select(DB::raw("sum(`num`) as nums"),"find_name","config_id")->groupBy("find_name")->get()->toArray();
-            if(!empty($userStake)){
-                $stakeArr = [];
-                //格式化数据
-                foreach($userStake as $value){
-                    if(isset($value['find_name']) && !empty($value['find_name'])){
-                        $tmp = explode("_",$value['find_name']);
-                        if(!empty($tmp)){
-                            $stakeArr[$tmp[1]][$tmp[2]] = $value['nums'];
+        if($res['is_login']){
+            if(isset($configList['id'])){
+                //登陆获取用户的投注情况
+                $userStake = HdHockeyGuess::where(["user_id"=>$userId,"config_id"=>$configList['id'],"type"=>1])->select(DB::raw("sum(`num`) as nums"),"find_name","config_id")->groupBy("find_name")->get()->toArray();
+                if(!empty($userStake)){
+                    $stakeArr = [];
+                    //格式化数据
+                    foreach($userStake as $value){
+                        if(isset($value['find_name']) && !empty($value['find_name'])){
+                            $tmp = explode("_",$value['find_name']);
+                            if(!empty($tmp)){
+                                $stakeArr[$tmp[1]][$tmp[2]] = $value['nums'];
+                            }
                         }
                     }
+                }
+                //押注状态
+                if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00"){
+                    $res['stake_status'] = true;
                 }
             }
             //获取冠军场押注情况
@@ -394,6 +401,8 @@ class HockeyJsonRpc extends JsonRpc {
             foreach($userChampionStake as &$item){
                 $championStake[$item['config_id']] = $item;
             }
+            //用户抽奖次数
+            $res['user_count'] = Attributes::getNumber($userId,$config['guess_key']);
         }
         //第一场个人投注
         $res['team_list']['first_stake'] = isset($stakeArr['first']) ? $stakeArr['first'] : [];
@@ -401,10 +410,6 @@ class HockeyJsonRpc extends JsonRpc {
         $res['team_list']['second_stake'] = isset($stakeArr['second']) ? $stakeArr['second'] : [];
         //第三场个人投注
         $res['team_list']['third_stake'] = isset($stakeArr['third']) ? $stakeArr['third'] : [];
-        //押注状态
-        if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00"){
-            $res['stake_status'] = true;
-        }
         //冠军场押注
         foreach($res['team'] as $key => $value){
             $tmpData['num'] = isset($championStake[$key]['nums']) ? $championStake[$key]['nums'] : 0;
