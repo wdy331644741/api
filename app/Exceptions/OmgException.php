@@ -61,6 +61,7 @@ class OmgException extends BasicException
     const EXCEED_NUM_FAIL = 4033;
     const EXCEED_USER_NUM_FAIL = 4034;
     const ONEYUAN_FULL_FAIL = 4035;
+    const EXCEED_DAY_LIMIT = 4036;
 
     //应用错误
     const NO_DATA = 4300;
@@ -133,6 +134,7 @@ class OmgException extends BasicException
         self::INTEGRAL_FAIL => "商品信息有误，停止兑换",
         self::INTEGRAL_LACK_FAIL => "积分值不足",
         self::EXCEED_FAIL => "超出兑换次数限制",
+        self::EXCEED_DAY_LIMIT => "今日兑换次数已达上限",
         self::INTEGRAL_REMOVE_FAIL => "兑换失败",
         self::EXCEED_NUM_FAIL => "商品已售罄",
         self::EXCEED_USER_NUM_FAIL => "用户次数不足",

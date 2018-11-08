@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\UserAttribute;
 use App\Models\SendRewardLog;
 use App\Models\HdShareCards;
+use App\Models\ActivityJoin;
 use App\Service\Attributes;
 use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
@@ -47,8 +48,8 @@ class CatchDollJsonRpc extends JsonRpc
      *  老用户中奖概率
      */
     protected $old_award = [
-        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 20],
-        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 80],
+        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 80],
+        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 20],
     ];
     /**
      *  新用户中奖概率
@@ -127,7 +128,7 @@ class CatchDollJsonRpc extends JsonRpc
         }
 
         // 是否触发间隔限制 3秒
-        if($this->isTooOften($userId, 3)) {
+        if($this->isTooOften($userId, 2)) {
             throw new OmgException(OmgException::API_BUSY);
         }
         // 活动是否存在
@@ -224,6 +225,9 @@ class CatchDollJsonRpc extends JsonRpc
         // 活动是否存在
         if(!ActivityService::isExistByAlias(self::$attr_key )) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        if($this->userLimitExange($userId) >= 3){
+            throw new OmgException(OmgException::EXCEED_DAY_LIMIT);
         }
         //事务开始
         DB::beginTransaction();
@@ -621,6 +625,26 @@ class CatchDollJsonRpc extends JsonRpc
         }
         return $newArr;
     }
+
+    /**
+     * 用户今天是否兑换了3次
+     *
+     * @param $userId
+     * @return mixed
+     * @throws OmgException
+     */
+    private function userLimitExange($userId) {
+        $resArr = array();
+        array_push($resArr, ActivityService::GetActivityInfoByAlias('catch_doll_8888_ex')->id);
+        array_push($resArr, ActivityService::GetActivityInfoByAlias('catch_doll_5_ca')->id);
+        $count = ActivityJoin::where('user_id',$userId)
+            ->where('status',3)
+            ->where('created_at','>=',date('Y-m-d'))
+            ->whereIn('activity_id',$resArr)
+            ->get()->count();
+        return $count;
+    }
+
 
     public static function jsonRpcApiCall(
         $data, $method, $url, $debug = true, $config = array('timeout' => 40)
