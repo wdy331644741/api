@@ -65,4 +65,18 @@ class SendMessage
         }
         return $newTemplate;
     }
+
+    public static function sendPush($userID,$nodeName,$arr=[]){
+        $params = array();
+        $params['user_id'] = $userID;
+        $params['node_name'] = $nodeName;
+        $params['tplParam'] = $arr;
+        $url = Config::get('cms.message_http_url');
+        $client = new JsonRpcClient($url);
+        $res = $client->sendJpush($params);
+        if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            return true;
+        }
+        return false;
+    }
 }
