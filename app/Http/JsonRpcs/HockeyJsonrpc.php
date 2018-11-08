@@ -487,7 +487,7 @@ class HockeyJsonRpc extends JsonRpc {
             //添加
             $stakeData = new HdHockeyGuess();
             $stakeData->config_id = $id;
-            $stakeData->match_date = $guessConfig['match_date'];
+            $stakeData->match_date = $field == 'champion' ? "2018-11-25" : $guessConfig['match_date'];
             $stakeData->user_id = $userId;
             $stakeData->num = 1;
             $stakeData->find_name = $find_name;
@@ -497,8 +497,8 @@ class HockeyJsonRpc extends JsonRpc {
             $stakeData->increment('num',1);//注数+1
         }
         $stakeData->save();
-        //减少竞猜次数
-        $userAttr->number -= 1;
+        //减少竞猜次数(冠军场竞猜减少3次竞猜机会)
+        $userAttr->number -= $field == 'champion' ? 3 : 1;
         $userAttr->save();
         DB::commit();
         return [
