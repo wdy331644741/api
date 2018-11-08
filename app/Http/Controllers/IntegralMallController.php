@@ -3,14 +3,134 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Traits\BasicDatatables;
 use App\Models\IntegralMall;
-use App\Models\IntegralMallExchange;
 use App\Service\Func;
-use App\Http\Controllers\AwardCommonController;
+use App\Models\InPrizetype;
+use APP\Models\InPrize;
 use Validator;
+use DB;
 
 class IntegralMallController extends Controller
 {
+
+    use BasicDataTables;
+    protected $model = null;
+    protected $fileds = ['id', 'name', 'banner','is_online','created_at'];
+    protected $deleteValidates = [
+        'id' => 'required|exists:in_prizetypes,id',
+    ];
+    protected $addValidates = [
+        'name' => 'required',
+        'banner' => 'required',
+    ];
+    protected $updateValidates = [
+        'id' => 'required|exists:in_prizetypes,id',
+    ];
+
+    function __construct() {
+        $this->model = new InPrizetype;
+    }
+
+    //----------------app 3.7.1 积分商城-----------------------//
+
+    function postPtDelete(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:in_prizetypes,id',
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        DB::beginTransaction();
+        $res = InPrizetype::destroy($request->id);
+        $child_res  = InPrize::where('type_id',$request->id)->delete();
+        if($child_res && $res){
+            DB::commit();
+            return $this->outputJson(0);
+        }else{
+            DB::rollback();
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+
+    //上线，下线
+    function postChangeStatus(Request $request){
+        $mall_id = intval($request->id);
+        $where = array();
+        $where['id'] = $mall_id;
+        $data = InPrizetype::where($where)->select('is_online')->first();
+        if(empty($data)){
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'该类型不存在'));
+        }
+        $status = $data['is_online'] ? 0 : 1;
+        //上线修改
+        $status = InPrizetype::where('id',$mall_id)->update(array('is_online'=>$status));
+        if($status){
+            return $this->outputJson(0, array('error_msg'=>'修改成功'));
+        }else{
+            return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'操作失败'));
+        }
+    }
+
+    //上移
+    function postUp(Request $request){
+        $id = $request->id;
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:in_prizetypes,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $current = InPrizetype::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = InPrizetype::whereRaw("id + sort > $current_num")->orderByRaw('id + sort ASC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = InPrizetype::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = InPrizetype::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+    //下移
+    function postDown(Request $request){
+        $id = $request->id;
+        $validator = Validator::make(array('id'=>$id),[
+            'id'=>'required|exists:in_prizetypes,id'
+        ]);
+        if($validator->fails()){
+            return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
+        }
+        $current = InPrizetype::where('id',$id)->first()->toArray();
+        $current_num = $current['id'] + $current['sort'];
+        $pre = InPrizetype::whereRaw("id + sort < $current_num")->orderByRaw('id + sort DESC')->first();
+        if(!$pre){
+            return $this->outputJson(10007,array('error_msg'=>'Cannot Move'));
+        }
+        $pre_sort = $current_num - $pre['id'];
+        $curremt_sort = ($pre['id'] + $pre['sort']) - $current['id'];
+
+        $current_res = InPrizetype::where('id',$id)->update(array('sort'=>$curremt_sort));
+        $pre_res = InPrizetype::where('id',$pre['id'])->update(array('sort'=>$pre_sort));
+        if($current_res && $pre_res){
+            return $this->outputJson(0);
+        }else{
+            return $this->outputJson(10002,array('error_msg'=>'Database Error'));
+        }
+    }
+
+
+
+
+    //---------------- 原积分商城 -----------------------//
     /**
      * 商品添加&修改
      */
@@ -158,6 +278,7 @@ class IntegralMallController extends Controller
             return $this->outputJson(DATABASE_ERROR,array('error_msg'=>'删除失败'));
         }
     }
+
     //商品上移
     public function getUp($id){
         $validator = Validator::make(array('id'=>$id),[
@@ -209,4 +330,6 @@ class IntegralMallController extends Controller
             return $this->outputJson(10002,array('error_msg'=>'Database Error'));
         }
     }
+
+
 }
