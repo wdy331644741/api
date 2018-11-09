@@ -384,7 +384,7 @@ class HockeyJsonRpc extends JsonRpc {
                 //登陆获取用户的投注情况
                 $userStake = HdHockeyGuess::where(["user_id"=>$userId,"config_id"=>$configList['id'],"type"=>1])->select(DB::raw("sum(`num`) as nums"),"find_name","config_id")->groupBy("find_name")->get()->toArray();
                 if(!empty($userStake)){
-                    $stakeArr = [];
+                    $stakeArr = ['first'=>[1=>0, 2=>0, 3=>0],'second'=>[1=>0, 2 =>0, 3=>0],'third'=>[1=>0, 2=>0, 3=>0]];
                     //格式化数据
                     foreach($userStake as $value){
                         if(isset($value['find_name']) && !empty($value['find_name'])){
