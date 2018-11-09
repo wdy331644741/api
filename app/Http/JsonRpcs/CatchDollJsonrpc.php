@@ -94,6 +94,7 @@ class CatchDollJsonRpc extends JsonRpc
             if(!$attr){
                 //初始化用户 抓娃娃机会
                 $res['chance'] = $this->initChance($userId);
+                $res['is_share_game'] = false;
             }else{
                 $res['cards'] = empty($attr['string'])?$this->doll_list:json_decode($attr['string'],1);
                 $res['chance'] = $this->getChanceCounts($userId);
@@ -101,7 +102,7 @@ class CatchDollJsonRpc extends JsonRpc
             $res['is_exchange'] = $this->isExchangehan($res['cards']);
             $res['list'] = $this->getUserAwards($userId);
             //今天是否已经分享过
-            $res['is_share_game'] = $attr->text > date('Y-m-d') ?true:false;
+            $res['is_share_game'] = isset($attr->text) && ($attr->text > date('Y-m-d') ) ?true:false;
         }
 
         return [
