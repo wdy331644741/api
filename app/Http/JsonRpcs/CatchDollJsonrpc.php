@@ -48,8 +48,8 @@ class CatchDollJsonRpc extends JsonRpc
      *  老用户中奖概率
      */
     protected $old_award = [
-        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 80],
-        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 20],
+        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 95],
+        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 5],
     ];
     /**
      *  新用户中奖概率
