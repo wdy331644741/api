@@ -373,6 +373,15 @@ class HockeyJsonRpc extends JsonRpc {
         }
         $res['team_list'] = Hockey::formatHockeyGuessData($configList);
         if(isset($res['team_list']['id']) && $res['team_list']['id'] > 0){
+            //第一场参与人数
+            $firstUserCount = HdHockeyGuess::where("type",1)->where("find_name","like",$res['team_list']['id']."_first%")->select(DB::raw("COUNT(DISTINCT user_id) as count"))->first();
+            $res['team_list']['first_user_count'] = isset($firstUserCount['count']) ? $firstUserCount['count'] : 0;
+            //第二场参与人数
+            $secondUserCount = HdHockeyGuess::where("type",1)->where("find_name","like",$res['team_list']['id']."_second%")->select(DB::raw("COUNT(DISTINCT user_id) as count"))->first();
+            $res['team_list']['second_user_count'] = isset($secondUserCount['count']) ? $secondUserCount['count'] : 0;
+            //第三场参与人数
+            $thirdUserCount = HdHockeyGuess::where("type",1)->where("find_name","like",$res['team_list']['id']."_third%")->select(DB::raw("COUNT(DISTINCT user_id) as count"))->first();
+            $res['team_list']['third_user_count'] = isset($thirdUserCount['count']) ? $thirdUserCount['count'] : 0;
             unset($res['team_list']['msg_status']);
             unset($res['team_list']['champion_status']);
             unset($res['team_list']['draw_info']);
