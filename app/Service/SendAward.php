@@ -231,19 +231,23 @@ class SendAward
                 }
                 break;
             //注册-邀请人和注册人都获取竞猜机会
-            case 'hockey_invite':
+            case 'hockey_guess_invite':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $userId = intval($triggerData['user_id']);
                     $fromUserId = intval($triggerData['from_user_id']);
                     if ( $userId > 0 && (empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['time'])) {
                         $config = Config::get("hockey");
                         //添加邀请人竞猜机会
-                        Attributes::increment($fromUserId,$config['guess_key'],1);
+                        if($fromUserId > 0){
+                            Attributes::increment($fromUserId,$config['guess_key'],1);
+                        }
                         //添加注册人竞猜机会
                         Attributes::increment($userId,$config['guess_key'],1);
                         //发送站内信
                         $msg = "恭喜您在'曲棍球邀请注册'活动中获得'1次竞猜机会'奖励。";
-                        SendMessage::Mail($fromUserId,$msg);
+                        if($fromUserId > 0) {
+                            SendMessage::Mail($fromUserId, $msg);
+                        }
                         SendMessage::Mail($userId,$msg);
                     }
                 }
