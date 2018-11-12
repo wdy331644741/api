@@ -235,7 +235,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $userId = intval($triggerData['user_id']);
                     $fromUserId = intval($triggerData['from_user_id']);
-                    if ( $userId > 0 && (empty($activityInfo['start_at']) && $activityInfo['start_at'] <= $triggerData['time'])) {
+                    if ( $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['time'])) {
                         $config = Config::get("hockey");
                         //添加邀请人竞猜机会
                         if($fromUserId > 0){
