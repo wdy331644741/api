@@ -405,7 +405,7 @@ class HockeyJsonRpc extends JsonRpc {
                     }
                 }
                 //押注状态
-                if($configList['open_status'] <= 0 || date("Y-m-d H:i:s") >= $configList['match_date']." 14:00:00"){
+                if($configList['open_status'] <= 0 && date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00"){
                     $res['stake_status'] = true;
                 }
             }
