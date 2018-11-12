@@ -404,6 +404,24 @@ class CatchDollJsonRpc extends JsonRpc
             DB::rollBack();
             throw new OmgException(OmgException::ALREADY_AWARD);
         }
+        //增加领取人的球数量 自己可以领取自己的
+        if($shareCardsTable->user_id == $userId){
+            //分享人和领取人相同 用户属性表 不做改变。只修改分享表 状态
+            //分享表 更新
+            $shareCardsTable->receive_user = $userId;
+            $shareCardsTable->status = 2;
+            $shareCardsTable->type = Request::getClientIp();
+            $shareCardsTable->remark = Request::header('User-Agent');
+            $shareCardsTable->save();
+            DB::commit();
+            return [
+                'code' => 0,
+                'message' => '领取成功',
+            ];
+            // DB::rollBack();
+            // throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
+        }
+
         //领取的时候减去分享人的球数量
         $attr_share = UserAttribute::where(['key'=>self::$attr_key,'user_id'=>$shareCardsTable->user_id])->lockForUpdate()->first();
         $attr_share_array = json_decode($attr_share->string,1);
@@ -414,13 +432,6 @@ class CatchDollJsonRpc extends JsonRpc
         $attr_share->string = json_encode($attr_share_array);
         $attr_share->timestamps = false;//更改用户属性时  不更新时间戳。
         $attr_share->save();
-
-        //增加领取人的球数量 自己可以领取自己的
-        // if($shareCardsTable->user_id == $userId){
-        //     //分享人和领取人相同
-        //     DB::rollBack();
-        //     throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
-        // }
 
         $userStr = isset($attr)?json_decode($attr->string,1):$this->doll_list;
         $userStr[$shareCardsTable->share]++;
