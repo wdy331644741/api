@@ -177,8 +177,8 @@ class Hockey
     static function openGuess($openName,$amount){
         if(!empty($openName)){
             //获取场次的中奖列表
-            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id","type","match_date","find_name",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get()->toArray();
-            if(isset($data[0]['user_id'])){
+            $data = HdHockeyGuess::where('find_name',$openName)->where('status',0)->select("id","user_id","type","match_date","find_name",DB::raw("sum(num) as user_total"))->groupBy("user_id")->get();
+            if(count($data) > 0){
                 //计算总押注数
                 $total = 0;
                 foreach($data as $item){//循环计算中奖的总押注数
