@@ -407,10 +407,6 @@ class HockeyJsonRpc extends JsonRpc {
                         }
                     }
                 }
-                //押注状态
-                if($configList['open_status'] <= 0 && date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00"){
-                    $res['stake_status'] = true;
-                }
             }
             //获取冠军场押注情况
             $userChampionStake = HdHockeyGuess::where(["user_id"=>$userId,"type"=>2])->select(DB::raw("sum(`num`) as nums"),"config_id")->groupBy("find_name")->get()->toArray();
@@ -420,6 +416,10 @@ class HockeyJsonRpc extends JsonRpc {
             }
             //用户抽奖次数
             $res['user_count'] = Attributes::getNumber($userId,$config['guess_key']);
+        }
+        //普通场押注状态
+        if($configList['open_status'] <= 0 && date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00" && date("d",strtotime($configList['match_date'])) <= $res['next_date']){
+            $res['stake_status'] = true;
         }
         //第一场个人投注
         $res['team_list']['first_stake'] = isset($stakeArr['first']) ? $stakeArr['first'] : [];
