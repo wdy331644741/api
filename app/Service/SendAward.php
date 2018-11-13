@@ -225,8 +225,10 @@ class SendAward
                         $config = Config::get("hockey");
                         Attributes::increment($userId,$config['guess_key'],$num);
                         //发送站内信
-                        $msg = "恭喜您在'曲棍球投资'活动中获得'".$num."次竞猜机会'奖励。";
-                        SendMessage::Mail($userId,$msg);
+                        $activityUrl = env("APP_URL")."/active/hockey_active/guess/index.html";
+                        $msg = "亲爱的用户，恭喜您在助力女曲-竞猜场活动中通过出借获得".$num."个竞猜机会（1个竞猜=1注），下注竞猜比赛结果，竞猜正确即可参与瓜分万元现金，点击下注".$activityUrl."。";
+                        SendMessage::Mail($userId,$msg);//发送站内信
+                        SendMessage::Message($userId,$msg);//发送短信
                     }
                 }
                 break;
@@ -244,11 +246,14 @@ class SendAward
                         //添加注册人竞猜机会
                         Attributes::increment($userId,$config['guess_key'],1);
                         //发送站内信
-                        $msg = "恭喜您在'曲棍球邀请注册'活动中获得'1次竞猜机会'奖励。";
+                        $activityUrl = env("APP_URL")."/active/hockey_active/guess/index.html";
+                        $msg = "亲爱的用户，恭喜您在助力女曲-竞猜场活动中通过邀请注册获得1个竞猜机会（1个竞猜=1注），下注竞猜比赛结果，竞猜正确即可参与瓜分万元现金，点击下注".$activityUrl."。";
                         if($fromUserId > 0) {
-                            SendMessage::Mail($fromUserId, $msg);
+                            SendMessage::Mail($fromUserId, $msg);//发送站内信
+                            SendMessage::Message($fromUserId,$msg);//发送短信
                         }
-                        SendMessage::Mail($userId,$msg);
+                        SendMessage::Mail($userId,$msg);//发送站内信
+                        SendMessage::Message($userId,$msg);//发送短信
                     }
                 }
                 break;

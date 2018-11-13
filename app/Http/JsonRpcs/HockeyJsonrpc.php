@@ -15,6 +15,7 @@ use App\Service\ActivityService;
 use App\Service\Attributes;
 use App\Service\Func;
 use App\Service\Hockey;
+use App\Service\SendMessage;
 use Config, DB, Cache;
 class HockeyJsonRpc extends JsonRpc {
 
@@ -239,6 +240,9 @@ class HockeyJsonRpc extends JsonRpc {
                 $cashCard->award_name = $cashName;
                 $cashCard->save();
                 DB::commit();
+                $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中成功兑换".$cashName."，现金奖励已发放至您的网利宝账户，敬请查收。客服电话：400-858-8066。";
+                SendMessage::Mail($userId,$msg);//发送站内信
+                SendMessage::Message($userId,$msg);//发送短信
                 return [
                     'code' => 0,
                     'message' => 'success',
@@ -270,6 +274,9 @@ class HockeyJsonRpc extends JsonRpc {
         $goldCard->award_name = isset($award['award_name']) ? $award['award_name'] : '';
         $goldCard->save();
         DB::commit();
+        $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中成功兑换".$goldCard->award_name."，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，点击t.cn/RFixrVx完善收货地址，客服电话：400-858-8066。";
+        SendMessage::Mail($userId,$msg);//发送站内信
+        SendMessage::Message($userId,$msg);//发送短信
         return [
             'code' => 0,
             'message' => 'success',
@@ -317,6 +324,10 @@ class HockeyJsonRpc extends JsonRpc {
                 $goldCard->type = 2;//修改为可兑换实物类型（实物卡）
                 $goldCard->updated_at = date("Y-m-d H:i:s");
                 $goldCard->save();
+                //消息内容
+                $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中抽中实物奖品兑换卡，请到活动页面兑换实物奖品，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，点击t.cn/RFixrVx完善收货地址，客服电话：400-858-8066。";
+                SendMessage::Mail($luckUser,$msg);//发送站内信
+                SendMessage::Message($luckUser,$msg);//发送短信
                 //修改锁住的key加1
                 GlobalAttribute::where('key',$luckAwardKey)->increment('number',1);
                 DB::commit();
