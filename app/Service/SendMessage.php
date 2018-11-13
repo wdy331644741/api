@@ -26,7 +26,7 @@ class SendMessage
         return false;
     }
 
-    public static function Message($userID,$template,$arr){
+    public static function Message($userID,$template,$arr=array()){
         if(empty($template)){
             return false;
         }
