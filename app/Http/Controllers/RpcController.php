@@ -10,6 +10,7 @@ use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
 use App\Http\JsonRpcs\CollectCardJsonrpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
+use App\Http\JsonRpcs\DoubleElevenJsonrpc;
 use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\HockeyJsonRpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
@@ -25,6 +26,7 @@ use App\Http\JsonRpcs\SignInSystemJsonRpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
 use App\Models\PoBaiYi;
+use App\Service\DoubleElevenService;
 use App\Service\NvshenyueService;
 use Illuminate\Http\Request;
 
@@ -64,6 +66,7 @@ use App\Http\JsonRpcs\RichLotteryJsonRpc;
 use App\Http\JsonRpcs\FourLotteryJsonRpc;
 use App\Http\JsonRpcs\FourYearZhengshiJsonrpc;
 use App\Http\JsonRpcs\OctLotteryJsonRpc;
+use App\Http\JsonRpcs\CatchDollJsonRpc;
 
 class RpcController extends Controller
 {
@@ -136,6 +139,8 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new OctLotteryJsonRpc());//10月份抽奖
         $jsonRpcServer->addService(new RedEnvelopesJsonRpc());//领取红包活动
         $jsonRpcServer->addService(new HockeyJsonRpc());//曲棍球正式场
+        $jsonRpcServer->addService(new DoubleElevenJsonrpc());//双11 -- 集卡
+        $jsonRpcServer->addService(new CatchDollJsonRpc());//抓娃娃机
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');

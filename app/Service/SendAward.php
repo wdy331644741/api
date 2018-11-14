@@ -40,6 +40,7 @@ use App\Service\PoBaiYiService;
 use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
 use App\Service\Hockey;
+use App\Service\CatchDollService;//邀请注册送 抓娃娃机会
 
 class SendAward
 {
@@ -202,7 +203,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount >= 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                    if (isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] != 1 && $amount >= 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加集卡和竞猜机会
                         Hockey::HockeyCardObtain($userId,$amount);
                     }
@@ -213,7 +214,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                    if (isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] != 1 && $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加投资竞猜机会
                         $num = intval($amount/10000);
                         if($num < 1){
@@ -256,6 +257,23 @@ class SendAward
                 break;
             /** 曲棍球正式场活动 END */
 
+            /** 抓娃娃机 邀请注册送机会 START */
+            case 'catch_doll_register_change'://注册送抽奖
+                if(isset($triggerData['tag']) 
+                    && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' 
+                    && $triggerData['from_user_id'] != 0
+                    ){
+                    $reference_date = $triggerData['time'];
+                    //时间必须以 请求达到运营中心 为基准。不然每个自然日0点 有bug
+                    $user_inc = $triggerData['from_user_id'];
+                    CatchDollService::registerGiveChange($user_inc,2);
+                    CatchDollService::registerGiveChange($triggerData['user_id'],1);//注册人给一次
+                    // OctLotteryService::ctlUserAttributes($user_inc,$invest_switch,$reference_date);
+
+                }
+                break;
+            /** 抓娃娃机 邀请注册送机会 end */
+
             /** 十月份抽奖投资送次数 START */
             case 'oct_lottery_registergive'://注册送抽奖
                 if(isset($triggerData['tag']) 
@@ -285,6 +303,15 @@ class SendAward
                 }
                 break;
             /** 十月份抽奖投资送次数 end */
+
+            /** 双11 START */
+            //签到
+            case 'nov_eleven_sign_in':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    DoubleElevenService::signInCard($triggerData['user_id'], 'nov_eleven_sign_in');
+                }
+                break;
+            /** 双11 END */
 
             /** 四周年活动投多少送多少体验金 START */
             //投资
