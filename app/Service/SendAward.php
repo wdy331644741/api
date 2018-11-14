@@ -205,7 +205,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount >= 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                    if (isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] != 1 && $amount >= 10000 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加集卡和竞猜机会
                         Hockey::HockeyCardObtain($userId,$amount);
                     }
@@ -216,7 +216,7 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     $userId = intval($triggerData['user_id']);
-                    if ( $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
+                    if (isset($triggerData['novice_exclusive']) && $triggerData['novice_exclusive'] != 1 && $amount > 0 && $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['buy_time'])) {
                         //添加投资竞猜机会
                         $num = intval($amount/10000);
                         if($num < 1){
@@ -259,7 +259,6 @@ class SendAward
                 break;
             /** 曲棍球正式场活动 END */
 
-            
             /** 抓娃娃机 邀请注册送机会 START */
             case 'catch_doll_register_change'://注册送抽奖
                 if(isset($triggerData['tag']) 
@@ -306,6 +305,7 @@ class SendAward
                 }
                 break;
             /** 十月份抽奖投资送次数 end */
+
             /** 双11 START */
             //签到
             case 'nov_eleven_sign_in':
@@ -314,6 +314,7 @@ class SendAward
                 }
                 break;
             /** 双11 END */
+
             /** 四周年活动投多少送多少体验金 START */
             //投资
             case 'four_birthday_invest_experience':

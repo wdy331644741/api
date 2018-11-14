@@ -152,7 +152,6 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new HockeyJsonRpc());//曲棍球正式场
         $jsonRpcServer->addService(new OpenGiftJsonRpc());//抓娃娃机
 
-
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
