@@ -1162,6 +1162,32 @@ class ActivityJsonRpc extends JsonRpc {
     }
 
     /**
+     *  获取页面浏览量PV和UV
+     * @params  channel string 必须
+     * @JsonRpcMethod
+     */
+    public function statisticsList($params) {
+        $return = ['PV'=>0,"UV"=>0];
+        $type = isset($params->channel) ? $params->channel : '';
+        if(empty($type)){
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $return,
+            ];
+        }
+        $data = Statistics::where('type',$type)->select(DB::raw("COUNT(DISTINCT user_id) as UV,COUNT(1) as PV"))->first();
+        if(isset($data['PV']) && isset($data['UV'])) {
+            $return['PV'] = $data['PV'];
+            $return['UV'] = $data['UV'];
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return,
+        ];
+    }
+    /**
      *获取随机数，且不重复的
      */
     private static function jianmianhuiIsHas($setNum){
