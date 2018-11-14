@@ -7,7 +7,7 @@ use App\Http\Traits\BasicDatatables;
 use App\Models\IntegralMall;
 use App\Service\Func;
 use App\Models\InPrizetype;
-use APP\Models\InPrize;
+use App\Models\InPrize;
 use Validator;
 use DB;
 
@@ -44,7 +44,7 @@ class IntegralMallController extends Controller
         DB::beginTransaction();
         $res = InPrizetype::destroy($request->id);
         $child_res  = InPrize::where('type_id',$request->id)->delete();
-        if($child_res && $res){
+        if($child_res !== false && $res){
             DB::commit();
             return $this->outputJson(0);
         }else{
