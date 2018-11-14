@@ -243,10 +243,12 @@ class HockeyJsonRpc extends JsonRpc {
                 $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中成功兑换".$cashName."，现金奖励已发放至您的网利宝账户，敬请查收。客服电话：400-858-8066。";
                 SendMessage::Mail($userId,$msg);//发送站内信
                 SendMessage::Message($userId,$msg);//发送短信
+                //已兑换的现金数量
+                $moneyNum = HdHockeyCard::where(["user_id"=>$userId,"type"=>1,"status"=>1])->count();
                 return [
                     'code' => 0,
-                    'message' => 'success',
-                    'data' =>'兑换现金奖励成功'
+                    'message' => '兑换现金奖励成功',
+                    'data' => $moneyNum,
                 ];
             }
             DB::rollBack();
@@ -277,10 +279,12 @@ class HockeyJsonRpc extends JsonRpc {
         $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中成功兑换".$goldCard->award_name."，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，请到“网利宝APP—账户—个人信息”完善收货地址，客服电话：400-858-8066。";
         SendMessage::Mail($userId,$msg);//发送站内信
         SendMessage::Message($userId,$msg);//发送短信
+        //实物卡剩余数量
+        $objectNum = HdHockeyCard::where(['user_id'=>$userId,'type'=>2,'status'=>0])->count();
         return [
             'code' => 0,
-            'message' => 'success',
-            'data' =>$award['award_name']
+            'message' => $award['award_name'],
+            'data' => $objectNum
         ];
     }
     /**
