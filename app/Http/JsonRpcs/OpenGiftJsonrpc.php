@@ -110,7 +110,7 @@ class OpenGiftJsonRpc extends JsonRpc
             RichLottery::create([
                 'user_id' => $userId,
                 'amount' => $award['size'],
-                'award_name' => isset($res['award_name'])?:$award['desp'],
+                'award_name' => isset($res['award_name'])?$res['award_name']:$award['desp'],
                 'uuid' => self::$attr_key,//区分活动
                 'ip' => Request::getClientIp(),
                 'user_agent' => Request::header('User-Agent'),
@@ -123,7 +123,7 @@ class OpenGiftJsonRpc extends JsonRpc
                 'code' => 0,
                 'message' => '兑换成功',
                 'data' => [
-                    'name' => isset($res['award_name'])?:$award['desp'],
+                    'name' => isset($res['award_name'])?$res['award_name']:$award['desp'],
                     'size' => $award['size'],
                     'award_type' => $award['type'],
                 ]
