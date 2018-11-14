@@ -237,21 +237,17 @@ class SendAward
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) ){
                     $userId = intval($triggerData['user_id']);
                     $fromUserId = intval($triggerData['from_user_id']);
-                    if ( $userId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['time'])) {
+                    if ( $userId > 0 && $fromUserId > 0 && (empty($activityInfo['start_at']) || $activityInfo['start_at'] <= $triggerData['time'])) {
                         $config = Config::get("hockey");
                         //添加邀请人竞猜机会
-                        if($fromUserId > 0){
-                            Attributes::increment($fromUserId,$config['guess_key'],1);
-                        }
+                        Attributes::increment($fromUserId,$config['guess_key'],1);
                         //添加注册人竞猜机会
                         Attributes::increment($userId,$config['guess_key'],1);
                         //发送站内信
                         $activityUrl = env("APP_URL")."/active/hockey_active/guess/index.html";
                         $msg = "亲爱的用户，恭喜您在助力女曲-竞猜场活动中通过邀请注册获得1个竞猜机会（1个竞猜=1注），下注竞猜比赛结果，竞猜正确即可参与瓜分万元现金，点击下注".$activityUrl."。";
-                        if($fromUserId > 0) {
-                            SendMessage::Mail($fromUserId, $msg);//发送站内信
-                            SendMessage::Message($fromUserId,$msg);//发送短信
-                        }
+                        SendMessage::Mail($fromUserId, $msg);//邀请人发送站内信
+                        SendMessage::Message($fromUserId,$msg);//邀请人发送短信
                         SendMessage::Mail($userId,$msg);//发送站内信
                         SendMessage::Message($userId,$msg);//发送短信
                     }
