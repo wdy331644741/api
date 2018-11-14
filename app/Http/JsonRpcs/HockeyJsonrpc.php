@@ -282,7 +282,7 @@ class HockeyJsonRpc extends JsonRpc {
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>'兑换现金奖励成功'
+            'data' =>$award['award_name']
         ];
     }
     /**
