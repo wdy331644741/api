@@ -5,7 +5,7 @@ return [
     'card_key'=> "hockey_card",
     'today_start'=>date("Y-m-d 10:00:00"),//抽实物卡当天的开始时间
     'next_day_start'=>date("Y-m-d 10:00:00",strtotime("+1 day")),//抽实物卡第二天的开始时间
-    'today_end'=>date("Y-m-d 10:01:00"),//抽实物卡结束时间
+    'today_end'=>date("Y-m-d 10:10:00"),//抽实物卡结束时间
     'user_attr' => [
         'China'=>0,
         'Netherlands'=>0,
