@@ -62,6 +62,7 @@ Route::group(['middleware' => 'admin'], function(){
     // 积分商城
     Route::controller('integral', 'IntegralMallController');
     Route::controller('prize', 'InPrizeController');
+    Route::controller('prize', 'InExchangeLogController');
     // 1元夺宝
     Route::controller('one', 'OneYuanController');
     // 红包分享
