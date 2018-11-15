@@ -27,10 +27,12 @@ use App\Models\ActivityJoin;
 use App\Service\Attributes;
 use App\Service\OneYuanBasic;
 use App\Service\Flow;
+use App\Service\ActivityService;
 use App\Models\UserAttribute;
 use Config;
 use Validator;
 use DB;
+use Carbon\Carbon;
 use App\Service\Func;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
@@ -204,19 +206,24 @@ class SendAward
                     && $triggerData['tag'] == 'investment' 
                     ){
                     $key = 'open_gift';//活动标示
+
                     //新用户 首投满2000元获得一次拆礼物机会、4000元2次
                     //当日注册并首投 额外再加一次
 
-                    //新用户 每邀请1名好友注册并首投满500 ，双方各+1次
                     $investmentNum = 0;
                     $fromUserNum = 0;
                     if($triggerData['is_first']){
                         $investmentNum += intval($triggerData['Investment_amount']/2000);
-                        //当日注册并首投 额外再加一次
-                        if(substr($triggerData['register_time'], 0,10) ==  substr($triggerData['buy_time'], 0,10)){
+                        $act_start = Carbon::parse($activityInfo['start_at'])->toDateTimeString();
+                        $act_end = Carbon::parse($activityInfo['end_at'])->toDateTimeString();
+
+                        //当日注册并首投 额外再加一次(前提条件：如果注册时间在活动区间内)
+                        //open_gift_investment_give_change 和 open_gift 活动的时间配置一致
+                        if( $triggerData['register_time'] >= $act_start && $triggerData['register_time'] <= $act_end && substr($triggerData['register_time'], 0,10) ==  substr($triggerData['buy_time'], 0,10) ){
+                            //()
                             $investmentNum += 1;
                         }
-
+                        //新用户 每邀请1名好友注册并首投满500 ，双方各+1次
                         if($triggerData['from_user_id']){
                             $fromUserIsNew = Func::isNewUser($triggerData['from_user_id']);
                             if($fromUserIsNew && $triggerData['Investment_amount'] >+ 500){
@@ -225,9 +232,10 @@ class SendAward
                             }
                         }
                     }
-
                     Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
-                    Attributes::increment($triggerData['from_user_id'] ,$key ,$fromUserNum);
+                    if($triggerData['from_user_id']){
+                        Attributes::increment($triggerData['from_user_id'] ,$key ,$fromUserNum);
+                    }
 
                     
 
