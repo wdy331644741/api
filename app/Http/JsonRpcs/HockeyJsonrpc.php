@@ -314,14 +314,14 @@ class HockeyJsonRpc extends JsonRpc {
                 DB::rollBack();
                 throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);
             }else{//不存在就记录第一个用户id
-                Cache::forever($key,$userId);
-                $luckUser = Cache::get($key);
                 //查看有没有冠军卡
-                $goldCard = HdHockeyCard::where(['user_id'=>$luckUser,'type'=>1,"status"=>0])->first();
+                $goldCard = HdHockeyCard::where(['user_id'=>$userId,'type'=>1,"status"=>0])->first();
                 if(!isset($goldCard['id'])){//没有冠军卡直接返回错误代码
                     DB::rollBack();
                     throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
                 }
+                Cache::forever($key,$userId);
+                $luckUser = Cache::get($key);
                 //修改为已获得实物抽奖卡状态
                 $goldCard->type = 2;//修改为可兑换实物类型（实物卡）
                 $goldCard->updated_at = date("Y-m-d H:i:s");
