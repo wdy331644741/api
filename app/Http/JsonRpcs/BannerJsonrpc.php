@@ -437,7 +437,35 @@ class BannerJsonRpc extends JsonRpc {
 			'data' => $data,
 		);
 	}
-
+    /**
+     * 获取提现页图标
+     *
+     * @JsonRpcMethod
+     */
+    public function getPutForwardIcon(){
+        $where['position'] = "put_forward_icon";
+        $where['can_use'] = 1;
+        $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+            ->where(function ($query) {
+                $query->whereNull('start')->orWhereRaw('start < now()');
+            })
+            ->where(function ($query) {
+                $query->whereNull('end')->orWhereRaw('end > now()');
+            })
+            ->orderByRaw('sort DESC')->first();
+        if(isset($data->id)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data,
+            );
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => [],
+        );
+    }
 	//特定渠道添加图片
 	private function addChannelImg($data, $position) {
 		global $userId;
