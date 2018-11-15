@@ -14,11 +14,12 @@ class CreateInExchangeLogTable extends Migration
     {
         Schema::create('in_exchange_logs', function (Blueprint $table) {
             $table->increments('id');
-            $table->string("name")->nullable()->comment("姓名");
+            $table->string("realname")->nullable()->comment("姓名");
             $table->string("user_id")->comment("用户id");
-            $table->string("prize_name")->comment("奖品名称");
+            $table->string("pid")->comment("id");
             $table->integer("type_id")->index();
             $table->integer("number")->default(0);
+            $table->tinyInteger("is_real")->default(0);
             $table->string("phone")->nullable()->comment("手机号");
             $table->string("address")->nullable()->comment("地址");
             $table->string("status")->comment("状态");

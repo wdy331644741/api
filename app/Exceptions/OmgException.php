@@ -134,7 +134,7 @@ class OmgException extends BasicException
         self::INTEGRAL_LACK_FAIL => "积分值不足",
         self::EXCEED_FAIL => "超出兑换次数限制",
         self::INTEGRAL_REMOVE_FAIL => "兑换失败",
-        self::EXCEED_NUM_FAIL => "商品已售罄",
+        self::EXCEED_NUM_FAIL => "库存不足",
         self::EXCEED_USER_NUM_FAIL => "用户次数不足",
         self::ONEYUAN_FULL_FAIL => "该奖品已经参与满",
 

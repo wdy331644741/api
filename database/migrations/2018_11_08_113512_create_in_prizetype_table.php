@@ -15,6 +15,7 @@ class CreateInPrizetypeTable extends Migration
         Schema::create('in_prizetypes', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->string('alias_name')->nullable()->default(NULL);
             $table->string('banner');
             $table->tinyInteger('is_online')->default(0);
             $table->Integer('sort')->default(0);
