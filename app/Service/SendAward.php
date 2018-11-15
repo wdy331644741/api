@@ -196,6 +196,43 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+
+            /** 拆礼物 投资送机会 START */
+            case 'open_gift_investment_give_change'://注册送抽奖
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                    && $triggerData['tag'] == 'investment' 
+                    ){
+                    //新用户 首投满2000元获得一次拆礼物机会、4000元2次
+                    //当日注册并首投 额外再加一次
+
+                    //新用户 每邀请1名好友注册并首投满500 ，双方各+1次
+                    $investmentNum = 0;
+                    $fromUserNum = 0;
+                    if($triggerData['is_first']){
+                        $investmentNum += intval($triggerData['Investment_amount']/2000);
+                        //当日注册并首投 额外再加一次
+                        if(substr($triggerData['register_time'], 0,10) ==  substr($triggerData['buy_time'], 0,10)){
+                            $investmentNum += 1;
+                        }
+
+                        if($triggerData['from_user_id']){
+                            $fromUserIsNew = Func::isNewUser($triggerData['from_user_id']);var_dump($fromUserIsNew);
+                            if($fromUserIsNew && $triggerData['Investment_amount'] >+ 500){
+                                $investmentNum += 1;
+                                $fromUserNum += 1;
+                            }
+                        }
+                    }
+
+                    var_dump($investmentNum);
+                    var_dump($fromUserNum);
+
+                    
+
+                }
+                break;
+            /** 拆礼物 投资送机会 end */
             
             /** 抓娃娃机 邀请注册送机会 START */
             case 'catch_doll_register_change'://注册送抽奖
