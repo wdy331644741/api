@@ -100,6 +100,22 @@ class PerBaiJsonrpc extends JsonRpc
                 $result['alert_status'] = 1;
                 $result['alert_number'] = PerBaiService::format($perbai_model['draw_number']);
                 $result['alert_name'] = $perbai_model['award_name'];
+                $awardImg = self::getAwardImg();
+//                ultimate_img2', 'first_img2', 'last_img2', 'sunshine_img2
+                switch ($perbai_model['alias_name']) {
+                    case 'zhongjidajiang':
+                        $result['alert_img'] = $awardImg['ultimate_img2'];
+                        break;
+                    case 'yimadangxian':
+                        $result['alert_img'] = $awardImg['first_img2'];
+                        break;
+                    case 'yichuidingyin':
+                        $result['alert_img'] = $awardImg['last_img2'];
+                        break;
+                    case 'puzhao':
+                        $result['alert_img'] = $awardImg['sunshine_img2'];
+                        break;
+                }
                 //不用更新时间,只是记录弹框状态显示或不显示
                 $perbai_model->timestamps = false;
                 $perbai_model->remark = 'alert';//弹框只显示一次
@@ -461,6 +477,18 @@ class PerBaiJsonrpc extends JsonRpc
             }
         }
         return $list;
+    }
+
+    public static function getAwardImg()
+    {
+
+        $key = 'perbai_award_img';
+        $data = Cache::remember($key, 10, function () {
+            $fields = [ 'ultimate_img2', 'first_img2', 'last_img2', 'sunshine_img2'];
+            $list = HdPerHundredConfig::select($fields)->where('status', 1)->first();
+            return $list;
+        });
+        return $data;
     }
 }
 
