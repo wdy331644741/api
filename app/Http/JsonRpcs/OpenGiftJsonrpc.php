@@ -7,6 +7,7 @@ use App\Models\RichLottery;
 use App\Models\UserAttribute;
 use App\Models\SendRewardLog;
 use App\Service\Attributes;
+use App\Service\GlobalAttributes;
 use App\Service\ActivityService;
 use App\Service\SignInSystemBasic;
 use App\Service\Func;
@@ -57,18 +58,23 @@ class OpenGiftJsonRpc extends JsonRpc
         if(!ActivityService::isExistByAlias(self::$attr_key )) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
+
         //登陆状态
         if($userId > 0){
             $res['is_login'] = true;
             //查取用户数据
             $res['num'] = Attributes::getNumber($userId, self::$attr_key,0);
-            $_act = ActivityService::GetActivityInfoByAlias(self::$attr_key);//获取活动id
             $_award = RichLottery::select('award_name','created_at')->where('user_id',$userId)->where('status','>=',1)->where('uuid',self::$attr_key)->orderBy('created_at','DESC')->get()->toArray();
             $res['list'] = $_award;
         }
         $res['all_user_list'] = $this->allUserList();
-        
-
+        $_act = ActivityService::GetActivityInfoByAlias(self::$attr_key);//获取活动id
+        if(date('Y-m-d H:i:s' ,strtotime("+5 days") ) > $_act->end_at){
+            $makeArr['user'] = '131****6448';
+            $makeArr['award'] = 'iphone xs max 512G';
+            $res['all_user_list'][0] = $makeArr;
+            // array_unshift($newArr, $makeArr);
+        }
         return $res;
     }
 
@@ -158,9 +164,9 @@ class OpenGiftJsonRpc extends JsonRpc
 
     private function allUserList() {
         $key = self::$attr_key."_allUserAwardList";
-        return Cache::remember($key,10, function() {
+        return Cache::remember($key,5, function() {
             $_act = ActivityService::GetActivityInfoByAlias(self::$attr_key);//获取活动id
-            $tmp = RichLottery::select('user_id','award_name')->where('status','>=',1)->where('uuid',self::$attr_key)->orderBy('created_at','DESC')->get()->toArray();
+            $tmp = RichLottery::select('user_id','award_name')->where('status','>=',1)->where('uuid',self::$attr_key)->orderBy('created_at','DESC')->take(50)->get()->toArray();
             $newArr = [];
             if(!empty($tmp)){
                 foreach ($tmp as $key => $value) {
@@ -170,6 +176,14 @@ class OpenGiftJsonRpc extends JsonRpc
                 }
                 
             }
+            // //131****6448,iphone xs max 512G
+            // $text = GlobalAttributes::getText('open_gift_iphonex');
+            // if(!empty($text)){
+            //     $textArr = explode(',', $text);
+            //     $makeArr['user'] = $textArr[0];
+            //     $makeArr['award'] = $textArr[1];
+            //     array_unshift($newArr, $makeArr);
+            // }
             return $newArr;
         });
     }
