@@ -108,6 +108,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         $insert = array();
         $insert['user_id'] = $userId;
         $insert['pid'] = $mallId;
+        $insert['pname'] = $data['name'];
         $insert['number'] = $num;
         $insert['status'] = 0;
         $insert['type_id'] = $data['type_id'];
@@ -155,6 +156,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         }
 
         //判断是否成功
+        $insert['created_at'] = date('Y-m-d H:i:s');
         $id = InExchangeLog::insertGetId($insert);
         if($id && $insert['status'] == 1){
             DB::commit();

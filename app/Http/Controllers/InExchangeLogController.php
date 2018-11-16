@@ -14,7 +14,7 @@ class InExchangeLogController extends Controller
 
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','created_at'];
+    protected $fileds = ['id','realname','pid','type_id','number','phone','address','status','track_num','track_name','created_at'];
     protected $deleteValidates = [
         'id' => 'required|exists:in_exchange_logs,id',
     ];

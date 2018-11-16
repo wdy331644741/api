@@ -17,6 +17,7 @@ class CreateInExchangeLogTable extends Migration
             $table->string("realname")->nullable()->comment("姓名");
             $table->string("user_id")->comment("用户id");
             $table->string("pid")->comment("id");
+            $table->string("pname")->comment("奖品名称");
             $table->integer("type_id")->index();
             $table->integer("number")->default(0);
             $table->tinyInteger("is_real")->default(0);
