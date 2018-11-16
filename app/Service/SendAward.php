@@ -282,13 +282,13 @@ class SendAward
                             $investmentNum += 1;
                         }
                         //新用户 每邀请1名好友注册并首投满500 ，双方各+1次
-                        if($triggerData['from_user_id']){
-                            $fromUserIsNew = Func::isNewUser($triggerData['from_user_id']);
-                            if($fromUserIsNew && $triggerData['Investment_amount'] >+ 500){
-                                $investmentNum += 1;
-                                $fromUserNum += 1;
-                            }
-                        }
+                        // if($triggerData['from_user_id']){
+                        //     $fromUserIsNew = Func::isNewUser($triggerData['from_user_id']);
+                        //     if($fromUserIsNew && $triggerData['Investment_amount'] >+ 500){
+                        //         $investmentNum += 1;
+                        //         $fromUserNum += 1;
+                        //     }
+                        // }
                     }
                     Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
                     if($triggerData['from_user_id']){
