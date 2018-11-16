@@ -35,9 +35,9 @@ class OpenGiftJsonRpc extends JsonRpc
         ['alias_name' =>'gift',      'type' => 'jd100' ,'desp' => '100元京东卡',   'size' => 100, 'pro' => 7],
         ['alias_name' =>'gift',      'type' => 'jd50'  ,'desp' => '50元京东卡',    'size' => 50, 'pro' => 15],
         ['alias_name' =>'gift',      'type' => 'iqy'   ,'desp' => '爱奇艺会员月卡', 'size' => 0, 'pro' => 40],
-        ['alias_name' =>'increases', 'type' => 'in'    ,'desp' => '1%加息券',    'size' => 0.01, 'pro' => 150],
-        ['alias_name' =>'increases', 'type' => 'in'    ,'desp' => '2%加息券',    'size' => 0.02, 'pro' => 130],
-        ['alias_name' =>'redMoney',  'type' => 'red'   ,'desp' => '108元直抵红包',   'size' => 108, 'pro' => 170],
+        ['alias_name' =>'increases', 'type' => 'in'    ,'desp' => '新人狂欢趴1%加息券',    'size' => 0.01, 'pro' => 150],
+        ['alias_name' =>'increases', 'type' => 'in'    ,'desp' => '新人狂欢趴2%加息券',    'size' => 0.02, 'pro' => 130],
+        ['alias_name' =>'redMoney',  'type' => 'red'   ,'desp' => '新人狂欢趴108元直抵红包',   'size' => 108, 'pro' => 170],
     ];
 
 
