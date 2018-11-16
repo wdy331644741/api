@@ -445,7 +445,7 @@ class BannerJsonRpc extends JsonRpc {
     public function getPutForwardIcon(){
         $where['position'] = "put_forward_icon";
         $where['can_use'] = 1;
-        $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+        $data = BANNER::select('id', 'name', 'img_path', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
             ->where(function ($query) {
                 $query->whereNull('start')->orWhereRaw('start < now()');
             })
