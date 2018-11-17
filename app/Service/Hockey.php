@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Models\HdHockeyCard;
 use App\Models\HdHockeyCardMsg;
 use App\Models\HdHockeyGuess;
+use App\Models\HdHockeyGuessConfig;
 use App\Models\UserAttribute;
 use Config,DB;
 class Hockey
@@ -87,6 +88,48 @@ class Hockey
             return $config['cash_list'][2];
         }
         return '';
+    }
+    /**
+     * 获取当前的日期，下一场倒计时，下一场日期
+     *
+     * @param $data 后台配置的国家对阵单条数据
+     *
+     * @return int
+     */
+    static function getMatchDate(){
+        //返回值
+        $res = ['next_time'=>0,"next_date"=>0,'match_date'=>'2018-11-17'];
+        //获取后台配置普通场
+        $data = HdHockeyGuessConfig::where("champion_status",0)->orderBy('match_date', 'asc')->get()->toArray();
+        $minDate = isset($data[0]['match_date']) ? $data[0]['match_date'] : "2018-11-17";
+        $maxDate = isset($data[count($data)-1]['match_date']) ? $data[count($data)-1]['match_date'] : "2018-11-24";
+        //判断当前日期在什么区间
+        if(date("Y-m-d H") < $minDate." 14"){//未到配置赛程期间
+            $res['next_time'] = strtotime($minDate." 14:00:00") - time();
+            $res['next_date'] = date("d",strtotime($minDate));
+            $res['match_date'] = $minDate;//默认时间第一天
+        }
+        if(date("Y-m-d H") >= $minDate." 14" && date("Y-m-d H") < $maxDate." 14"){//在配置赛程期间
+            foreach($data as $k => $v){
+                if($v['match_date'] == date("Y-m-d")){
+                    //判断又没有过去当天的竞猜结束日期
+                    if(date("Y-m-d H") < date("Y-m-d 14")){
+                        $res['next_time'] = strtotime(date("Y-m-d 14:00:00")) - time();
+                        $res['next_date'] = date("d",strtotime(date("Y-m-d")));
+                    }else{
+                        $res['next_time'] = strtotime($data[$k+1]['match_date']." 14:00:00") - time();
+                        $res['next_date'] = date("d",strtotime($data[$k+1]['match_date']));
+                    }
+                }
+            }
+            $res['match_date'] = date("Y-m-d");//默认日期当天
+        }
+        if(date("Y-m-d H") >= $maxDate." 14"){//已过去配置赛程期间
+            $res['next_time'] = -1;
+            $res['next_date'] = date("d",strtotime($maxDate));
+            $res['match_date'] = $maxDate;//默认日期最后一天
+        }
+        return $res;
     }
     /**
      * 获取国家队对阵信息
