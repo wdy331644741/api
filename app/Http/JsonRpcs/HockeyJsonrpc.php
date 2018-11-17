@@ -366,7 +366,6 @@ class HockeyJsonRpc extends JsonRpc {
         $match = isset($params->match) ? $params->match : $dateData['match_date'];
         $res['next_time_end'] = $dateData['next_time'];
         $res['next_date'] = $dateData['next_date'];
-        dd($dateData);exit;
         if(empty($match)){//没传日期默认第一天
             $configList = HdHockeyGuessConfig::orderBy('match_date', 'asc')->first();
         }else{//获取传送的日期
