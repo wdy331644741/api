@@ -344,8 +344,9 @@ class HockeyJsonRpc extends JsonRpc {
             'is_login'=>false,//是否登录
             'available'=>false,//获取是否存在
             'stake_status'=>false,//押注状态
-            'time_end'=> strtotime($config['expire_time']) - time(),//活动总体押注过期时间
-            'today_time_end'=> strtotime(date("Y-m-d 14:00:00")) - time(),//当天押注过期时间
+            'time_end'=>strtotime($config['expire_time']) - time(),//活动总体押注过期时间
+            'next_time_end'=>0,//当天押注过期时间
+            'next_date'=>17,
             'champion_user_count'=>0,
             'user_count'=>0,
             'team'=>$config['guess_team'],//国家队信息
@@ -361,7 +362,11 @@ class HockeyJsonRpc extends JsonRpc {
             $res['available'] = true;
         }
         //比赛日期
-        $match = isset($params->match) ? $params->match : '';
+        $dateData = Hockey::getMatchDate();
+        $match = isset($params->match) ? $params->match : $dateData['match_date'];
+        $res['next_time_end'] = $dateData['next_time'];
+        $res['next_date'] = $dateData['next_date'];
+        dd($dateData);exit;
         if(empty($match)){//没传日期默认第一天
             $configList = HdHockeyGuessConfig::orderBy('match_date', 'asc')->first();
         }else{//获取传送的日期
