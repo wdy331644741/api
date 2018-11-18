@@ -116,20 +116,21 @@ class Hockey
                     if(date("Y-m-d H") < date("Y-m-d 14")){
                         $res['next_time'] = strtotime(date("Y-m-d 14:00:00")) - time();
                         $res['next_date'] = date("d",strtotime(date("Y-m-d")));
+                        $res['match_date'] = date("Y-m-d");//默认日期当天
                     }else{
                         $res['next_time'] = strtotime($data[$k+1]['match_date']." 14:00:00") - time();
                         $res['next_date'] = date("d",strtotime($data[$k+1]['match_date']));
+                        $res['match_date'] = $data[$k+1]['match_date'];//默认日期当天
                     }
-                    $res['match_date'] = date("Y-m-d");//默认日期当天
-                    break;
-                }else{
-                    $nextData = HdHockeyGuessConfig::where("champion_status",0)->where('match_date',">=",date("Y-m-d"))->orderBy('match_date', 'asc')->first();
-                    $date = isset($nextData['match_date']) ? $nextData['match_date'] : 0;
-                    $res['next_time'] = strtotime($date." 14:00:00") - time();
-                    $res['next_date'] = date("d",strtotime($date." 14:00:00"));
-                    $res['match_date'] = $date;//默认下一期开始时间
                     break;
                 }
+            }
+            if($res['next_date'] == 0){//数据不是当天的
+                $nextData = HdHockeyGuessConfig::where("champion_status",0)->where('match_date',">=",date("Y-m-d"))->orderBy('match_date', 'asc')->first();
+                $date = isset($nextData['match_date']) ? $nextData['match_date'] : 0;
+                $res['next_time'] = strtotime($date." 14:00:00") - time();
+                $res['next_date'] = date("d",strtotime($date." 14:00:00"));
+                $res['match_date'] = $date;//默认下一期开始时间
             }
         }
         if(date("Y-m-d H") >= $maxDate." 14"){//已过去配置赛程期间
