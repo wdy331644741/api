@@ -193,10 +193,10 @@ class Hockey
                 foreach($data as $item){//循环计算中奖的总押注数
                     $total += $item['user_total'];
                 }
-                $avg = round($amount/$total,2);//保留两位小数
+                $avg = round($amount/$total,3);//保留三位小数防止钱算多
                 $tmpAmount = 0;
                 foreach($data as $value){
-                    $sumAmount = round($value['user_total'] * $avg);//用户应得金额
+                    $sumAmount = round($value['user_total'] * $avg,2);//用户应得金额保留两位小数
                     if($sumAmount > $amount){//如果大于总奖金，置为总奖金
                         $sumAmount = $amount;
                     }
