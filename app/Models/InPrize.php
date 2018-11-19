@@ -17,6 +17,6 @@ class InPrize extends Model
     protected $dates = ['deleted_at'];
 
     public function prizetypes(){
-            return $this->hasOne('App\Models\InPrizetype', 'id', 'type_id');
+        return $this->hasOne('App\Models\InPrizetype', 'id', 'type_id');
     }
 }

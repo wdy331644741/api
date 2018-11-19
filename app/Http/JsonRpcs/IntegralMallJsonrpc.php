@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Models\InPrize;
 use App\Models\InExchangeLog;
+use App\Models\InPrizetype;
 use App\Models\IntegralMall;
 use App\Models\IntegralMallExchange;
 use App\Exceptions\OmgException;
@@ -15,44 +16,6 @@ use DB;
 
 class IntegralMallJsonRpc extends JsonRpc {
 
-    /**
-     *  商品列表
-     *
-     * @JsonRpcMethod
-     */
-    public function mallList($params) {
-        $where = array();
-        $where['groups'] = trim($params->groups);
-        if(empty($where['groups'])){
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
-        }
-        $where['status'] = 1;
-        $list = IntegralMall::where($where)
-            ->where(function($query) {
-                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
-            })
-            ->where(function($query) {
-                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
-            })
-            ->orderByRaw('id + priority desc')->get()->toArray();
-        $awardCommon = new AwardCommonController;
-        foreach($list as &$item){
-            $params = array();
-            $params['award_type'] = $item['award_type'];
-            $params['award_id'] = $item['award_id'];
-            $awardList = $awardCommon->_getAwardList($params,1);
-            if(!empty($awardList) && isset($awardList['name']) && !empty($awardList['name'])){
-                $item['name'] = $awardList['name'];
-            }else{
-                $item['name'] = '';
-            }
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $list,
-        );
-    }
 
     /**
      * 积分兑换接口
@@ -82,13 +45,13 @@ class IntegralMallJsonRpc extends JsonRpc {
         $where['id'] = $mallId;
         $where['is_online'] = 1;
         $data = InPrize::where($where)->lockForUpdate()->first()->toArray();
-
+        $jifen = $data['kill_price'] ? $data['kill_price'] : $data['price'];
         //判断数据是否存在
         if(empty($data)){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
         //判断值是否有效
-        if($data['price'] < 1){
+        if($jifen < 1){
             throw new OmgException(OmgException::INTEGRAL_FAIL);
         }
         //判断是否兑换完
@@ -101,7 +64,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         }
 
         //如果花费大于于拥有的总积分
-        if(($data['price'] * $num) > $integralTotal) {
+        if(($jifen * $num) > $integralTotal) {
             throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
         }
         //交易日志数据
@@ -130,7 +93,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         }
         $iData['source_id'] = 0;
         $iData['source_name'] = $isReal ? "兑换".$data['name'] : "兑换".$awardInfo['name'];
-        $iData['integral'] = intval($data['price']) * $num;
+        $iData['integral'] = intval($jifen) * $num;
         $iData['remark'] = $isReal ? $data['name']." * ".$num : $awardInfo['name']." * ".$num;
 
         //发送接口
@@ -166,6 +129,64 @@ class IntegralMallJsonRpc extends JsonRpc {
             );
         }
         DB::rollback();
+        return array(
+            'code' => -1,
+            'message' => 'fail'
+        );
+    }
+
+
+    /**
+     *  商品列表(不取秒杀商品)
+     *
+     * @JsonRpcMethod
+     */
+    public function mallList($params) {
+        $alias_name = isset($params->alias_name) ? $params->alias_name : "all";
+        $num = isset($params->num) ? intval($params->num) : 6;
+        if($alias_name == "all"){
+            $data = InPrizetype::where('alias_name','<>','second_kill')->where('is_online',1)
+                ->with(['prizes'=>function ($query,$num) {
+                    $query->where('is_online',1)->orderByRaw('id + sort desc')->paginate($num);
+                }])->get()->toArray();
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data,
+            );
+        }
+        $prizeId = InPrizetype::where('alias_name',$alias_name)->where('is_online',1)->value('id');
+        $where = ['type_id'=>$prizeId,'is_online'=>1];
+        $data = InPrize::where($where)->orderByRaw('id + sort desc')->get()->toArray();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        );
+    }
+
+    /**
+     *  限时秒杀商品列表
+     *
+     * @JsonRpcMethod
+     */
+    public function secondKillList($params){
+        $num = isset($params->num) ? intval($params->num) : 3;
+        $isTop = isset($params->istop) ? intval($params->istop) : 0;
+        $prizeId = InPrizetype::where('alias_name','second_kill')->value('id');
+        $where = ['type_id'=>$prizeId,'is_online'=>1];
+        if($isTop){
+            $where['istop'] = 1;
+        }
+        if($prizeId){
+            $data = InPrize::where($where)->orderByRaw('id + sort desc')->paginate($num);
+            $data['now_time'] = date('Y-m-d H:i:s');
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data,
+            );
+        }
         return array(
             'code' => -1,
             'message' => 'fail'

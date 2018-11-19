@@ -15,7 +15,7 @@ class InPrizeController extends Controller
 
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','name','type_id','price','award_type','award_id','stock','des','ex_note','disclaimer','list_img','detail_img','istop','is_online','des_img','created_at'];
+    protected $fileds = ['id','name','type_id','price','kill_price','start_at','end_at','award_type','award_id','stock','des','ex_note','disclaimer','list_img','detail_img','istop','is_online','des_img','created_at'];
     protected $deleteValidates = [
         'id' => 'required|exists:in_prizes,id',
     ];
@@ -55,11 +55,14 @@ class InPrizeController extends Controller
             'type_id' => 'required|exists:in_prizetypes,id',
             'name' => 'required|string|min:1',
             'price' => 'required|integer|min:1',
+            'kill_price' => 'integer|min:1',
             'award_type' => 'required|integer|min:1',
             'award_id' => 'required_unless:award_type,5|integer|min:1',
             'stock' => 'required|string|min:1',
             'list_img' => 'required',
             'detail_img' => 'required',
+            'des' => 'required',
+            'ex_note' => 'required',
         ]);
         if($validator->fails()){
             return $this->outputJson(PARAMS_ERROR,array('error_msg'=>$validator->errors()->first()));
@@ -67,14 +70,17 @@ class InPrizeController extends Controller
         $data['type_id'] = $request->type_id;
         $data['name'] = $request->name;
         $data['price'] = $request->price;
+        $data['kill_price'] = !empty($request->kill_price) ? $request->kill_price : null;
         $data['award_type'] = $request->award_type;
         $data['award_id'] = $request->awaed_type == 5 ? 0 : $request->award_id;
         $data['stock'] = $request->stock;
         $data['list_img'] = $request->list_img;
         $data['detail_img'] = $request->detail_img;
         $data['des_img'] = !empty($request->des_img) ? $request->des_img : null;
-        $data['des'] = !empty($request->des) ? $request->des : null;
-        $data['ex_note'] = !empty($request->ex_note) ? $request->ex_note : null;
+        $data['des'] = $request->des;
+        $data['ex_note'] = $request->ex_note;
+        $data['start_at'] = !empty($request->start_at) ? $request->start_at : null;
+        $data['end_at'] = !empty($request->end_at) ? $request->end_at : null;
         $data['disclaimer'] = !empty($request->disclaimer) ? $request->disclaimer : null;
         //判断是添加还是修改
         if($prize_id != 0){

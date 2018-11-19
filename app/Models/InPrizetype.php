@@ -16,4 +16,8 @@ class InPrizetype extends Model
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
+
+    public function prizes(){
+        return $this->hasOne('App\Models\InPrize', 'type_id', 'id');
+    }
 }
