@@ -274,7 +274,7 @@ class HockeyJsonRpc extends JsonRpc {
         $goldCard->award_name = isset($award['award_name']) ? $award['award_name'] : '';
         $goldCard->save();
         DB::commit();
-        $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中成功兑换".$goldCard->award_name."，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，点击t.cn/RFixrVx完善收货地址，客服电话：400-858-8066。";
+        $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中成功兑换".$goldCard->award_name."，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，请到“网利宝APP—账户—个人信息”完善收货地址，客服电话：400-858-8066。";
         SendMessage::Mail($userId,$msg);//发送站内信
         SendMessage::Message($userId,$msg);//发送短信
         return [
@@ -325,7 +325,7 @@ class HockeyJsonRpc extends JsonRpc {
                 $goldCard->updated_at = date("Y-m-d H:i:s");
                 $goldCard->save();
                 //消息内容
-                $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中抽中实物奖品兑换卡，请到活动页面兑换实物奖品，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，点击t.cn/RFixrVx完善收货地址，客服电话：400-858-8066。";
+                $msg = "亲爱的用户，恭喜您在助力女曲-集卡场活动中抽中实物奖品兑换卡，请到活动页面兑换实物奖品，实物奖品将在活动结束后15个工作日内发放。温馨提示：请确保您在网利宝平台的收货地址准确无误，请到“网利宝APP—账户—个人信息”完善收货地址，客服电话：400-858-8066。";
                 SendMessage::Mail($luckUser,$msg);//发送站内信
                 SendMessage::Message($luckUser,$msg);//发送短信
                 //修改锁住的key加1
@@ -354,7 +354,7 @@ class HockeyJsonRpc extends JsonRpc {
         $res = [
             'is_login'=>false,//是否登录
             'available'=>false,//获取是否存在
-            'stake_status'=>false,//押注状态
+            'stake_status'=>1,//押注状态1竞猜结束、2竞猜中，3竞猜未开始
             'time_end'=>strtotime($config['expire_time']) - time(),//活动总体押注过期时间
             'next_time_end'=>0,//当天押注过期时间
             'next_date'=>17,
@@ -374,7 +374,7 @@ class HockeyJsonRpc extends JsonRpc {
         }
         //比赛日期
         $dateData = Hockey::getMatchDate();
-        $match = isset($params->match) ? $params->match : $dateData['match_date'];
+        $match = isset($params->match) && !empty($params->match) ? $params->match : $dateData['match_date'];
         $res['next_time_end'] = $dateData['next_time'];
         $res['next_date'] = $dateData['next_date'];
         if(empty($match)){//没传日期默认第一天
@@ -428,9 +428,13 @@ class HockeyJsonRpc extends JsonRpc {
             //用户抽奖次数
             $res['user_count'] = Attributes::getNumber($userId,$config['guess_key']);
         }
-        //普通场押注状态
+        //普通场押注状态判断是否为竞猜中
         if($configList['open_status'] <= 0 && date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00" && date("d",strtotime($configList['match_date'])) <= $res['next_date']){
-            $res['stake_status'] = true;
+            $res['stake_status'] = 2;
+        }
+        //普通场押注状态判断是否为未开始
+        if($configList['open_status'] <= 0 && date("d",strtotime($configList['match_date'])) > $res['next_date']){
+            $res['stake_status'] = 3;
         }
         //第一场个人投注
         $res['team_list']['first_stake'] = isset($stakeArr['first']) ? $stakeArr['first'] : [];
