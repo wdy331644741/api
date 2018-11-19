@@ -505,7 +505,8 @@ class HockeyJsonRpc extends JsonRpc {
             $find_name = $id."_".$field."_".$stake;
             $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
             //判断普通场是否超过下注时间
-            if(date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00"){
+            $dateData = Hockey::getMatchDate();
+            if(date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00" || date("d",strtotime($guessConfig['match_date'])) > $dateData['next_date']){
                 DB::rollBack();
                 throw new OmgException(OmgException::ACTIVITY_IS_END);
             }
