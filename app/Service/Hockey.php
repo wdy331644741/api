@@ -213,9 +213,10 @@ class Hockey
                     }elseif(strpos($value->find_name,"champion")){
                         $site = "冠军场";
                     }
-                    //发送站内信
+                    //发送站内信&短信
                     $msg = "亲爱的用户，助力女曲-竞猜场活动".$value->match_date.$site."已开奖，恭喜您获得现金".$value->amount."元，奖励将于比赛休息日发放至您的网利宝账户，请届时注意查收。客服电话：400-858-8066。";
                     SendMessage::Mail($value->user_id,$msg);
+                    SendMessage::Message($value->user_id,$msg);
                     $tmpAmount += $value->amount;//发放累计总金额
                     if($tmpAmount >= $amount){//防止发送超出总金额
                         break;
