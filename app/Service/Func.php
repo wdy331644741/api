@@ -529,6 +529,15 @@ class Func
         return $client->integralUsageRecord($data);
     }
 
+    /*
+     * 判断用户是否是新用户
+     * return 1 新用户 2 老用户
+     */
+    static function isNewUser($userId){
+        $client = new JsonRpcClient(env('ACCOUNT_HTTP_URL'));
+        $result = $client->isNewOrOldUser(array("user_id" => $userId));
+        return $result['result']['status'] == 1?true:false;
+    }
 
 
 }
