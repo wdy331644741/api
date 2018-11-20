@@ -431,7 +431,7 @@ class HockeyJsonRpc extends JsonRpc {
             $res['user_count'] = Attributes::getNumber($userId,$config['guess_key']);
         }
         //普通场押注状态判断是否为竞猜中
-        if($configList['open_status'] <= 0 && date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00" && date("d",strtotime($configList['match_date'])) <= $res['next_date']){
+        if($configList['open_status'] <= 0 && date("Y-m-d H:i:s") < $configList['match_date']." 14:00:00" /*&& date("d",strtotime($configList['match_date'])) <= $res['next_date']*/){
             $res['stake_status'] = 2;
         }
         //普通场押注状态判断是否为未开始
