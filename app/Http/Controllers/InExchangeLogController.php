@@ -8,13 +8,15 @@ use App\Http\Traits\BasicDatatables;
 use App\Service\Func;
 use Validator;
 use DB;
+use Excel;
+use Response;
 
 class InExchangeLogController extends Controller
 {
 
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id','realname','pid','type_id','number','phone','address','status','track_num','track_name','created_at'];
+    protected $fileds = ['id','user_id','realname','pname','pid','type_id','track_status','number','phone','address','status','track_num','track_name','created_at'];
     protected $deleteValidates = [
         'id' => 'required|exists:in_exchange_logs,id',
     ];
@@ -35,6 +37,80 @@ class InExchangeLogController extends Controller
         return response()->json(array('error_code'=> 0, 'data'=>$res));
     }
 
+    //导出结果
+    public function postExport(Request $request){
+        $res = Func::freeSearch($request,new InExchangeLog(),$this->fileds,['prizetypes','prizes']);
+        $list = $res['data'];
+
+        foreach($list as $key => $item){
+            if($key == 0){
+                $cellData[$key] = array('id','user_id','realname','pname','type_id','number','phone','address','track_status','track_name','track_num','created_at');
+            }
+            $cellData[$key+1] = array($item['id'],$item['user_id'],$item['realname'],$item['pname'],$item['type_id'],$item['number'],$item['phone'],$item['address'],$item['track_status'],$item['track_name'],$item['track_num'],$item['created_at']);
+        }
+        $fileName = date("YmdHis").mt_rand(1000,9999);
+        $typeName = "xls";
+        Excel::create($fileName,function($excel) use ($cellData){
+            $excel->sheet('RecordOfExchangeList', function($sheet) use ($cellData){
+                $sheet->rows($cellData);
+            });
+        })->store($typeName);
+        $appUrl = env('APP_URL');
+        $downUrl = $appUrl."/exchange/download/".$fileName.".".$typeName;
+        if($appUrl != "http://api-omg.wanglibao.com"){
+            $downUrl = $appUrl."/yunying/exchange/download/".$fileName.".".$typeName;
+        }
+        return response()->json(array('error_code'=> 0, 'data'=>$downUrl));
+    }
+
+    //导入
+    public function postImport(Request $request){
+        $path = base_path().'/storage/imports/';
+        if ($request->hasFile('file')) {
+            //验证文件上传中是否出错
+            if ($request->file('file')->isValid()){
+                $mimeTye = $request->file('file')->getClientOriginalExtension();
+                if($mimeTye == 'xlsx' || $mimeTye == 'xls'){
+                    $fileName = date('YmdHis').mt_rand(1000,9999).'.'.$mimeTye;
+                    //保存文件到路径
+                    $request->file('file')->move($path,$fileName);
+                    $file = $path.$fileName;
+                }else{
+                    return array('code'=>404,'params'=>'file','error_msg'=>'文件格式错误');
+                }
+            }else{
+                return array('code'=>404,'params'=>'file','error_msg'=>'文件错误');
+            }
+        }else{
+            return array('code'=>404,'params'=>'file','error_msg'=>'文件不能为空');
+        }
+
+        if(!file_exists($file)){
+            return array('code'=>404,'params'=>'file','error_msg'=>'文件错误');
+        }
+        Excel::load($file,function($reader) {
+            $reader = $reader->getSheet(0);
+            $data = $reader->toArray();
+            foreach($data as $key => $item){
+                //第一行不插入
+                if($key === 0 || $item[0] == null){
+                    continue;
+                }
+                $exObj = InExchangeLog::where('id',intval($item[0]))->first();
+                $exObj->phone = $item[6];
+                $exObj->address = $item[7];
+                $exObj->track_status  = intval($item[8]);
+                $exObj->track_name  = $item[9];
+                $exObj->track_num  = $item[10];
+                $exObj->save();
+            }
+        });
+        return $this->outputJson(0);
+    }
+
+    public function getDownload($fileName){
+        return Response::download(base_path()."/storage/exports/".$fileName);
+    }
 
     //添加积分商城奖品
     public function postOperation(Request $request)

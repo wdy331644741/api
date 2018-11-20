@@ -23,7 +23,8 @@ class CreateInExchangeLogTable extends Migration
             $table->tinyInteger("is_real")->default(0);
             $table->string("phone")->nullable()->comment("手机号");
             $table->string("address")->nullable()->comment("地址");
-            $table->string("status")->comment("状态");
+            $table->tinyInteger("status")->comment("状态");
+            $table->tinyInteger("track_status")->comment("发货状态");
             $table->string("track_num")->nullable()->comment("快递单号");
             $table->string("track_name")->nullable()->comment("快递名称");
             $table->softDeletes();

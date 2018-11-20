@@ -116,4 +116,6 @@ Route::get('content/{type?}/{page?}','ContentController@getList');
 Route::get('thread/img/{id?}','bbs\ThreadController@getImgList');
 //上传文件
 Route::get('content/export-gxfc-execl/{tid?}/{date?}','ContentController@getExportGxfcExecl');
+//下载文件
+Route::get('exchange/download/{filename}','InExchangeLogController@getDownload');
 

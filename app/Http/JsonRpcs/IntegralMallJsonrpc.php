@@ -146,9 +146,9 @@ class IntegralMallJsonRpc extends JsonRpc {
         $num = isset($params->num) ? intval($params->num) : 6;
         if($alias_name == "all"){
             $data = InPrizetype::where('alias_name','<>','second_kill')->where('is_online',1)
-                ->with(['prizes'=>function ($query,$num) {
+                ->with(['prizes'=>function ($query)use($num) {
                     $query->where('is_online',1)->orderByRaw('id + sort desc')->paginate($num);
-                }])->get()->toArray();
+                }])->get();
             return array(
                 'code' => 0,
                 'message' => 'success',
@@ -191,6 +191,43 @@ class IntegralMallJsonRpc extends JsonRpc {
             'code' => -1,
             'message' => 'fail'
         );
+    }
+
+    /**
+     *  兑换记录
+     *
+     * @JsonRpcMethod
+     */
+    public function exChangeLogList($params){
+        global $userId;
+        $userId = 70999;
+        $num = isset($params->num) ? intval($params->num) : 10;
+        $isReal = isset($params->isreal) ? intval($params->isreal) : 0;
+        if(empty($userId)){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $where = ['user_id'=>$userId];
+        if($isReal){
+            $where['is_real'] = $isReal;
+            $data = InExchangeLog::where($where)->with('prizes')->get()->toArray();
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => $data,
+            );
+        }
+
+        $data = InExchangeLog::where($where)
+            ->Where(function($query){
+            $query->where('is_real',1)
+                ->orWhere(['is_real'=>0,'status'=>1]);
+        })->orderBy('id','desc')->get()->toArray();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        );
+
     }
 
 
