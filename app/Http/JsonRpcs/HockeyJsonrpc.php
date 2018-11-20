@@ -435,9 +435,9 @@ class HockeyJsonRpc extends JsonRpc {
             $res['stake_status'] = 2;
         }
         //普通场押注状态判断是否为未开始
-        if($configList['open_status'] <= 0 && date("d",strtotime($configList['match_date'])) > $res['next_date']){
-            $res['stake_status'] = 3;
-        }
+//        if($configList['open_status'] <= 0 && date("d",strtotime($configList['match_date'])) > $res['next_date']){
+//            $res['stake_status'] = 3;
+//        }
         //第一场个人投注
         $res['team_list']['first_stake'] = isset($stakeArr['first']) ? $stakeArr['first'] : [];
         //第二场个人投注
@@ -507,8 +507,8 @@ class HockeyJsonRpc extends JsonRpc {
             $find_name = $id."_".$field."_".$stake;
             $guessConfig = HdHockeyGuessConfig::where('id',$id)->first();
             //判断普通场是否超过下注时间
-            $dateData = Hockey::getMatchDate();
-            if(date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00" || date("d",strtotime($guessConfig['match_date'])) > $dateData['next_date']){
+            //$dateData = Hockey::getMatchDate();
+            if(date("Y-m-d H:i:s") >= $guessConfig['match_date']." 14:00:00" /*|| date("d",strtotime($guessConfig['match_date'])) > $dateData['next_date']*/){
                 DB::rollBack();
                 throw new OmgException(OmgException::ACTIVITY_IS_END);
             }
