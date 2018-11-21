@@ -1305,7 +1305,7 @@ class SendAward
         }
         $num = Attributes::incrementByDay($userId,'invite_send_award_limit',1);
         $limit = Config::get("activity.invite_send_award_limit");
-        if($num >= $limit+1){
+        if($num == $limit+1){
             $message = "系统检测到您可能正通过技术手段获取体验金奖励，故不继续发放邀请注册体验金，其他邀请奖励不受影响，如有疑问请联系客服，感谢您对网利宝的支持！";
             //发送站内信
             SendMessage::Mail($userId,$message,[]);
