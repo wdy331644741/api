@@ -11,6 +11,7 @@ use App\Http\JsonRpcs\BbsUserJsonRpc;
 use App\Http\JsonRpcs\CollectCardJsonrpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
 use App\Http\JsonRpcs\DoubleElevenJsonrpc;
+use App\Http\JsonRpcs\DoubleTwelveJsonrpc;
 use App\Http\JsonRpcs\EndYearInvestJsonrpc;
 use App\Http\JsonRpcs\HockeyJsonRpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
@@ -134,7 +135,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new QuestionJsonrpc());//我的客服
         $jsonRpcServer->addService(new PerBaiJsonrpc());//逢百抽大奖
         $jsonRpcServer->addService(new RichLotteryJsonRpc());//8月发财 抽奖
-        $jsonRpcServer->addService(new FourLotteryJsonRpc());//4周年 抽奖
+//        $jsonRpcServer->addService(new FourLotteryJsonRpc());//4周年 抽奖
         $jsonRpcServer->addService(new FourYearZhengshiJsonrpc());//四周年活动
         $jsonRpcServer->addService(new JumpJsonRpc());//跳一跳
         $jsonRpcServer->addService(new OctLotteryJsonRpc());//10月份抽奖
@@ -143,6 +144,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DoubleElevenJsonrpc());//双11 -- 集卡
         $jsonRpcServer->addService(new CatchDollJsonRpc());//抓娃娃机
         $jsonRpcServer->addService(new OpenGiftJsonRpc());//抓娃娃机
+        $jsonRpcServer->addService(new DoubleTwelveJsonrpc());
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
