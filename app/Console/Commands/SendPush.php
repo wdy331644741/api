@@ -46,7 +46,9 @@ class SendPush extends Command
         $activityConfig = HdPerHundredConfig::where(['status' => 1])->first();
         if ($activityConfig) {
             $beforeTen = strtotime('-10 minute', strtotime($activityConfig->start_time));
-            if (time() > $beforeTen) {
+            $endTime = strtotime($activityConfig->start_time);
+            $time = time();
+            if ($time > $beforeTen && $time < $endTime) {
                 $node = Config::get('perbai.node');
                 $where = ['status'=>0, 'type'=> $node];
                 $count = \App\Models\SendPush::where($where)->count();
