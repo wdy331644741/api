@@ -77,6 +77,9 @@ class SendMessage
         if(isset($res['result']['code']) && $res['result']['code'] === 0){
             return true;
         }
+        if(isset($res['error']['message'])){
+            return $res['error']['message'];
+        }
         return false;
     }
 }

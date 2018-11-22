@@ -52,6 +52,9 @@ class SendPush extends Command
                 $count = \App\Models\SendPush::where($where)->count();
                 $perPage = 100;
                 $num = ceil($count / $perPage);
+                if (!$num) {
+                    return false;
+                }
                 $id = \App\Models\SendPush::where($where)->value('id');
                 for ($i=0; $i<$num; $i++) {
                     $data = \App\Models\SendPush::select('id','user_id')->where('id', '>=', $id)->where($where)->limit($perPage)->get()->toArray();

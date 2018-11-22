@@ -449,6 +449,27 @@ class PerBaiJsonrpc extends JsonRpc
             'message' => 'success'
         ];
     }
+
+    /**
+     * 测试push
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiPush($params)
+    {
+        $type = isset($params->type) ? $params->type : true;
+        try {
+            $ret = $this->testPush($type);
+        } catch (\Exception $e) {
+            $ret = $e->getMessage();
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $ret,
+        ];
+    }
+
     public static function getRemainNum() {
 
         $perbaiService = new PerBaiService();
@@ -489,6 +510,42 @@ class PerBaiJsonrpc extends JsonRpc
             return $list;
         });
         return $data;
+    }
+
+    public function testPush($type=true)
+    {
+        //
+        $activityConfig = HdPerHundredConfig::where(['status' => 1])->first();
+        if ($activityConfig || $type) {
+            $beforeTen = strtotime('-10 minute', strtotime($activityConfig->start_time));
+            if (time() > $beforeTen || $type) {
+                $node = Config::get('perbai.node');
+                $where = ['status'=>0, 'type'=> $node];
+                $count = \App\Models\SendPush::where($where)->count();
+                $perPage = 100;
+                $num = ceil($count / $perPage);
+                $id = \App\Models\SendPush::where($where)->value('id');
+                for ($i=0; $i<$num; $i++) {
+                    $data = \App\Models\SendPush::select('id','user_id')->where('id', '>=', $id)->where($where)->limit($perPage)->get()->toArray();
+                    $userIds = [];
+                    foreach ($data as $v) {
+                        $userIds[] = $v['user_id'];
+                    }
+                    if ($userIds) {
+                        $last = array_pop($data);
+                        $id = $last['id'];
+                        \App\Models\SendPush::where($where)->where('id', '<=', $id)->where($where)->update(['status'=>1]);
+                        $ret = SendMessage::sendPush($userIds, 'activity_remind');
+                        return $ret;
+                    }
+                }
+                throw new \Exception('没有push用户');
+            } else{
+                throw new \Exception('活动开始前十分钟推送push');
+            }
+        }else {
+            throw new \Exception('活动不存在');
+        }
     }
 }
 
