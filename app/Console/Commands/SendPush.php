@@ -45,7 +45,7 @@ class SendPush extends Command
         //
         $activityConfig = HdPerHundredConfig::where(['status' => 1])->first();
         if ($activityConfig) {
-            $beforeTen = strtotime('-10 minute', strtotime($activityConfig->start_time));
+            $beforeTen = strtotime('-15 minute', strtotime($activityConfig->start_time));
             $endTime = strtotime($activityConfig->start_time);
             $time = time();
             if ($time > $beforeTen && $time < $endTime) {
