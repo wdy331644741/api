@@ -71,9 +71,8 @@ class SendPush extends Command
                         return fasle;
                     }
                 }
-            } else{
-                echo 'error';
             }
         }
+        return false;
     }
 }
