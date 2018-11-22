@@ -67,10 +67,12 @@ class SendMessage
     }
 
     public static function sendPush($userID,$nodeName,$arr=[]){
-        $params = array();
-        $params['user_id'] = $userID;
-        $params['node_name'] = $nodeName;
-        $params['tplParam'] = $arr;
+        $params = new \stdClass();
+        $params->user_id = $userID;
+        $params->node_name = $nodeName;
+//        $params['user_id'] = $userID;
+//        $params['node_name'] = $nodeName;
+//        $params['tplParam'] = $arr;
         $url = Config::get('cms.message_http_url');
         $client = new JsonRpcClient($url);
         $res = $client->sendJpush($params);
