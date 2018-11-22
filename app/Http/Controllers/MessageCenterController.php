@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\Activity;
+use App\Models\TriggerLog;
+use DB;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Jobs\SendReward;
@@ -48,11 +50,23 @@ class MessageCenterController extends Controller{
         )->where($where)->get()->toArray();
         //队列
         if(!empty($activityInfo)){
+            //记录触发消息日志
+            $insertData = [
+                'user_id'=>$userID,
+                'trigger_type'=>$event,
+                'info'=>json_encode($requests),
+                'day'=>date("Y-m-d"),
+                'created_at'=>date("Y-m-d H:i:s"),
+            ];
+            $res = DB::select("show tables like 'trigger_log'");
+            if(!empty($res)){//表存在就添加
+                TriggerLog::insertGetId($insertData);
+            }
             foreach($activityInfo as $item){
                 if(!empty($item['id'])){
                     //放入队列
                     if($event == 'payment'){//如果是回款触发
-                        $this->dispatch((new SendReward($item,$userID,$requests))->onQueue('lazy'));
+                        $this->dispatch((new SendReward($item,$userID,$requests))->onConnection("redis")->onQueue('lazy'));
                     }else{
                         $this->dispatch(new SendReward($item,$userID,$requests));
                     }
