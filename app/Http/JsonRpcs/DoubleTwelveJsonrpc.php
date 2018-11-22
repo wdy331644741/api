@@ -24,7 +24,6 @@ class DoubleTwelveJsonrpc extends JsonRpc
      */
     public function twelveInfo() {
         global $userId;
-        $userId = 5101480;
         $result = [
                 'login' => 0,
                 'available' => 0,
