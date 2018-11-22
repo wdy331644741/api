@@ -39,6 +39,9 @@ class Kernel extends ConsoleKernel
             //15点整抓取不准,过两分开始
         //    return date('Hi') >= 1530 && date('H') <= 23;
       //  });
+        $schedule->command('SendPush')->withoutOverlapping()->timezone('Asia/Shanghai')->when(function () {
+            return date('Hi') >= 1350 && date('H') <= 14;
+          });
 
     }
 }
