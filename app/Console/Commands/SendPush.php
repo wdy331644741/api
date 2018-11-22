@@ -50,11 +50,11 @@ class SendPush extends Command
                 $node = Config::get('perbai.node');
                 $where = ['status'=>0, 'type'=> $node];
                 $count = \App\Models\SendPush::where($where)->count();
-                $perPage = 100;
-                $num = ceil($count / $perPage);
-                if (!$num) {
+                if (!$count) {
                     return false;
                 }
+                $perPage = 100;
+                $num = ceil($count / $perPage);
                 $id = \App\Models\SendPush::where($where)->value('id');
                 for ($i=0; $i<$num; $i++) {
                     $data = \App\Models\SendPush::select('id','user_id')->where('id', '>=', $id)->where($where)->limit($perPage)->get()->toArray();
