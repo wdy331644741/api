@@ -96,8 +96,10 @@ class PerBaiJsonrpc extends JsonRpc
             $where['period'] = $perbaiService::$perbai_version;
             $perbai_model = HdPerbai::where($where)->orderBy('id', 'desc')->first();
             //弹框只显示一次
-            if ($perbai_model && empty($perbai_model['remark'])) {
-                $result['alert_status'] = 1;
+            if ($perbai_model) {
+                if (empty($perbai_model['remark'])) {
+                    $result['alert_status'] = 1;
+                }
                 $result['alert_number'] = PerBaiService::format($perbai_model['draw_number']);
                 $result['alert_name'] = $perbai_model['award_name'];
                 $awardImg = self::getAwardImg();
