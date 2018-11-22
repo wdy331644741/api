@@ -4,6 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\Activity;
+use App\Models\HdTwelve;
 use App\Models\UserAttribute;
 use App\Service\ActivityService;
 use App\Service\Attributes;
@@ -52,6 +53,27 @@ class DoubleTwelveJsonrpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => $result,
+        ];
+    }
+
+    /**
+     * 获取奖品列表
+     *
+     * @JsonRpcMethod
+     */
+    public function twelveList() {
+        $data = HdTwelve::select('user_id', 'award_name')->orderBy('id', 'desc')->take(20)->get();
+        foreach ($data as &$item){
+            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+                $phone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+            }
+        }
+
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
         ];
     }
 
