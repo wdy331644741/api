@@ -7,33 +7,33 @@ use App\Service\ActivityService;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use App\Models\RichLottery;
-use Config;
-use DB;
+use Config, Request, DB, Cache;
 
 class LotteryService
 {
 
     //抽奖发奖
-    static public function sendLottAward($userId ,$aliasName ,$award) {
-        $awards = SendAward::ActiveSendAward($userId, $aliasName);
+    static public function sendLottAward($userId ,$activity ,$award) {
+        $result = [];
+        $awards = SendAward::ActiveSendAward($userId, $award['alias_name']);
         if(isset($awards[0]['award_name']) && $awards[0]['status']) {
             $result['awardName'] = $awards[0]['award_name'];
             $result['awardType'] = $awards[0]['award_type'];
-            // $result['amount'] = strval(intval($result['awardName']));
-            $result['awardSigni'] = $aliasName;//奖品标示 需要返回给前端
+            $result['amount'] = $award['size'];
+            $result['awardSigni'] = $award['alias_name'];//奖品标示 需要返回给前端
             $remark['awards'] = $awards;
             RichLottery::create([
                 'user_id' => $userId,
                 'amount' => $award['size'],
                 'award_name' => $result['awardName'],
-                'uuid' => $config['alias_name'],//区分活动
+                'uuid' => $activity,//区分活动
                 'ip' => Request::getClientIp(),
                 'user_agent' => Request::header('User-Agent'),
                 'status' => 1,
                 'type' => $result['awardType'],
                 'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
             ]);
-            return true;
+            return $result;
         }else{
             return false;
         }

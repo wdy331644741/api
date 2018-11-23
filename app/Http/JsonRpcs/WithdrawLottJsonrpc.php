@@ -27,7 +27,7 @@ class WithdrawLottJsonRpc extends JsonRpc
      *
      * @JsonRpcMethod
      */
-    public function testquanzhong() {
+    public function withDrawLott() {
         global $userId;
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -46,7 +46,6 @@ class WithdrawLottJsonRpc extends JsonRpc
             'amount' => 0,
             'awardSigni' => '',
         ];
-        $remark = [];
 
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
@@ -58,7 +57,7 @@ class WithdrawLottJsonRpc extends JsonRpc
         $award = LotteryService::getAward($item);
 
         //查询是否 剩余抽奖次数
-        $beforeCounts = $this->getUserWithdraw();
+        $beforeCounts = $this->getUserWithdraw();$beforeCounts = 0;
         if($beforeCounts  <= 0){
             return [
                 'code' => -1,
@@ -69,50 +68,22 @@ class WithdrawLottJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         // //forupdate
-        // LotteryService::getAttrNumber($userId,$config['drew_daily_key']);
-        
 
         // 根据别名发活动奖品
-        $aliasName = $award['alias_name'];
-        
-        $awards = SendAward::ActiveSendAward($userId, $aliasName);
-        if(isset($awards[0]['award_name']) && $awards[0]['status']) {
-            $result['awardName'] = $awards[0]['award_name'];
-            $result['awardType'] = $awards[0]['award_type'];
-            $result['amount'] = strval(intval($result['awardName']));
-            $result['awardSigni'] = $aliasName;//奖品标示 需要返回给前端
-            $remark['awards'] = $awards;
-            RichLottery::create([
-                'user_id' => $userId,
-                'amount' => $award['size'],
-                'award_name' => $result['awardName'],
-                'uuid' => $config['alias_name'],//区分活动
-                'ip' => Request::getClientIp(),
-                'user_agent' => Request::header('User-Agent'),
-                'status' => 1,
-                'type' => $result['awardType'],
-                'remark' => json_encode($remark, JSON_UNESCAPED_UNICODE),
-            ]);
-            // if($this->getUserWithdraw() == $beforeCounts){//乐观锁
-            //     //请求用户中心 减去提现次数
-            // }else{
-            //     DB::rollBack();
-            //     throw new OmgException(OmgException::API_FAILED);
-            // }
+        // LotteryService::getAttrNumber($userId,$config['drew_daily_key']);
+        $result = LotteryService::sendLottAward($userId,self::$attr_key, $award);
+        //乐观锁  核对提现次数
+        if($beforeCounts == $this->getUserWithdraw() && $result){
             DB::commit();
-
-        }else{
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => $result,
+            ]; 
+        }else {
             DB::rollBack();
             throw new OmgException(OmgException::API_FAILED);
         }
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $result,
-        ];
-
-        //$res = SendAward::ActiveSendAward($userId,self::$attr_key);
-        //return $res;
 
     }
 
