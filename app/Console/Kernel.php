@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         // Commands\Inspire::class,
         Commands\VoteAwardDebug::class,
         Commands\Perbai::class,
+        Commands\SendPush::class,
     ];
 
     /**
@@ -36,6 +37,7 @@ class Kernel extends ConsoleKernel
             //15点整抓取不准,过两分开始
         //    return date('Hi') >= 1530 && date('H') <= 23;
       //  });
+        $schedule->command('SendPush')->withoutOverlapping();
 
     }
 }
