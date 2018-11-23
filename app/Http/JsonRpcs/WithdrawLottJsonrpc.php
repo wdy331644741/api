@@ -57,7 +57,7 @@ class WithdrawLottJsonRpc extends JsonRpc
         $award = LotteryService::getAward($item);
 
         //查询是否 剩余抽奖次数
-        $beforeCounts = $this->getUserWithdraw();$beforeCounts = 0;
+        $beforeCounts = $this->getUserWithdraw();
         if($beforeCounts  <= 0){
             return [
                 'code' => -1,
