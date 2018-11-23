@@ -48,15 +48,15 @@ class CatchDollJsonRpc extends JsonRpc
      *  老用户中奖概率
      */
     protected $old_award = [
-        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 95],
-        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 5],
+        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 100],
+        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 0],
     ];
     /**
      *  新用户中奖概率
      */
     protected $new_award = [
-        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 50],
-        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 50],
+        ['alias_name' =>'catch_doll_8888_ex', 'desp' => '8888元体验金', 'size' => 8888, 'pro' => 100],
+        ['alias_name' =>'catch_doll_5_ca', 'desp' => '5元现金', 'size' => 5, 'pro' => 0],
     ];
     /**
      * 娃娃机 首页数据、状态
