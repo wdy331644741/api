@@ -1866,11 +1866,11 @@ class SendAward
                 }else{
                     $unRemark = $info['remark'];
                 }
-                $SendRewardLog->where('id',$info['unSendID'])->update(array('remark'=>$unRemark));
+                $SendRewardLog->where('id',$info['unSendID'])->update(array('remark'=>$unRemark,'updated_at'=>date("Y-m-d H:i:s")));
                 return true;
             }
             //修改为补发成功状态
-            $SendRewardLog->where('id',$info['unSendID'])->update(array('status'=>'2','remark'=>$info['remark']));
+            $SendRewardLog->where('id',$info['unSendID'])->update(array('status'=>'2','remark'=>$info['remark'],'updated_at'=>date("Y-m-d H:i:s")));
             return true;
         }
         if(isset($info['batch_id']) && !empty($info['batch_id'])){
