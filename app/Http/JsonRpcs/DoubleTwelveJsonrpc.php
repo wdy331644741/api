@@ -10,6 +10,7 @@ use App\Models\UserAttribute;
 use App\Service\ActivityService;
 use App\Service\Attributes;
 use App\Service\DoubleTwelveService;
+use App\Service\Func;
 use Lib\JsonRpcClient;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
