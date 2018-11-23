@@ -45,6 +45,7 @@ class OmgException extends BasicException
     const NAME_IS_ALIVE = 4122;
     const ADDRESS_IS_ALIVE = 4123;
     const VALID_PHONE_TYPE_FAIL = 4124;
+    const VALID_AMOUNT_ERROR = 4130;
 
     //服务器错误
     const GET_BANNER_FAIL = 4200;
@@ -143,7 +144,7 @@ class OmgException extends BasicException
         self::NAME_IS_ALIVE => "用户名含有敏感字符",
         self::ADDRESS_IS_ALIVE => "地址含有敏感字符",
         self::VALID_PHONE_TYPE_FAIL => "手机号格式不正确",
-        
+        self::VALID_AMOUNT_ERROR => "金额不正确",
         //服务器错误
         self::NO_LOGIN => "用户未登陆",
         self::GET_BANNER_FAIL => "获取banner图列表失败",
