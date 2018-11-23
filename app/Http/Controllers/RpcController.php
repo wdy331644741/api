@@ -68,6 +68,7 @@ use App\Http\JsonRpcs\FourYearZhengshiJsonrpc;
 use App\Http\JsonRpcs\OctLotteryJsonRpc;
 use App\Http\JsonRpcs\CatchDollJsonRpc;
 use App\Http\JsonRpcs\OpenGiftJsonRpc;
+use App\Http\JsonRpcs\WithdrawLottJsonRpc;
 
 class RpcController extends Controller
 {
@@ -151,6 +152,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new RedEnvelopesJsonRpc());//领取红包活动
         $jsonRpcServer->addService(new HockeyJsonRpc());//曲棍球正式场
         $jsonRpcServer->addService(new OpenGiftJsonRpc());//抓娃娃机
+        $jsonRpcServer->addService(new WithdrawLottJsonRpc());//提现抽奖
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
