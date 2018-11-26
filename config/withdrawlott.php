@@ -9,7 +9,7 @@ return [
         /****************************v0*****************************************/
         0 =>[
             ['alias_name' =>'withdraw_again', 'desp' => '一次抽奖机会',  'size' => 1,       'pro' => 20],
-            ['alias_name' =>'withdraw_8888_ex', 'desp' => '8888元体验金',   'size' => 8888, 'pro' => 2099],
+            ['alias_name' =>'withdraw_8888_ex', 'desp' => '8888元体验金',   'size' => 8888, 'pro' => 20],
             ['alias_name' =>'withdraw_8_re', 'desp' => '8元直抵红包', 'size' => 8,          'pro' => 13],
             ['alias_name' =>'withdraw_48_re', 'desp' => '48元直抵红包', 'size' => 48,       'pro' => 15],
             ['alias_name' =>'withdraw_88_re', 'desp' => '88元直抵红包', 'size' => 88,       'pro' => 20],

@@ -21,7 +21,12 @@ class WithdrawLottJsonRpc extends JsonRpc
 {
 
     protected static $attr_key = 'withdraw_lott';//储存在用户属性表中的key && 活动名称(时间控制)
-
+    protected $_result = [
+            'awardName' => '',
+            'awardType' => 0,
+            'amount' => 0,
+            'awardSigni' => '',
+        ];
     /**
      * 拆礼物 首页
      *
@@ -35,17 +40,10 @@ class WithdrawLottJsonRpc extends JsonRpc
         $_userInfo = call_user_func(array("App\Service\Func","getUserBasicInfo"),$userId);
         $config = Config::get('withdrawlott');
 
-        // 是否触发间隔限制
-        // if($this->isTooOften($userId, $config)) {
-        //     throw new OmgException(OmgException::API_BUSY);
-        // }
-
-        $result = [
-            'awardName' => '',
-            'awardType' => 0,
-            'amount' => 0,
-            'awardSigni' => '',
-        ];
+        //是否触发间隔限制
+        if(LotteryService::isTooOften($userId, $config)) {
+            throw new OmgException(OmgException::API_BUSY);
+        }
 
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
@@ -71,18 +69,29 @@ class WithdrawLottJsonRpc extends JsonRpc
 
         // 根据别名发活动奖品
         // LotteryService::getAttrNumber($userId,$config['drew_daily_key']);
-        $result = LotteryService::sendLottAward($userId,self::$attr_key, $award);
-        //乐观锁  核对提现次数
-        if($beforeCounts == $this->getUserWithdraw() && $result){
+
+        if($award['alias_name'] == 'withdraw_again'){
+            $result = LotteryService::sendSpaAward($userId,self::$attr_key, $award);
             DB::commit();
             return [
                 'code' => 0,
                 'message' => 'success',
                 'data' => $result,
             ]; 
-        }else {
-            DB::rollBack();
-            throw new OmgException(OmgException::API_FAILED);
+        }else{
+            $result = LotteryService::sendLottAward($userId,self::$attr_key, $award);
+             //乐观锁  核对提现次数
+            if($beforeCounts == $this->getUserWithdraw() && $result){
+                DB::commit();
+                return [
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => $result,
+                ]; 
+            }else {
+                DB::rollBack();
+                throw new OmgException(OmgException::API_FAILED);
+            }
         }
 
     }
@@ -90,6 +99,9 @@ class WithdrawLottJsonRpc extends JsonRpc
 
     private function getUserWithdraw() {
         $res = LotteryService::getUserProfile();
+        if(isset($res['error']) ){
+            throw new OmgException(OmgException::DATA_ERROR);
+        }
         return $res['result']['data']['withdraw_num'];
     }
 
