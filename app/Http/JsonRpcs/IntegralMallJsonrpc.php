@@ -23,7 +23,6 @@ class IntegralMallJsonRpc extends JsonRpc {
      */
     public function prizeExchange($params) {
         global $userId;
-        $userId = 70999;
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -32,8 +31,6 @@ class IntegralMallJsonRpc extends JsonRpc {
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
         $num = isset($params->num) ? intval($params->num) : 1;
-        $isReal = isset($params->isReal) ? intval($params->isReal) : 0;
-
         //获取用户的积分额
         $url = env('INSIDE_HTTP_URL');
         $client = new JsonRpcClient($url);
@@ -44,12 +41,20 @@ class IntegralMallJsonRpc extends JsonRpc {
         $where = array();
         $where['id'] = $mallId;
         $where['is_online'] = 1;
-        $data = InPrize::where($where)->lockForUpdate()->first()->toArray();
+        $data = InPrize::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            })
+            ->lockForUpdate()->first()->toArray();
         $jifen = $data['kill_price'] ? $data['kill_price'] : $data['price'];
         //判断数据是否存在
         if(empty($data)){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
         }
+
         //判断值是否有效
         if($jifen < 1){
             throw new OmgException(OmgException::INTEGRAL_FAIL);
@@ -66,6 +71,9 @@ class IntegralMallJsonRpc extends JsonRpc {
         //如果花费大于于拥有的总积分
         if(($jifen * $num) > $integralTotal) {
             throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
+        }
+        if($data['award_type'] == 5 && $data['award_id'] == 0){
+            $isReal = 1;
         }
         //交易日志数据
         $insert = array();
@@ -147,7 +155,14 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($alias_name == "all"){
             $data = InPrizetype::where('alias_name','<>','second_kill')->where('is_online',1)
                 ->with(['prizes'=>function ($query)use($num) {
-                    $query->where('is_online',1)->orderByRaw('id + sort desc')->paginate($num);
+                    $query->where('is_online',1)
+                        ->where(function($query) {
+                            $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+                        })
+                        ->where(function($query) {
+                            $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+                        })
+                        ->orderByRaw('id + sort desc')->paginate($num);
                 }])->get();
             return array(
                 'code' => 0,
@@ -157,7 +172,14 @@ class IntegralMallJsonRpc extends JsonRpc {
         }
         $prizeId = InPrizetype::where('alias_name',$alias_name)->where('is_online',1)->value('id');
         $where = ['type_id'=>$prizeId,'is_online'=>1];
-        $data = InPrize::where($where)->orderByRaw('id + sort desc')->get()->toArray();
+        $data = InPrize::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            })
+            ->orderByRaw('id + sort desc')->get()->toArray();
         return array(
             'code' => 0,
             'message' => 'success',
@@ -178,19 +200,23 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($isTop){
             $where['istop'] = 1;
         }
-        if($prizeId){
-            $data = InPrize::where($where)->orderByRaw('id + sort desc')->paginate($num);
-            $data['now_time'] = date('Y-m-d H:i:s');
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => $data,
-            );
-        }
+
+        $data = InPrize::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            })
+            ->orderByRaw('id + sort desc')->paginate($num)->toArray();
+        $data['now_time'] = date('Y-m-d H:i:s');
+
         return array(
-            'code' => -1,
-            'message' => 'fail'
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
         );
+
     }
 
     /**
@@ -200,7 +226,6 @@ class IntegralMallJsonRpc extends JsonRpc {
      */
     public function exChangeLogList($params){
         global $userId;
-        $userId = 70999;
         $num = isset($params->num) ? intval($params->num) : 10;
         $isReal = isset($params->isreal) ? intval($params->isreal) : 0;
         if(empty($userId)){
@@ -221,7 +246,7 @@ class IntegralMallJsonRpc extends JsonRpc {
             ->Where(function($query){
             $query->where('is_real',1)
                 ->orWhere(['is_real'=>0,'status'=>1]);
-        })->orderBy('id','desc')->get()->toArray();
+        })->with('prizes')->orderBy('id','desc')->get()->toArray();
         return array(
             'code' => 0,
             'message' => 'success',

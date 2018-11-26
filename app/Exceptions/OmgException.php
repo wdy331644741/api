@@ -151,7 +151,7 @@ class OmgException extends BasicException
         self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
         self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定",
         self::AWARD_NOT_EXIST => "奖品不存在",
-        self::MALL_NOT_EXIST => "商品不存在",
+        self::MALL_NOT_EXIST => "奖品不存在",
         self::MALL_IS_HAS => "已经领取过该奖品",
         self::DATA_ERROR => "数据有误",
         self::SEND_ERROR => "发送失败",

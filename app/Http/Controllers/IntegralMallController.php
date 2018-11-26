@@ -23,6 +23,7 @@ class IntegralMallController extends Controller
     protected $addValidates = [
         'name' => 'required',
         'banner' => 'required',
+        'alias_name' => 'required',
     ];
     protected $updateValidates = [
         'id' => 'required|exists:in_prizetypes,id',
