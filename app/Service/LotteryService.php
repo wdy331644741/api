@@ -40,6 +40,26 @@ class LotteryService
 
     }
 
+    //特殊奖品
+    static public function sendSpaAward($userId ,$activity ,$award) {
+        RichLottery::create([
+                'user_id' => $userId,
+                'amount' => $award['size'],
+                'award_name' => $award['desp'],
+                'uuid' => $activity,//区分活动
+                'ip' => Request::getClientIp(),
+                'user_agent' => Request::header('User-Agent'),
+                'status' => 1,
+                'type' => 0,
+                'remark' => json_encode($award, JSON_UNESCAPED_UNICODE),
+            ]);
+        return [
+            "awardName" => $award['desp'],
+            "awardType" => 0,
+            "amount" => $award['size'],
+            "awardSigni" => $award['alias_name'],
+        ];
+    }
 
     static public function getUserProfile() {
         $RpcConfig = Config::get('jsonrpc.server');
@@ -125,4 +145,23 @@ class LotteryService
         }
         return $number;
     }
+
+    /**
+     * 抽奖间隔验证
+     *
+     * @param $userId
+     * @param $config
+     * @return bool
+     */
+    static function isTooOften($userId, $config) {
+        $key = "{$config['alias_name']}_system_{$userId}";
+        $value = Cache::pull($key);
+        Cache::put($key, time(), $config['interval']);
+        if($value && time()-$value < $config['interval']) {
+            return true;
+        }
+        return false;
+    }
+
+
 }
