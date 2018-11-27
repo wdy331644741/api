@@ -152,7 +152,8 @@ class DoubleTwelveJsonrpc extends JsonRpc
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
         $sendAward['type'] = $params->type;
-        $sendAward['amount'] = $amount;
+//        $sendAward['amount'] = $amount;
+        $sendAward['amount'] = $award['min'];
         $sendAward['period'] = $period;
         if ($params->type == 'hongbao') {
             $sendAward['awardName'] = $award['val'];
