@@ -1290,7 +1290,7 @@ class SendAward
         $activity = Activity::where('id', $activityId)->with('award_invite')->first();
         $awardInvite = $activity['award_invite'];
         $res = [];
-        //判断用户是否超过邀请发奖次数200
+        //判断用户是否超过邀请发奖次数30
         if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit'){
             $status = self::inviteNumLimit($userId);
             if($status === false){
