@@ -41,7 +41,7 @@ class DoubleTwelveService
                 $awardConfig = self::getRateParams();
                 $awardConfig = array_merge($awardConfig, $params);
                 $awardConfig['rate_increases'] = $award['awardName'];
-                $awardConfig['name'] = ( $award['awardName'] * 100 ) ."%加息券";
+                $awardConfig['name'] = bcmul($award['awardName'], 100, 1)."%加息券";
                 $result = SendAward::increases($awardConfig);
                 break;
             default :
