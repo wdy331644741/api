@@ -110,7 +110,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
         $return['award_name'] = $award['val'];
         if (bccomp($interest, $award['val'], 2) == 1) {
             $return['type'] = 'jiaxi';//加息券
-            $return['award_name'] = $award['jiaxi'];
+            $return['award_name'] = $award['jiaxi'] * 100;
         }
         return [
             'code' => 0,
