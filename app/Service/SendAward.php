@@ -404,18 +404,18 @@ class SendAward
             /** 跳一跳 end **/
             /** 逢百抽大奖 start **/
             case 'perbai_investment':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2){
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && $triggerData['buy_time'] >= $activityInfo['start_at']){
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     if ( $triggerData['period'] >= 3 && $amount >= 5000 ) {
                         $num = intval($amount/5000);
-                        PerBaiService::addDrawNum($triggerData['user_id'],$num);
+                        PerBaiService::addDrawNum($triggerData['user_id'],$num, 'investment', $triggerData['buy_time']);
                     }
                 }
                 break;
                 //邀请人首投
             case 'perbai_invite_investment':
-                if( isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first'] ){
-                        PerBaiService::addDrawNum($triggerData['from_user_id'],1, 'invite');
+                if( isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first'] && $triggerData['buy_time'] >= $activityInfo['start_at']){
+                        PerBaiService::addDrawNum($triggerData['from_user_id'],1, 'invite', $triggerData['buy_time']);
                 }
                 break;
             /** 逢百抽大奖 end **/
@@ -2099,11 +2099,11 @@ class SendAward
                 }else{
                     $unRemark = $info['remark'];
                 }
-                $SendRewardLog->where('id',$info['unSendID'])->update(array('remark'=>$unRemark));
+                $SendRewardLog->where('id',$info['unSendID'])->update(array('remark'=>$unRemark,'updated_at'=>date("Y-m-d H:i:s")));
                 return true;
             }
             //修改为补发成功状态
-            $SendRewardLog->where('id',$info['unSendID'])->update(array('status'=>'2','remark'=>$info['remark']));
+            $SendRewardLog->where('id',$info['unSendID'])->update(array('status'=>'2','remark'=>$info['remark'],'updated_at'=>date("Y-m-d H:i:s")));
             return true;
         }
         if(isset($info['batch_id']) && !empty($info['batch_id'])){
