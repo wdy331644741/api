@@ -1774,6 +1774,7 @@ class SendAward
         $data['limit_desc'] = $info['limit_desc'];
         $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
+        $data['award_id'] = $info['id'];//奖品id
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->experience($data);
