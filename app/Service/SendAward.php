@@ -1307,8 +1307,8 @@ class SendAward
         return true;
     }
     /**
-     * @需要提出去
-     * @param $userID ，$award_type,$award_id
+     * 邀请好友2.0限制
+     * @param $userID
      *
      */
     static function inviteNumLimit2($userId){
