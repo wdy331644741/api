@@ -12,6 +12,31 @@ use Config, Request, DB, Cache;
 class LotteryService
 {
 
+    static public function allUserList($alias_name) {
+        $key = $alias_name."_allUserAwardList";
+        return Cache::remember($key,5, function() use($alias_name) {
+            $_act = ActivityService::GetActivityInfoByAlias($alias_name);//获取活动id
+            $tmp = RichLottery::select('user_id','award_name')->where('status','>=',1)->where('uuid',$alias_name)->orderBy('created_at','DESC')->take(50)->get()->toArray();
+            $newArr = [];
+            if(!empty($tmp)){
+                foreach ($tmp as $key => $value) {
+                    $phone = protectPhone(Func::getUserPhone($value['user_id']) );
+                    $newArr[$key]['user'] = $phone;
+                    $newArr[$key]['award'] = $value['award_name'];
+                }
+                
+            }
+            // //131****6448,iphone xs max 512G
+            // $text = GlobalAttributes::getText('open_gift_iphonex');
+            // if(!empty($text)){
+            //     $textArr = explode(',', $text);
+            //     $makeArr['user'] = $textArr[0];
+            //     $makeArr['award'] = $textArr[1];
+            //     array_unshift($newArr, $makeArr);
+            // }
+            return $newArr;
+        });
+    }
     //抽奖发奖
     static public function sendLottAward($userId ,$activity ,$award) {
         $result = [];
