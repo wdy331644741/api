@@ -41,7 +41,7 @@ class DoubleTwelveService
                 $awardConfig = self::getRateParams();
                 $awardConfig = array_merge($awardConfig, $params);
                 $awardConfig['rate_increases'] = $award['awardName'];
-                $awardConfig['name'] = ( $award['awardName'] * 100 ) ."%加息券";
+                $awardConfig['name'] = bcmul($award['awardName'], 100, 1)."%加息券";
                 $result = SendAward::increases($awardConfig);
                 break;
             default :
@@ -53,7 +53,7 @@ class DoubleTwelveService
         }
         return HdTwelve::create([
             'user_id' => $userId,
-            'award_name' => $award['awardName'] ."元直抵红包",
+            'award_name' => $awardConfig['name'],
             'status' => $result['status'] ? 1 : 0,
             'type' => $award['type'],
             'remark' => json_encode($result, JSON_UNESCAPED_UNICODE),

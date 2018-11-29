@@ -86,6 +86,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
      */
     public function twelveShow($params) {
         global $userId;
+        $userId = 5101480;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -110,7 +111,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
         $return['award_name'] = $award['val'];
         if (bccomp($interest, $award['val'], 2) == 1) {
             $return['type'] = 'jiaxi';//加息券
-            $return['award_name'] = $award['jiaxi'];
+            $return['award_name'] = bcmul($award['jiaxi'], 100, 1);
         }
         return [
             'code' => 0,
