@@ -27,6 +27,43 @@ class WithdrawLottJsonRpc extends JsonRpc
             'amount' => 0,
             'awardSigni' => '',
         ];
+
+    /**
+     * 拆礼物 info
+     *
+     * @JsonRpcMethod
+     */
+    public function withDrawLottInfo() {
+        global $userId;
+        $res = [
+            'is_login'      => false,
+            // 'num'           => 0,
+            'list'          => [],
+            'all_user_list' => [],
+        ];
+        // 活动是否存在
+        if(!ActivityService::isExistByAlias(self::$attr_key )) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+
+        //登陆状态
+        if($userId > 0){
+            $res['is_login'] = true;
+            //查取用户数据
+            // $res['num'] = Attributes::getNumber($userId, self::$attr_key,0);
+            $_award = RichLottery::select('award_name','created_at')->where('user_id',$userId)->where('status','>=',1)->where('uuid',self::$attr_key)->orderBy('created_at','DESC')->get()->toArray();
+            $res['list'] = $_award;
+        }
+        $res['all_user_list'] = LotteryService::allUserList(self::$attr_key);
+        // $_act = ActivityService::GetActivityInfoByAlias(self::$attr_key);//获取活动id
+        // if(date('Y-m-d H:i:s' ,strtotime("+5 days") ) > $_act->end_at){
+        //     $makeArr['user'] = '131****6448';
+        //     $makeArr['award'] = 'iphone xs max 512G';
+        //     $res['all_user_list'][0] = $makeArr;
+        //     // array_unshift($newArr, $makeArr);
+        // }
+        return $res;
+    }
     /**
      * 拆礼物 首页
      *
