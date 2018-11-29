@@ -1261,9 +1261,16 @@ class SendAward
         $activity = Activity::where('id', $activityId)->with('award_invite')->first();
         $awardInvite = $activity['award_invite'];
         $res = [];
-        //判断用户是否超过邀请发奖次数1次
+        //判断用户是否超过邀请发奖次数200
         if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit'){
             $status = self::inviteNumLimit($userId);
+            if($status === false){
+                return [];
+            }
+        }
+        //邀请好友2.0判断用户是否超过邀请发奖次数1
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit2'){
+            $status = self::inviteNumLimit2($userId);
             if($status === false){
                 return [];
             }
@@ -1283,7 +1290,7 @@ class SendAward
         if($userId < 0){
             return false;
         }
-        $num = Attributes::incrementByDay($userId,'invite_send_award_limit',1);
+        $num = Attributes::increment($userId,'invite_send_award_limit',1);
         $limit = Config::get("activity.invite_send_award_limit");
         if($num == $limit+1){
             $message = "系统检测到您可能正通过技术手段获取体验金奖励，故不继续发放邀请注册体验金，其他邀请奖励不受影响，如有疑问请联系客服，感谢您对网利宝的支持！";
@@ -1293,6 +1300,23 @@ class SendAward
             SendMessage::Message($userId,$message,[]);
             return false;
         }
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+    /**
+     * @需要提出去
+     * @param $userID ，$award_type,$award_id
+     *
+     */
+    static function inviteNumLimit2($userId){
+        if($userId < 0){
+            return false;
+        }
+        $num = Attributes::incrementByDay($userId,'invite_send_award_limit2',1);
+        $limit = Config::get("activity.invite_send_award_limit2");
         //不发奖
         if($num > $limit){
             return false;
