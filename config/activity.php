@@ -470,5 +470,6 @@ return [
     'money_share_batch'=>10000000, // 红包分享批次id
     'award_batch'=>20000000, // 奖品补发
     'award_batch_other'=>30000000, // 运营成本核算,其它费用
-    'invite_send_award_limit'=>1,//全民淘金活动邀请人数最多每天1个，为了防止恶意刷
+    'invite_send_award_limit'=>200,//全民淘金活动邀请人数最多200，为了防止恶意刷
+    'invite_send_award_limit2'=>1,//全民淘金活动2.0邀请人数最多每天1个，为了防止恶意刷
 ];
