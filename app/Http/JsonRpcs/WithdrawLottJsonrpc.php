@@ -14,6 +14,7 @@ use App\Service\Func;
 use App\Service\SendAward;
 use App\Service\SendMessage;
 use App\Service\LotteryService;
+use Lib\JsonRpcClient;
 use Illuminate\Support\Facades\Redis;
 use Config, Request, DB, Cache;
 
@@ -118,7 +119,7 @@ class WithdrawLottJsonRpc extends JsonRpc
         }else{
             $result = LotteryService::sendLottAward($userId,self::$attr_key, $award);
              //乐观锁  核对提现次数
-            if($beforeCounts == $this->getUserWithdraw() && $result){
+            if($beforeCounts == $this->getUserWithdraw() && $result && $this->subUserChanges() ){
                 DB::commit();
                 return [
                     'code' => 0,
@@ -137,11 +138,17 @@ class WithdrawLottJsonRpc extends JsonRpc
     private function getUserWithdraw() {
         $res = LotteryService::getUserProfile();
         if(isset($res['error']) ){
-            throw new OmgException(OmgException::DATA_ERROR);
+            throw new OmgException(OmgException::NO_DATA);
         }
         return $res['result']['data']['withdraw_num'];
     }
 
+    //用户中心rpc  减去用户提现次数
 
+    private function subUserChanges() {
+        $rpcClient = new JsonRpcClient(env('ACCOUNT_HTTP_URL') );
+        $res = $rpcClient->editFreeWithdrawNum(array("action" => "sub"));
+        return isset($res['result']) && $res['result']['code'] == 0;
+    }
 }
 
