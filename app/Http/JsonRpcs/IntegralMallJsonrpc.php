@@ -169,7 +169,7 @@ class IntegralMallJsonRpc extends JsonRpc {
                             $query->whereNull('end_at')->orWhereRaw('end_at > now()');
                         })
                         ->orderByRaw('id + sort desc')->paginate($num);
-                }])->get()->toArray();
+                }])->orderByRaw('id + sort desc')->get()->toArray();
             $nowHours = date("H");
             $newData = [];
             foreach ($data as $value){
