@@ -31,6 +31,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
                 'login' => 0,
                 'available' => 0,
                 'number' => 0,
+                'alert'=> 0,
                 ];
         // 用户是否登录
         if($userId) {
@@ -50,11 +51,35 @@ class DoubleTwelveJsonrpc extends JsonRpc
             } else {
                 $result['number'] = Attributes::getNumberByDay($userId, $aliasName);
             }
+            $global_key = $aliasName . '_alert';
+            $alert = Attributes::getNumber($userId, $global_key);
+            if ($alert) {
+                $result['alert'] = 1;
+            }
         }
         return [
             'code' => 0,
             'message' => 'success',
             'data' => $result,
+        ];
+    }
+
+    /**
+     * 查询当前状态
+     *
+     * @JsonRpcMethod
+     */
+    public function twelveAlert() {
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $aliasName = Config::get('doubletwelve.alias_name');
+        $global_key = $aliasName . '_alert';
+        Attributes::increment($userId, $global_key);
+        return [
+            'code' => 0,
+            'message' => 'success',
         ];
     }
 
@@ -86,7 +111,6 @@ class DoubleTwelveJsonrpc extends JsonRpc
      */
     public function twelveShow($params) {
         global $userId;
-        $userId = 5101480;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
