@@ -16,7 +16,7 @@ class IntegralMallController extends Controller
 
     use BasicDataTables;
     protected $model = null;
-    protected $fileds = ['id', 'name','alias_name','is_online','created_at'];
+    protected $fileds = ['id', 'name','alias_name','start_time','end_time','is_online','created_at'];
     protected $deleteValidates = [
         'id' => 'required|exists:in_prizetypes,id',
     ];

@@ -153,7 +153,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         $alias_name = isset($params->alias_name) ? $params->alias_name : "all";
         $num = isset($params->num) ? intval($params->num) : 6;
         if($alias_name == "all"){
-            $data = InPrizetype::where('alias_name','<>','second_kill')->where('is_online',1)
+            $data = InPrizetype::where('is_online',1)
                 ->with(['prizes'=>function ($query)use($num) {
                     $query->where('is_online',1)
                         ->where(function($query) {
@@ -163,11 +163,23 @@ class IntegralMallJsonRpc extends JsonRpc {
                             $query->whereNull('end_at')->orWhereRaw('end_at > now()');
                         })
                         ->orderByRaw('id + sort desc')->paginate($num);
-                }])->get();
+                }])->get()->toArray();
+            $nowHours = date("H");
+            $newData = [];
+            foreach ($data as $value){
+                if(intval($value['start_time']) < $nowHours && $value['end_time'] > $nowHours ){
+                    $value['is_rob'] =1;
+                }else{
+                    $value['is_rob'] = 0;
+                }
+                if(!empty($value['prizes'])){
+                    $newData[] = $value;
+                }
+            }
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => $data,
+                'data' => $newData,
             );
         }
         $prizeId = InPrizetype::where('alias_name',$alias_name)->where('is_online',1)->value('id');
@@ -179,7 +191,7 @@ class IntegralMallJsonRpc extends JsonRpc {
             ->where(function($query) {
                 $query->whereNull('end_at')->orWhereRaw('end_at > now()');
             })
-            ->orderByRaw('id + sort desc')->get()->toArray();
+            ->orderByRaw('id + sort desc')->paginate($num)->toArray();
         return array(
             'code' => 0,
             'message' => 'success',
@@ -188,7 +200,7 @@ class IntegralMallJsonRpc extends JsonRpc {
     }
 
     /**
-     *  限时秒杀商品列表
+     *  限时秒杀商品列表（废弃）
      *
      * @JsonRpcMethod
      */
