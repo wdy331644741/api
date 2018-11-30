@@ -53,7 +53,7 @@ class IntegralMallJsonRpc extends JsonRpc {
 
         $dataType = InPrizetype::where('id',$data['type_id'])->first();
         $nowHours = date("H");
-        if(intval($dataType['start_time']) <= $nowHours && $dataType['end_time'] > $nowHours){
+        if(intval($dataType['start_time']) > $nowHours && $dataType['end_time'] <= $nowHours){
             throw new OmgException(OmgException::TODAY_ACTIVITY_IS_END);
         }
         //判断数据是否存在
