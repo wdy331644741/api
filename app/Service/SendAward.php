@@ -199,6 +199,16 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 嗨翻双12 start **/
+            case 'dec_twelve_register':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'
+                    && !empty($triggerData['from_user_id']) )
+                {
+                    DoubleTwelveService::addDrawNum($triggerData['from_user_id'],"dec_twelve_register");
+                }
+                break;
+            /** 嗨翻双12 end **/
             /** 曲棍球正式场活动 START */
             //投资得卡
             case 'hockey_card_investment':
