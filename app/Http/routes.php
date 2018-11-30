@@ -61,6 +61,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('mark', 'MarkController');
     // 积分商城
     Route::controller('integral', 'IntegralMallController');
+    Route::controller('prize', 'InPrizeController');
+    Route::controller('exchange', 'InExchangeLogController');
     // 1元夺宝
     Route::controller('one', 'OneYuanController');
     // 红包分享
@@ -132,4 +134,8 @@ Route::get('thread/img/{id?}','bbs\ThreadController@getImgList');
 //充话费和冲流量回调方法
 Route::post("wl/fee_flow_callback",'CallbackController@postFeeAndFlowCallback');
 
+//上传文件
+Route::get('content/export-gxfc-execl/{tid?}/{date?}','ContentController@getExportGxfcExecl');
+//下载文件
+Route::get('exchange/download/{filename}','InExchangeLogController@getDownload');
 

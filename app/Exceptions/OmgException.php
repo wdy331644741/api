@@ -160,7 +160,7 @@ class OmgException extends BasicException
         self::EXCEED_FAIL => "超出兑换次数限制",
         self::EXCEED_DAY_LIMIT => "今日兑换次数已达上限",
         self::INTEGRAL_REMOVE_FAIL => "兑换失败",
-        self::EXCEED_NUM_FAIL => "商品已售罄",
+        self::EXCEED_NUM_FAIL => "库存不足",
         self::EXCEED_USER_NUM_FAIL => "用户次数不足",
         self::ONEYUAN_FULL_FAIL => "该奖品已经参与满",
 
@@ -177,7 +177,7 @@ class OmgException extends BasicException
         self::FREQUENCY_ERROR => "您的错误次数太多，稍后再试",
         self::IS_DINED_TO_WECHAT =>"该账户已经绑定过微信，不能重复绑定",
         self::AWARD_NOT_EXIST => "奖品不存在",
-        self::MALL_NOT_EXIST => "商品不存在",
+        self::MALL_NOT_EXIST => "奖品不存在",
         self::MALL_IS_HAS => "已经领取过该奖品",
         self::DATA_ERROR => "数据有误",
         self::SEND_ERROR => "发送失败",
