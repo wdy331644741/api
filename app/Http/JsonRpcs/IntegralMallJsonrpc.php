@@ -50,6 +50,12 @@ class IntegralMallJsonRpc extends JsonRpc {
             })
             ->lockForUpdate()->first()->toArray();
         $jifen = $data['kill_price'] ? $data['kill_price'] : $data['price'];
+
+        $dataType = InPrizetype::where('id',$data['type_id'])->first();
+        $nowHours = date("H");
+        if(intval($dataType['start_time']) > $nowHours && $dataType['end_time'] <= $nowHours){
+            throw new OmgException(OmgException::TODAY_ACTIVITY_IS_END);
+        }
         //判断数据是否存在
         if(empty($data)){
             throw new OmgException(OmgException::MALL_NOT_EXIST);
@@ -145,7 +151,7 @@ class IntegralMallJsonRpc extends JsonRpc {
 
 
     /**
-     *  商品列表(不取秒杀商品)
+     *  商品列表
      *
      * @JsonRpcMethod
      */
@@ -163,7 +169,7 @@ class IntegralMallJsonRpc extends JsonRpc {
                             $query->whereNull('end_at')->orWhereRaw('end_at > now()');
                         })
                         ->orderByRaw('id + sort desc')->paginate($num);
-                }])->get()->toArray();
+                }])->orderByRaw('id + sort desc')->get()->toArray();
             $nowHours = date("H");
             $newData = [];
             foreach ($data as $value){
@@ -192,6 +198,36 @@ class IntegralMallJsonRpc extends JsonRpc {
                 $query->whereNull('end_at')->orWhereRaw('end_at > now()');
             })
             ->orderByRaw('id + sort desc')->paginate($num)->toArray();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        );
+    }
+
+    /**
+     *  商品详情
+     *
+     * @JsonRpcMethod
+     */
+    public function prizeDeatil($params){
+        $mallId = intval($params->mallId);
+        if(empty($mallId)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $data = InPrize::where(['id'=>$mallId,'is_online'=>1])
+            ->where(function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            })->first()->toArray();
+        $data['is_rob'] = 0;
+        $dataType = InPrizetype::where('id',$data['type_id'])->first();
+        $nowHours = date("H");
+        if(intval($dataType['start_time']) <= $nowHours && $dataType['end_time'] > $nowHours){
+            $data['is_rob'] = 1;
+        }
         return array(
             'code' => 0,
             'message' => 'success',
