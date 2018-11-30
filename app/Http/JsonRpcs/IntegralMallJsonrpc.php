@@ -158,50 +158,37 @@ class IntegralMallJsonRpc extends JsonRpc {
     public function mallList($params) {
         $alias_name = isset($params->alias_name) ? $params->alias_name : "all";
         $num = isset($params->num) ? intval($params->num) : 6;
-        if($alias_name == "all"){
-            $data = InPrizetype::where('is_online',1)
-                ->with(['prizes'=>function ($query)use($num) {
-                    $query->where('is_online',1)
-                        ->where(function($query) {
-                            $query->whereNull('start_at')->orWhereRaw('start_at < now()');
-                        })
-                        ->where(function($query) {
-                            $query->whereNull('end_at')->orWhereRaw('end_at > now()');
-                        })
-                        ->orderByRaw('id + sort desc')->paginate($num);
-                }])->orderByRaw('id + sort desc')->get()->toArray();
-            $nowHours = date("H");
-            $newData = [];
-            foreach ($data as $value){
-                if(intval($value['start_time']) <= $nowHours && $value['end_time'] > $nowHours ){
-                    $value['is_rob'] =1;
-                }else{
-                    $value['is_rob'] = 0;
-                }
-                if(!empty($value['prizes'])){
-                    $newData[] = $value;
-                }
-            }
-            return array(
-                'code' => 0,
-                'message' => 'success',
-                'data' => $newData,
-            );
+        $where = ['is_online'=>1];
+        if($alias_name != "all"){
+            $where['alias_name'] =$alias_name;
         }
-        $prizeId = InPrizetype::where('alias_name',$alias_name)->where('is_online',1)->value('id');
-        $where = ['type_id'=>$prizeId,'is_online'=>1];
-        $data = InPrize::where($where)
-            ->where(function($query) {
-                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
-            })
-            ->where(function($query) {
-                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
-            })
-            ->orderByRaw('id + sort desc')->paginate($num)->toArray();
+        $data = InPrizetype::where($where)
+            ->with(['prizes'=>function ($query)use($num) {
+                $query->where('is_online',1)
+                    ->where(function($query) {
+                        $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+                    })
+                    ->orderByRaw('id + sort desc')->paginate($num);
+            }])->orderByRaw('id + sort desc')->get()->toArray();
+        $nowHours = date("H");
+        $newData = [];
+        foreach ($data as $value){
+            if(intval($value['start_time']) <= $nowHours && $value['end_time'] > $nowHours ){
+                $value['is_rob'] =1;
+            }else{
+                $value['is_rob'] = 0;
+            }
+            if(!empty($value['prizes'])){
+                $newData[] = $value;
+            }
+        }
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $data,
+            'data' => $newData,
         );
     }
 
