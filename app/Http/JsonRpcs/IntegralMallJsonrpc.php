@@ -167,7 +167,7 @@ class IntegralMallJsonRpc extends JsonRpc {
             $nowHours = date("H");
             $newData = [];
             foreach ($data as $value){
-                if(intval($value['start_time']) < $nowHours && $value['end_time'] > $nowHours ){
+                if(intval($value['start_time']) <= $nowHours && $value['end_time'] > $nowHours ){
                     $value['is_rob'] =1;
                 }else{
                     $value['is_rob'] = 0;
