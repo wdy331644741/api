@@ -266,10 +266,10 @@ class IntegralMallJsonRpc extends JsonRpc {
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $where = ['user_id'=>$userId];
+        $where = ['user_id'=>$userId,'status'=>1];
         if($isReal){
             $where['is_real'] = $isReal;
-            $data = InExchangeLog::where($where)->with('prizes')->get()->toArray();
+            $data = InExchangeLog::where($where)->with('prizes')->orderBy('id','desc')->paginate($num)->toArray();
             return array(
                 'code' => 0,
                 'message' => 'success',
@@ -277,11 +277,25 @@ class IntegralMallJsonRpc extends JsonRpc {
             );
         }
 
-        $data = InExchangeLog::where($where)
-            ->Where(function($query){
-            $query->where('is_real',1)
-                ->orWhere(['is_real'=>0,'status'=>1]);
-        })->with('prizes')->orderBy('id','desc')->get()->toArray();
+        $data = InExchangeLog::where($where)->with('prizes')->orderBy('id','desc')->paginate($num)->toArray();
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        );
+
+    }
+
+
+    /**
+     *  最新兑换记录
+     *
+     * @JsonRpcMethod
+     */
+    public function newExChangeLogList($params){
+        $num = isset($params->num) ? intval($params->num) : 10;
+
+        $data = InExchangeLog::select('id','realname','pname')->where(['status'=>1])->orderBy('id','desc')->paginate($num)->toArray();
         return array(
             'code' => 0,
             'message' => 'success',
