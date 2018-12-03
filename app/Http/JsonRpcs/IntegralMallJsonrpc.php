@@ -10,7 +10,7 @@ use App\Models\IntegralMallExchange;
 use App\Exceptions\OmgException;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
-use App\Http\Controllers\AwardCommonController;
+use Illuminate\Pagination\Paginator;
 use Config;
 use DB;
 
