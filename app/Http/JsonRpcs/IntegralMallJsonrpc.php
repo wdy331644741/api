@@ -263,9 +263,14 @@ class IntegralMallJsonRpc extends JsonRpc {
         global $userId;
         $num = isset($params->num) ? intval($params->num) : 10;
         $isReal = isset($params->isreal) ? intval($params->isreal) : 0;
+        $page = isset($params->page) ? $params->page : 1;
         if(empty($userId)){
             throw new OmgException(OmgException::NO_LOGIN);
         }
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
         $where = ['user_id'=>$userId,'status'=>1];
         if($isReal){
             $where['is_real'] = $isReal;
