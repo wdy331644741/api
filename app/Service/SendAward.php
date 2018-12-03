@@ -199,6 +199,16 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 嗨翻双12 start **/
+            case 'dec_twelve_register':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'
+                    && !empty($triggerData['from_user_id']) )
+                {
+                    DoubleTwelveService::addDrawNum($triggerData['from_user_id'],"dec_twelve_register");
+                }
+                break;
+            /** 嗨翻双12 end **/
             /** 曲棍球正式场活动 START */
             //投资得卡
             case 'hockey_card_investment':
@@ -1268,6 +1278,13 @@ class SendAward
                 return [];
             }
         }
+        //邀请好友2.0判断用户是否超过邀请发奖次数1
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit2'){
+            $status = self::inviteNumLimit2($userId);
+            if($status === false){
+                return [];
+            }
+        }
 
         foreach($awardInvite as $award) {
             $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] ,'',0,0,$triggerData);
@@ -1293,6 +1310,23 @@ class SendAward
             SendMessage::Message($userId,$message,[]);
             return false;
         }
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+    /**
+     * 邀请好友2.0限制
+     * @param $userID
+     *
+     */
+    static function inviteNumLimit2($userId){
+        if($userId < 0){
+            return false;
+        }
+        $num = Attributes::incrementByDay($userId,'invite_send_award_limit2',1);
+        $limit = Config::get("activity.invite_send_award_limit2");
         //不发奖
         if($num > $limit){
             return false;
