@@ -7,6 +7,7 @@ use App\Service\ActivityService;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use App\Models\RichLottery;
+use App\Service\SendMessage;
 use Config, Request, DB, Cache;
 
 class LotteryService
@@ -67,6 +68,8 @@ class LotteryService
 
     //特殊奖品
     static public function sendSpaAward($userId ,$activity ,$award) {
+        $mailSend = "恭喜您在'翻牌抽奖'活动中获得'一次抽奖机会'奖励。";
+        SendMessage::Mail($userId,$mailSend);//站内信是否发送成功
         RichLottery::create([
                 'user_id' => $userId,
                 'amount' => $award['size'],
