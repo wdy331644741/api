@@ -261,6 +261,7 @@ class IntegralMallJsonRpc extends JsonRpc {
      */
     public function exChangeLogList($params){
         global $userId;
+        $userId = 70999;
         $num = isset($params->num) ? intval($params->num) : 10;
         $isReal = isset($params->isreal) ? intval($params->isreal) : 0;
         $page = isset($params->page) ? $params->page : 1;
@@ -275,6 +276,13 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($isReal){
             $where['is_real'] = $isReal;
             $data = InExchangeLog::where($where)->with('prizes')->orderBy('id','desc')->paginate($num)->toArray();
+            $newData = [];
+            foreach($data['data'] as $value){
+                $date = date('Y-m-d',strtotime($value['created_at']));
+                $value['created_at'] = $date;
+                $newData[] = $value;
+            }
+            $data['data'] = $newData;
             return array(
                 'code' => 0,
                 'message' => 'success',
