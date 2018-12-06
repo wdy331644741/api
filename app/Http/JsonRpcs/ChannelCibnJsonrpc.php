@@ -6,6 +6,7 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\SendRewardLog;
 use App\Service\ActivityService;
+use App\Service\Func;
 
 class ChannelCibnJsonrpc extends JsonRpc
 {
