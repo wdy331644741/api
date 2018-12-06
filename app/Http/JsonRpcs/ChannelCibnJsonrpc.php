@@ -21,7 +21,7 @@ class ChannelCibnJsonrpc extends JsonRpc
         if (!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $data = SendRewardLog::select('user_id')->where(['activity_id'=>$activity->id, 'status'=>1])->orderBy('id, desc')->limit(20)->get();
+        $data = SendRewardLog::select('user_id')->where(['activity_id'=>$activity->id, 'status'=>1])->orderBy('id', 'desc')->limit(20)->get();
         foreach ($data as &$item){
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
