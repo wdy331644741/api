@@ -8,6 +8,7 @@ use App\Http\JsonRpcs\BbsCommentJsonrpc;
 use App\Http\JsonRpcs\BbsThreadJsonRpc;
 use App\Http\JsonRpcs\BbsThreadSectionJsonRpc;
 use App\Http\JsonRpcs\BbsUserJsonRpc;
+use App\Http\JsonRpcs\ChannelCibnJsonrpc;
 use App\Http\JsonRpcs\CollectCardJsonrpc;
 use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
 use App\Http\JsonRpcs\DoubleElevenJsonrpc;
@@ -147,6 +148,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new OpenGiftJsonRpc());//抓娃娃机
         $jsonRpcServer->addService(new DoubleTwelveJsonrpc());
         $jsonRpcServer->addService(new WithdrawLottJsonRpc());//提现抽奖
+        $jsonRpcServer->addService(new ChannelCibnJsonrpc());//cibn渠道活动
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
