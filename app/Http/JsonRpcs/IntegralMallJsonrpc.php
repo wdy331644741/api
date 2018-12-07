@@ -216,6 +216,7 @@ class IntegralMallJsonRpc extends JsonRpc {
             $data['is_rob'] = 1;
         }
         $data['alias_name'] = $dataType['alias_name'];
+        $data['rob_time'] = date('Y-m-d')." ".$dataType['start_time'].":00:00";
         return array(
             'code' => 0,
             'message' => 'success',
