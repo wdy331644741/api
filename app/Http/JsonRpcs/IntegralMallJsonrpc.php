@@ -215,6 +215,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         if(intval($dataType['start_time']) <= $nowHours && $dataType['end_time'] > $nowHours){
             $data['is_rob'] = 1;
         }
+        $data['alias_name'] = $dataType['alias_name'];
         return array(
             'code' => 0,
             'message' => 'success',
@@ -261,7 +262,6 @@ class IntegralMallJsonRpc extends JsonRpc {
      */
     public function exChangeLogList($params){
         global $userId;
-        $userId = 70999;
         $num = isset($params->num) ? intval($params->num) : 10;
         $isReal = isset($params->isreal) ? intval($params->isreal) : 0;
         $page = isset($params->page) ? $params->page : 1;

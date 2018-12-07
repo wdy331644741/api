@@ -57,7 +57,7 @@ class InPrizeController extends Controller
             'price' => 'required|integer|min:1',
             'kill_price' => 'integer|min:1',
             'award_type' => 'required|integer|min:1',
-            'award_id' => 'required_unless:award_type,5|integer|min:1',
+            'award_id' => 'required_unless:award_type,5',
             'stock' => 'required|string|min:1',
             'list_img' => 'required',
             'detail_img' => 'required',
