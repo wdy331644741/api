@@ -164,6 +164,7 @@ class SendAwardBatch
         $data['limit_desc'] = $info['limit_desc'];
         $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
+        $data['award_id'] = $info['id'];//奖品id
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->interestCoupon($data);
@@ -253,6 +254,7 @@ class SendAwardBatch
             $data['is_novice'] = 1;
         }
         $data['remark'] = '';
+        $data['award_id'] = $info['id'];//奖品id
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->redpacket($data);
@@ -341,6 +343,7 @@ class SendAwardBatch
         $data['limit_desc'] = $info['limit_desc'];
         $data['trigger'] = $info['trigger'];
         $data['remark'] = '';
+        $data['award_id'] = $info['id'];//奖品id
         if (!empty($data) && !empty($url)) {
             //发送接口
             $result = $client->redpacket($data);
