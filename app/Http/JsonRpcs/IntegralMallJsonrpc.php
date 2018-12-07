@@ -215,6 +215,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         if(intval($dataType['start_time']) <= $nowHours && $dataType['end_time'] > $nowHours){
             $data['is_rob'] = 1;
         }
+        $data['alias_name'] = $dataType['alias_name'];
         return array(
             'code' => 0,
             'message' => 'success',
@@ -275,6 +276,13 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($isReal){
             $where['is_real'] = $isReal;
             $data = InExchangeLog::where($where)->with('prizes')->orderBy('id','desc')->paginate($num)->toArray();
+            $newData = [];
+            foreach($data['data'] as $value){
+                $date = date('Y-m-d',strtotime($value['created_at']));
+                $value['created_at'] = $date;
+                $newData[] = $value;
+            }
+            $data['data'] = $newData;
             return array(
                 'code' => 0,
                 'message' => 'success',
