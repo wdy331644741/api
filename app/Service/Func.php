@@ -485,7 +485,7 @@ class Func
         if($res){
             return false;
         }else{
-            $arr  = array('15811347310','13466678840');
+            $arr  = array('15811347310','13466678840', '17600119390', '15313111209');
             $i =0;
             foreach ($arr as $val){
                 $params = array();
