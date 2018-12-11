@@ -78,6 +78,7 @@ class IntegralMallJsonRpc extends JsonRpc {
         if(($jifen * $num) > $integralTotal) {
             throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
         }
+        $isReal = 0;
         if($data['award_type'] == 5 && $data['award_id'] == 0){
             $isReal = 1;
         }
