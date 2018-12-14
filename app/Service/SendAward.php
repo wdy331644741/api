@@ -1378,9 +1378,11 @@ class SendAward
         //来源id
         $info['source_id'] = $activityID;
         //获取出活动的名称
-        $activity = Activity::where('id',$activityID)->select('name','trigger_type')->first();
+        $activity = Activity::where('id',$activityID)->select('name','trigger_type', 'alias_name')->first();
         //来源名称
         $info['source_name'] = isset($activity['name']) ? $activity['name'] : $sourceName;
+        //来源活动别名
+        $info['alias_name'] = isset($activity['alias_name']) ? $activity['alias_name'] : $sourceName;
         //触发类型
         $info['trigger'] = isset($activity['trigger_type']) ? $activity['trigger_type'] : -1;
         //用户id
@@ -2068,7 +2070,11 @@ class SendAward
         $info['mail_status'] = 0;
         if(!empty($info['message'])){
             //发送短信
-            $return['message'] = SendMessage::Message($info['user_id'],$info['message'],$message);
+            if (in_array($info['alias_name'], ['channel_cibn'])) {
+                $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
+            } else {
+                $return['message'] = SendMessage::Message($info['user_id'],$info['message'],$message);
+            }
             //发送成功
             if($return['message'] == true){
                 $info['message_status'] = 2;
