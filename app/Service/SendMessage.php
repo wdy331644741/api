@@ -52,6 +52,30 @@ class SendMessage
         }
         return false;
     }
+    //指定模板短信
+    public static function MessageByNode($userID,$nodeName, $arr=array()){
+        //根据用户ID获取手机号
+        $url = env('INSIDE_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $userBase = $client->userBasicInfo(array('userId'=>$userID));
+        $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+        if(empty($phone)){
+            return false;
+        }
+        $params = array();
+        $params['phone'] = $phone;
+        $params['node_name'] = $nodeName;
+        $params['tplParam'] = $arr;
+//        $params['customTpl'] = $content;
+        $url = Config::get('cms.message_http_url');
+        $client = new JsonRpcClient($url);
+        $res = $client->sendSms($params);
+        if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            return true;
+        }
+        return false;
+    }
+
     public static function msgTemplate($template,$arr=array()){
         if(empty($template)){
             return false;
