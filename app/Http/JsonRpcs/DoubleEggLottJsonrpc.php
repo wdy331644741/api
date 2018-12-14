@@ -61,7 +61,7 @@ class DoubleEggLottJsonRpc extends JsonRpc
         if($userId > 0){
             $res['is_login'] = true;
             //查取用户数据
-            $res['num'] = Attributes::getNumber($userId, self::$attr_key);
+            $res['num'] = Attributes::getNumber($userId, self::$attr_key ,0);
             
             $_award = SendRewardLog::whereIn('activity_id',$activityIDs)->where('status','>=',1)->where('user_id',$userId)->select('remark' ,'created_at')->orderBy('id', 'desc')->get()
                 ->map(function ($item, $key) {
