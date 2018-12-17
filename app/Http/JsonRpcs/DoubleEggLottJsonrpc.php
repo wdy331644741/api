@@ -132,6 +132,7 @@ class DoubleEggLottJsonRpc extends JsonRpc
                 'message' => '抽奖成功',
                 'data' => [
                     'name' => $res[0]['award_name'],
+                    'type' => $res[0]['award_type'],
                 ]
                 
         ];
