@@ -3,6 +3,7 @@ namespace App\Service;
 
 use App\Models\Activity;
 use App\Models\ActivityJoin;
+use App\Models\ActivityGroup;
 
 class ActivityService
 {
@@ -70,5 +71,29 @@ class ActivityService
         $where['status'] = 3;
         $count = ActivityJoin::where($where)->get()->count();
         return $count;
+    }
+
+    /**
+     * 获取分组内活动id
+     *
+     * @param $aliasName
+     * @return array
+     */
+    static function GetActivityInfoByGroup($alias) {
+        // $res = DB::table('')
+        //根据别名 查出id
+        $act_group_id = ActivityGroup::where('name',$alias)->first();
+        //连接模型 查出分组下的 活动id
+        $res = ActivityGroup::find($act_group_id['id'])->activities()
+        ->where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->where(['enable' => 1])->get();
+        return $res;
     }
 }

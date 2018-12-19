@@ -49,13 +49,18 @@ class DoubleEggLottJsonRpc extends JsonRpc
         // if(!ActivityService::isExistByAlias(self::$attr_key )) {
         //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         // }
-        $act_gold = ActivityService::GetActivityInfoByAlias(self::$gold_egg);
-        $act_color = ActivityService::GetActivityInfoByAlias(self::$color_egg);
-        if($act_gold && $act_color){
-            $activityIDs = array($act_gold['id'] ,$act_color['id']);
-        }else{
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
+        $act_object = ActivityService::GetActivityInfoByGroup('double_egg');
+        $activityIDs = array_map(function($c){
+            return $c['id'];
+        }, $act_object->toArray());
+
+        // $act_gold = ActivityService::GetActivityInfoByAlias(self::$gold_egg);
+        // $act_color = ActivityService::GetActivityInfoByAlias(self::$color_egg);
+        // if($act_gold && $act_color){
+        //     $activityIDs = array($act_gold['id'] ,$act_color['id']);
+        // }else{
+        //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        // }
         // return $activityIDs;
         //登陆状态
         if($userId > 0){
