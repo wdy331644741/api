@@ -200,6 +200,45 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 双旦 砸蛋抽奖 start **/
+            case 'double_egg_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                    && $triggerData['tag'] == 'investment' 
+                    ){
+                    $key = 'double_egg_lott';//活动标示
+
+                    //年化达到1000元 获得一次
+                    $investmentNum = 0;
+                    $fromUserNum = 0;
+                    if($triggerData['scatter_type'] == 2){
+                        $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/12/1000);
+                    }else if($triggerData['scatter_type'] == 1){
+                        $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/1000);
+                    }
+                    //邀请好友 首投》1000 邀请人获得一次
+                    if($triggerData['is_first']){
+                        //当日注册并首投 额外再加一次(前提条件：如果注册时间在活动区间内)
+                        // $act_start = Carbon::parse($activityInfo['start_at'])->toDateTimeString();
+                        // $act_end = Carbon::parse($activityInfo['end_at'])->toDateTimeString();
+                        // if( $triggerData['register_time'] >= $act_start && $triggerData['register_time'] <= $act_end && substr($triggerData['register_time'], 0,10) ==  substr($triggerData['buy_time'], 0,10) ){
+                        //     //()
+                        //     $fromUserNum = $triggerData['Investment_amount']>=1000?1:0;
+                        // }
+                        $fromUserNum = $triggerData['Investment_amount']>=1000?1:0;
+                    }
+
+                    Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
+                    if($triggerData['from_user_id']){
+                        Attributes::increment($triggerData['from_user_id'] ,$key ,$fromUserNum);
+                    }
+
+                    
+
+                }
+                break;
+            /** 双旦 砸蛋抽奖 end **/
+
             /** 嗨翻双12 start **/
             case 'dec_twelve_register':
                 if(
