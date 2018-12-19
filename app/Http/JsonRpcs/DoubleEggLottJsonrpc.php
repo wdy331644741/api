@@ -45,11 +45,12 @@ class DoubleEggLottJsonRpc extends JsonRpc
             'list'          => [],
             'all_user_list' => [],
         ];
-        // 活动是否存在
-        // if(!ActivityService::isExistByAlias(self::$attr_key )) {
-        //     throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        // }
+        
         $act_object = ActivityService::GetActivityInfoByGroup('double_egg');
+        // 活动是否存在
+        if($act_object->isEmpty() ) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $activityIDs = array_map(function($c){
             return $c['id'];
         }, $act_object->toArray());
