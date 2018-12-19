@@ -97,11 +97,6 @@ class DoubleEggLottJsonRpc extends JsonRpc
             throw new OmgException(OmgException::API_BUSY);
         }
 
-        // 活动是否存在
-        if(!ActivityService::isExistByAlias($params->egg)) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-
         //查询是否 剩余抽奖次数
         $beforeCounts = $this->isDraw($userId,$params->egg);
         if(!$beforeCounts){
@@ -111,12 +106,30 @@ class DoubleEggLottJsonRpc extends JsonRpc
                 'data' => '次数不足',
             ];
         }
+        $_userInfo = call_user_func(array("App\Service\Func","getUserBasicInfo"),$userId);
+        
+        //根据会员等级  （活动别名发奖）
+        $actAlias = call_user_func(function($c) use($params){
+            if($c < 2){
+                return $params->egg."_01";
+            }else if($c < 4){
+                return $params->egg."_23";
+            }else {
+                return $params->egg."_45";
+            }
+        } ,max($_userInfo['level'],0));
+        // return $actAlias;
+        // 活动是否存在
+        if(!ActivityService::isExistByAlias($actAlias)) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+
         //事务开始
         DB::beginTransaction();
         // //forupdate
         Attributes::getItemLock($userId ,self::$attr_key);
         // 根据别名发活动奖品
-        $res = SendAward::ActiveSendAward($userId ,$params->egg);
+        $res = SendAward::ActiveSendAward($userId ,$actAlias);
         //消耗用户次数
         if(isset($res) && $res[0]['status']){
             $userConsume = $params->egg == 'double_egg_color'?9:1;
