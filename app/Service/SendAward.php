@@ -2053,6 +2053,8 @@ class SendAward
             //发送短信
             if (in_array($info['alias_name'], ['channel_cibn'])) {
                 $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
+            } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
+                $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
             } else {
                 $return['message'] = SendMessage::Message($info['user_id'],$info['message'],$message);
             }
