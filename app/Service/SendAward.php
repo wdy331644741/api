@@ -2326,13 +2326,6 @@ class SendAward
         }
         return true;
     }
-
-    /**
-     * 根据模板发送短信
-     * @param $info
-     * @param $message
-     * @return bool
-     */
     public static function messageNodeName($info, $message)
     {
         if (in_array($info['alias_name'], ['channel_cibn'])) {
