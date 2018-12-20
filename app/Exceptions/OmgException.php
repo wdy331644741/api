@@ -26,6 +26,7 @@ class OmgException extends BasicException
     const FAILED_RECHARGE_OFPAY = 4005;
     const FAILED_AMOUNT_NOT_ENOUGH = 4006;
     const FAILED_AMOUNT_REDUCE = 4007;
+    const API_LIMIT = 4015;
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
@@ -124,6 +125,7 @@ class OmgException extends BasicException
         self::FAILED_RECHARGE_OFPAY=>"充值失败，请联系客服",
         self::FAILED_AMOUNT_NOT_ENOUGH=>"余额不足",
         self::FAILED_AMOUNT_REDUCE=>"扣款失败",
+        self::API_LIMIT => "操作过于频繁",
 
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",
