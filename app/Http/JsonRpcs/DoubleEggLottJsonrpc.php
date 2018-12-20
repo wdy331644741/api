@@ -100,7 +100,7 @@ class DoubleEggLottJsonRpc extends JsonRpc
 
         //是否触发间隔限制
         if(LotteryService::isTooOften($userId, array('alias_name'=> $params->egg ,'interval'=> 3) )) {
-            throw new OmgException(OmgException::API_BUSY);
+            throw new OmgException(OmgException::API_LIMIT);
         }
 
         //查询是否 剩余抽奖次数
