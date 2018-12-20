@@ -259,7 +259,7 @@ class IntegralMallJsonRpc extends JsonRpc {
             $mergeArr = array_merge($data[0]['prizes'],$prizeData['data']);
             $data[0]['prizes'] = $mergeArr;
         }
-        
+
         $nowHours = date("H");
         if(intval($data[0]['start_time']) <= $nowHours && $data[0]['end_time'] > $nowHours ){
             $data[0]['is_rob'] =1;
