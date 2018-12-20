@@ -2051,13 +2051,7 @@ class SendAward
         $info['mail_status'] = 0;
         if(!empty($info['message'])){
             //发送短信
-            if (in_array($info['alias_name'], ['channel_cibn'])) {
-                $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
-            } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
-                $return['message'] = SendMessage::MessageByNode($info['user_id'],'huashu_tv_jianianhua',['card'=>$message['code']]);
-            } else {
-                $return['message'] = SendMessage::Message($info['user_id'],$info['message'],$message);
-            }
+            $return['message'] = self::messageNodeName($info, $message);
             //发送成功
             if($return['message'] == true){
                 $info['message_status'] = 2;
@@ -2300,5 +2294,17 @@ class SendAward
             return true;
         }
         return true;
+    }
+
+    public static function messageNodeName($info, $message)
+    {
+        if (in_array($info['alias_name'], ['channel_cibn'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'huashu_tv_jianianhua',['card'=>$message['code']]);
+        } else {
+            $return = SendMessage::Message($info['user_id'],$info['message'],$message);
+        }
+        return $return;
     }
 }
