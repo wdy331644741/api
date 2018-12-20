@@ -472,6 +472,6 @@ return [
     'award_batch_other'=>30000000, // 运营成本核算,其它费用
     'invite_send_award_limit'=>200,//全民淘金活动邀请人数最多200，为了防止恶意刷
     'invite_send_award_limit2'=>1,//全民淘金活动2.0邀请人数最多每天1个，为了防止恶意刷
-    'original_sin_real_name_limit'=>3,//原生之罪的实名获奖上限
-    'original_sin_investment_limit'=>2,//原生之罪的首投获奖上限
+    'original_sin_real_name_limit'=>600,//原生之罪的实名获奖上限
+    'original_sin_investment_limit'=>300,//原生之罪的首投获奖上限
 ];
