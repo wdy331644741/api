@@ -146,12 +146,33 @@ class DoubleEggLottJsonRpc extends JsonRpc
         }
 
         DB::commit();
+
+        //获取奖品值
+        $awardInfo = SendAward::getAward($res[0]['award_type'] ,$res[0]['award_id']);
+        switch ($res[0]['award_type']) {
+            case 7:
+                $amount = $awardInfo['money'];
+                break;
+            case 1:
+                $amount = $awardInfo['rate_increases']*100;
+                break;
+            case 2:
+                $amount = $awardInfo['red_money'];
+                break;
+            case 3:
+                $amount = $awardInfo['experience_amount_money'];
+                break;
+            default:
+                # code...
+                break;
+        }
         return [
                 'code' => 0,
                 'message' => '抽奖成功',
                 'data' => [
                     'name' => $res[0]['award_name'],
                     'type' => $res[0]['award_type'],
+                    'amount' => $amount,
                 ]
                 
         ];
