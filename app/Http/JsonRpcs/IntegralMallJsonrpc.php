@@ -163,26 +163,24 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($alias_name != "all"){
             $where['alias_name'] =$alias_name;
         }
-        $data = InPrizetype::where($where)
-            ->with(['prizes'=>function ($query)use($num) {
-                $query->where('is_online',1)
-                    ->where(function($query) {
-                        $query->whereNull('start_at')->orWhereRaw('start_at < now()');
-                    })
-                    ->where(function($query) {
-                        $query->whereNull('end_at')->orWhereRaw('end_at > now()');
-                    })
-                    ->orderByRaw('id + sort desc')->paginate($num);
-            }])->orderByRaw('id + sort desc')->get()->toArray();
+        $data = InPrizetype::where($where)->orderByRaw('id + sort desc')->get()->toArray();
         $nowHours = date("H");
         $newData = [];
         foreach ($data as $value){
+            $prizeData = InPrize::where(['is_online'=>1,'type_id'=>$value['id']])->where('stock','>',0)->where(function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            })
+                ->where(function($query) {
+                    $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+                })
+                ->orderByRaw('id + sort desc')->paginate($num)->toArray();
             if(intval($value['start_time']) <= $nowHours && $value['end_time'] > $nowHours ){
                 $value['is_rob'] =1;
             }else{
                 $value['is_rob'] = 0;
             }
-            if(!empty($value['prizes'])){
+            if(!empty($prizeData['data'])){
+                $value['prizes'] = $prizeData['data'];
                 $newData[] = $value;
             }
         }
@@ -226,28 +224,46 @@ class IntegralMallJsonRpc extends JsonRpc {
     }
 
     /**
-     *  限时秒杀商品列表（废弃）
+     *  限时秒杀商品列表
      *
      * @JsonRpcMethod
      */
     public function secondKillList($params){
-        $num = isset($params->num) ? intval($params->num) : 3;
-        $isTop = isset($params->istop) ? intval($params->istop) : 0;
-        $prizeId = InPrizetype::where('alias_name','second_kill')->value('id');
-        $where = ['type_id'=>$prizeId,'is_online'=>1];
-        if($isTop){
-            $where['istop'] = 1;
+        $num = isset($params->num) ? intval($params->num) : 6;
+        $where = ['is_online'=>1,'alias_name'=>'second_kill'];
+        $data = InPrizetype::where($where)
+            ->with(['prizes'=>function ($query)use($num) {
+                $query->where('is_online',1)->where('stock','>',0)
+                    ->where(function($query) {
+                        $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+                    })
+                    ->where(function($query) {
+                        $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+                    })
+                    ->orderByRaw('id + sort desc')->paginate($num);
+            }])->orderByRaw('id + sort desc')->get()->toArray();
+
+        $prizeNum = count($data[0]['prizes']);
+        if($prizeNum < 6){
+            $pageNum = 6-$prizeNum;
+            $prizeData = InPrize::where(['is_online'=>1,'stock'=>0])
+                ->where(function($query) {
+                    $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+                })
+                ->where(function($query) {
+                    $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+                })
+                ->orderByRaw('id + sort desc')->paginate($pageNum)->toArray();
+            $mergeArr = array_merge($data[0]['prizes'],$prizeData['data']);
+            $data[0]['prizes'] = $mergeArr;
         }
 
-        $data = InPrize::where($where)
-            ->where(function($query) {
-                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
-            })
-            ->where(function($query) {
-                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
-            })
-            ->orderByRaw('id + sort desc')->paginate($num)->toArray();
-        $data['now_time'] = date('Y-m-d H:i:s');
+        $nowHours = date("H");
+        if(intval($data[0]['start_time']) <= $nowHours && $data[0]['end_time'] > $nowHours ){
+            $data[0]['is_rob'] =1;
+        }else{
+            $data[0]['is_rob'] = 0;
+        }
 
         return array(
             'code' => 0,
