@@ -2339,8 +2339,10 @@ class SendAward
             $return = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
         } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
             $return = SendMessage::MessageByNode($info['user_id'],'huashu_tv_jianianhua',['card'=>$message['code']]);
-        } else if (in_array($info['alias_name'], ['original_sin_real_name_limit','original_sin_investment_limit'])) {
-            $return = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['card'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['original_sin_real_name_limit'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'original_sin_iqiyi',['card'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['original_sin_investment_limit'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'original_sin_fifty_jd',['card'=>$message['code']]);
         } else {
             $return = SendMessage::Message($info['user_id'],$info['message'],$message);
         }
