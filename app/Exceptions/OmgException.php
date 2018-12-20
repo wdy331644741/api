@@ -23,7 +23,7 @@ class OmgException extends BasicException
     const API_BUSY = 4002;
     const API_FAILED = 4003;
     const NO_LOGIN = 4004;
-    const API_LIMIT = 4005;
+    const API_LIMIT = 4015;
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
