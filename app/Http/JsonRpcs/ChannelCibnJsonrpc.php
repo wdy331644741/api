@@ -38,6 +38,11 @@ class ChannelCibnJsonrpc extends JsonRpc
         ];
     }
 
+    /**
+     * 获取奖品列表
+     *
+     * @JsonRpcMethod
+     */
     public function hstvList() {
         $aliasName = 'channel_hstvbkshy';
         $activity = ActivityService::GetActivityedInfoByAlias($aliasName);
