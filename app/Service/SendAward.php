@@ -2326,6 +2326,13 @@ class SendAward
         }
         return true;
     }
+
+    /**
+     * 根据活动别名判断短信的node_name
+     * @param $info
+     * @param $message
+     * @return bool
+     */
     public static function messageNodeName($info, $message)
     {
         if (in_array($info['alias_name'], ['channel_cibn'])) {
