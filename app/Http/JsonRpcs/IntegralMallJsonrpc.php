@@ -163,26 +163,24 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($alias_name != "all"){
             $where['alias_name'] =$alias_name;
         }
-        $data = InPrizetype::where($where)
-            ->with(['prizes'=>function ($query)use($num) {
-                $query->where('is_online',1)->where('stock','>',0)
-                    ->where(function($query) {
-                        $query->whereNull('start_at')->orWhereRaw('start_at < now()');
-                    })
-                    ->where(function($query) {
-                        $query->whereNull('end_at')->orWhereRaw('end_at > now()');
-                    })
-                    ->orderByRaw('id + sort desc')->paginate($num);
-            }])->orderByRaw('id + sort desc')->get()->toArray();
+        $data = InPrizetype::where($where)->orderByRaw('id + sort desc')->get()->toArray();
         $nowHours = date("H");
         $newData = [];
         foreach ($data as $value){
+            $prizeData = InPrize::where(['is_online'=>1,'type_id'=>$value['id']])->where('stock','>',0)->where(function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            })
+                ->where(function($query) {
+                    $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+                })
+                ->orderByRaw('id + sort desc')->paginate($num)->toArray();
             if(intval($value['start_time']) <= $nowHours && $value['end_time'] > $nowHours ){
                 $value['is_rob'] =1;
             }else{
                 $value['is_rob'] = 0;
             }
-            if(!empty($value['prizes'])){
+            if(!empty($prizeData['data'])){
+                $value['prizes'] = $prizeData['data'];
                 $newData[] = $value;
             }
         }
