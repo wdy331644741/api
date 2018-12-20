@@ -1286,6 +1286,20 @@ class SendAward
      */
     static function addAwardByActivity($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('awards')->first();
+        //判断原生之罪的实名获奖上限600
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_real_name_limit'){
+            $status = self::originalSinLimit('original_sin_real_name_limit');
+            if($status === false){
+                return [];
+            }
+        }
+        //判断原生之罪的首投获奖上限300
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_investment_limit'){
+            $status = self::originalSinLimit('original_sin_investment_limit');
+            if($status === false){
+                return [];
+            }
+        }
         $awards = $activity['awards'];
         $res = [];
         if($activity['award_rule'] == 1) {
@@ -1385,6 +1399,23 @@ class SendAward
         }
         $num = Attributes::incrementByDay($userId,'invite_send_award_limit2',1);
         $limit = Config::get("activity.invite_send_award_limit2");
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+    /**
+     * 原生之罪发奖限制
+     * @param $userID
+     *
+     */
+    static function originalSinLimit($limitName){
+        if(empty($limitName)){
+            return false;
+        }
+        $num = GlobalAttributes::incrementByDay($limitName,1);
+        $limit = Config::get("activity.".$limitName);
         //不发奖
         if($num > $limit){
             return false;
@@ -2109,7 +2140,8 @@ class SendAward
         $info['mail_status'] = 0;
         if(!empty($info['message'])){
             //发送短信
-            if (in_array($info['alias_name'], ['channel_cibn'])) {
+            $aliasArr = ['channel_cibn','original_sin_real_name_limit','original_sin_investment_limit'];
+            if (in_array($info['alias_name'], $aliasArr)) {
                 $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
             } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
                 $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
