@@ -23,6 +23,7 @@ class OmgException extends BasicException
     const API_BUSY = 4002;
     const API_FAILED = 4003;
     const NO_LOGIN = 4004;
+    const API_LIMIT = 4015;
 
     //参数验证错误
     const VALID_POSITION_FAIL = 4100;
@@ -104,6 +105,7 @@ class OmgException extends BasicException
         self::API_ILLEGAL => "非法请求",
         self::API_BUSY => "接口调用过于频繁",
         self::API_FAILED => "接口调用失败",
+        self::API_LIMIT => "操作过于频繁",
 
         //参数验证错误
         self::VALID_POSITION_FAIL => "banner图位置不能为空",

@@ -71,6 +71,7 @@ use App\Http\JsonRpcs\OctLotteryJsonRpc;
 use App\Http\JsonRpcs\CatchDollJsonRpc;
 use App\Http\JsonRpcs\OpenGiftJsonRpc;
 use App\Http\JsonRpcs\WithdrawLottJsonRpc;
+use App\Http\JsonRpcs\DoubleEggLottJsonRpc;
 
 class RpcController extends Controller
 {
@@ -149,6 +150,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DoubleTwelveJsonrpc());
         $jsonRpcServer->addService(new WithdrawLottJsonRpc());//提现抽奖
         $jsonRpcServer->addService(new ChannelCibnJsonrpc());//cibn渠道活动
+        $jsonRpcServer->addService(new DoubleEggLottJsonRpc());//双旦 砸单抽奖
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
