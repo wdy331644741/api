@@ -1381,7 +1381,7 @@ class ActivityJsonRpc extends JsonRpc {
         $alias = ["original_sin_real_name_limit","original_sin_investment_limit"];
         $activityId = Activity::whereIn('alias_name',$alias)->select("id")->get()->toArray();
 
-        $data = SendRewardLog::whereIn("source_id",$activityId)->select("user_id","remark")->take(50)->orderBy("id","desc")->get()->toArray();
+        $data = SendRewardLog::whereIn("activity_id",$activityId)->where("status",1)->select("user_id","remark")->take(50)->orderBy("id","desc")->get()->toArray();
         if(!empty($data)){
             foreach($data as $item){
                 if(!empty($item['remark'])){
