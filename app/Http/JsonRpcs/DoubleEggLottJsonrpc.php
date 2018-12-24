@@ -192,7 +192,7 @@ class DoubleEggLottJsonRpc extends JsonRpc
     private function getAllawards($IDs) {
         $key = self::$attr_key."_allUserAwardList";
         return Cache::remember($key,5, function() use ($IDs){
-            $_award = SendRewardLog::whereIn('activity_id',$IDs)->where('status','>=',1)->select('user_id','remark')->orderBy('id', 'desc')->get()
+            $_award = SendRewardLog::whereIn('activity_id',$IDs)->where('status','>=',1)->select('user_id','remark')->orderBy('id', 'desc')->take(30)->get()
                     ->map(function ($item, $key) {
                         $tmp = json_decode($item['remark'],1);
                         $phone = protectPhone(Func::getUserPhone($item['user_id']) );
