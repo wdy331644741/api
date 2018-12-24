@@ -72,7 +72,7 @@ class InPrizeController extends Controller
         $data['price'] = $request->price;
         $data['kill_price'] = !empty($request->kill_price) ? $request->kill_price : null;
         $data['award_type'] = $request->award_type;
-        $data['award_id'] = $request->awaed_type == 5 ? 0 : $request->award_id;
+        $data['award_id'] = $request->award_type == 5 ? 0 : $request->award_id;
         $data['stock'] = $request->stock;
         $data['list_img'] = $request->list_img;
         $data['detail_img'] = $request->detail_img;
