@@ -90,4 +90,38 @@ class RedEnvelopesJsonRpc extends JsonRpc {
             'data' =>isset($data['msg']) ? $data['msg'] : '领取失败'
         ];
     }
+    /**
+     * 红包领取记录
+     *
+     * @JsonRpcMethod
+     */
+    public function redEnvelopesAwardList(){
+        $res = [];
+        $config = Config::get('red_envelopes');
+        if(isset($config['awards']) && !empty($config['awards'])){
+            $alias = [];
+            foreach ($config['awards'] as $k => $v){
+                $alias[] = $k;
+            }
+            $activityId = Activity::whereIn('alias_name',$alias)->select("id")->get()->toArray();
+
+            $data = SendRewardLog::whereIn("activity_id",$activityId)->where("status",1)->select("user_id","remark")->take(30)->orderBy("id","desc")->get()->toArray();
+            if(!empty($data)){
+                foreach($data as $item){
+                    if(!empty($item['remark'])){
+                        $remak = json_decode($item['remark'],1);
+                        $awardName = isset($remak['award_name']) ? $remak['award_name'] : "";
+                        $userInfo = Func::getUserBasicInfo($item['user_id']);
+                        $display_name = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
+                        $res[] = $display_name."已成功获取".$awardName;
+                    }
+                }
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        ];
+    }
 }
