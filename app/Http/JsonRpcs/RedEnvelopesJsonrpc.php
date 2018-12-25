@@ -51,7 +51,7 @@ class RedEnvelopesJsonRpc extends JsonRpc {
         }
     }
     /**
-     * 红包领取状态
+     * 红包领取
      *
      * @JsonRpcMethod
      */
