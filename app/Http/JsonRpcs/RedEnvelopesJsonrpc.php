@@ -3,8 +3,11 @@
 namespace App\Http\JsonRpcs;
 
 
+use App\Models\Activity;
+use App\Models\SendRewardLog;
 use App\Models\UserAttribute;
 use App\Exceptions\OmgException;
+use App\Service\Func;
 use App\Service\SendAward;
 use Config,DB;
 
@@ -103,8 +106,9 @@ class RedEnvelopesJsonRpc extends JsonRpc {
             foreach ($config['awards'] as $k => $v){
                 $alias[] = $k;
             }
+            //根据别名获取活动id
             $activityId = Activity::whereIn('alias_name',$alias)->select("id")->get()->toArray();
-
+            //根据活动id获取发奖记录
             $data = SendRewardLog::whereIn("activity_id",$activityId)->where("status",1)->select("user_id","remark")->take(30)->orderBy("id","desc")->get()->toArray();
             if(!empty($data)){
                 foreach($data as $item){
