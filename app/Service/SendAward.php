@@ -1235,7 +1235,7 @@ class SendAward
                 return [];
             }
         }
-        //判断原生之罪的首投获奖上限300
+        //判断原生之罪的首投获奖上限288
         if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_investment_limit'){
             $status = self::originalSinLimit('original_sin_investment_limit');
             if($status === false){
