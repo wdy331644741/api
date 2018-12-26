@@ -199,6 +199,48 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 双旦 砸蛋抽奖 start **/
+            case 'double_egg_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                    && $triggerData['tag'] == 'investment' 
+                    ){
+                    $key = 'double_egg_lott';//活动标示
+
+                    //年化达到1000元 获得一次
+                    $investmentNum = 0;
+                    $fromUserNum = 0;
+                    if($triggerData['novice_exclusive'] == 0){//非新手标
+                        if($triggerData['scatter_type'] == 2){
+                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/12/1000);
+                        }else if($triggerData['scatter_type'] == 1){
+                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/1000);
+                        }
+                    }
+                    
+                    //邀请好友 首投》1000 邀请人获得一次
+                    if($triggerData['is_first']){
+                        //当日注册并首投 额外再加一次(前提条件：如果注册时间在活动区间内)
+                        $act_start = Carbon::parse($activityInfo['start_at'])->toDateTimeString();
+                        $act_end = Carbon::parse($activityInfo['end_at'])->toDateTimeString();
+                        if( $triggerData['register_time'] >= $act_start && $triggerData['register_time'] <= $act_end && substr($triggerData['register_time'], 0,10) ==  substr($triggerData['buy_time'], 0,10) ){
+                            //()
+                            $fromUserNum = $triggerData['Investment_amount']>=1000?1:0;
+                        }
+                        //$fromUserNum = $triggerData['Investment_amount']>=1000?1:0;
+                    }
+
+                    Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
+                    if($triggerData['from_user_id']){
+                        Attributes::increment($triggerData['from_user_id'] ,$key ,$fromUserNum);
+                    }
+
+                    
+
+                }
+                break;
+            /** 双旦 砸蛋抽奖 end **/
+
             /** 嗨翻双12 start **/
             case 'dec_twelve_register':
                 if(
@@ -1228,6 +1270,27 @@ class SendAward
      */
     static function addAwardByActivity($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('awards')->first();
+        //判断原生之罪的实名获奖上限600
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_real_name_limit'){
+            $status = self::originalSinLimit('original_sin_real_name_limit');
+            if($status === false){
+                return [];
+            }
+        }
+        //判断原生之罪的首投获奖上限288
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_investment_limit'){
+            $status = self::originalSinLimit('original_sin_investment_limit');
+            if($status === false){
+                return [];
+            }
+        }
+
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'channel_hstvbkshy'){
+            $status = self::originalSinLimit('channel_hstvbkshy');
+            if($status === false){
+                return [];
+            }
+        }
         $awards = $activity['awards'];
         $res = [];
         if($activity['award_rule'] == 1) {
@@ -1327,6 +1390,45 @@ class SendAward
         }
         $num = Attributes::incrementByDay($userId,'invite_send_award_limit2',1);
         $limit = Config::get("activity.invite_send_award_limit2");
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+    /**
+     * 原生之罪发奖限制
+     * @param $userID
+     *
+     */
+    static function originalSinLimit($limitName){
+        if(empty($limitName)){
+            return false;
+        }
+        $num = GlobalAttributes::incrementByDay($limitName,1);
+        $limit = Config::get("activity.".$limitName);
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 每日数量限制
+     * @param $userID
+     *
+     */
+    static function originalEveryNumLimit($limitName){
+        if(empty($limitName)){
+            return false;
+        }
+        $attr = GlobalAttributes::getItem($limitName . '_limit');
+        if (!$attr) {
+            return false;
+        }
+        $limit = $attr->number;
+        $num = GlobalAttributes::incrementByDay($limitName,1);
         //不发奖
         if($num > $limit){
             return false;
@@ -2296,12 +2398,22 @@ class SendAward
         return true;
     }
 
+    /**
+     * 根据活动别名判断短信的node_name
+     * @param $info
+     * @param $message
+     * @return bool
+     */
     public static function messageNodeName($info, $message)
     {
         if (in_array($info['alias_name'], ['channel_cibn'])) {
             $return = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
         } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
             $return = SendMessage::MessageByNode($info['user_id'],'huashu_tv_jianianhua',['card'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['original_sin_real_name_limit'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'original_sin_iqiyi',['password'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['original_sin_investment_limit'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'original_sin_fifty_jd',['password'=>$message['code']]);
         } else {
             $return = SendMessage::Message($info['user_id'],$info['message'],$message);
         }
