@@ -367,6 +367,8 @@ class ImgManageController extends Controller
             'img3' => 'url',
             'img4' => 'url',
             'img5' => 'url',
+            'img6' => 'url',
+            'img7' => 'url',
             'online_time' => 'date|required',
             'offline_time' => 'required|after:online_time',
             'target_url' => 'url'
@@ -396,6 +398,12 @@ class ImgManageController extends Controller
         }
         if(isset($request->img5)){
             $insdata['img5'] = $request->img5;
+        }
+        if(isset($request->img6)){
+            $insdata['img6'] = $request->img6;
+        }
+        if(isset($request->img7)){
+            $insdata['img7'] = $request->img7;
         }
         if(isset($request->target_url)){
             $insdata['target_url'] = $request->target_url;
@@ -449,6 +457,8 @@ class ImgManageController extends Controller
             'img3' => 'url',
             'img4' => 'url',
             'img5' => 'url',
+            'img6' => 'url',
+            'img7' => 'url',
             'online_time' => 'date|required',
             'offline_time' => 'required|after:online_time',
             'target_url' => 'url'
@@ -478,6 +488,12 @@ class ImgManageController extends Controller
         }
         if(isset($request->img5)){
             $data['img5'] = $request->img5;
+        }
+        if(isset($request->img6)){
+            $data['img6'] = $request->img6;
+        }
+        if(isset($request->img7)){
+            $data['img7'] = $request->img7;
         }
         if(isset($request->target_url)){
             $data['target_url'] = $request->target_url;
