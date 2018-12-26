@@ -1286,7 +1286,7 @@ class SendAward
         }
 
         if(isset($activity['alias_name']) && $activity['alias_name'] == 'channel_hstvbkshy'){
-            $status = self::originalSinLimit('channel_hstvbkshy');
+            $status = self::originalEveryNumLimit('channel_hstvbkshy');
             if($status === false){
                 return [];
             }
