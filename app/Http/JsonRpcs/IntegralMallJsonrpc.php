@@ -215,7 +215,14 @@ class IntegralMallJsonRpc extends JsonRpc {
             $data['is_rob'] = 1;
         }
         $data['alias_name'] = $dataType['alias_name'];
-        $data['rob_time'] = date('Y-m-d')." ".$dataType['start_time'].":00:00";
+        if($dataType['start_time'] > $nowHours){
+            $data['rob_time'] = date('Y-m-d')." ".$dataType['start_time'].":00:00";
+        }elseif ($dataType['end_time'] <= $nowHours){
+            $data['rob_time'] = date('Y-m-d',strtotime('+1 day'))." ".$dataType['start_time'].":00:00";
+        }else{
+            $data['rob_time'] = NULL;
+        }
+
         return array(
             'code' => 0,
             'message' => 'success',
