@@ -11,6 +11,7 @@ use App\Exceptions\OmgException;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use Illuminate\Pagination\Paginator;
+use App\Http\Controllers\AwardCommonController;
 use Config;
 use DB;
 
