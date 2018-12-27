@@ -42,7 +42,8 @@ class ContentController extends Controller
             'type_id' => 'required|integer|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'platform' =>'in:0,1,2'
+            'platform' =>'in:0,1,2',
+            'display_at' => 'required'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -53,6 +54,7 @@ class ContentController extends Controller
         $content->title = $request->title;
         $content->content = $request->content;
         $content->platform = $platform;
+        $content->display_at = isset($request->display_at) ? $request->display_at : null;
         /*if(isset($request->release)){
             $content->release = $request->release;
         }*/
@@ -90,7 +92,8 @@ class ContentController extends Controller
             'type_id' => 'required|alpha_num|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'platform' =>'in:0,1,2'
+            'platform' =>'in:0,1,2',
+            'display_at' => 'required'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -101,6 +104,7 @@ class ContentController extends Controller
             'title'=>$request->title,
             'content'=>$request->content,
             'platform'=>$platform,
+            'display_at'=>$request->display_at,
         );
 
         if(isset($request->cover)){
