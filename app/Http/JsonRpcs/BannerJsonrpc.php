@@ -163,7 +163,7 @@ class BannerJsonRpc extends JsonRpc {
             $rData['to'] = $res['to'];
             break;
         case "share_img":
-            $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url',"short_desc", 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time','tag as isJoin')
+            $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url',"short_desc", 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
                 ->where($where)
                 ->where(function ($query) {
                     $query->whereNull('start')->orWhereRaw('start < now()');
