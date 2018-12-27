@@ -121,7 +121,7 @@ class IntegralMallJsonRpc extends JsonRpc {
                 $insert['is_real'] = 1;
                 $insert['status'] = 1;
             }else{
-                for($i=0;$i++;$i <$num){
+                for($i=0;$i<$num;$i++){
                     $return = SendAward::sendDataRole($userId,$data['award_type'],$data['award_id'],0,'积分兑换');
                     if($return['status'] === true){
                         //修改发送成功人数+1
