@@ -151,12 +151,52 @@ class IntegralMallJsonRpc extends JsonRpc {
     }
 
 
+
     /**
      *  商品列表
      *
      * @JsonRpcMethod
      */
     public function mallList($params) {
+        $where = array();
+        $where['groups'] = trim($params->groups);
+        if(empty($where['groups'])){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $where['status'] = 1;
+        $list = IntegralMall::where($where)
+            ->where(function($query) {
+                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
+            })
+            ->where(function($query) {
+                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
+            })
+            ->orderByRaw('id + priority desc')->get()->toArray();
+        $awardCommon = new AwardCommonController;
+        foreach($list as &$item){
+            $params = array();
+            $params['award_type'] = $item['award_type'];
+            $params['award_id'] = $item['award_id'];
+            $awardList = $awardCommon->_getAwardList($params,1);
+            if(!empty($awardList) && isset($awardList['name']) && !empty($awardList['name'])){
+                $item['name'] = $awardList['name'];
+            }else{
+                $item['name'] = '';
+            }
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $list,
+        );
+    }
+
+    /**
+     *  新商品列表
+     *
+     * @JsonRpcMethod
+     */
+    public function newMallList($params) {
         $alias_name = isset($params->alias_name) ? $params->alias_name : "all";
         $num = isset($params->num) ? intval($params->num) : 6;
         $where = ['is_online'=>1];
