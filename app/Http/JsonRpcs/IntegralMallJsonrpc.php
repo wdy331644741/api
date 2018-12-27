@@ -121,12 +121,13 @@ class IntegralMallJsonRpc extends JsonRpc {
                 $insert['is_real'] = 1;
                 $insert['status'] = 1;
             }else{
-                //发送奖品
-                $return = SendAward::sendDataRole($userId,$data['award_type'],$data['award_id'],0,'积分兑换');
-                if($return['status'] === true){
-                    //修改发送成功人数+1
-                    InPrize::where($where)->decrement('stock');
-                    $insert['status'] = 1;
+                for($i=0;$i++;$i <$num){
+                    $return = SendAward::sendDataRole($userId,$data['award_type'],$data['award_id'],0,'积分兑换');
+                    if($return['status'] === true){
+                        //修改发送成功人数+1
+                        InPrize::where($where)->decrement('stock');
+                        $insert['status'] = 1;
+                    }
                 }
             }
         }else{
