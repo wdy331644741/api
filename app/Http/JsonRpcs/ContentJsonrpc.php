@@ -134,7 +134,7 @@ class ContentJsonRpc extends JsonRpc {
             return $page;
         });
         $pagenum = isset($params->pagenum) ? $params->pagenum : 10;
-        $data = Content::selectRaw("`id`, `cover`, `title`,`content`, `release_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
+        $data = Content::selectRaw("`id`, `cover`, `title`,`content`, `release_at`,`display_at`, UNIX_TIMESTAMP(`updated_at`) as updated_stamp")->where($where)->orderByRaw('id + sort desc')->paginate($pagenum)->toArray();
         if(empty($data['data'])){
             return array(
                 'code' => 0,
@@ -145,6 +145,7 @@ class ContentJsonRpc extends JsonRpc {
         $newData = array();
         foreach ($data['data'] as $val){
             $val['content'] = mb_substr(strip_tags($val['content']),0,130,'utf-8')."...";
+            $val['display_at'] = substr($val['display_at'], 0,10);
             $newData[] = $val;
         }
         $data['data'] = $newData;
