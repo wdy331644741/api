@@ -96,12 +96,14 @@ class Func
             $pagenum = $request->data['pagenum'];
         }
         if(isset($request->data['order'])){
+
             foreach($request->data['order'] as $key=>$val){
                 $order_str = "$key $val";
             }
         }else{
             $order_str = "id desc";
         }
+
         if(isset($request->data['like']) && isset($request->data['filter'])){
             foreach ($request->data['like'] as $key=>$val){
                 //$like_str = "$key LIKE %$val%";
@@ -182,16 +184,29 @@ class Func
         }elseif (isset($request->data['filter']) && !isset($request->data['like'])){
             $filterData = self::getFilterData($request->data['filter']);
             if(isset($filterData['filter_str'])){
-                $data = $items->where($filterData['filter_data'])
-                    ->whereRaw($filterData['filter_str'])
-                    ->orderByRaw($order_str)
-                    ->paginate($pagenum)
-                    ->setPath($url)->toArray();
+                if(isset($filterData['filter_data'])){
+                    $data = $items->where($filterData['filter_data'])
+                        ->whereRaw($filterData['filter_str'])
+                        ->orderByRaw($order_str)
+                        ->paginate($pagenum)
+                        ->setPath($url)->toArray();
+                }else{
+                    $data = $items->whereRaw($filterData['filter_str'])
+                        ->orderByRaw($order_str)
+                        ->paginate($pagenum)
+                        ->setPath($url)->toArray();
+                }
             }else{
-                $data = $items->where($filterData['filter_data'])
-                    ->orderByRaw($order_str)
-                    ->paginate($pagenum)
-                    ->setPath($url)->toArray();
+                if(isset($filterData['filter_data'])){
+                    $data = $items->where($filterData['filter_data'])
+                        ->orderByRaw($order_str)
+                        ->paginate($pagenum)
+                        ->setPath($url)->toArray();
+                }else{
+                    $data = $items->orderByRaw($order_str)
+                        ->paginate($pagenum)
+                        ->setPath($url)->toArray();
+                }
             }
 
         }else{
@@ -446,7 +461,7 @@ class Func
         if($res){
             return false;
         }else{
-            $arr  = array('15811347310','13466678840', '17600119390', '15313111209');
+            $arr  = array('15811347310','13466678840', '17600119390', '15313111209','15110102661');
             $i =0;
             foreach ($arr as $val){
                 $params = array();

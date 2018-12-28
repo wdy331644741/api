@@ -1270,6 +1270,27 @@ class SendAward
      */
     static function addAwardByActivity($userId, $activityId,$triggerData = array()) {
         $activity = Activity::where('id', $activityId)->with('awards')->first();
+        //判断原生之罪的实名获奖上限600
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_real_name_limit'){
+            $status = self::originalSinLimit('original_sin_real_name_limit');
+            if($status === false){
+                return [];
+            }
+        }
+        //判断原生之罪的首投获奖上限288
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'original_sin_investment_limit'){
+            $status = self::originalSinLimit('original_sin_investment_limit');
+            if($status === false){
+                return [];
+            }
+        }
+
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'channel_hstvbkshy'){
+            $status = self::originalEveryNumLimit('channel_hstvbkshy');
+            if($status === false){
+                return [];
+            }
+        }
         $awards = $activity['awards'];
         $res = [];
         if($activity['award_rule'] == 1) {
@@ -1369,6 +1390,45 @@ class SendAward
         }
         $num = Attributes::incrementByDay($userId,'invite_send_award_limit2',1);
         $limit = Config::get("activity.invite_send_award_limit2");
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+    /**
+     * 原生之罪发奖限制
+     * @param $userID
+     *
+     */
+    static function originalSinLimit($limitName){
+        if(empty($limitName)){
+            return false;
+        }
+        $num = GlobalAttributes::incrementByDay($limitName,1);
+        $limit = Config::get("activity.".$limitName);
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 每日数量限制
+     * @param $userID
+     *
+     */
+    static function originalEveryNumLimit($limitName){
+        if(empty($limitName)){
+            return false;
+        }
+        $attr = GlobalAttributes::getItem($limitName . '_limit');
+        if (!$attr) {
+            return false;
+        }
+        $limit = $attr->number;
+        $num = GlobalAttributes::incrementByDay($limitName,1);
         //不发奖
         if($num > $limit){
             return false;
@@ -2093,11 +2153,7 @@ class SendAward
         $info['mail_status'] = 0;
         if(!empty($info['message'])){
             //发送短信
-            if (in_array($info['alias_name'], ['channel_cibn'])) {
-                $return['message'] = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
-            } else {
-                $return['message'] = SendMessage::Message($info['user_id'],$info['message'],$message);
-            }
+            $return['message'] = self::messageNodeName($info, $message);
             //发送成功
             if($return['message'] == true){
                 $info['message_status'] = 2;
@@ -2340,5 +2396,27 @@ class SendAward
             return true;
         }
         return true;
+    }
+
+    /**
+     * 根据活动别名判断短信的node_name
+     * @param $info
+     * @param $message
+     * @return bool
+     */
+    public static function messageNodeName($info, $message)
+    {
+        if (in_array($info['alias_name'], ['channel_cibn'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'cibn_carnival',['password'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['channel_hstvbkshy'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'huashu_tv_jianianhua',['card'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['original_sin_real_name_limit'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'original_sin_iqiyi',['password'=>$message['code']]);
+        } else if (in_array($info['alias_name'], ['original_sin_investment_limit'])) {
+            $return = SendMessage::MessageByNode($info['user_id'],'original_sin_fifty_jd',['password'=>$message['code']]);
+        } else {
+            $return = SendMessage::Message($info['user_id'],$info['message'],$message);
+        }
+        return $return;
     }
 }

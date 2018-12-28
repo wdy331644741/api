@@ -1329,4 +1329,73 @@ class ActivityJsonRpc extends JsonRpc {
             'message' => '失败',
         ];
     }
+    /**
+     * 原生之罪渠道活动分享获得体验金
+     *
+     * @JsonRpcMethod
+     */
+    public function originalSinShare(){
+        global $userId;
+        if($userId <= 0) {
+            return [
+                'code' => -1,
+                'message' => '失败',
+            ];
+        }
+        //锁住用户的属性
+        DB::beginTransaction();
+        $key = "original_sin_share";
+        $where = ['user_id' => $userId, 'key' => $key];
+        $isExist = UserAttribute::where($where)->first();
+        if(isset($isExist['id']) && $isExist['id'] > 0){
+            //锁表
+            UserAttribute::where($where)->lockForUpdate()->first();
+        }else{
+            UserAttribute::insertGetId($where);
+            UserAttribute::where($where)->lockForUpdate()->first();
+        }
+        //发奖
+        $res = SendAward::ActiveSendAward($userId,$key);
+        if(isset($res[0]['award_id']) && $res[0]['award_id'] > 0){
+            UserAttribute::where($where)->increment('number', 1);
+            DB::commit();
+            return [
+                'code' => 0,
+                'message' => '成功',
+            ];
+        }
+        DB::rollBack();
+        return [
+            'code' => -1,
+            'message' => '失败',
+        ];
+    }
+    /**
+     * 原生之罪渠道活动获奖记录
+     *
+     * @JsonRpcMethod
+     */
+    public function originalSinAwardList(){
+        $res = [];
+        $alias = ["original_sin_real_name_limit","original_sin_investment_limit"];
+        $activityId = Activity::whereIn('alias_name',$alias)->select("id")->get()->toArray();
+
+        $data = SendRewardLog::whereIn("activity_id",$activityId)->where("status",1)->select("user_id","remark")->take(30)->orderBy("id","desc")->get()->toArray();
+        if(!empty($data)){
+            foreach($data as $item){
+                if(!empty($item['remark'])){
+                    $remak = json_decode($item['remark'],1);
+                    $awardName = isset($remak['award_name']) ? $remak['award_name'] : "";
+                    $userInfo = Func::getUserBasicInfo($item['user_id']);
+                    $display_name = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
+                    $res[] = "恭喜".$display_name."用户获得".$awardName;
+                }
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        ];
+    }
 }
