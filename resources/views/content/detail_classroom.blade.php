@@ -40,6 +40,7 @@
             </div>
 
             <div class='medil_detail'>
+                <div style="text-align: right;color: #999;margin-top: -25px;padding-bottom: 15px " >发布时间：{!! date('Y-m-d',strtotime($display_at)) !!}</div>
                 {!! $content !!}
             </div>
         </div>
