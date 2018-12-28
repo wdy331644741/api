@@ -50,7 +50,7 @@ class ContentController extends Controller
             $data = Notice::select('id','title','content','release_at')->where(['id'=>$id])->first();
             return view('content.detail_'.$type,$data);
         }
-        $data = Content::select('id','cover','title','content','release_at','description','keywords')->where(['id'=>$id])->first();
+        $data = Content::select('id','cover','title','content','display_at','release_at','description','keywords')->where(['id'=>$id])->first();
         return view('content.detail_'.$type,$data);
     }
 
