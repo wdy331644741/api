@@ -74,7 +74,6 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($num > $data['stock']){
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
-
         //如果花费大于于拥有的总积分
         if(($jifen * $num) > $integralTotal) {
             throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
