@@ -74,7 +74,6 @@ class IntegralMallJsonRpc extends JsonRpc {
         if($num > $data['stock']){
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
-
         //如果花费大于于拥有的总积分
         if(($jifen * $num) > $integralTotal) {
             throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
@@ -117,7 +116,8 @@ class IntegralMallJsonRpc extends JsonRpc {
         //发送消息&存储到日志
         if (isset($result['result']) && $result['result']) {//成功
             if($isReal){//实物奖品不发奖，减库存
-                InPrize::where($where)->decrement('stock');
+                $restStock = $data['stock'] - $num;
+                InPrize::where($where)->update(['stock'=>$restStock]);
                 $insert['is_real'] = 1;
                 $insert['status'] = 1;
             }else{
