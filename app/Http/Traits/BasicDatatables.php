@@ -61,6 +61,58 @@ trait BasicDatatables{
         return $this->outputJson(0, $res->getData());
     }
 
+    //积分商场列表
+    public function getInDtList(Request $request)
+    {
+        $items = $this->model->select($this->fileds)->orderByRaw('id + sort DESC');
+        // 只显示删除
+        if ($request->has('onlyTrashed')) {
+            $items->onlyTrashed()->orderBy('id', 'desc');
+        }
+        // 定制化搜索
+        if ($request->has('customSearch')) {
+            $customSearch = $request->get('customSearch');
+            foreach ($customSearch as $item){
+                switch ($item['pattern']) {
+                    case 'like':
+                        $items->where($item['name'], 'like', "%{$item['value']}%");
+                        break;
+                    case 'equal':
+                    case '=':
+                        $items->where($item['name'], '=', $item['value']);
+                        break;
+                    case '<=':
+                        $items->where($item['name'], '<=', $item['value']);
+                        break;
+                    case '>=':
+                        $items->where($item['name'], '>=', $item['value']);
+                        break;
+                    case '!=':
+                        $items->where($item['name'], '!=', $item['value']);
+                        break;
+                    case '<':
+                        $items->where($item['name'], '<', $item['value']);
+                        break;
+                    case '>':
+                        $items->where($item['name'], '>', $item['value']);
+                        break;
+                    default :
+                        break;
+                }
+            }
+        }
+        // 关联
+        if ($request->has('withs')) {
+            $withs = $request->get('withs');
+            foreach ($withs as $key => $with) {
+                $items->with($with);
+            }
+        }
+        /* */
+        $res = Datatables::of($items)->make();
+        return $this->outputJson(0, $res->getData());
+    }
+
     //查询列表
     public function getSearchList(Request $request)
     {

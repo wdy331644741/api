@@ -61,6 +61,8 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('mark', 'MarkController');
     // 积分商城
     Route::controller('integral', 'IntegralMallController');
+    Route::controller('prize', 'InPrizeController');
+    Route::controller('exchange', 'InExchangeLogController');
     // 1元夺宝
     Route::controller('one', 'OneYuanController');
     // 红包分享
@@ -117,4 +119,6 @@ Route::get('content/{type?}/{page?}','ContentController@getList');
 Route::get('thread/img/{id?}','bbs\ThreadController@getImgList');
 //上传文件
 Route::get('content/export-gxfc-execl/{tid?}/{date?}','ContentController@getExportGxfcExecl');
+//下载文件
+Route::get('exchange/download/{filename}','InExchangeLogController@getDownload');
 
