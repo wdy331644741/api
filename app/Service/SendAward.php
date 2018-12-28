@@ -1284,6 +1284,13 @@ class SendAward
                 return [];
             }
         }
+
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'channel_hstvbkshy'){
+            $status = self::originalEveryNumLimit('channel_hstvbkshy');
+            if($status === false){
+                return [];
+            }
+        }
         $awards = $activity['awards'];
         $res = [];
         if($activity['award_rule'] == 1) {
@@ -1400,6 +1407,28 @@ class SendAward
         }
         $num = GlobalAttributes::incrementByDay($limitName,1);
         $limit = Config::get("activity.".$limitName);
+        //不发奖
+        if($num > $limit){
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 每日数量限制
+     * @param $userID
+     *
+     */
+    static function originalEveryNumLimit($limitName){
+        if(empty($limitName)){
+            return false;
+        }
+        $attr = GlobalAttributes::getItem($limitName . '_limit');
+        if (!$attr) {
+            return false;
+        }
+        $limit = $attr->number;
+        $num = GlobalAttributes::incrementByDay($limitName,1);
         //不发奖
         if($num > $limit){
             return false;

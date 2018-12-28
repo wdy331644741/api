@@ -162,6 +162,17 @@ class BannerJsonRpc extends JsonRpc {
             $rData['from'] = $res['from'];
             $rData['to'] = $res['to'];
             break;
+        case "share_img":
+            $data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url',"short_desc", 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')
+                ->where($where)
+                ->where(function ($query) {
+                    $query->whereNull('start')->orWhereRaw('start < now()');
+                })
+                ->where(function ($query) {
+                    $query->whereNull('end')->orWhereRaw('end > now()');
+                })
+                ->orderByRaw('sort DESC')->get()->toArray();
+            break;
 		// 默认
 		default:
 			$data = BANNER::select('id', 'name', 'type', 'img_path', 'url as img_url', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
@@ -366,7 +377,7 @@ class BannerJsonRpc extends JsonRpc {
 			'enable' => 1,
 		];
 		$newdate = date('Y-m-d H:i:s');
-		$data = AppStartpage::select('id', 'img1', 'img2', 'img3', 'img4', 'img5', 'target_url', 'release_at', 'online_time', 'offline_time')
+		$data = AppStartpage::select('id', 'img1', 'img2', 'img3', 'img4', 'img5', 'img6','img7','target_url', 'release_at', 'online_time', 'offline_time')
 			->where($filter)
 			->where('online_time', '<=', $newdate)
 			->where('offline_time', '>=', $newdate)
