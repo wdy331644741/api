@@ -455,13 +455,12 @@ class AwardCommonController extends Controller{
                 }else{
                     return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
                 }
-                $data['file'] = isset($isExist['file']) ? $isExist['file'].";".$file : $file;
+                $data['file'] = $file;
                 if(!file_exists($file)){
                     return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
                 }
                 Coupon::where('id',$award_id)->update(array('import_status'=>1));
                 $this->dispatch(new FileImport($award_id,$file));
-                return array('code' => 200, 'insert_id' => $award_id);
             }
             //修改时间
             $data['updated_at'] = date("Y-m-d H:i:s");
