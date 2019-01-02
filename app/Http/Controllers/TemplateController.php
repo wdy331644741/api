@@ -163,7 +163,7 @@ class TemplateController extends Controller
             Paginator::currentPageResolver(function () use ($page) {
                 return $page;
             });
-            $data = Content::select('id','cover','title','content','release_at','updated_at','description','keywords')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
+            $data = Content::select('id','cover','title','content','display_at','release_at','updated_at','description','keywords')->where($where)->orderByRaw('id + sort DESC')->orderBy('id','desc')->paginate($pageNum);
             $res = view('static.list_study', array('data'=>$data))->render();
             Storage::disk('static')->put("study/list/{$page}.html", $res);
             foreach($data as $media){

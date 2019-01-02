@@ -437,6 +437,31 @@ class AwardCommonController extends Controller{
             $params['award_type'] = $award_type;
             $limit = 1;
             $isExist = $this->_getAwardList($params,$limit);
+            //如果修改有excel就递增优惠券code
+            //优惠券码文件上传
+            $path = base_path().'/storage/coupon/';
+            if ($request->hasFile('file')) {
+                //验证文件上传中是否出错
+                if ($request->file('file')->isValid()){
+                    $mimeTye = $request->file('file')->getClientOriginalExtension();
+                    if($mimeTye == 'xlsx' || $mimeTye == 'xls'){
+                        $fileName = date('YmdHis').mt_rand(1000,9999).'.'.$mimeTye;
+                        //保存文件到路径
+                        $request->file('file')->move($path,$fileName);
+                        $file = $path.$fileName;
+                    }else{
+                        return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件格式错误');
+                    }
+                }else{
+                    return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
+                }
+                $data['file'] = $file;
+                if(!file_exists($file)){
+                    return array('code'=>404,'params'=>'file','error_msg'=>'优惠券文件错误');
+                }
+                Coupon::where('id',$award_id)->update(array('import_status'=>1));
+                $this->dispatch(new FileImport($award_id,$file));
+            }
             //修改时间
             $data['updated_at'] = date("Y-m-d H:i:s");
             if($isExist){

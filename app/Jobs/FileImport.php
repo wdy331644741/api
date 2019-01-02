@@ -86,6 +86,11 @@ class FileImport extends Job implements ShouldQueue
                 //添加到数据库
                 $insert['coupon_id'] = intval($this->insertID);
                 $insert['code'] = $conn;
+                //判断是否添加过
+                $isExist = CouponCode::where($insert)->get()->count();
+                if($isExist){
+                    continue;
+                }
                 CouponCode::insertGetId($insert);
 //                }
             }
