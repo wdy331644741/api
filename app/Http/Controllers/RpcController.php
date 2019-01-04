@@ -25,6 +25,7 @@ use App\Http\JsonRpcs\RedEnvelopesJsonRpc;
 use App\Http\JsonRpcs\RobRateCouponJsonRpc;
 use App\Http\JsonRpcs\ScratchJsonRpc;
 use App\Http\JsonRpcs\SignInSystemJsonRpc;
+use App\Http\JsonRpcs\WeeksGuessJsonrpc;
 use App\Models\AppUpdateConfig;
 use App\Models\Cms\Opinion;
 use App\Models\PoBaiYi;
@@ -161,6 +162,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DoubleTwelveJsonrpc());
         $jsonRpcServer->addService(new ChannelCibnJsonrpc());//cibn渠道活动
         $jsonRpcServer->addService(new DoubleEggLottJsonRpc());//双旦 砸单抽奖
+        $jsonRpcServer->addService(new WeeksGuessJsonrpc());//周末竞猜
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');

@@ -90,6 +90,9 @@ Route::group(['middleware' => 'admin'], function(){
     // 曲棍球正式场活动
     Route::controller('hockey','HockeyController');
 
+    // 周末竞猜活动
+    Route::controller('weeksguess','WeeksGuessController');
+
 });
 
 // 对外接口
