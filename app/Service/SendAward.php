@@ -199,6 +199,44 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 周末竞猜 start **/
+            case 'weeksguess_investment':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag'])
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && $triggerData['tag'] == 'investment' && $triggerData['novice_exclusive'] == 0 //非新手标
+                    && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
+                ){
+                    //年化达到1000元 获得一次
+                    $investmentNum = 0;
+                        if($triggerData['scatter_type'] == 2){ //月标
+                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/12/1000);
+                        }else if($triggerData['scatter_type'] == 1){
+                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/1000);
+                        }
+                    Attributes::increment($triggerData['user_id'] ,'weeksguess_drew_user' ,$investmentNum);
+                }
+                break;
+            case 'weeksguess_real_name':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag'])
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && $triggerData['tag'] == 'real_name'
+                    && ( empty($activityInfo['start_at']) || $triggerData['time'] >= $activityInfo['start_at'] )
+                ){
+                    $fromUser = Func::getUserBasicInfo($triggerData['user_id']);
+                    if (
+                            ( empty($activityInfo['start_at']) || $fromUser['create_time'] >= $activityInfo['start_at'] )
+                            && $fromUser['from_user_id']
+                    ) {
+                        $investmentNum = 1;
+                        $key = Config::get('weeksguess.drew_user_key');
+                        Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
+                        Attributes::increment($fromUser['from_user_id'] ,$key ,$investmentNum);
+                    }
+                }
+                break;
+            /** 周末竞猜 end **/
             /** 双旦 砸蛋抽奖 start **/
             case 'double_egg_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
