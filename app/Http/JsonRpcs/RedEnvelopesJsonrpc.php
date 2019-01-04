@@ -74,6 +74,14 @@ class RedEnvelopesJsonRpc extends JsonRpc {
             $data = SendAward::ActiveSendAward($userId,$params->key);
             if(isset($data[0]['status'])){
                 $redPackList = json_decode($res->text,1);
+                if(isset($redPackList[$params->key]['status']) && $redPackList[$params->key]['status'] == 1){
+                    DB::rollBack();
+                    return [
+                        'code' => -1,
+                        'message' => 'fail',
+                        'data' => '已领取'
+                    ];
+                }
                 $redPackList[$params->key]['status'] = 1;
                 $updatestatus = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->update(['text'=>json_encode($redPackList)]);
             }
