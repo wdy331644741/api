@@ -109,15 +109,34 @@ class RedEnvelopesJsonRpc extends JsonRpc {
             //根据别名获取活动id
             $activityId = Activity::whereIn('alias_name',$alias)->select("id")->get()->toArray();
             //根据活动id获取发奖记录
-            $data = SendRewardLog::whereIn("activity_id",$activityId)->where("status",1)->select("user_id","remark")->take(30)->orderBy("id","desc")->get()->toArray();
-            if(!empty($data)){
-                foreach($data as $item){
+            $data = [];
+            if(!empty($activityId)){
+                foreach($activityId as $acId){
+                    $data[] = SendRewardLog::where("activity_id",$acId)->where("status",1)->select("id","user_id","remark")->take(30)->orderBy("id","desc")->get()->toArray();
+                }
+            }
+            $newSort = [];
+            if(!empty($data)){//格式数据
+                foreach($data as $value){
+                    foreach($value as $v){
+                        $newSort[$v['id']] = $v;
+                    }
+                }
+            }
+            krsort($newSort);//倒序排列
+            if(!empty($newSort)){
+                $i = 1;
+                foreach($newSort as $item){
+                    if($i > 30){
+                        continue;
+                    }
                     if(!empty($item['remark'])){
                         $remak = json_decode($item['remark'],1);
                         $awardName = isset($remak['award_name']) ? $remak['award_name'] : "";
                         $userInfo = Func::getUserBasicInfo($item['user_id']);
                         $display_name = isset($userInfo['username']) ? substr_replace(trim($userInfo['username']), '******', 3, 6) : '';
                         $res[] = $display_name."已成功获取".$awardName;
+                        $i++;
                     }
                 }
             }
