@@ -198,5 +198,47 @@ class WeeksGuessJsonrpc extends JsonRpc
             'data' => $data,
         ];
     }
+
+    /**
+     * 竞猜记录
+     *
+     * @JsonRpcMethod
+     */
+    public function weeksGuessRecord() {
+        $data = HdWeeksGuessConfig::select(['id','race_time', 'home_team', 'guest_team', 'result', 'money'])->where(['status'=>1, 'draw_status'=>1])->first();
+        if ($data) {
+            $total = HdWeeksGuess::where(['period'=>$data->id, 'type'=>$data->result])->sum('number');
+            $data['prize'] = bcdiv($data->money, $total, 2);
+            unset($data['id']);
+            unset($data['money']);
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
+
+    /**
+     * 往日赛况
+     *
+     * @JsonRpcMethod
+     */
+    public function weeksGuessHistoryRecord() {
+        $data = HdWeeksGuessConfig::select(['id','race_time', 'home_team', 'guest_team', 'result', 'money'])->where(['status'=>0, 'draw_status'=>1])->get()->toArray();
+        if ($data) {
+            foreach ($data as $k=>$v) {
+                $total = HdWeeksGuess::where(['period'=>$v['id'], 'type'=>$v['result']])->sum('number');
+                $data[$k]['prize'] = bcdiv($v['money'], $total, 2);
+                unset($data[$k]['id']);
+                unset($data[$k]['money']);
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
 }
 
