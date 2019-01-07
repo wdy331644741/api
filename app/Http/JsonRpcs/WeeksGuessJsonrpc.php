@@ -158,6 +158,7 @@ class WeeksGuessJsonrpc extends JsonRpc
         $userAttr = Attributes::getItemLock($userId, $config['drew_user_key']);
         $user_num = isset($userAttr->number) ? $userAttr->number : 0;
         if ( $number > $user_num) {
+            DB::rollBack();
             throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
         }
         $insert = HdWeeksGuess::create([
@@ -167,7 +168,7 @@ class WeeksGuessJsonrpc extends JsonRpc
            'number'=>$number,
         ]);
         if (!$insert) {
-//            DB::rollBack();
+            DB::rollBack();
             throw new OmgException(OmgException::DATA_ERROR);
         }
         $userAttr->number -= $number;
