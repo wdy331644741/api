@@ -33,6 +33,7 @@ class WeeksGuessController extends Controller
             'end_time' => 'required|date',
             'race_time' => 'required|min:1|max:255',
             'money' => 'required|numeric',
+            'activity_rule' => 'required|min:1',
         ];
         //验证必填项
         if ($id > 0) {
@@ -59,6 +60,7 @@ class WeeksGuessController extends Controller
         $data['start_time'] = trim($request->start_time);
         $data['end_time'] = trim($request->end_time);
         $data['money'] = trim($request->money);
+        $data['activity_rule'] = trim($request->activity_rule);
 //        $data['updated_at'] = date("Y-m-d H:i:s");
         //添加
         if($id <= 0){
