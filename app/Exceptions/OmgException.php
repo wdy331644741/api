@@ -99,6 +99,11 @@ class OmgException extends BasicException
 
     const TODAY_ACTIVITY_IS_END = 4328;
 
+    const TODAY_IS_RECEIVE = 4329;
+    const TODAY_REDPACK_IS_NULL = 4330;
+    const NOT_RECEIVE_MY_REDPACK = 4331;
+    const TODAY_OLDUSER_RECEIVE_IS_MORE = 4332;
+
     protected static $errorArray = array(
         //接口调用错误
         self::API_MIS_PARAMS => "缺少必要参数",
@@ -179,6 +184,13 @@ class OmgException extends BasicException
         self::HELP_ERROR=>"一天只能为一名好友助力一次呦～",
         self::EXCHANGE_ERROR=>"已经兑换",
         self::TODAY_ACTIVITY_IS_END => "今天活动已结束",
+
+        self::TODAY_IS_RECEIVE => "今日已领取",
+        self::TODAY_REDPACK_IS_NULL => "今日已领完",
+        self::NOT_RECEIVE_MY_REDPACK => "不能领取自己的红包",
+        self::TODAY_OLDUSER_RECEIVE_IS_MORE => "领取老用户红包过多",
+
+
     );
 
     public function __construct($code, $data = array())
