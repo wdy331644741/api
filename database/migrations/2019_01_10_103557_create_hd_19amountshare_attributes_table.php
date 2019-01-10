@@ -18,6 +18,8 @@ class CreateHd19amountshareAttributesTable extends Migration
             $table->string('key')->index();
             $table->integer('datenum')->index();
             $table->decimal('amount')->index();
+            $table->integer('number')->default(0);
+            $table->index(['user_id','key','datenum']);
             $table->timestamps();
         });
     }

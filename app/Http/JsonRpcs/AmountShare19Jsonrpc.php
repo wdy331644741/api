@@ -3,6 +3,8 @@
 namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Models\GlobalAttribute;
+use App\Models\Hd19AmountShare;
+use App\Models\Hd19AmountShareAttribute;
 use App\Models\UserAttribute;
 use App\Service\ActivityService;
 use App\Service\AmountShareBasic;
@@ -38,12 +40,12 @@ class AmountShare19JsonRpc extends JsonRpc
      */
     public function receiveAmount($params){
         global $userId;
-        $userId = 2250796;
-        if (empty($userId)) {
+        $data['user_id'] = 2250796;
+        if (empty($data['user_id'])) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $fromUserId = $params->from_user_id;
-        if(empty($fromUserId)){
+        $data['share_user_id'] = $params->from_user_id;
+        if(empty($data['share_user_id'])){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $actInfo = ActivityService::GetActivityedInfoByAlias('19amountshare_send');
@@ -54,10 +56,29 @@ class AmountShare19JsonRpc extends JsonRpc
         $actGlobalConf = GlobalAttribute::where('key','19amountshare')->value('text');
         $confData = json_decode($actGlobalConf,true);
         $userInfo = Func::getUserBasicInfo($userId,true);
-        $userType = self::getuserType($userInfo,$actInfo);
+        $inviteUserInfo = Func::getUserBasicInfo($data['user_id'],true);
+        $data['user_status'] = self::getuserType($userInfo,$actInfo->toArray());
+
         //用户类型
-        $sendAmount = self::getSendAmount($userId,$userType,$confData);
-echo 1111;exit;
+        $data['amount'] = self::getSendAmount($userId,$data['share_user_id'],$data['user_status'],$confData);
+        //根据用户类型发奖存储状态
+        if($data['user_status'] == 3){
+            $uuid = SendAward::create_guid();
+
+            $data['share_phone'] = $inviteUserInfo['phone'];
+            $data['phone'] = $userInfo['phone'];
+            $data['date'] = date('Ymd');
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $id = Hd19AmountShare::insertGetId($data);
+            $res1 = Func::incrementAvailable($userId, $id, $uuid, $data['amount'], '19amountshare_newyear_cash');
+            $res2 = Func::incrementAvailable($data['share_user_id'], $id, $uuid, $data['amount'], '19amountshare_newyear_cash');
+            $remark = ['user'=>0,'invite'=>0];
+            // 成功
+            if(isset($res1['result'])) {
+
+            }
+        }
+
 
     }
 
@@ -75,18 +96,20 @@ echo 1111;exit;
     //获取用户类型
     private function getuserType($userInfo,$actInfo){
         $userType = null;
-        if($userInfo['create_time'] < $actInfo['start_at'] && $userInfo['open_status'] == 1){
-            $userType = 2;
-        }elseif ($userInfo['create_time'] < $actInfo['start_at'] && $userInfo['open_status'] == 1){
-            $userType = 3;
-        }elseif($userInfo['create_time'] >= $actInfo['start_at']){
-            $userType = 1;
+        if($userInfo['open_status'] == 2){
+            return 3;
+        }else{
+            if($userInfo['create_time'] < $actInfo['start_at']){
+                $userType = 2;
+            }elseif($userInfo['create_time'] >= $actInfo['start_at']){
+                $userType = 1;
+            }
         }
         return $userType;
     }
 
     //获取用户发奖金额
-    private function getSendAmount($userId,$userType,$confData){
+    private function getSendAmount($userId,$fromUserId,$userType,$confData){
         //单日实际总成本
         $allcost_byday = GlobalAttribute::where('key','allcost_byday')->whereRaw(" to_days(created_at) = to_days(now())")->value('string');
         if(!$allcost_byday){
@@ -95,25 +118,49 @@ echo 1111;exit;
         if ($allcost_byday && $allcost_byday >= $confData['allcost_byday']){
             throw new OmgException(OmgException::TODAY_REDPACK_IS_NULL);
         }
-        $userCost_byday = UserAttribute::where(['key'=>'usercost_byday','user_id'=>$userId])->whereRaw(" to_days(created_at) = to_days(now())")->value('string');
+        //当日被邀请人成本
+        $userCost_byday = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd')])->value('amount');
         if(!$userCost_byday){
             $userCost_byday = 0;
         }
         if ($userCost_byday && $userCost_byday >= $confData['usercost_byday']){
             throw new OmgException(OmgException::TODAY_REDPACK_IS_NULL);
         }
+        //当日邀请人实际成本
+        $inviteUserCost_byday = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$fromUserId,'datenum'=>date('Ymd')])->value('amount');
+        if(!$inviteUserCost_byday){
+            $inviteUserCost_byday = 0;
+        }
+        if ($inviteUserCost_byday && $inviteUserCost_byday >= $confData['usercost_byday']){
+            throw new OmgException(OmgException::TODAY_REDPACK_IS_NULL);
+        }
 
         //获取当天用户最高还能领取的红包金额
         $userRestToday = null;
+        $isUserOrall = 0;
+        //当日总成本剩余
         $restCost = bcsub($confData['allcost_byday'],$allcost_byday,2);
+        //当日用户成本剩余
         $user_restCost = bcsub($confData['usercost_byday'],$userCost_byday,2);
-        if(bccomp($restCost,$user_restCost,2) == 1){
-            $userRestToday = $user_restCost;
-        }elseif (bccomp($restCost,$user_restCost,2) == -1){
-            $userRestToday = $restCost;
+        //邀请人当日剩余成本
+        $inviteUserCost = bcsub($confData['usercost_byday'],$inviteUserCost_byday,2);
+
+        if(bccomp($user_restCost,$inviteUserCost,2) >= 0){
+            $userRestToday = $inviteUserCost;
         }else{
+            $userRestToday = $user_restCost;
+        }
+
+        if(bccomp($userRestToday,$restCost,2) >= 0){
+            $isUserOrall = 1;
             $userRestToday = $restCost;
         }
+
+        //如果当日总成本最小，最大发送剩余总成本/2的红包
+        if($isUserOrall){
+            $userRestToday = bcdiv($userRestToday, 2, 2);
+        }
+
         $sendAmount = 0;
         switch ($userType){
             case 1:
@@ -138,6 +185,11 @@ echo 1111;exit;
                 }
                 break;
             case 2:
+                //注册为绑卡
+                $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>2])->count();
+                if($receiveNum >= 1){
+                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE);
+                }
                 if(bccomp($userRestToday,$confData['olduser_unbind_reward']['max'],2) >= 0){
                     $sendAmount = mt_rand($confData['olduser_unbind_reward']['min'] * 100,$confData['olduser_unbind_reward']['max'] * 100);
                 }elseif(bccomp($userRestToday,$confData['olduser_unbind_reward']['max'],2) == -1 && bccomp($userRestToday,$confData['olduser_unbind_reward']['min'],2) >= 0){
@@ -147,6 +199,12 @@ echo 1111;exit;
                 }
                 break;
             case 3:
+                //老用户
+                $inviteNum = Hd19AmountShareAttribute::where(['key'=>'olduser_num_max','user_id'=>$userId])->value('number');
+                if($inviteNum )
+                if($inviteNum >= 20){
+                    throw new OmgException(OmgException::TODAY_REDPACK_IS_NULL);
+                }
                 if(bccomp($userRestToday,$confData['olduser_reward']['max'],2) >= 0){
                     $sendAmount = mt_rand($confData['olduser_reward']['min'] * 100,$confData['olduser_reward']['max'] * 100);
                 }elseif(bccomp($userRestToday,$confData['olduser_reward']['max'],2) == -1 && bccomp($userRestToday,$confData['olduser_reward']['min'],2) >= 0){
@@ -160,243 +218,33 @@ echo 1111;exit;
         return bcdiv($sendAmount, 100, 2);
     }
 
-    /**
-     *  个人的生成的现金红包列表
-     *
-     * @JsonRpcMethod
-     */
-    public function amountShareList($params)
-    {
-        global $userId;
 
-        $num = isset($params->num) ? $params->num : 0;
-        if (empty($userId)) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $result = ['my_top' => 0, 'my_total_money' => 0, 'level' => 1, 'my_list' => [], 'my_expire_list' => []];
+    private function incrementAmountByDay($userId, $key, $num=0) {
+        $res = Hd19AmountShareAttribute::where(['user_id' => $userId, 'key' => $key,'datenum'=>date('Ymd')])->first();
 
-        //获取vip等级
-        $userInfo = Func::getUserBasicInfo($userId,true);
-        $result['level'] = isset($userInfo['level']) && $userInfo['level'] > 1 ? $userInfo['level'] : 1;
-        //我的投资生成的红包列表
-        $where['user_id'] = $userId;
-        if($num == 0){
-            $list = HdAmountShareMasterNew::where($where)->where('award_status',0)->whereRaw('now() < end_time')->orderByRaw("id desc")->get()->toArray();
-            $expireList = HdAmountShareMasterNew::where($where)->where(
-                function($query) {
-                    $query->whereRaw('award_status = 1')->orWhereRaw('now() > end_time');
-                }
-            )->orderByRaw("id desc")->get()->toArray();
-        }else{
-            $list = HdAmountShareMasterNew::where($where)->where('award_status',0)->whereRaw('now() < end_time')->take($num)->orderByRaw("id desc")->get()->toArray();
-            $expireList = HdAmountShareMasterNew::where($where)->where(
-                function($query) {
-                    $query->whereRaw('award_status = 1')->orWhereRaw('now() > end_time');
-                }
-            )->orderByRaw("id desc")->take($num)->get()->toArray();
-        }
-        //正常列表
-        foreach($list as $item){
-            if(isset($item['id']) && !empty($item['id'])){
-                //我的新用户领取金额
-                $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
-                $result['my_list'][] = $item;
-            }
-        }
-        //失效列表
-        foreach($expireList as $item){
-            if(isset($item['id']) && !empty($item['id'])){
-                //我的新用户领取金额
-                $item['new_user_money'] = AmountShareBasic::getNewUserMoney($item);
-                $result['my_expire_list'][] = $item;
-            }
-        }
-        //这一周总排名
-        $thisWeek = date("W");
-        $totalList = HdAmountShareMasterNew::where('week',$thisWeek)->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))->groupBy("user_id")->orderByRaw("money desc,max_id asc")->get()->toArray();
-
-        if (!empty($list)) {
-            //自己的分享领取完金额
-            $myTotalMoneyList = HdAmountShareMasterNew::where('week',$thisWeek)->where('user_id',$userId)->get()->toArray();
-            if(!empty($myTotalMoneyList)){
-                //自己的排名
-                $top = 0;
-                foreach($totalList as $key => $item){
-                    if(isset($item['user_id']) && !empty($item['user_id']) && $item['user_id'] == $userId){
-                        $top = $key + 1;
-                    }
-                }
-                foreach($myTotalMoneyList as $item){
-                    if(isset($item['total_money']) && !empty($item['total_money'])){
-                        //自己的分享领取完金额
-                        $result['my_total_money'] += $item['total_money'];
-                    }
-                }
-                //我的排名
-                $result['my_top'] = $top;
-            }
+        if(!$res) {
+            $res = UserAttribute::create(['user_id' => $userId, 'key' => $key,  'amount' => $num,'detenum'=>date('Ymd')]);
+            return $res->amount;
         }
 
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $result
-        );
+        $res->increment('amount', $num);
+        return $res->amount;
     }
 
-    /**
-     *  现金红包排行列表
-     *
-     * @JsonRpcMethod
-     */
-    public function amountShareTopList($params)
-    {
-        $num = isset($params->num) && !empty($params->num) ? $params->num : 3;
-        $thisWeek = date("W");
-        $list = HdAmountShareMasterNew::where('week',$thisWeek)
-            ->select(DB::raw('sum(total_money) as money,user_id,max(id) as max_id'))
-            ->groupBy("user_id")
-            ->orderByRaw("money desc,max_id asc")
-            ->take($num)->get()->toArray();
-        foreach ($list as &$item) {
-            if (!empty($item)) {
-                $phone = Func::getUserPhone($item['user_id']);
-                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-            }
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $list
-        );
+    private function incrementNumberByDay($userId, $key, $num=1) {
+        $res = Hd19AmountShareAttribute::where(['user_id' => $userId, 'key' => $key,'datenum'=>date('Ymd')])->first();
 
+        if(!$res) {
+            $res = UserAttribute::create(['user_id' => $userId, 'key' => $key,  'number' => $num,'detenum'=>date('Ymd')]);
+            return $res->number;
+        }
+
+        $res->increment('number', $num);
+        return $res->number;
     }
 
-    /**
-     *  发送余额
-     *
-     * @JsonRpcMethod
-     */
-    public function amountShareSendAward($params)
-    {
-        global $userId;
 
-        $result = ['isLogin' => 1, 'amount' => 0, 'isGot' => 0, 'mall' => [], 'recentList' => []];
-        if (empty($userId)) {
-            $result['isLogin'] = 0;
-        }
-        $identify = $params->identify;
-        if (empty($identify)) {
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-        $activityInfo = ActivityService::GetActivityInfoByAlias('amount_share');
-        if(empty($activityInfo)){
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-        //显示条数
-        $num = isset($params->num) ? $params->num : 5;
 
-        // 商品是否存在
-        $date = date("Y-m-d H:i:s");
-        DB::beginTransaction();
-        $mallInfo = HdAmountShareMasterNew::where(['identify' => $identify])
-            ->where("start_time", "<=", $date)
-            ->where("end_time", ">=", $date)
-            ->lockForUpdate()->first();
-        if (!$mallInfo) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-
-        //获取用户的微信昵称和手机号
-        $mallInfo['user_name'] = '';
-        $mallInfo['phone'] = '';
-        $mallInfo['user_photo'] = '';
-        if (!empty($mallInfo['user_id'])) {
-            //获取微信昵称
-            $nickName = Func::wechatInfoByUserID($mallInfo['user_id']);
-            $mallInfo['user_name'] = isset($nickName['nick_name']) && !empty($nickName['nick_name']) ? $nickName['nick_name'] : "";
-            $mallInfo['user_photo'] = isset($nickName['headimgurl']) && !empty($nickName['headimgurl']) ? $nickName['headimgurl'] : "";
-            //获取用户手机号
-            $phone = Func::getUserPhone($mallInfo['user_id'], true);
-            $mallInfo['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-        }
-        $result['mall'] = $mallInfo;
-        // 计算剩余金额和剩余数量
-        $remain = $mallInfo->total_money - $mallInfo->use_money;
-        $remain = $remain > 0 ? $remain : 0;
-        $remainNum = $mallInfo->total_num - $mallInfo->receive_num;
-        $remainNum = $remainNum > 0 ? $remainNum : 0;
-
-        //用户领取过
-        if ($result['isLogin']) {
-            $join = HdAmountShareMasterNewInfo::where(['user_id' => $userId, 'main_id' => $mallInfo->id])->first();
-            if ($join) {
-                $result['isGot'] = 1;
-                $result['amount'] = $join['money'];
-
-                //获奖记录
-                $recentList = HdAmountShareMasterNewInfo::where('main_id', $mallInfo['id'])->where('is_new',"!=", 2)->orderBy('id', 'desc')->take($num)->get();
-                $result['recentList'] = self::_formatData($recentList);
-
-                return array(
-                    'code' => 0,
-                    'message' => 'success',
-                    'data' => $result
-                );
-            }
-            //奖品已抢光
-            if ($remainNum == 0) {
-                $result['isGot'] = 2;
-            }
-        }
-        // 发送现金
-        if ($result['isLogin'] && !$result['isGot']) {
-            $money = AmountShareBasic::getRandomMoney($remain * 100, $remainNum, $mallInfo->min * 100, $mallInfo->max);
-            $money = $money / 100;
-            $mallInfo->increment('use_money', $money);
-            $mallInfo->increment('receive_num', 1);
-
-            //给用户加金额
-            $uuid = Func::create_guid();
-            $res = Func::incrementAvailable($userId, $mallInfo->id, $uuid, $money, 'share');
-            if (!isset($res['result']['code'])) {
-                throw new OmgException(OmgException::API_FAILED);
-            }
-            HdAmountShareMasterNewInfo::insertGetId([
-                'user_id' => $userId,
-                'main_id' => $mallInfo->id,
-                'uuid' => $uuid,
-                'is_new' => AmountShareBasic::isActivityNewUser($userId,$mallInfo->user_id,$activityInfo),
-                'money' => $money,
-                'remark' => json_encode($res, JSON_UNESCAPED_UNICODE),
-                'status' => 1,
-                'created_at' => date("Y-m-d H:i:s"),
-                'updated_at' => date("Y-m-d H:i:s")
-            ]);
-            $result['amount'] = $money;
-            //判断首次领取就更新当前周数
-            if(isset($mallInfo->week) && $mallInfo->week == 0){
-                HdAmountShareMasterNew::where('id',$mallInfo->id)->update(['week'=>date("W")]);
-                HdAmountShareMasterNew::where('id',$mallInfo->id)->update(['day'=>date("Y-m-d")]);
-            }
-            //判断分享的是否领取完
-            if(!empty($mallInfo->id) && $mallInfo->total_num  === $mallInfo->receive_num){
-                //修改为领取完状态
-                HdAmountShareMasterNew::where('id',$mallInfo->id)->update(['status'=>1]);
-            }
-        }
-        DB::commit();
-
-        //获奖记录
-        $recentList = HdAmountShareMasterNewInfo::where('main_id', $mallInfo['id'])->where('is_new',"!=", 2)->orderBy('id', 'desc')->take($num)->get();
-        $result['recentList'] = self::_formatData($recentList);
-
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $result
-        );
-    }
     /**
      *  现金红包被分完后给自己发送余额
      *

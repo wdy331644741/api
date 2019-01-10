@@ -20,9 +20,9 @@ class Create19amountsharesTable extends Migration
             $table->string('phone');
             $table->decimal('amount')->default(0)->index();
             $table->tinyInteger('user_status')->default(3)->index()->comment('1新手未注册,2注册未绑卡,3老用户');
-            $table->tinyInteger('receive_status')->index()->comment('1未领取（在途奖励）,2已领取,3领取失败');
+            $table->tinyInteger('receive_status')->nullable()->default(NULL)->index()->comment('1未领取（在途奖励）,2已领取,3领取失败');
             $table->integer('date')->index();
-            $table->string('remark')->comment('返回结果记录');
+            $table->string('remark')->nullable()->default(NULL)->comment('返回结果记录');
             $table->timestamps();
         });
     }

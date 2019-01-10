@@ -103,6 +103,7 @@ class OmgException extends BasicException
     const TODAY_REDPACK_IS_NULL = 4330;
     const NOT_RECEIVE_MY_REDPACK = 4331;
     const TODAY_OLDUSER_RECEIVE_IS_MORE = 4332;
+    const UNBIND_USER_ONLY_RECEIVE_ONE = 4333;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -189,6 +190,7 @@ class OmgException extends BasicException
         self::TODAY_REDPACK_IS_NULL => "今日已领完",
         self::NOT_RECEIVE_MY_REDPACK => "不能领取自己的红包",
         self::TODAY_OLDUSER_RECEIVE_IS_MORE => "领取老用户红包过多",
+        self::UNBIND_USER_ONLY_RECEIVE_ONE => "未绑卡用户活动期间只能领取一次",
 
 
     );
