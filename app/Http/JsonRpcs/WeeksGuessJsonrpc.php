@@ -42,6 +42,7 @@ class WeeksGuessJsonrpc extends JsonRpc
                 'home_score' => 0,
                 'guest_score' => 0,
                 'recent' => '',
+                'activity_rule' => '',
                 'home_win' => 0,//主胜
                 'home_eq' => 0,//主平
                 'home_lose' => 0,//主负
@@ -88,6 +89,7 @@ class WeeksGuessJsonrpc extends JsonRpc
             $result['home_score'] = $weeksConfig->home_score;
             $result['guest_score'] = $weeksConfig->guest_score;
             $result['recent'] = $weeksConfig->recent;
+            $result['activity_rule'] = $weeksConfig->activity_rule;
             //支持率
             $guess_count = HdWeeksGuess::select('type', DB::raw('SUM(number) as total'))->where(['period'=>$weeksConfig->id])->groupBy('type')->get()->toArray();
             if ($guess_count) {
