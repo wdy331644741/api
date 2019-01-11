@@ -91,8 +91,7 @@ class ContentController extends Controller
             'type_id' => 'required|alpha_num|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'platform' =>'in:0,1,2',
-            'display_at' => 'required'
+            'platform' =>'in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
@@ -103,7 +102,7 @@ class ContentController extends Controller
             'title'=>$request->title,
             'content'=>$request->content,
             'platform'=>$platform,
-            'display_at'=>$request->display_at,
+            'display_at'=>isset($request->display_at) ? $request->display_at : null,
         );
 
         if(isset($request->cover)){
