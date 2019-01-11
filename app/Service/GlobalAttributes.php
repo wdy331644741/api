@@ -181,6 +181,36 @@ class GlobalAttributes
         return json_decode($res->text, true);
     }
 
+
+    /**
+     * 根据$key设置string
+     */
+    static public function setStringByDay($key,$string=null) {
+        $res = GlobalAttribute::where(array('key' => $key))->whereRaw(" to_days(created_at) = to_days(now())")->first();
+        if(!$res) {
+            $res = GlobalAttribute::create(['key' => $key,  'string' => $string]);
+            return $res->string;
+        }
+
+        $res->string = bcadd($res->string,$string,2);
+        $res->save();
+        return $res->string;
+    }
+
+    /**
+     * 根据$key设置number
+     */
+    static public function setNumberByDay($key,$num=1) {
+        $res = GlobalAttribute::where(array('key' => $key))->whereRaw(" to_days(created_at) = to_days(now())")->first();
+        if(!$res) {
+            $res = GlobalAttribute::create(['key' => $key,  'number' => $num]);
+            return $res->number;
+        }
+
+        $res->increment('number', $num);
+        return $res->number;
+    }
+
     /**
      * 根据$key获取number,每日number清空
      *
