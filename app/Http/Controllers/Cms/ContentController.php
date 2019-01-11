@@ -42,8 +42,7 @@ class ContentController extends Controller
             'type_id' => 'required|integer|exists:cms_content_types,id',
             'title' => 'required',
             'content' => 'required',
-            'platform' =>'in:0,1,2',
-            'display_at' => 'required'
+            'platform' =>'in:0,1,2'
         ]);
         if($validator->fails()){
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
