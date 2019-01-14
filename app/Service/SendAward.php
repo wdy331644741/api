@@ -18,6 +18,7 @@ use App\Models\Award6;
 use App\Models\AwardCash;
 use App\Models\Coupon;
 use App\Models\CouponCode;
+use App\Models\Hd19AmountShare;
 use App\Models\HdWorldCupExtra;
 use Lib\JsonRpcClient;
 use App\Models\SendRewardLog;
@@ -199,6 +200,18 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 19 新春现金红包 start **/
+            case '19amountshare_send':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'
+                 && isset($triggerData['user_id']) && !empty($triggerData['user_id']) )
+                {
+                    $res = Hd19AmountShare::where(['user_id'=>$triggerData['user_id'],'receive_status'=>1])->get()->toArray();
+
+                }
+                break;
+            /** 19 新春现金红包 end **/
+
             /** 双旦 砸蛋抽奖 start **/
             case 'double_egg_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) 

@@ -91,7 +91,7 @@ class AmountShare19JsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         //判断用户当日是否领取过
-        $receiveNum = Hd19AmountShare::where('data',date('Ymd'))->count();
+        $receiveNum = Hd19AmountShare::where('date',date('Ymd'))->count();
         if($receiveNum >=1){
             throw new OmgException(OmgException::TODAY_IS_RECEIVE);
         }
@@ -110,6 +110,7 @@ class AmountShare19JsonRpc extends JsonRpc
         $data['share_phone'] = $inviteUserInfo['phone'];
         $data['phone'] = $userInfo['phone'];
         $data['date'] = date('Ymd');
+        $data['receive_status'] = 1;
         $data['created_at'] = date('Y-m-d H:i:s');
         $id = Hd19AmountShare::insertGetId($data);
         //根据用户类型发奖存储状态
@@ -201,7 +202,7 @@ class AmountShare19JsonRpc extends JsonRpc
         //锁记录操作
         $num = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd')])->count();
         if($num < 1){
-            Hd19AmountShareAttribute::insertGetId(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd'),'amount'=>0,'ceeated_at'=>date('Y-m-d H:i:s')]);
+            Hd19AmountShareAttribute::insertGetId(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd'),'amount'=>0,'created_at'=>date('Y-m-d H:i:s')]);
         }
         //当日被邀请人成本
         $userCost_byday_obj = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd')])->lockForUpdate()->first();
