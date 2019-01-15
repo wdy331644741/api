@@ -10,6 +10,7 @@ use App\Service\GlobalAttributes;
 use App\Service\SendMessage;
 use App\Service\SendAward;
 use App\Service\ActivityService;
+use Illuminate\Pagination\Paginator;
 use DB, Request;
 
 class AmountShare19JsonRpc extends JsonRpc
@@ -40,6 +41,154 @@ class AmountShare19JsonRpc extends JsonRpc
     }
 
     /**
+     *  用户领取总额列表
+     *
+     * @JsonRpcMethod
+     */
+    public function receiveAllList($params){
+        $num = isset($params->num) ? $params->num : 10;
+        $res = Hd19AmountShare::selectRaw('id,phone,user_id,SUM(amount) as sum')->groupBy('user_id')->orderBy('sum','DESC')->take($num)->get()->toArray();
+        if(empty($res)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => null
+            );
+        }
+        $responseData = [];
+        foreach ($res as $val){
+            $displayPhone = substr_replace($val['phone'],"******",3,6);
+            $val['phone'] = $displayPhone;
+            $responseData[] = $val;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $responseData
+        );
+    }
+
+    /**
+     *  领取邀请人红包列表
+     *
+     * @JsonRpcMethod
+     */
+    public function receiveInviteUserList($params){
+        $shareCode = $params->shareCode;
+        if(empty($shareCode)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $num = isset($params->num) ? $params->num : 4;
+        $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
+        $arr = explode('-',$string);
+        $fromUserId = isset($arr['0']) ? $arr[0] : null;
+        if(date('Ymd') != $arr['1'] || $fromUserId == null){
+            throw new OmgException(OmgException::LINK_IS_INVALID);
+        }
+
+        $res  = Hd19AmountShare::select('id','phone','amount')->where('share_user_id',$fromUserId)->orderby('amount','DESC')->take($num)->get()->toArray();
+        if(empty($res)){
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => null
+            );
+        }
+        $responseData = [];
+        foreach ($res as $val){
+            $displayPhone = substr_replace($val['phone'],"******",3,6);
+            $val['phone'] = $displayPhone;
+            $responseData[] = $val;
+        }
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $responseData
+        );
+
+
+    }
+
+    /**
+     *  领取红包中心
+     *
+     * @JsonRpcMethod
+     */
+    public function receiveCenter($params){
+        global $userId;
+        if (empty($userId)) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        if(!isset($params->type)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $type = $params->type;
+        $page = isset($params->page) ? $params->page : 1;
+        $isHadAll = Hd19AmountShare::where(['share_user_id'=>$userId])->where('receive_status','>=',2)->sum('amount');
+        $isReceiveAll = Hd19AmountShare::where(['user_id'=>$userId,'receive_status'=>1])->sum('amount');
+        $isOnwayAll = Hd19AmountShare::where(['share_user_id'=>$userId,'receive_status'=>1])->sum('amount');
+        $data['isReceiveAll'] = $isReceiveAll + $isHadAll;
+        $data['isNotReceive'] = $isOnwayAll;
+        $userinfo = Func::getUserBasicInfo($userId,true);
+        $data['display_name'] = $userinfo['display_name'];
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+        switch ($type){
+            case 'isHad':
+                $isHad = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId])->where('receive_status','>=',2)->orderBy('id','desc')->paginate(10)->toArray();
+                if(empty($isHad['data'])){
+                    $data['data'] = $isHad;
+                }
+                $responseData = [];
+                foreach ($isHad['data'] as $val){
+                    $displayPhone = substr_replace($val['phone'],"******",3,6);
+                    $val['phone'] = $displayPhone;
+                    $responseData[] = $val;
+                }
+                $isHad['data'] = $responseData;
+                $data['data'] = $isHad;
+                break;
+            case 'isOnway':
+                $isOnway = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId,'receive_status'=>1])->orderBy('id','desc')->paginate(10)->toArray();
+                if(empty($isOnway['data'])){
+                    $data['data'] = $isOnway;
+                }
+                $responseData = [];
+                foreach ($isOnway['data'] as $val){
+                    $displayPhone = substr_replace($val['phone'],"******",3,6);
+                    $val['phone'] = $displayPhone;
+                    $responseData[] = $val;
+                }
+                $isOnway['data'] = $responseData;
+                $data['data'] = $isOnway;
+                break;
+            case 'isReceive':
+                $isReceive = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId,'receive_status'=>1])->orderBy('id','desc')->paginate(10)->toArray();
+                if(empty($isReceive['data'])){
+                    $data['data'] = $isReceive;
+                }
+                $responseData = [];
+                foreach ($isReceive['data'] as $val){
+                    $displayPhone = substr_replace($val['phone'],"******",3,6);
+                    $val['phone'] = $displayPhone;
+                    $responseData[] = $val;
+                }
+                $isReceive['data'] = $responseData;
+                $data['data'] = $isReceive;
+                break;
+        }
+
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data
+        );
+
+    }
+
+    /**
      *  领取分享现金
      *
      * @JsonRpcMethod
@@ -47,6 +196,9 @@ class AmountShare19JsonRpc extends JsonRpc
     public function receiveAmount($params){
         global $userId;
         $shareCode = $params->shareCode;
+        if(empty($shareCode)){
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
         $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
 
         $arr = explode('-',$string);
@@ -55,10 +207,6 @@ class AmountShare19JsonRpc extends JsonRpc
             throw new OmgException(OmgException::LINK_IS_INVALID);
         }
         $data['share_user_id'] = $fromUserId;
-        if(empty($data['share_user_id'])){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-
         //活动过期
         $actInfo = ActivityService::GetActivityedInfoByAlias('19amountshare_send');
         if($actInfo['end_at'] < date('Y-m-d H:i:s')){
@@ -86,9 +234,13 @@ class AmountShare19JsonRpc extends JsonRpc
             throw new OmgException(OmgException::TODAY_REDPACK_IS_NULL);
         }
 
-        $data['user_id'] = 2250796;//$userId
+        $data['user_id'] = $userId;
         if (empty($data['user_id'])) {
             throw new OmgException(OmgException::NO_LOGIN);
+        }
+        if($data['user_id'] == $data['share_user_id']){
+            throw new OmgException(OmgException::NOT_RECEIVE_MY_REDPACK);
+
         }
         //判断用户当日是否领取过
         $receiveNum = Hd19AmountShare::where('date',date('Ymd'))->count();
@@ -129,7 +281,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 if(isset($res2['result'])) {
                     $remark['invite_user'] = 1;
                     $MailTpl = "恭喜您在“新年全民红包”活动中获得红包奖励".$data['amount']."元，现金已发放至您网利宝账户余额。";
-                    SendMessage::Mail($data['user_id'],$MailTpl);
+                    SendMessage::Mail($data['share_user_id'],$MailTpl);
                 }
 
                 if($remark['user'] == 0 && $remark['invite_user'] == 0){
@@ -151,19 +303,10 @@ class AmountShare19JsonRpc extends JsonRpc
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => "发送成功"
+            'data' => $data['amount']
         );
     }
 
-
-    /**
-     *  领取红包记录
-     *
-     * @JsonRpcMethod
-     */
-    public function receiveLog($params){
-
-    }
 
 
     //获取用户类型

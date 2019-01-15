@@ -207,6 +207,28 @@ class SendAward
                  && isset($triggerData['user_id']) && !empty($triggerData['user_id']) )
                 {
                     $res = Hd19AmountShare::where(['user_id'=>$triggerData['user_id'],'receive_status'=>1])->get()->toArray();
+                    foreach ($res as $val){
+                        $uuid = SendAward::create_guid();
+                        $res1 = Func::incrementAvailable($val['user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
+                        $res2 = Func::incrementAvailable($val['share_user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
+                        $remark = ['user'=>0,'invite_user'=>0];
+                        // 成功
+                        if(isset($res1['result'])) {
+                            $remark['user'] = 1;
+                            $MailTpl = "恭喜您绑卡成功并获得“新年全民红包”活动红包奖励".$val['amount']."元，现金发放至您网利宝账户余额。";
+                            SendMessage::Mail($val['user_id'],$MailTpl);
+                        }
+                        if(isset($res2['result'])) {
+                            $remark['invite_user'] = 1;
+                            $MailTpl = "恭喜您在“新年全民红包”活动中获得红包奖励".$val['amount']."元，现金已发放至您网利宝账户余额。";
+                            SendMessage::Mail($val['share_user_id'],$MailTpl);
+                        }
+                        if($remark['user'] == 0 && $remark['invite_user'] == 0){
+                            Hd19AmountShare::where('id',$val['id'])->update(['receive_status'=>3,'remark'=>json_encode($remark)]);
+                        }else{
+                            Hd19AmountShare::where('id',$val['id'])->update(['receive_status'=>2,'remark'=>json_encode($remark)]);
+                        }
+                    }
 
                 }
                 break;
