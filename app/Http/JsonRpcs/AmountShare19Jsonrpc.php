@@ -243,7 +243,7 @@ class AmountShare19JsonRpc extends JsonRpc
 
         }
         //判断用户当日是否领取过
-        $receiveNum = Hd19AmountShare::where('date',date('Ymd'))->count();
+        $receiveNum = Hd19AmountShare::where(['user_id'=>$data['user_id'],'date',date('Ymd')])->count();
         if($receiveNum >=1){
             throw new OmgException(OmgException::TODAY_IS_RECEIVE);
         }
