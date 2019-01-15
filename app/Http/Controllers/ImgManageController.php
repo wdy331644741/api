@@ -51,7 +51,7 @@ class ImgManageController extends Controller
     public function postBannerAdd(Request $request){
         $validator = Validator::make($request->all(), [
             'position' => 'required|min:1|max:255',
-            'img_path' => 'required|min:1|max:255',
+            'img_path' => 'sometimes|required|min:1|max:255',//当表单中存在img_path时再判断
             'activity_time' => 'date'
         ]);
         if($validator->fails()){
@@ -171,7 +171,7 @@ class ImgManageController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer|min:1',
             'position' => 'required|min:2|max:255',
-            'img_path' => 'required|min:2|max:255',
+            'img_path' => 'sometimes|required|min:2|max:255',//当表单中存在img_path时再判断
             'activity_time' => 'date',
         ]);
         if($validator->fails()){
