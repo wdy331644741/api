@@ -58,8 +58,8 @@ class YeardAwardJsonRpc extends JsonRpc
         //登陆状态
         if($userId > 0){
             $res['is_login'] = true;
-            //查取用户数据
-            $_userInfo = call_user_func(array("App\Service\Func","getUserBasicInfo"),$userId);
+            //查取用户数据 不取缓存里面的数据
+            $_userInfo = call_user_func_array(array("App\Service\Func","getUserBasicInfo"),[$userId,true]);
             $res['score'] = $_userInfo['score'];
             $res['is_play'] = $this->isPlayy($userId);
             
@@ -106,8 +106,13 @@ class YeardAwardJsonRpc extends JsonRpc
                 'data' => '次数不足',
             ];
         }
-        $_userInfo = call_user_func(array("App\Service\Func","getUserBasicInfo"),$userId);
+        $_userInfo = call_user_func_array(array("App\Service\Func","getUserBasicInfo"),[$userId,true]);
         
+        //积分是否够
+        
+        if($_userInfo['score'] <= 0){
+            throw new OmgException(OmgException::INTEGRAL_LACK_FAIL);
+        }
         //根据会员等级  （活动别名发奖）
         $actAlias = call_user_func(function($c){
             if($c < 2){
@@ -135,7 +140,10 @@ class YeardAwardJsonRpc extends JsonRpc
             Attributes::increment($userId , self::$attr_key ,1);//记录次数+1
             //抽奖完成，减去1积分
             $sub = Func::subIntegralByUser($userId,1,'年终奖翻倍抽奖减积分');
-
+            if($sub['result']['code'] != 0){//扣积分 没有成功
+                DB::rollBack();//回滚 
+                throw new OmgException(OmgException::VALID_AMOUNT_ERROR);
+            }
         }else{
             DB::rollBack();//回滚 
             throw new OmgException(OmgException::API_FAILED);
