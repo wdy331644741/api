@@ -477,6 +477,39 @@ class BannerJsonRpc extends JsonRpc {
             'data' => [],
         );
     }
+    /**
+     * 大额提现通道
+     *
+     * @JsonRpcMethod
+     */
+    public function largeRechargeChannel(){
+        $where['position'] = "large_recharge";
+        $where['can_use'] = 1;
+        $data = BANNER::select('id', 'name', 'img_path', 'url', 'start', 'end', 'sort', 'can_use', 'created_at', 'updated_at', 'release_time')->where($where)
+            ->where(function ($query) {
+                $query->whereNull('start')->orWhereRaw('start < now()');
+            })
+            ->where(function ($query) {
+                $query->whereNull('end')->orWhereRaw('end > now()');
+            })
+            ->orderByRaw('sort DESC')->first();
+        if(isset($data->id)){
+            return array(
+				'code'    => 0,
+				'message' => 'success',
+				'data'    => [
+					'title' => $data['name'],
+					'url'   => $data['url'],
+                ],
+            );
+        }
+        return array(
+            'code' => -1,
+            'message' => 'success',
+            'data' => [],
+        );
+    }
+
 	//特定渠道添加图片
 	private function addChannelImg($data, $position) {
 		global $userId;
