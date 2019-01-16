@@ -106,7 +106,7 @@ class WeeksGuessJsonrpc extends JsonRpc
 
         }
         if ($result['login'] && $result['available']) {
-            $result['number'] = Attributes::getNumber($userId, $config['drew_user_key']);
+            $result['number'] = Attributes::getNumber($userId, $config['drew_user_key'], 0);
             //
             $user_guess = HdWeeksGuess::select('type', DB::raw('SUM(number) as total'))->where(['user_id'=>$userId, 'period'=>$weeksConfig->id])->groupBy('type')->get()->toArray();
             if ($user_guess) {
