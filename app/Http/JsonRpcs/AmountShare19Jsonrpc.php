@@ -117,6 +117,7 @@ class AmountShare19JsonRpc extends JsonRpc
      */
     public function receiveCenter($params){
         global $userId;
+        $userId = 110;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -395,7 +396,10 @@ class AmountShare19JsonRpc extends JsonRpc
                 }
                 //实际的新用户名次
                 $realTopNum = GlobalAttribute::where('key','top_num')->whereRaw(" to_days(created_at) = to_days(now())")->value('number');
-                if($realTopNum <= $confData['top_num']){
+                if(empty($realTopNum)){
+                    $realTopNum = 0;
+                }
+                if($realTopNum < $confData['top_num']){
                     if(bccomp($userRestToday,$confData['top_onehundred']['max'],2) >= 0){
                         $sendAmount = mt_rand($confData['top_onehundred']['min'] * 100,$confData['top_onehundred']['max'] * 100);
                     }elseif(bccomp($userRestToday,$confData['top_onehundred']['max'],2) == -1 && bccomp($userRestToday,$confData['top_onehundred']['min'],2) >= 0){
@@ -406,7 +410,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 }else{
                     if(bccomp($userRestToday,$confData['newuser_reward']['max'],2) >= 0){
                         $sendAmount = mt_rand($confData['newuser_reward']['min'] * 100,$confData['newuser_reward']['max'] * 100);
-                    }elseif(bccomp($userRestToday,$confData['newuser_reward']['max'],2) == -1 && bccomp($userRestToday,$confData['top_onehundred']['min'],2) >= 0){
+                    }elseif(bccomp($userRestToday,$confData['newuser_reward']['max'],2) == -1 && bccomp($userRestToday,$confData['newuser_reward']['min'],2) >= 0){
                         $sendAmount = mt_rand($confData['newuser_reward']['min'] * 100,$userRestToday * 100);
                     }else{
                         $sendAmount = $userRestToday *  100;
@@ -430,10 +434,10 @@ class AmountShare19JsonRpc extends JsonRpc
                 break;
             case 3:
                 //老用户
-                $inviteNum = Hd19AmountShareAttribute::where(['key'=>'olduser_num_max','user_id'=>$fromUserId])->value('number');
+                $inviteNum = Hd19AmountShareAttribute::where(['key'=>'olduser_num_max','user_id'=>$fromUserId,'datenum'=>date('Ymd')])->value('number');
                 if($inviteNum >= $confData['olduser_num_max']){
                     DB::rollback();
-                    throw new OmgException(OmgException::TODAY_REDPACK_IS_NULL);
+                    throw new OmgException(OmgException::TODAY_OLDUSER_RECEIVE_IS_MORE);
                 }
                 if(bccomp($userRestToday,$confData['olduser_reward']['max'],2) >= 0){
                     $sendAmount = mt_rand($confData['olduser_reward']['min'] * 100,$confData['olduser_reward']['max'] * 100);
