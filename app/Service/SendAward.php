@@ -217,7 +217,7 @@ class SendAward
                         }else if($triggerData['scatter_type'] == 1){
                             $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/1000);
                         }
-                        Attributes::increment($triggerData['user_id'] ,'weeksguess_drew_user' ,$investmentNum);
+                        WeeksGuessService::addGuessNumber($triggerData['user_id'] ,'weeksguess_drew_user' ,$investmentNum);
                     }
                 }
                 break;
@@ -238,8 +238,8 @@ class SendAward
                         ) {
                             $investmentNum = 1;
                             $key = Config::get('weeksguess.drew_user_key');
-                            Attributes::increment($triggerData['user_id'], $key, $investmentNum);
-                            Attributes::increment($fromUser['from_user_id'], $key, $investmentNum);
+                            WeeksGuessService::addGuessNumber($triggerData['user_id'], $key, $investmentNum);
+                            WeeksGuessService::addGuessNumber($fromUser['from_user_id'], $key, $investmentNum);
                         }
                     }
                 }
