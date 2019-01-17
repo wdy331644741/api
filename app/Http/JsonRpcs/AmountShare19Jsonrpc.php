@@ -32,7 +32,7 @@ class AmountShare19JsonRpc extends JsonRpc
         $baseUrl = env('APP_URL');
         $shareCode = urlencode(authcode($userId."-".date('Ymd'),'ENCODE',env('APP_KEY')));
         $userInfo = Func::getUserBasicInfo($userId,true);
-        $shareUrl = $baseUrl."?shareCode=".$shareCode."&inviteCode=".$userInfo['invite_code'];
+        $shareUrl = $baseUrl."/active/new_year/luck_draw.html?shareCode=".$shareCode."&inviteCode=".$userInfo['invite_code'];
         return array(
             'code' => 0,
             'message' => 'success',
