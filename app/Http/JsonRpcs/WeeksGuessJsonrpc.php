@@ -2,7 +2,6 @@
 
 namespace App\Http\JsonRpcs;
 
-use App\Exceptions\OmgException;
 use App\Models\HdWeeksGuess;
 use App\Models\HdWeeksGuessConfig;
 use App\Service\ActivityService;
@@ -10,6 +9,7 @@ use App\Service\Attributes;
 use App\Service\Func;
 use App\Service\GlobalAttributes;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Exceptions\OmgException as OmgException;
 
 use Config, Cache,DB;
 
@@ -106,7 +106,7 @@ class WeeksGuessJsonrpc extends JsonRpc
 
         }
         if ($result['login'] && $result['available']) {
-            $result['number'] = Attributes::getNumber($userId, $config['drew_user_key']);
+            $result['number'] = Attributes::getNumber($userId, $config['drew_user_key'], 0);
             //
             $user_guess = HdWeeksGuess::select('type', DB::raw('SUM(number) as total'))->where(['user_id'=>$userId, 'period'=>$weeksConfig->id])->groupBy('type')->get()->toArray();
             if ($user_guess) {
@@ -152,7 +152,15 @@ class WeeksGuessJsonrpc extends JsonRpc
         if( $type <= 0 || $type > 3 || $number <= 0){
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
-        $weeksConfig = HdWeeksGuessConfig::where('status', 1)->first();
+        $weeksConfig = HdWeeksGuessConfig::where(
+            function($query) {
+                $query->whereNull('start_time')->orWhereRaw('start_time < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_time')->orWhereRaw('end_time > now()');
+            }
+        )->where(['status'=>1, 'draw_status'=>0])->first();
         if (!$weeksConfig) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }

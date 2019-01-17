@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 use App\Http\Requests;
+use App\Jobs\WeeksGuessJob;
 use App\Models\HdWeeksGuessConfig;
 use Illuminate\Http\Request;
 use Validator;
 use Response;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 class WeeksGuessController extends Controller
 {
+    use DispatchesJobs;
     /**
      * 逢百活动配置列表
      */
@@ -96,9 +99,17 @@ class WeeksGuessController extends Controller
                 return $this->outputJson(-1,["error_msg"=>"上线状态只能为一个！"]);
             }
             $data->status = 1;
-        }else if($draw_status == 1) {
+        }else if($draw_status == 1) {//开奖
             if($data->status == 1){
-                $data->draw_status = 1;
+                $result = intval($data->result);
+                //未开奖状态才能开奖, 比赛结果不能为0
+                if ($data->draw_status == 0 && $result != 0) {
+                    $data->draw_status = 1;
+                    $this->dispatch(new WeeksGuessJob($id, $data->money, $result));
+                } else {
+                    return $this->outputJson(-1,["error_msg"=>"请设置比赛结果或已开奖"]);
+                }
+                //发站内信通知
             }else {
                 return $this->outputJson(-1,["error_msg"=>"下线状态不能开奖"]);
             }

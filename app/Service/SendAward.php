@@ -210,14 +210,18 @@ class SendAward
                     && $triggerData['tag'] == 'investment' && $triggerData['novice_exclusive'] == 0 //非新手标
                     && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
                 ){
-                    //年化达到1000元 获得一次
-                    $investmentNum = 0;
+                    //周六周日
+                    $w = date('w',strtotime($triggerData['buy_time']));
+                    if( $w == 6 || $w == 0 ){
+                        //年化达到1000元 获得一次
+                        $investmentNum = 0;
                         if($triggerData['scatter_type'] == 2){ //月标
                             $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/12/1000);
                         }else if($triggerData['scatter_type'] == 1){
                             $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/1000);
                         }
-                    Attributes::increment($triggerData['user_id'] ,'weeksguess_drew_user' ,$investmentNum);
+                        WeeksGuessService::addGuessNumber($triggerData['user_id'] ,'weeksguess_drew_user' ,$investmentNum);
+                    }
                 }
                 break;
             case 'weeksguess_real_name':
@@ -227,15 +231,19 @@ class SendAward
                     && $triggerData['tag'] == 'real_name'
                     && ( empty($activityInfo['start_at']) || $triggerData['time'] >= $activityInfo['start_at'] )
                 ){
-                    $fromUser = Func::getUserBasicInfo($triggerData['user_id']);
-                    if (
-                            ( empty($activityInfo['start_at']) || $fromUser['create_time'] >= $activityInfo['start_at'] )
+                    //周六周日
+                    $w = date('w',strtotime($triggerData['time']));
+                    if( $w == 6 || $w == 0 ) {
+                        $fromUser = Func::getUserBasicInfo($triggerData['user_id']);
+                        if (
+                            (empty($activityInfo['start_at']) || $fromUser['create_time'] >= $activityInfo['start_at'])
                             && $fromUser['from_user_id']
-                    ) {
-                        $investmentNum = 1;
-                        $key = Config::get('weeksguess.drew_user_key');
-                        Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
-                        Attributes::increment($fromUser['from_user_id'] ,$key ,$investmentNum);
+                        ) {
+                            $investmentNum = 1;
+                            $key = Config::get('weeksguess.drew_user_key');
+                            WeeksGuessService::addGuessNumber($triggerData['user_id'], $key, $investmentNum);
+                            WeeksGuessService::addGuessNumber($fromUser['from_user_id'], $key, $investmentNum);
+                        }
                     }
                 }
                 break;
