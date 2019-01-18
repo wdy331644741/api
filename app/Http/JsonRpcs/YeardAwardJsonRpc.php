@@ -132,7 +132,16 @@ class YeardAwardJsonRpc extends JsonRpc
         //事务开始
         DB::beginTransaction();
         // //forupdate
-        Attributes::getItemLock($userId ,self::$attr_key);
+        $lockData = Attributes::getItemLock($userId ,self::$attr_key);
+        if($lockData['number'] >= 2){
+            DB::rollBack();//回滚 
+            return [
+                'code' => -1,
+                'message' => 'failed',
+                'data' => '次数不足',
+            ];
+        }
+
         // 根据别名发活动奖品
         $res = SendAward::ActiveSendAward($userId ,$actAlias);
         //消耗用户次数
