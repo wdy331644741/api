@@ -108,6 +108,25 @@ class AmountShare19JsonRpc extends JsonRpc
         );
     }
 
+
+    /**
+     *  多少人领取了现金
+     *
+     * @JsonRpcMethod
+     */
+    public function receiveNum(){
+
+        $res  = Hd19AmountShare::select('id','phone','amount')->where('date',date('Ymd'))->count();
+        if(empty($res)){
+            $res = 0;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        );
+    }
+
     /**
      *  领取红包中心
      *
@@ -242,20 +261,25 @@ class AmountShare19JsonRpc extends JsonRpc
         }
         //判断用户当日是否领取过
         $receiveNum = Hd19AmountShare::where(['user_id'=>$data['user_id'],'date'=>date('Ymd')])->count();
+
         if($receiveNum >=1){
             throw new OmgException(OmgException::TODAY_IS_RECEIVE);
         }
 
-        $userInfo = Func::getUserBasicInfo($data['user_id'],true);
+        $userInfo = Func::getUserInfo($data['user_id'],true);
+
+         /*
+         未开户状态
+         if($userInfo['fm_active_status'] == 0){
+            throw new OmgException(OmgException::USER_IS_NOT_OPEN);
+        }*/
         $inviteUserInfo = Func::getUserBasicInfo($data['share_user_id'],true);
 
         //用户类型
         $data['user_status'] = self::getuserType($userInfo,$actInfo->toArray());
-
         DB::beginTransaction();
         //发送金额
         $data['amount'] = self::getSendAmount($data['user_id'],$data['share_user_id'],$data['user_status'],$confData,$allcost_byday,$inviteUserCost_byday);
-
         $uuid = SendAward::create_guid();
         $data['share_phone'] = $inviteUserInfo['phone'];
         $data['phone'] = $userInfo['phone'];
@@ -291,6 +315,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 self::updateAttribute($data['user_id'],$data['share_user_id'],$data['user_status'],$data['amount']);
                 break;
             case 2:
+
                 self::updateAttribute($data['user_id'],$data['share_user_id'],$data['user_status'],$data['amount']);
                 break;
             case 1:
@@ -301,7 +326,10 @@ class AmountShare19JsonRpc extends JsonRpc
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $data['amount']
+            'data' => [
+                'amount'=>$data['amount'],
+                'status'=>$userInfo['fm_active_status']
+            ]
         );
     }
 
@@ -386,10 +414,10 @@ class AmountShare19JsonRpc extends JsonRpc
         switch ($userType){
             case 1:
                 //当用户类型等于1，并且有一个奖品状态是在途中的奖励，则活动期间只能领取一次
-                $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>1,'receive_status'=>1])->count();
-                if($receiveNum >= 1){
+                $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>1,'receive_status'=>1])->first();
+                if($receiveNum){
                     DB::rollback();
-                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE);
+                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE,$receiveNum->amount);
                 }
                 //实际的新用户名次
                 $realTopNum = GlobalAttribute::where('key','top_num')->whereRaw(" to_days(created_at) = to_days(now())")->value('number');
@@ -415,11 +443,11 @@ class AmountShare19JsonRpc extends JsonRpc
                 }
                 break;
             case 2:
-                //注册为绑卡
-                $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>2])->count();
-                if($receiveNum >= 1){
+                //注册未绑卡
+                $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>2,'receive_status'=>1])->first();
+                if($receiveNum){
                     DB::rollback();
-                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE);
+                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE,$receiveNum->amount);
                 }
                 if(bccomp($userRestToday,$confData['olduser_unbind_reward']['max'],2) >= 0){
                     $sendAmount = mt_rand($confData['olduser_unbind_reward']['min'] * 100,$confData['olduser_unbind_reward']['max'] * 100);
@@ -453,7 +481,6 @@ class AmountShare19JsonRpc extends JsonRpc
     private function incrementAmountByDay($userId, $key, $num=0) {
         $res = Hd19AmountShareAttribute::where(['user_id' => $userId, 'key' => $key,'datenum'=>date('Ymd')])->first();
         if(!$res) {
-
             $obj = new Hd19AmountShareAttribute();
             $obj->user_id = $userId;
             $obj->key = $key;
