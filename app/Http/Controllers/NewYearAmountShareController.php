@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use Lib\JsonRpcClient;
 use App\Http\Requests;
 use App\Models\JsonRpc;
 use App\Models\Hd19AmountShare;
@@ -12,6 +12,13 @@ use Excel;
 
 class NewYearAmountShareController extends Controller
 {
+    public function getTest(){
+        $url = "http://api-omg.wanglibao.com/rpc";
+        $client = new JsonRpcClient($url);
+//        $res = $client->receiveAmount(array('shareCode' =>"111"));
+        print_r($client);exit;
+        return $this->outputJson(0,$res);
+    }
     /**
      *获取统计数据
      */
