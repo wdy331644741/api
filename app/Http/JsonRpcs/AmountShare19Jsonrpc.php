@@ -108,6 +108,25 @@ class AmountShare19JsonRpc extends JsonRpc
         );
     }
 
+
+    /**
+     *  多少人领取了现金
+     *
+     * @JsonRpcMethod
+     */
+    public function receiveNum(){
+
+        $res  = Hd19AmountShare::select('id','phone','amount')->where('datenum',date('Ymd'))->count();
+        if(empty($res)){
+            $res = 0;
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        );
+    }
+
     /**
      *  领取红包中心
      *
