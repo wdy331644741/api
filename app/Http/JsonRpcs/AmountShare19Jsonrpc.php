@@ -248,7 +248,6 @@ class AmountShare19JsonRpc extends JsonRpc
         }
         //判断用户当日是否领取过
         $receiveNum = Hd19AmountShare::where(['user_id'=>$data['user_id'],'date'=>date('Ymd')])->count();
-
         if($receiveNum >=1){
             throw new OmgException(OmgException::TODAY_IS_RECEIVE);
         }
@@ -369,6 +368,13 @@ class AmountShare19JsonRpc extends JsonRpc
         }
         //当日被邀请人成本
         $userCost_byday_obj = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd')])->lockForUpdate()->first();
+
+        //判断用户当日是否领取过
+        $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'date'=>date('Ymd')])->count();
+        if($receiveNum >=1){
+            DB::rollback();
+            throw new OmgException(OmgException::TODAY_IS_RECEIVE);
+        }
         $userCost_byday = isset($userCost_byday_obj->amount) ? $userCost_byday_obj->amount : 0;
         if(!$userCost_byday){
             $userCost_byday = 0;
