@@ -200,7 +200,8 @@ class WeeksGuessJsonrpc extends JsonRpc
         $data = HdWeeksGuess::select(['user_id', 'type', 'number', 'created_at'])->orderBy('id', 'desc')->limit(30)->get()->toArray();
         if ($data) {
             foreach ($data as $k=>$v) {
-                $data[$k]['phone'] = Func::getUserPhone($v['user_id']);
+                $phone = Func::getUserPhone($v['user_id']);
+                $data[$k]['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
         }
         return [
