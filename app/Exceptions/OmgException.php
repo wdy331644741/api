@@ -194,7 +194,6 @@ class OmgException extends BasicException
         self::UNBIND_USER_ONLY_RECEIVE_ONE => "未绑卡用户活动期间只能领取一次",
         self::LINK_IS_INVALID => "链接失效",
 
-
     );
 
     public function __construct($code, $data = array())
