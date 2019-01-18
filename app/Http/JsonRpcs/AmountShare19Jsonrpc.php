@@ -116,7 +116,7 @@ class AmountShare19JsonRpc extends JsonRpc
      */
     public function receiveNum(){
 
-        $res  = Hd19AmountShare::select('id','phone','amount')->where('datenum',date('Ymd'))->count();
+        $res  = Hd19AmountShare::select('id','phone','amount')->where('date',date('Ymd'))->count();
         if(empty($res)){
             $res = 0;
         }
