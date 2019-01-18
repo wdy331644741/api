@@ -82,7 +82,8 @@ class AmountShare19JsonRpc extends JsonRpc
         $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
         $arr = explode('-',$string);
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
-        if(date('Ymd') != $arr['1'] || $fromUserId == null){
+        $shareDate = isset($arr['1']) ? $arr[1] : null;
+        if(date('Ymd') != $shareDate || $fromUserId == null){
             throw new OmgException(OmgException::LINK_IS_INVALID);
         }
 
@@ -205,7 +206,8 @@ class AmountShare19JsonRpc extends JsonRpc
 
         $arr = explode('-',$string);
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
-        if(date('Ymd') != $arr['1'] || $fromUserId == null){
+        $shareDate = isset($arr['1']) ? $arr[1] : null;
+        if(date('Ymd') != $shareDate || $fromUserId == null){
             throw new OmgException(OmgException::LINK_IS_INVALID);
         }
         $data['share_user_id'] = $fromUserId;
