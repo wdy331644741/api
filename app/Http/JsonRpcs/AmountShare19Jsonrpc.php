@@ -100,32 +100,17 @@ class AmountShare19JsonRpc extends JsonRpc
             $val['phone'] = $displayPhone;
             $responseData[] = $val;
         }
-
+        $num  = Hd19AmountShare::select('id','phone','amount')->where('date',date('Ymd'))->count();
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => $responseData
+            'data' => [
+                'num'=>empty($num) ? 0 : $num,
+                'data'=>$responseData
+            ]
         );
     }
 
-
-    /**
-     *  多少人领取了现金
-     *
-     * @JsonRpcMethod
-     */
-    public function receiveNum(){
-
-        $res  = Hd19AmountShare::select('id','phone','amount')->where('date',date('Ymd'))->count();
-        if(empty($res)){
-            $res = 0;
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $res
-        );
-    }
 
     /**
      *  领取红包中心
@@ -266,20 +251,27 @@ class AmountShare19JsonRpc extends JsonRpc
             throw new OmgException(OmgException::TODAY_IS_RECEIVE);
         }
 
-        $userInfo = Func::getUserInfo($data['user_id'],true);
-
+        $userInfo = Func::getUserBasicInfo($data['user_id'],true);
          /*
          未开户状态
          if($userInfo['fm_active_status'] == 0){
             throw new OmgException(OmgException::USER_IS_NOT_OPEN);
         }*/
         $inviteUserInfo = Func::getUserBasicInfo($data['share_user_id'],true);
+        $status = 0;
+        if($userInfo['open_status'] == 0){
+            $status = 0;
+        }elseif ($userInfo['open_status'] > 0 && $userInfo['isset_trade_pwd'] == 1){
+            $status = 3;
+        }elseif ($userInfo['open_status'] > 0 && $userInfo['isset_trade_pwd'] == 0){
+            $status = 1;
+        }
 
         //用户类型
         $data['user_status'] = self::getuserType($userInfo,$actInfo->toArray());
         DB::beginTransaction();
         //发送金额
-        $data['amount'] = self::getSendAmount($data['user_id'],$data['share_user_id'],$data['user_status'],$confData,$allcost_byday,$inviteUserCost_byday);
+        $data['amount'] = self::getSendAmount($data['user_id'],$data['share_user_id'],$data['user_status'],$confData,$allcost_byday,$inviteUserCost_byday,$status);
         $uuid = SendAward::create_guid();
         $data['share_phone'] = $inviteUserInfo['phone'];
         $data['phone'] = $userInfo['phone'];
@@ -327,8 +319,8 @@ class AmountShare19JsonRpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => [
-                'amount'=>$data['amount'],
-                'status'=>$userInfo['fm_active_status']
+                'status'=>$status,
+                'amount'=>$data['amount']
             ]
         );
     }
@@ -367,7 +359,7 @@ class AmountShare19JsonRpc extends JsonRpc
     }
 
     //获取用户发奖金额
-    private function getSendAmount($userId,$fromUserId,$userType,$confData,$allcost_byday,$inviteUserCost_byday){
+    private function getSendAmount($userId,$fromUserId,$userType,$confData,$allcost_byday,$inviteUserCost_byday,$status){
         //锁记录操作
         $num = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd')])->count();
         if($num < 1){
@@ -417,7 +409,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>1,'receive_status'=>1])->first();
                 if($receiveNum){
                     DB::rollback();
-                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE,$receiveNum->amount);
+                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE,array('status'=>$status,'amount'=>$receiveNum->amount));
                 }
                 //实际的新用户名次
                 $realTopNum = GlobalAttribute::where('key','top_num')->whereRaw(" to_days(created_at) = to_days(now())")->value('number');
@@ -447,7 +439,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'user_status'=>2,'receive_status'=>1])->first();
                 if($receiveNum){
                     DB::rollback();
-                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE,$receiveNum->amount);
+                    throw new OmgException(OmgException::UNBIND_USER_ONLY_RECEIVE_ONE,array('status'=>$status,'amount'=>$receiveNum->amount));
                 }
                 if(bccomp($userRestToday,$confData['olduser_unbind_reward']['max'],2) >= 0){
                     $sendAmount = mt_rand($confData['olduser_unbind_reward']['min'] * 100,$confData['olduser_unbind_reward']['max'] * 100);

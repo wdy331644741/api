@@ -325,20 +325,6 @@ class Func
         return $info;
     }
 
-    static function getUserInfo($user_id,$cache=false){
-        if(Cache::has('UserInfo_Account_'.$user_id) && $cache == false){
-            return Cache::get('UserInfo_Account_'.$user_id);
-        }
-        $url = env('ACCOUNT_HTTP_URL');
-        $client = new JsonRpcClient($url);
-        $info = $client->profile(array("userId"=>$user_id));
-        $info = isset($info['result']['data']) && !empty($info['result']['data']) ? $info['result']['data'] : array();
-        if(!empty($info)){
-            Cache::put('UserInfo_Account_'.$user_id,$info,30);
-        }
-        return $info;
-    }
-
     static function globalUserBasicInfo($userId){
         global $userBasicInfo;
         if($userBasicInfo) {
