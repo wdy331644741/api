@@ -120,6 +120,7 @@ class AmountShare19JsonRpc extends JsonRpc
      */
     public function receiveCenter($params){
         global $userId;
+        $userId = 110;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -135,7 +136,7 @@ class AmountShare19JsonRpc extends JsonRpc
         $data['isNotReceive'] = $isOnwayAll;
         $data['isHadNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId])->where('receive_status','>=',2)->count();
         $data['isOnwayNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId,'receive_status'=>1])->count();
-        $data['isReceiveNum'] = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId,'receive_status'=>1])->count();
+        $data['isReceiveNum'] = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId])->where('receive_status','>=',2)->count();
         $userinfo = Func::getUserBasicInfo($userId,true);
         $data['display_name'] = $userinfo['display_name'];
         Paginator::currentPageResolver(function () use ($page) {
@@ -171,7 +172,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 $data['data'] = $isOnway;
                 break;
             case 'isReceive':
-                $isReceive = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId,'receive_status'=>1])->orderBy('id','desc')->paginate(10)->toArray();
+                $isReceive = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId])->where('receive_status','>=',2)->orderBy('id','desc')->paginate(10)->toArray();
                 if(empty($isReceive['data'])){
                     $data['data'] = $isReceive;
                 }
