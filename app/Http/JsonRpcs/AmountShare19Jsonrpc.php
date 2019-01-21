@@ -133,6 +133,9 @@ class AmountShare19JsonRpc extends JsonRpc
         $isOnwayAll = Hd19AmountShare::where(['share_user_id'=>$userId,'receive_status'=>1])->sum('amount');
         $data['isReceiveAll'] = $isReceiveAll + $isHadAll;
         $data['isNotReceive'] = $isOnwayAll;
+        $data['isHadNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId])->where('receive_status','>=',2)->count();
+        $data['isOnwayNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId,'receive_status'=>1])->count();
+        $data['isReceiveNum'] = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId,'receive_status'=>1])->count();
         $userinfo = Func::getUserBasicInfo($userId,true);
         $data['display_name'] = $userinfo['display_name'];
         Paginator::currentPageResolver(function () use ($page) {
