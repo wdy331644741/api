@@ -208,9 +208,6 @@ class AmountShare19JsonRpc extends JsonRpc
         $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
 
         $arr = explode('-',$string);
-        $arr['0'] = 4282;
-        $userId = 2447724;
-        $arr['1'] = 20190118;
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
         $shareDate = isset($arr['1']) ? $arr[1] : null;
         if(date('Ymd') != $shareDate || $fromUserId == null){
