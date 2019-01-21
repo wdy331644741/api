@@ -82,7 +82,8 @@ class AmountShare19JsonRpc extends JsonRpc
         $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
         $arr = explode('-',$string);
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
-        if(date('Ymd') != $arr['1'] || $fromUserId == null){
+        $shareDate = isset($arr['1']) ? $arr[1] : null;
+        if(date('Ymd') != $shareDate || $fromUserId == null){
             throw new OmgException(OmgException::LINK_IS_INVALID);
         }
 
@@ -119,6 +120,7 @@ class AmountShare19JsonRpc extends JsonRpc
      */
     public function receiveCenter($params){
         global $userId;
+        $userId = 110;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -132,6 +134,9 @@ class AmountShare19JsonRpc extends JsonRpc
         $isOnwayAll = Hd19AmountShare::where(['share_user_id'=>$userId,'receive_status'=>1])->sum('amount');
         $data['isReceiveAll'] = $isReceiveAll + $isHadAll;
         $data['isNotReceive'] = $isOnwayAll;
+        $data['isHadNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId])->where('receive_status','>=',2)->count();
+        $data['isOnwayNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId,'receive_status'=>1])->count();
+        $data['isReceiveNum'] = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId])->where('receive_status','>=',2)->count();
         $userinfo = Func::getUserBasicInfo($userId,true);
         $data['display_name'] = $userinfo['display_name'];
         Paginator::currentPageResolver(function () use ($page) {
@@ -167,7 +172,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 $data['data'] = $isOnway;
                 break;
             case 'isReceive':
-                $isReceive = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId,'receive_status'=>1])->orderBy('id','desc')->paginate(10)->toArray();
+                $isReceive = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId])->where('receive_status','>=',2)->orderBy('id','desc')->paginate(10)->toArray();
                 if(empty($isReceive['data'])){
                     $data['data'] = $isReceive;
                 }
@@ -204,8 +209,12 @@ class AmountShare19JsonRpc extends JsonRpc
         $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
 
         $arr = explode('-',$string);
+        $arr['0'] = 4282;
+        $userId = 2447724;
+        $arr['1'] = 20190118;
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
-        if(date('Ymd') != $arr['1'] || $fromUserId == null){
+        $shareDate = isset($arr['1']) ? $arr[1] : null;
+        if(date('Ymd') != $shareDate || $fromUserId == null){
             throw new OmgException(OmgException::LINK_IS_INVALID);
         }
         $data['share_user_id'] = $fromUserId;
@@ -246,7 +255,6 @@ class AmountShare19JsonRpc extends JsonRpc
         }
         //判断用户当日是否领取过
         $receiveNum = Hd19AmountShare::where(['user_id'=>$data['user_id'],'date'=>date('Ymd')])->count();
-
         if($receiveNum >=1){
             throw new OmgException(OmgException::TODAY_IS_RECEIVE);
         }
@@ -367,6 +375,13 @@ class AmountShare19JsonRpc extends JsonRpc
         }
         //当日被邀请人成本
         $userCost_byday_obj = Hd19AmountShareAttribute::where(['key'=>'usercost_byday','user_id'=>$userId,'datenum'=>date('Ymd')])->lockForUpdate()->first();
+
+        //判断用户当日是否领取过
+        $receiveNum = Hd19AmountShare::where(['user_id'=>$userId,'date'=>date('Ymd')])->count();
+        if($receiveNum >=1){
+            DB::rollback();
+            throw new OmgException(OmgException::TODAY_IS_RECEIVE);
+        }
         $userCost_byday = isset($userCost_byday_obj->amount) ? $userCost_byday_obj->amount : 0;
         if(!$userCost_byday){
             $userCost_byday = 0;
