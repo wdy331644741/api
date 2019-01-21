@@ -322,9 +322,6 @@ class Func
         if(!empty($info)){
             Cache::put('UserInfo_'.$user_id,$info,30);
         }
-        $info['id'] = $user_id;
-        $info['open_status'] = 1;
-        $info['create_time'] = "2019-01-01 00:01:01";
         return $info;
     }
 
