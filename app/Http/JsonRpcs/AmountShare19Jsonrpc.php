@@ -120,7 +120,6 @@ class AmountShare19JsonRpc extends JsonRpc
      */
     public function receiveCenter($params){
         global $userId;
-        $userId = 110;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
