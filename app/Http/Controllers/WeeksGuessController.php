@@ -29,7 +29,7 @@ class WeeksGuessController extends Controller
             'special' => 'required|min:1|max:255',
             'home_team' => 'required|min:1|max:255',
             'guest_team' => 'required|min:1|max:255',
-            'recent' => 'required|min:1|max:255',
+            'recent' => 'min:1|max:255',
             'home_img' => 'required|min:1|max:255',
             'guest_img' => 'required|min:1|max:255',
             'start_time' => 'required|date',
