@@ -73,6 +73,7 @@ use App\Http\JsonRpcs\OpenGiftJsonRpc;
 use App\Http\JsonRpcs\WithdrawLottJsonRpc;
 use App\Http\JsonRpcs\DoubleEggLottJsonRpc;
 use App\Http\JsonRpcs\AmountShare19JsonRpc;
+use App\Http\JsonRpcs\YeardAwardJsonRpc;
 
 class RpcController extends Controller
 {
@@ -153,6 +154,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new ChannelCibnJsonrpc());//cibn渠道活动
         $jsonRpcServer->addService(new DoubleEggLottJsonRpc());//双旦 砸单抽奖
         $jsonRpcServer->addService(new AmountShare19JsonRpc());//新春现金分享活动
+        $jsonRpcServer->addService(new YeardAwardJsonRpc());//年终奖翻倍 抽奖
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
