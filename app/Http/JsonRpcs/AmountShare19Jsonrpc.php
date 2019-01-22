@@ -129,8 +129,12 @@ class AmountShare19JsonRpc extends JsonRpc
         $type = $params->type;
         $page = isset($params->page) ? $params->page : 1;
         $isHadAll = Hd19AmountShare::where(['share_user_id'=>$userId])->where('receive_status','>=',2)->sum('amount');
-        $isReceiveAll = Hd19AmountShare::where(['user_id'=>$userId,'receive_status'=>1])->sum('amount');
-        $isOnwayAll = Hd19AmountShare::where(['share_user_id'=>$userId,'receive_status'=>1])->sum('amount');
+        $isReceiveAll = Hd19AmountShare::where(['user_id'=>$userId])->where('receive_status','>=',2)->sum('amount');
+        $isOnwayAll = Hd19AmountShare::where(['receive_status'=>1])
+            ->Where(function($query)use($userId){
+            $query->where('share_user_id',$userId)
+                ->orWhere('user_id',$userId);
+        })->sum('amount');
         $data['isReceiveAll'] = $isReceiveAll + $isHadAll;
         $data['isNotReceive'] = $isOnwayAll;
         $data['isHadNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId])->where('receive_status','>=',2)->count();
