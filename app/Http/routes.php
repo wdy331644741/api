@@ -94,6 +94,11 @@ Route::group(['middleware' => 'admin'], function(){
     Route::controller('weeksguess','WeeksGuessController');
     // 新年红包分享
     Route::controller('new_year_amount_share','NewYearAmountShareController');
+    // 新年红包分享
+    Route::controller('new_year_amount_share','NewYearAmountShareController');
+
+    // 周末竞猜活动
+    Route::controller('weeksguess','WeeksGuessController');
 
 });
 
