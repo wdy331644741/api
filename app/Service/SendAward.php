@@ -201,6 +201,39 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 19 新春现金红包 start **/
+            case '19amountshare_send':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'
+                 && isset($triggerData['user_id']) && !empty($triggerData['user_id']) )
+                {
+                    $res = Hd19AmountShare::where(['user_id'=>$triggerData['user_id'],'receive_status'=>1])->get()->toArray();
+                    foreach ($res as $val){
+                        $uuid = SendAward::create_guid();
+                        $res1 = Func::incrementAvailable($val['user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
+                        $res2 = Func::incrementAvailable($val['share_user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
+                        $remark = ['user'=>0,'invite_user'=>0];
+                        // 成功
+                        if(isset($res1['result'])) {
+                            $remark['user'] = 1;
+                            $MailTpl = "恭喜您绑卡成功并获得“新年全民红包”活动红包奖励".$val['amount']."元，现金发放至您网利宝账户余额。";
+                            SendMessage::Mail($val['user_id'],$MailTpl);
+                            SendMessage::sendPush($val['user_id'],'19as_sendPush');
+                        }
+                        if(isset($res2['result'])) {
+                            $remark['invite_user'] = 1;
+                            SendMessage::sendPush($val['share_user_id'],'19asi_sendPush');
+                        }
+                        if($remark['user'] == 0 && $remark['invite_user'] == 0){
+                            Hd19AmountShare::where('id',$val['id'])->update(['receive_status'=>3,'remark'=>json_encode($remark)]);
+                        }else{
+                            Hd19AmountShare::where('id',$val['id'])->update(['receive_status'=>2,'remark'=>json_encode($remark)]);
+                        }
+                    }
+
+                }
+                break;
+            /** 19 新春现金红包 end **/
 
             /** 周末竞猜 start **/
             case 'weeksguess_investment':
@@ -248,41 +281,7 @@ class SendAward
                 }
                 break;
             /** 周末竞猜 end **/
-
-            /** 19 新春现金红包 start **/
-            case '19amountshare_send':
-                if(
-                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'real_name'
-                 && isset($triggerData['user_id']) && !empty($triggerData['user_id']) )
-                {
-                    $res = Hd19AmountShare::where(['user_id'=>$triggerData['user_id'],'receive_status'=>1])->get()->toArray();
-                    foreach ($res as $val){
-                        $uuid = SendAward::create_guid();
-                        $res1 = Func::incrementAvailable($val['user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
-                        $res2 = Func::incrementAvailable($val['share_user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
-                        $remark = ['user'=>0,'invite_user'=>0];
-                        // 成功
-                        if(isset($res1['result'])) {
-                            $remark['user'] = 1;
-                            $MailTpl = "恭喜您绑卡成功并获得“新年全民红包”活动红包奖励".$val['amount']."元，现金发放至您网利宝账户余额。";
-                            SendMessage::Mail($val['user_id'],$MailTpl);
-                            SendMessage::sendPush($val['user_id'],'19as_sendPush');
-                        }
-                        if(isset($res2['result'])) {
-                            $remark['invite_user'] = 1;
-                            SendMessage::sendPush($val['share_user_id'],'19asi_sendPush');
-                        }
-                        if($remark['user'] == 0 && $remark['invite_user'] == 0){
-                            Hd19AmountShare::where('id',$val['id'])->update(['receive_status'=>3,'remark'=>json_encode($remark)]);
-                        }else{
-                            Hd19AmountShare::where('id',$val['id'])->update(['receive_status'=>2,'remark'=>json_encode($remark)]);
-                        }
-                    }
-
-                }
-                break;
-            /** 19 新春现金红包 end **/
-
+            
             /** 双旦 砸蛋抽奖 start **/
             case 'double_egg_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) 

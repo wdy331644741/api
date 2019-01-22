@@ -164,7 +164,6 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new DoubleTwelveJsonrpc());
         $jsonRpcServer->addService(new ChannelCibnJsonrpc());//cibn渠道活动
         $jsonRpcServer->addService(new DoubleEggLottJsonRpc());//双旦 砸单抽奖
-
         $jsonRpcServer->addService(new WeeksGuessJsonrpc());//周末竞猜
         $jsonRpcServer->addService(new YeardAwardJsonRpc());//年终奖翻倍 抽奖
         $jsonRpcServer->addService(new AmountShare19JsonRpc());//新春现金分享活动
