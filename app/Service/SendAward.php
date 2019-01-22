@@ -202,6 +202,7 @@ class SendAward
 
         switch ($activityInfo['alias_name']) {
 
+
             /** 19 新春现金红包 start **/
             case '19amountshare_send':
                 if(
@@ -235,6 +236,7 @@ class SendAward
                 }
                 break;
             /** 19 新春现金红包 end **/
+
 
 
             /** 周末竞猜 start **/
@@ -283,7 +285,6 @@ class SendAward
                 }
                 break;
             /** 周末竞猜 end **/
-
 
             /** 双旦 砸蛋抽奖 start **/
             case 'double_egg_investment':

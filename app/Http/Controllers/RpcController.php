@@ -169,7 +169,6 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new YeardAwardJsonRpc());//年终奖翻倍 抽奖
         $jsonRpcServer->addService(new AmountShare19JsonRpc());//新春现金分享活动
 
-
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
     }
