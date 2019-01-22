@@ -280,7 +280,6 @@ class SendAward
                 }
                 break;
             /** 周末竞猜 end **/
->>>>>>> master
             /** 双旦 砸蛋抽奖 start **/
             case 'double_egg_investment':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) 
