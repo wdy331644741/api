@@ -79,7 +79,7 @@ class AmountShare19JsonRpc extends JsonRpc
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $num = isset($params->num) ? $params->num : 4;
-        $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
+        $string = authcode($shareCode,'DECODE',env('APP_KEY'));
         $arr = explode('-',$string);
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
         $shareDate = isset($arr['1']) ? $arr[1] : null;
@@ -209,7 +209,7 @@ class AmountShare19JsonRpc extends JsonRpc
         if(empty($shareCode)){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
-        $string = authcode(urldecode($shareCode),'DECODE',env('APP_KEY'));
+        $string = authcode($shareCode,'DECODE',env('APP_KEY'));
 
         $arr = explode('-',$string);
         $fromUserId = isset($arr['0']) ? $arr[0] : null;
