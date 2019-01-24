@@ -297,7 +297,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 // 成功
                 if(isset($res1['result'])) {
                     $remark['user'] = 1;
-                    $MailTpl = "恭喜您在“新年全民红包”活动中抢到".$userInfo['display_name']."用户发送的红包奖励".$data['amount']."元，现金已发放至您网利宝账户余额。";
+                    $MailTpl = "恭喜您在“新年全民红包”活动中抢到".$inviteUserInfo['display_name']."用户发送的红包奖励".$data['amount']."元，现金已发放至您网利宝账户余额。";
                     SendMessage::Mail($data['user_id'],$MailTpl);
                     SendMessage::sendPush($data['user_id'],'19as_sendPush');
                 }
