@@ -92,7 +92,10 @@ class AmountShare19JsonRpc extends JsonRpc
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => null
+                'data' => [
+                'num'=>500,
+                'data'=>null
+            ]
             );
         }
         $responseData = [];
