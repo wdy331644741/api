@@ -92,7 +92,10 @@ class AmountShare19JsonRpc extends JsonRpc
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => null
+                'data' => [
+                'num'=>500,
+                'data'=>null
+            ]
             );
         }
         $responseData = [];
@@ -135,8 +138,8 @@ class AmountShare19JsonRpc extends JsonRpc
             $query->where('share_user_id',$userId)
                 ->orWhere('user_id',$userId);
         })->sum('amount');
-        $data['isReceiveAll'] = $isReceiveAll + $isHadAll;
-        $data['isNotReceive'] = $isOnwayAll;
+        $data['isReceiveAll'] = bcadd($isReceiveAll,$isHadAll,2);
+        $data['isNotReceive'] = bcadd($isOnwayAll,0,2);
         $data['isHadNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId])->where('receive_status','>=',2)->count();
         $data['isOnwayNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId,'receive_status'=>1])->count();
         $data['isReceiveNum'] = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId])->where('receive_status','>=',2)->count();
@@ -297,7 +300,7 @@ class AmountShare19JsonRpc extends JsonRpc
                 // 成功
                 if(isset($res1['result'])) {
                     $remark['user'] = 1;
-                    $MailTpl = "恭喜您在“新年全民红包”活动中抢到".$userInfo['display_name']."用户发送的红包奖励".$data['amount']."元，现金已发放至您网利宝账户余额。";
+                    $MailTpl = "恭喜您在“新年全民红包”活动中抢到".$inviteUserInfo['display_name']."用户发送的红包奖励".$data['amount']."元，现金已发放至您网利宝账户余额。";
                     SendMessage::Mail($data['user_id'],$MailTpl);
                     SendMessage::sendPush($data['user_id'],'19as_sendPush');
                 }
