@@ -120,7 +120,7 @@ class NewYearAmountShareController extends Controller
      * 导出未绑卡用户数据
      */
     public function getExport(){
-        $unBindBankData = Hd19AmountShare::where("user_status","<",3)->where("receive_status",1)->select("id","user_id","date","created_at")->get()->toArray();
+        $unBindBankData = Hd19AmountShare::where("user_status","<",3)->where("receive_status",1)->select("id","user_id","date","created_at")->take(5000)->orderBy("id","desc")->get()->toArray();
         $cellData = array();
         foreach($unBindBankData as $key => $item){
             if($key == 0){
