@@ -144,6 +144,15 @@ class AmountShare19JsonRpc extends JsonRpc
         $data['isOnwayNum'] = Hd19AmountShare::selectRaw('id,phone,amount,created_at')->where(['share_user_id'=>$userId,'receive_status'=>1])->count();
         $data['isReceiveNum'] = Hd19AmountShare::selectRaw('id,share_phone as phone,amount,created_at')->where(['user_id'=>$userId])->where('receive_status','>=',2)->count();
         $userinfo = Func::getUserBasicInfo($userId,true);
+        $status = 0;
+        if($userinfo['open_status'] == 0){
+            $status = 0;
+        }elseif ($userinfo['open_status'] > 0 && $userinfo['isset_trade_pwd'] == 1){
+            $status = 3;
+        }elseif ($userinfo['open_status'] > 0 && $userinfo['isset_trade_pwd'] == 0){
+            $status = 1;
+        }
+        $data['status'] = $status;
         $data['display_name'] = $userinfo['display_name'];
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
