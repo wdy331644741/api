@@ -197,7 +197,8 @@ class WeeksGuessJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function weeksGuessList() {
-        $data = HdWeeksGuess::select(['user_id', 'type', 'number', 'created_at'])->orderBy('id', 'desc')->limit(30)->get()->toArray();
+        $config = HdWeeksGuessConfig::select(['id'])->where(['status'=>1, 'draw_status'=>1])->first();
+        $data = HdWeeksGuess::select(['user_id', 'type', 'number', 'created_at'])->where('period', $config['id'])->orderBy('id', 'desc')->limit(30)->get()->toArray();
         if ($data) {
             foreach ($data as $k=>$v) {
                 $phone = Func::getUserPhone($v['user_id']);
