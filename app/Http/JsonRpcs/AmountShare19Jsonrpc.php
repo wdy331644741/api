@@ -293,6 +293,7 @@ class AmountShare19JsonRpc extends JsonRpc
         //发送金额
         $data['amount'] = self::getSendAmount($data['user_id'],$data['share_user_id'],$data['user_status'],$confData,$allcost_byday,$inviteUserCost_byday,$status);
         $uuid = SendAward::create_guid();
+        $uuid2 = SendAward::create_guid();
         $data['share_phone'] = $inviteUserInfo['phone'];
         $data['phone'] = $userInfo['phone'];
         $data['date'] = date('Ymd');
@@ -303,7 +304,7 @@ class AmountShare19JsonRpc extends JsonRpc
         switch($data['user_status']){
             case 3:
                 $res1 = Func::incrementAvailable($data['user_id'], $id, $uuid, $data['amount'], '19amountshare_newyear_cash');
-                $res2 = Func::incrementAvailable($data['share_user_id'], $id, $uuid, $data['amount'], '19amountshare_newyear_cash');
+                $res2 = Func::incrementAvailable($data['share_user_id'], $id, $uuid2, $data['amount'], '19amountshare_newyear_cash');
                 $remark = ['user'=>0,'invite_user'=>0];
 
                 // 成功
