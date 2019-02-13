@@ -13,7 +13,7 @@ use Config, Cache,DB;
 
 class WeeksGuessService
 {
-    public static $messageTpl = "亲爱的用户，周末专享竞猜比赛活动{{race_time}}{{home_team}}队VS{{guest_team}}已开奖，恭喜您获得现金{{money}}元，奖励将于开奖后三个工作日发放至您的网利宝账户，请注意查收。客服电话：400-858-8066";
+    public static $messageTpl = "亲爱的用户，周末专享竞猜比赛活动{{race_time}}{{home_team}}队VS{{guest_team}}已开奖，恭喜您获得现金{{money}}元，奖励将于开奖后七个工作日发放至您的网利宝账户，请注意查收。客服电话：400-858-8066";
     public static $numTpl = "亲爱的用户，恭喜您在周末专享竞猜比赛活动中获得{{count}}次竞猜机会，参与竞猜比赛结果，竞猜正确即可参与瓜分20000元现金";
     public static function sendAward($period, $totalMoney, $type)
     {
