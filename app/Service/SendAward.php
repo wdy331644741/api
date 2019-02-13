@@ -209,8 +209,9 @@ class SendAward
                     $res = Hd19AmountShare::where(['user_id'=>$triggerData['user_id'],'receive_status'=>1])->get()->toArray();
                     foreach ($res as $val){
                         $uuid = SendAward::create_guid();
+                        $uuid2 = SendAward::create_guid();
                         $res1 = Func::incrementAvailable($val['user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
-                        $res2 = Func::incrementAvailable($val['share_user_id'], $val['id'], $uuid, $val['amount'], '19amountshare_newyear_cash');
+                        $res2 = Func::incrementAvailable($val['share_user_id'], $val['id'], $uuid2, $val['amount'], '19amountshare_newyear_cash');
                         $remark = ['user'=>0,'invite_user'=>0];
                         // 成功
                         if(isset($res1['result'])) {
