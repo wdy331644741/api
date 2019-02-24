@@ -93,6 +93,8 @@ Route::group(['middleware' => 'admin'], function(){
 
     // 周末竞猜活动
     Route::controller('weeksguess','WeeksGuessController');
+    //专属定制
+    Route::controller('custom', 'CustomController');
 
 });
 
