@@ -39,8 +39,8 @@ class WeeksGuessJsonrpc extends JsonRpc
                 'guest_team' => '',
                 'home_img' => '',
                 'guest_img' => '',
-                'home_score' => 0,
-                'guest_score' => 0,
+                'home_score' => -1,
+                'guest_score' => -1,
                 'recent' => '',
                 'activity_rule' => '',
                 'home_win' => 0,//主胜
