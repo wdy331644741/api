@@ -21,90 +21,6 @@ class DoubleTwelveJsonrpc extends JsonRpc
     use DispatchesJobs;
 
     /**
-     * 查询当前状态
-     *
-     * @JsonRpcMethod
-     */
-    public function twelveInfo() {
-        global $userId;
-        $result = [
-                'login' => 0,
-                'available' => 0,
-                'number' => 0,
-                'alert'=> 0,
-                ];
-        // 用户是否登录
-        if($userId) {
-            $result['login'] = 1;
-        }
-        $aliasName = Config::get('doubletwelve.alias_name');
-        // 活动是否存在
-        if( ActivityService::isExistByAlias($aliasName)) {
-            $result['available'] = 1;
-        }
-        if($result['available'] && $result['login']) {
-            $aliasNameTmp = $aliasName.'_day';
-            $initNumber = Attributes::getNumberByDay($userId, $aliasNameTmp);
-            if ($initNumber == 0) {
-                Attributes::incrementByDay($userId, $aliasNameTmp);
-                $result['number'] = Attributes::incrementByDay($userId, $aliasName);
-            } else {
-                $result['number'] = Attributes::getNumberByDay($userId, $aliasName);
-            }
-            $global_key = $aliasName . '_alert';
-            $alert = Attributes::getNumber($userId, $global_key);
-            if ($alert) {
-                $result['alert'] = 1;
-            }
-        }
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $result,
-        ];
-    }
-
-    /**
-     * 查询当前状态
-     *
-     * @JsonRpcMethod
-     */
-    public function twelveAlert() {
-        global $userId;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $aliasName = Config::get('doubletwelve.alias_name');
-        $global_key = $aliasName . '_alert';
-        Attributes::increment($userId, $global_key);
-        return [
-            'code' => 0,
-            'message' => 'success',
-        ];
-    }
-
-    /**
-     * 获取奖品列表
-     *
-     * @JsonRpcMethod
-     */
-    public function twelveList() {
-        $data = HdTwelve::select('user_id', 'award_name')->orderBy('id', 'desc')->take(20)->get();
-        foreach ($data as &$item){
-            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
-                $phone = Func::getUserPhone($item['user_id']);
-                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
-            }
-        }
-
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $data,
-        ];
-    }
-
-    /**
      *  实时显示福利券
      *
      * @JsonRpcMethod
@@ -119,7 +35,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
         }
         $amount = intval($params->amount);
         $period = intval($params->period);
-        if ( $amount < 5000 || $amount > 1000000 || 0 != $amount % 100) { // $amount >= 5000 && $amount <= 1000000 && 0 == $amount % 100
+        if ( $amount < 5000 || $amount > 1000000 || 0 != $amount % 1000) { // $amount >= 5000 && $amount <= 1000000 && 0 == $amount % 1000
             throw new OmgException(OmgException::VALID_AMOUNT_ERROR);
         }
         $award = self::getWelfareTicket($amount, $period);
@@ -212,7 +128,98 @@ class DoubleTwelveJsonrpc extends JsonRpc
                 }
             }
         }
+
+        
         return $return;
     }
+
+    /**
+     * 查询当前状态
+     *
+     * @JsonRpcMethod
+     */
+    /*
+    public function twelveInfo() {
+        global $userId;
+        $result = [
+                'login' => 0,
+                'available' => 0,
+                'number' => 0,
+                'alert'=> 0,
+                ];
+        // 用户是否登录
+        if($userId) {
+            $result['login'] = 1;
+        }
+        $aliasName = Config::get('doubletwelve.alias_name');
+        // 活动是否存在
+        if( ActivityService::isExistByAlias($aliasName)) {
+            $result['available'] = 1;
+        }
+        if($result['available'] && $result['login']) {
+            $aliasNameTmp = $aliasName.'_day';
+            $initNumber = Attributes::getNumberByDay($userId, $aliasNameTmp);
+            if ($initNumber == 0) {
+                Attributes::incrementByDay($userId, $aliasNameTmp);
+                $result['number'] = Attributes::incrementByDay($userId, $aliasName);
+            } else {
+                $result['number'] = Attributes::getNumberByDay($userId, $aliasName);
+            }
+            $global_key = $aliasName . '_alert';
+            $alert = Attributes::getNumber($userId, $global_key);
+            if ($alert) {
+                $result['alert'] = 1;
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $result,
+        ];
+    }
+    */
+
+    /**
+     * 点击
+     *
+     * @JsonRpcMethod
+     */
+    /*
+    public function twelveAlert() {
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $aliasName = Config::get('doubletwelve.alias_name');
+        $global_key = $aliasName . '_alert';
+        Attributes::increment($userId, $global_key);
+        return [
+            'code' => 0,
+            'message' => 'success',
+        ];
+    }
+    */
+
+    /**
+     * 获取奖品列表
+     *
+     * @JsonRpcMethod
+     */
+    /*
+    public function twelveList() {
+        $data = HdTwelve::select('user_id', 'award_name')->orderBy('id', 'desc')->take(20)->get();
+        foreach ($data as &$item){
+            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
+                $phone = Func::getUserPhone($item['user_id']);
+                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+            }
+        }
+
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }*/
 }
 
