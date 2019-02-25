@@ -70,6 +70,7 @@ class WeeksGuessController extends Controller
 //            $data['created_at'] = date("Y-m-d H:i:s");
             $data['draw_status'] = 0;
             $data['status'] = 0;
+            $data['home_score'] = $data['guest_score'] = -1;
             if (HdWeeksGuessConfig::create($data)) {
                 return $this->outputJson(0,array('error_msg'=>'添加成功'));
             }
