@@ -96,10 +96,13 @@ class DoubleTwelveJsonrpc extends JsonRpc
         $sendAward['effective_time_day'] = $award['effective_time_day'];
         $sendAward['name'] = $award['name'];
         $this->dispatch(new DoubleTwelveJob($userId, $sendAward));
+        unset($sendAward['effective_time_day']);
+        unset($sendAward['period']);
+        unset($sendAward['amount']);
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>true,
+            'data' =>$sendAward,
         ];
     }
 
