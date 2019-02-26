@@ -28,10 +28,6 @@ class DoubleTwelveJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function twelveShow($params) {
-        global $userId;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
         if(empty($params->amount) || empty($params->period)){
             throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
