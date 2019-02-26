@@ -93,10 +93,10 @@ class CustomController extends Controller
             return $this->outputJson(10001,array('error_msg'=>$validator->errors()->first()));
         }
 
-        $status = HdCustom::where('status', 1)->first();
-        if ($status) {
-            return $this->outputJson(10001,array('error_msg'=>'只能上线一个'));
-        }
+//        $status = HdCustom::where('status', 1)->first();
+//        if ($status) {
+//            return $this->outputJson(10001,array('error_msg'=>'只能上线一个'));
+//        }
         $res = HdCustom::where('id',$request->id)->update(['status'=>1]);
         if($res){
             return $this->outputJson(0);
