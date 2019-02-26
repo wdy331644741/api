@@ -150,7 +150,8 @@ class CustomController extends Controller
         $group->award_money = $request->award_money;
         $group->custom_id = $request->custom_id;
         if ($group->type == 2) {
-            $group->name = ($group->award_moey * 100) . '%';
+            $group->name = $group->award_moey . '%';
+            $group->award_money = $group->award_moey  / 100;
         } else if ($group->type == 1) {
             $group->name = $group->award_money . '元';
         }
