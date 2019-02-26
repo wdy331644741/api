@@ -123,6 +123,8 @@ class OmgException extends BasicException
     const UNBIND_USER_ONLY_RECEIVE_ONE = 4333;
     const LINK_IS_INVALID = 4334;
 
+    const CUSTOM_AWARD = 4340;
+
     protected static $errorArray = array(
         //接口调用错误
         self::API_MIS_PARAMS => "缺少必要参数",
@@ -214,6 +216,8 @@ class OmgException extends BasicException
         self::TODAY_OLDUSER_RECEIVE_IS_MORE => "领取老用户红包过多",
         self::UNBIND_USER_ONLY_RECEIVE_ONE => "未绑卡用户活动期间只能领取一次",
         self::LINK_IS_INVALID => "链接失效",
+
+        self::CUSTOM_AWARD => "相同期限福利券已存在，请重新定制",
 
     );
 
