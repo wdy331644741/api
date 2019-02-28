@@ -41,14 +41,14 @@ class DoubleTwelveService
                 $awardConfig = self::getRedParams();
                 $awardConfig = array_merge($awardConfig, $params);
                 $awardConfig['red_money'] = $award['awardName'];
-                $awardConfig['name'] = $award['name']."直抵红包";
+                $awardConfig['name'] = '定制'.$award['name']."直抵红包";
                 $result = SendAward::redMoney($awardConfig);
                 break;
             case 'jiaxi':
                 $awardConfig = self::getRateParams();
                 $awardConfig = array_merge($awardConfig, $params);
                 $awardConfig['rate_increases'] = $award['awardName'];
-                $awardConfig['name'] = $award['name'] . "加息券";
+                $awardConfig['name'] = '定制'.$award['name'] . "加息券";
                 $result = SendAward::increases($awardConfig);
                 break;
             default :
