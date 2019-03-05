@@ -13,7 +13,7 @@ use Config, Cache,DB;
 
 class WeeksGuessService
 {
-    public static $messageTpl = "亲爱的用户，周末专享竞猜比赛活动{{race_time}}{{home_team}}队VS{{guest_team}}已开奖，恭喜您获得现金{{money}}元，奖励将于开奖后七个工作日发放至您的网利宝账户，请注意查收。客服电话：400-858-8066";
+    public static $messageTpl = "亲爱的用户，周末专享竞猜比赛活动{{race_time}}{{home_team}}队VS{{guest_team}}已开奖，本次共{{total_people}}人{{total_count}}次竞猜正确，恭喜您获得现金{{money}}元，奖励将于开奖后七个工作日发放至您的网利宝账户，请注意查收。客服电话：400-858-8066";
     public static $numTpl = "亲爱的用户，恭喜您在周末专享竞猜比赛活动中获得{{count}}次竞猜机会，参与竞猜比赛结果，竞猜正确即可参与瓜分20000元现金";
     public static function sendAward($period, $totalMoney, $type)
     {
@@ -27,6 +27,7 @@ class WeeksGuessService
         if (!$data) {
             return false;
         }
+        $totalPeople = count($data);
         $weekConfig = HdWeeksGuessConfig::find($period);
         foreach ($data as $v) {
             $money = bcdiv(bcmul($totalMoney, $v['total'], 2), $totalCount, 2);
@@ -35,6 +36,8 @@ class WeeksGuessService
                 'home_team'=>$weekConfig->home_team,
                 'guest_team'=>$weekConfig->guest_team,
                 'race_time'=>$weekConfig->race_time,
+                'total_count'=>$totalCount,
+                'total_people'=>$totalPeople,
             ];
             SendMessage::Mail($v['user_id'], self::$messageTpl, $tplParam);
             SendMessage::Message($v['user_id'], self::$messageTpl, $tplParam);
