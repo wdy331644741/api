@@ -10,46 +10,49 @@ class DoubleTwelveService
 {
 
     //用户随机中奖号码发放
-    public  static function addDrawNum($userId, $key)
-    {
-        $aliasName = Config::get('doubletwelve.alias_name');
-        $numDay = Attributes::getNumberByDay($userId, $key);
-        if ($numDay >=2) {
-            return false;
-        }
-        Attributes::incrementByDay($userId, $key);
-        Attributes::incrementByDay($userId, $aliasName);
-    }
+//    public  static function addDrawNum($userId, $key)
+//    {
+//        $aliasName = Config::get('doubletwelve.alias_name');
+//        $numDay = Attributes::getNumberByDay($userId, $key);
+//        if ($numDay >=2) {
+//            return false;
+//        }
+//        Attributes::incrementByDay($userId, $key);
+//        Attributes::incrementByDay($userId, $aliasName);
+//    }
 
     static function sendAward($userId, $award){
-        $aliasname = Config::get('doubletwelve.alias_name');
-        $activity = ActivityService::GetActivityedInfoByAlias($aliasname);
         $params['user_id'] = $userId;
-        $params['source_id'] = $activity['id'];
+        $params['source_id'] = 999999;
         $params['investment_threshold'] = $award['amount'];
         $params['project_duration_time'] = $award['period'];
         $params['limit_desc'] = "{$award['amount']}元起投，限{$award['period']}月及以上标";
+        if ($award['period'] == 1) {
+            $params['project_duration_time'] = 30;
+            $params['project_duration_type'] = 6;
+            $params['limit_desc'] = "{$award['amount']}元起投，限30日及以上标";
+
+        }
+        //有效期
+        $params['effective_time_start'] = date("Y-m-d H:i:s");
+        $params['effective_time_end'] = date("Y-m-d 23:59:59", strtotime("+" . ($award['effective_time_day'] -1 ) . " day"));
         switch ($award['type']) {
             case 'hongbao':
                 $awardConfig = self::getRedParams();
                 $awardConfig = array_merge($awardConfig, $params);
                 $awardConfig['red_money'] = $award['awardName'];
-                $awardConfig['name'] = $award['awardName']."元直抵红包";
+                $awardConfig['name'] = '定制'.$award['name']."直抵红包";
                 $result = SendAward::redMoney($awardConfig);
                 break;
             case 'jiaxi':
                 $awardConfig = self::getRateParams();
                 $awardConfig = array_merge($awardConfig, $params);
                 $awardConfig['rate_increases'] = $award['awardName'];
-                $awardConfig['name'] = bcmul($award['awardName'], 100, 1)."%加息券";
+                $awardConfig['name'] = '定制'.$award['name'] . "加息券";
                 $result = SendAward::increases($awardConfig);
                 break;
             default :
                 return false;
-        }
-        //添加活动参与记录
-        if($result['status']){
-            SendAward::addJoins($userId,$activity,3);
         }
         return HdTwelve::create([
             'user_id' => $userId,
@@ -67,12 +70,12 @@ class DoubleTwelveService
                 'red_type'=>1,
                 'red_money'=>null,//红包金额
                 'percentage'=>0,
-                'effective_time_type'=>1,//红包有效天数
-                'effective_time_day'=>1,
-                'effective_time_start'=>null,
-                'effective_time_end'=>null,
+                'effective_time_type'=>2,//红包有效天数
+//                'effective_time_day'=>null,
+//                'effective_time_start'=>null,
+//                'effective_time_end'=>null,
                 'investment_threshold'=>0,
-                'project_duration_type'=>1,
+                'project_duration_type'=>3,
                 'project_type'=>null,
                 'product_id'=>0,
                 'platform_type'=>0,
@@ -85,7 +88,7 @@ class DoubleTwelveService
                 //**********以下是用户中心发奖参数
                 'source_id'=>'',
                 'name'=>'',
-                'source_name'=>'嗨翻双12 全利以赴',
+                'source_name'=>'福利券定制',
                 'trigger'=>null,////////////////////////
                 'user_id'=>''
         ];
@@ -99,10 +102,10 @@ class DoubleTwelveService
             'rate_increases_type'=>1,
             'rate_increases_start'=>null,
             'rate_increases_end'=>null,
-            'effective_time_type'=>1,//红包有效天数
-            'effective_time_day'=>1,
-            'effective_time_start'=>null,
-            'effective_time_end'=>null,
+            'effective_time_type'=>2,//红包有效天数
+//            'effective_time_day'=>null,
+//            'effective_time_start'=>null,
+//            'effective_time_end'=>null,
             'investment_threshold'=>0,
             'project_duration_type'=>3,
             'project_type'=>null,
@@ -117,7 +120,7 @@ class DoubleTwelveService
             //**********以下是用户中心发奖参数
             'source_id'=>'',
             'name'=>'',
-            'source_name'=>'嗨翻双12 全利以赴',
+            'source_name'=>'福利券定制',
             'trigger'=>null,////////////////////////
             'user_id'=>'',
         ];
