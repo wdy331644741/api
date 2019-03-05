@@ -23,7 +23,7 @@ use App\Service\Attributes;
 use App\Service\BbsSendAwardService;
 use App\Models\Bbs\CommentReply;
 use Illuminate\Support\Facades\DB;
-
+use Cache;
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;

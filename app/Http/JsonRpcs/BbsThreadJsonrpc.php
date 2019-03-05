@@ -12,7 +12,7 @@ use Illuminate\Pagination\Paginator;
 use Validator;
 use App\Models\bbs\ThreadRecord;
 use App\Models\Bbs\GlobalConfig;
-
+use Cache;
 
 
 class BbsThreadJsonRpc extends JsonRpc
