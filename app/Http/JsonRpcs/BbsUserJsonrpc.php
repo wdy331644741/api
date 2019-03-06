@@ -23,7 +23,7 @@ use App\Service\Attributes;
 use App\Service\BbsSendAwardService;
 use App\Models\Bbs\CommentReply;
 use Illuminate\Support\Facades\DB;
-
+use Cache;
 class BbsUserJsonRpc extends JsonRpc {
     private $userId;
     private $userInfo;
@@ -850,6 +850,15 @@ class BbsUserJsonRpc extends JsonRpc {
             throw  new OmgException(OmgException::NO_LOGIN);
         }
 
+        //判断缓存是否过期
+        if(Cache::has("getBbsUserInfo_".$this->userId)){
+            $json = Cache::get("getBbsUserInfo_".$this->userId);
+            return [
+                'code'=>0,
+                'message'=>'success',
+                'data'=>json_decode($json,1)
+            ];
+        }
         $bbsUserInfo = User::where(['user_id'=>$this->userId])->first();
 
         //没有信息去拉取信息
@@ -904,6 +913,8 @@ class BbsUserJsonRpc extends JsonRpc {
         $bbsUserInfo['pmPoint']=$countPmInfo['data']['num'];
         $bbsUserInfo['taskPoint'] = $countTaskInfo;
 
+        //加入缓存
+        Cache::put("getBbsUserInfo_".$this->userId,json_encode($bbsUserInfo),1);
         return [
             'code'=>0,
             'message'=>'success',
