@@ -5,6 +5,8 @@ namespace App\Http\JsonRpcs;
 use App\Exceptions\OmgException;
 use App\Jobs\DoubleTwelveJob;
 use App\Models\Activity;
+use App\Models\HdCustom;
+use App\Models\HdCustomAward;
 use App\Models\HdTwelve;
 use App\Models\UserAttribute;
 use App\Service\ActivityService;
@@ -21,10 +23,138 @@ class DoubleTwelveJsonrpc extends JsonRpc
     use DispatchesJobs;
 
     /**
+     *  实时显示福利券
+     *
+     * @JsonRpcMethod
+     */
+    public function twelveShow($params) {
+        if(empty($params->amount) || empty($params->period)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $amount = intval($params->amount);
+        $period = intval($params->period);
+        if ( $amount < 5000 || $amount > 1000000 || 0 != $amount % 1000) { // $amount >= 5000 && $amount <= 1000000 && 0 == $amount % 1000
+            throw new OmgException(OmgException::VALID_AMOUNT_ERROR);
+        }
+        $award = self::getWelfareTicket($amount, $period);
+        if (empty($award)) {
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' =>$award,
+            ];
+        }
+        $return['award_name'] = $award['name'];
+//        $return['value'] = $award['`award_money'];
+        if ($award['type'] == 1) {
+            $return['type'] = 'hongbao';
+        } elseif ($award['type'] == 2 ) {
+            $return['type'] = 'jiaxi';
+            $interest = bcdiv($amount * $period * $award['award_money'], 12, 2);
+            $return['interest'] = round($interest);
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$return,
+        ];
+    }
+
+    /**
+     *  领取
+     *
+     * @JsonRpcMethod
+     */
+    public function twelveReceive($params) {
+        global $userId;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $aliasname = Config::get('doubletwelve.alias_name');
+        if( empty($params->amount) || empty($params->period) || empty($params->type) ){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $amount = intval($params->amount);
+        $period = intval($params->period);
+        if ( $amount < 5000 || $amount > 1000000 || 0 != $amount % 1000) {
+            throw new OmgException(OmgException::VALID_AMOUNT_ERROR);
+        }
+        //  判断用户账户中是否有该期限的福利券
+        if ( !self::getUserCouponByTime($params->period) ) {
+            //相同期限福利券已存在，请重新定制
+            throw new OmgException(OmgException::CUSTOM_AWARD);
+        }
+        $award = self::getWelfareTicket($amount, $period);
+        $type = $params->type == 'hongbao' ? 1 : ($params->type == 'jiaxi' ? 2 : 0);
+        if (empty($award) || $award['type'] != $type) {
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        $sendAward['type'] = $params->type;
+        $sendAward['amount'] = $award['min'];
+        $sendAward['period'] = $period;
+        $sendAward['awardName'] = $award['award_money'];
+        $sendAward['effective_time_day'] = $award['effective_time_day'];
+        $sendAward['name'] = $award['name'];
+        $this->dispatch(new DoubleTwelveJob($userId, $sendAward));
+        unset($sendAward['effective_time_day']);
+        unset($sendAward['period']);
+        unset($sendAward['amount']);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$sendAward,
+        ];
+    }
+
+    protected static function getWelfareTicket($amount, $period) {
+        $custom_id = HdCustom::where(['status'=>1])->where(
+            function($query) {
+                $query->whereNull('start_at')->orWhereRaw('start_at < now()');
+            }
+        )->where(
+            function($query) {
+                $query->whereNull('end_at')->orWhereRaw('end_at > now()');
+            }
+        )->value('id');
+        $return = [];
+        if (!$custom_id) {
+            return $return;
+        }
+        $award = HdCustomAward::where(['custom_id'=> $custom_id, 'investment_time'=> $period])->where('min', '<=', $amount)->where('max', '>=', $amount)->first();
+        if (!$award) {
+            return $return;
+        }
+        return $award;
+    }
+
+    //获取用户账户是否有指定期限的福利券
+    protected static function getUserCouponByTime($period)
+    {
+        $url = env('ACCOUNT_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        if ($period == 1) {
+            $params['coupon_type'] = 6;
+            $params['coupon_time'] = 30;
+        } else {
+            $params['coupon_type'] = 3;
+            $params['coupon_time'] = $period;
+        }
+        $result = $client->getCouponInfoByTypeTime($params);
+        if ( isset($result['result']) ) {//成功
+            return $result['result']['data']['coupon_status'];
+        }
+        if (isset($result['error'])) {
+            throw new OmgException(OmgException::API_FAILED);
+        }
+        return false;
+    }
+
+    /**
      * 查询当前状态
      *
      * @JsonRpcMethod
      */
+    /*
     public function twelveInfo() {
         global $userId;
         $result = [
@@ -63,12 +193,14 @@ class DoubleTwelveJsonrpc extends JsonRpc
             'data' => $result,
         ];
     }
+    */
 
     /**
-     * 查询当前状态
+     * 点击
      *
      * @JsonRpcMethod
      */
+    /*
     public function twelveAlert() {
         global $userId;
         if(!$userId) {
@@ -82,6 +214,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
             'message' => 'success',
         ];
     }
+    */
 
     /**
      * 获取奖品列表
@@ -89,7 +222,7 @@ class DoubleTwelveJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function twelveList() {
-        $data = HdTwelve::select('user_id', 'award_name')->orderBy('id', 'desc')->take(20)->get();
+        $data = HdTwelve::select('user_id', 'award_name')->where('status', 1)->orderBy('id', 'desc')->take(20)->get();
         foreach ($data as &$item){
             if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
                 $phone = Func::getUserPhone($item['user_id']);
@@ -102,117 +235,6 @@ class DoubleTwelveJsonrpc extends JsonRpc
             'message' => 'success',
             'data' => $data,
         ];
-    }
-
-    /**
-     *  实时显示福利券
-     *
-     * @JsonRpcMethod
-     */
-    public function twelveShow($params) {
-        global $userId;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        if(empty($params->amount) || empty($params->period)){
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
-        }
-        $amount = intval($params->amount);
-        $period = intval($params->period);
-        if ( $amount < 5000 || $amount > 1000000 || 0 != $amount % 100) { // $amount >= 5000 && $amount <= 1000000 && 0 == $amount % 100
-            throw new OmgException(OmgException::VALID_AMOUNT_ERROR);
-        }
-        $award = self::getWelfareTicket($amount, $period);
-        if (empty($award)) {
-            return [
-                'code' => 0,
-                'message' => 'success',
-                'data' =>$award,
-            ];
-        }
-        $interest = bcdiv($amount * $period * $award['jiaxi'], 12, 2);
-        $return['type'] = 'hongbao';//类型红包
-        $return['award_name'] = $award['val'];
-        if (bccomp($interest, $award['val'], 2) == 1) {
-            $return['type'] = 'jiaxi';//加息券
-            $return['award_name'] = bcmul($award['jiaxi'], 100, 1);
-            $return['interest'] = round($interest);
-        }
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' =>$return,
-        ];
-    }
-
-    /**
-     *  领取
-     *
-     * @JsonRpcMethod
-     */
-    public function twelveReceive($params) {
-        global $userId;
-        if(!$userId) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $aliasname = Config::get('doubletwelve.alias_name');
-        if( !ActivityService::isExistByAlias($aliasname)) {
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
-        if( empty($params->amount) || empty($params->period) || empty($params->type) ){
-            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
-        }
-        $amount = intval($params->amount);
-        $period = intval($params->period);
-        if ( $amount < 5000 || $amount > 1000000 || 0 != $amount % 100) {
-            throw new OmgException(OmgException::VALID_AMOUNT_ERROR);
-        }
-        $award = self::getWelfareTicket($amount, $period);
-        if (empty($award)) {
-            throw new OmgException(OmgException::PARAMS_ERROR);
-        }
-        //  判断用户定制机会
-        DB::beginTransaction();
-        $user_num = Attributes::getNumberByDay($userId, $aliasname);
-        if ($user_num <= 0) {
-            throw new OmgException(OmgException::EXCEED_USER_NUM_FAIL);
-        }
-        $sendAward['type'] = $params->type;
-//        $sendAward['amount'] = $amount;
-        $sendAward['amount'] = $award['min'];
-        $sendAward['period'] = $period;
-        if ($params->type == 'hongbao') {
-            $sendAward['awardName'] = $award['val'];
-        } elseif ($params->type == 'jiaxi') {
-            $sendAward['awardName'] = $award['jiaxi'];
-        } else {
-            DB::rollback();
-            throw new OmgException(OmgException::PARAMS_ERROR);
-        }
-        $this->dispatch(new DoubleTwelveJob($userId, $sendAward));
-        Attributes::decrement($userId, $aliasname);
-        Attributes::increment($userId, $aliasname . '_total');
-        DB::commit();
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' =>true,
-        ];
-    }
-
-    protected static function getWelfareTicket($amount, $period) {
-        $awards = Config::get('doubletwelve.awards');
-        $return = [];
-        foreach ($awards as $v) {
-            if ($v['period'] == $period) {
-                foreach ($v['award'] as $vv) {
-                    if ($amount >= $vv['min'] && $amount <= $vv['max']) {
-                        return $vv;
-                    }
-                }
-            }
-        }
-        return $return;
     }
 }
 
