@@ -88,8 +88,13 @@ Route::group(['middleware' => 'admin'], function(){
     // 曲棍球正式场活动
     Route::controller('hockey','HockeyController');
 
+    // 新年红包分享
+    Route::controller('new_year_amount_share','NewYearAmountShareController');
+
     // 周末竞猜活动
     Route::controller('weeksguess','WeeksGuessController');
+    //专属定制
+    Route::controller('custom', 'CustomController');
 
 });
 

@@ -12,7 +12,7 @@ use Illuminate\Pagination\Paginator;
 use Validator;
 use App\Models\bbs\ThreadRecord;
 use App\Models\Bbs\GlobalConfig;
-
+use Cache;
 
 
 class BbsThreadJsonRpc extends JsonRpc
@@ -48,6 +48,15 @@ class BbsThreadJsonRpc extends JsonRpc
         $typeId = $params->id;
         $pageNum = isset($params->pageNum) ? $params->pageNum : 10;
         $page = isset($params->page) ? $params->page : 1;
+        //判断缓存是否过期
+        if(Cache::has("getBbsThreadAllList_".$typeId."_".$page)){
+            $json = Cache::get("getBbsThreadAllList_".$typeId."_".$page);
+            return [
+                'code'=>0,
+                'message'=>'success',
+                'data'=>json_decode($json,1)
+            ];
+        }
         Paginator::currentPageResolver(function () use ($page) {
             return $page;
         });
@@ -66,6 +75,9 @@ class BbsThreadJsonRpc extends JsonRpc
             ->orderByRaw('created_at DESC')
             ->paginate($pageNum)
             ->toArray();
+
+        //加入缓存
+        Cache::put("getBbsThreadAllList_".$typeId."_".$page,json_encode($res),3);
         return [
             'code' => 0,
             'message' => 'success',
