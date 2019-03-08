@@ -45,6 +45,7 @@ use App\Service\OctLotteryService;
 use App\Http\JsonRpcs\CatchDollJsonRpc;//邀请注册送 抓娃娃机会
 use App\Service\CatchDollService;//邀请注册送 抓娃娃机会
 use App\Service\Hockey;//曲棍球活动
+use App\Service\InviteTaskService;//好友邀请3.0
 
 class SendAward
 {
@@ -85,6 +86,26 @@ class SendAward
             }else{
                 $Attributes = new Attributes();
                 $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
+            }
+        }
+        //好友邀请3.0  绑卡、首投。不满足发奖条件时  by：王东洋
+        if(in_array($activityInfo['alias_name'], ['invite_limit_task_bind', 'invite_limit_task_invest'])){
+            
+            if($activityInfo['alias_name'] == 'invite_limit_task_invest' 
+                && isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) 
+                && $triggerData['tag'] == 'investment' ){
+
+                $task3_user = $triggerData['from_user_id'];//任务3 奖励是给from_user_id的
+            }else{
+                $task3_user = 0;
+            }
+            $server = new InviteTaskService($userID);
+
+            $d = $server->isTouchTask($activityInfo['alias_name'],$triggerData);
+            if(!$d){
+                return '不发奖';
             }
         }
 
@@ -201,7 +222,6 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
-
 
             /** 19 新春现金红包 start **/
             case '19amountshare_send':
@@ -1451,6 +1471,14 @@ class SendAward
         }
         //邀请好友2.0判断用户是否超过邀请发奖次数1
         if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_send_award_limit2'){
+            $status = self::inviteNumLimit2($userId);
+            if($status === false){
+                return [];
+            }
+        }
+
+        //邀请好友3.0判断用户是否超过邀请发奖次数1
+        if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_limit_task_bind'){
             $status = self::inviteNumLimit2($userId);
             if($status === false){
                 return [];

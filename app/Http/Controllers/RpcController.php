@@ -75,6 +75,7 @@ use App\Http\JsonRpcs\WithdrawLottJsonRpc;
 use App\Http\JsonRpcs\DoubleEggLottJsonRpc;
 use App\Http\JsonRpcs\YeardAwardJsonRpc;
 use App\Http\JsonRpcs\AmountShare19JsonRpc;
+use App\Http\JsonRpcs\InviteLimitTaskJsonRpc;
 
 class RpcController extends Controller
 {
@@ -168,6 +169,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new WeeksGuessJsonrpc());//周末竞猜
         $jsonRpcServer->addService(new YeardAwardJsonRpc());//年终奖翻倍 抽奖
         $jsonRpcServer->addService(new AmountShare19JsonRpc());//新春现金分享活动
+        $jsonRpcServer->addService(new InviteLimitTaskJsonRpc());//好友邀请3.0
 
         $jsonRpcServer->processingRequests();
         return response('')->header('Content-Type', 'application/json');
