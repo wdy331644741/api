@@ -276,9 +276,16 @@ class InviteTaskService
         $doneTaskArray = [];
         foreach (self::TASK_ID as $key => $value) {
             $_data = GlobalAttributes::getNumber($value.$this->whitch_tasks);
-            array_push($doneTaskArray, [$value => $_data]);
+            $doneTaskArray[$value] = $_data;
         }
         return $doneTaskArray;
+    }
+
+    public function getAllDoneTaskByUser(){
+        if($this->user_id){
+            return $_data = InviteLimitTask::where(['user_id'=>$this->user_id , 'status'=>1])->get()->count();
+        }
+        return 0;
     }
 
 
