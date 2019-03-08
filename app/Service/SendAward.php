@@ -272,7 +272,8 @@ class SendAward
                         //年化达到1000元 获得一次
                         $investmentNum = 0;
                         if($triggerData['scatter_type'] == 2){ //月标
-                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/12/1000);
+                            $period = $triggerData['period'] > 12 ? 12 : $triggerData['period'];
+                            $investmentNum = intval($triggerData['Investment_amount']*$period/12/1000);
                         }else if($triggerData['scatter_type'] == 1){
                             $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/1000);
                         }

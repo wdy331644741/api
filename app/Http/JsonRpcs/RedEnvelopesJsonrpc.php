@@ -68,6 +68,15 @@ class RedEnvelopesJsonRpc extends JsonRpc {
         }
         $config = Config::get('red_envelopes');
         $key = isset($config['key']) ? $config['key'] : '';
+        $count = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->count();
+        if($count < 1){
+            $awards = isset($config['awards']) ? $config['awards'] : '';
+            $userAttr = new UserAttribute();
+            $userAttr->user_id = $userId;
+            $userAttr->key = $key;
+            $userAttr->text = json_encode($awards);
+            $userAttr->save();
+        }
         DB::beginTransaction();
         $res = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->lockForUpdate()->first();
         if($res){
