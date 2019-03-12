@@ -11,7 +11,7 @@ use App\Models\Activity;
 
 use Lib\JsonRpcClient;
 
-use DB, Config;
+use DB, Config,Cache;
 
 class InviteTaskService
 {
@@ -19,13 +19,16 @@ class InviteTaskService
                         'invite_limit_task_exp',
                         'invite_limit_task_bind',
                         'invite_limit_task_invest'
-                    );
+                    );//用于给前端  数据格式转换
+
     const INVITE_LIMIT_TASK = 'invite_limit_task';//后台全局变量 设置项
     const INVITE_LIMIT_TASK_RESET = 'invite_limit_task_reset';
+
 
     const EXP_BYDAY = 'invite_limit_task_exp';//每日 限购100份
     const BIND_BYDAY = 'invite_limit_task_bind';
     const RECHARGE_BYDAY = 'invite_limit_task_invest';
+
 
     public $user_id = 0;
 
@@ -40,13 +43,36 @@ class InviteTaskService
     public function __construct($userId = 0)
     {
         $this->user_id = $userId;
-        $Config = GlobalAttributes::getItems(self::INVITE_LIMIT_TASK)->ToArray();
+        $Config = $this->getConfig();
         $this->tasks_total = array_column($Config,'number','string');
         $this->tasks_limit_time = array_column($Config,'text','string');
-        $this->invite_limit_task_reset = GlobalAttributes::getString(self::INVITE_LIMIT_TASK_RESET ,0);
+        $this->invite_limit_task_reset = $this->getConfigReset();
         $this->whitch_tasks_start = $this->getAutoTime();
         $this->whitch_tasks = date('YmdH' , strtotime($this->whitch_tasks_start) );
     }
+    //***********缓存 配置数据**************************
+    private function getConfig(){
+        return Cache::remember('INVITE_LIMIT_TASK', 60, function () {
+            $c = GlobalAttributes::getItems(self::INVITE_LIMIT_TASK)->ToArray();
+            if(empty($c)){
+                throw new OmgException(OmgException::CONFIG_NULL);
+            }else{
+                return $c;
+            }
+        });
+    }
+    private function getConfigReset(){
+        return Cache::remember('INVITE_LIMIT_TASK_RESET', 60, function () {
+            $c = GlobalAttributes::getString(self::INVITE_LIMIT_TASK_RESET ,0);
+            if(empty($c)){
+                throw new OmgException(OmgException::CONFIG_NULL);
+            }else{
+                return $c;
+            }
+        });
+    }
+    //***************************************************
+    //领取任务  新增数据
     public function addTaskByUser($alias_name)
     {
         if (!$this->user_id || !$alias_name ) {
@@ -72,7 +98,8 @@ class InviteTaskService
     }
 
     private function isInsertTaskData($alias_name){
-        $eloquent = $this->userTaskDataByDay($this->user_id)->where('alias_name',$alias_name);
+        //抓去用户所有的领取数据
+        $eloquent = $this->userTaskDataByDay()->where('alias_name',$alias_name);
         //是否已经完成该任务
         $isDone = $eloquent->where('status' ,1);
         if($isDone->isEmpty()){
@@ -82,6 +109,7 @@ class InviteTaskService
             });
             //是否剩余可领取到任务
             if($doing->isEmpty()){
+                //剩余可领任务 = 今天100 - 今天已经完成该任务数-今天正在进行的任务数
                 return true;
             }
         }else{
@@ -100,13 +128,13 @@ class InviteTaskService
         //独立日
         if(date('Y-m-d H:i:s') > date("Y-m-d $this->invite_limit_task_reset:00:00") ){
             $start_task = date("Y-m-d $this->invite_limit_task_reset:00:00");
-            // $end_task = date('Y-m-d 11:00:00',strtotime('+1 day') );
         }else{
             $start_task = date("Y-m-d $this->invite_limit_task_reset:00:00",strtotime('-1 day') );
-            // $end_task = date('Y-m-d 11:00:00');
         }
         return $start_task;
     }
+
+    //计算出不同任务的 失效时间
 
     //限时任务所有任务均在每日 11 点整点重置为默认值。所有任务倒计时时间
     //均以次日 11 点为优先计算，如倒计时时间距离次日 11 点＜任务周期时间，则
@@ -114,9 +142,6 @@ class InviteTaskService
     private function getTaskLimitTime($alias_name ,$start_time){
         //该批次任务 过期时间
         $limit_time = strtotime("+1 day",strtotime($start_time));
-        //限时任务所有任务均在每日 11 点整点重置为默认值。所有任务倒计时时间
-        //均以次日 11 点为优先计算，如倒计时时间距离次日 11 点＜任务周期时间，则
-        //显示距离 11 点时间为倒计时时间
         switch ($alias_name) {
             case 'invite_limit_task_exp':
                 $time = ($limit_time - time() )>$this->tasks_limit_time['invite_limit_task_exp'] ? time()+$this->tasks_limit_time['invite_limit_task_exp'] :$limit_time;
@@ -134,7 +159,7 @@ class InviteTaskService
         return date('Y-m-d H:i:s' , $time);
     }
 
-    //分享成功rpc 调用 发奖
+    //分享成功rpc 调用 发奖 18888体验金
     public function updateExpTask(){
         //是否正在 做任务
         $_data = $this->userTaskDataByDay($this->user_id)
@@ -188,7 +213,7 @@ class InviteTaskService
         return false;
     }
 
-    //队列 触发
+    //队列 触发（绑卡、首投）
     public function isTouchTask($alias_name, $tag){
         if(isset($tag['tag']) && $tag['tag'] == 'investment'){
             if($tag['from_user_id'] <= 0 || $tag['is_first'] != 1){
@@ -256,7 +281,7 @@ class InviteTaskService
 
     }
 
-
+    //活动期间 所有的数据By user_id
     public function userActivitData(){
         $_data = $this->userTaskDataByDay($this->user_id);
         return $_data;
@@ -265,11 +290,11 @@ class InviteTaskService
     //获取 当天增在进行的任务数量
     public function getTaskingByDay(){
         return $_data = InviteLimitTask::select(DB::raw('count(*) as user_count, alias_name'))
-        ->where(['date_str'=>$this->whitch_tasks])
-        ->where('status',0)
-        ->where('limit_time', '>', date('Y-m-d H:i:s'))
-        ->groupBy('alias_name')
-        ->get();
+            ->where(['date_str'=>$this->whitch_tasks])
+            ->where('status',0)
+            ->where('limit_time', '>', date('Y-m-d H:i:s'))
+            ->groupBy('alias_name')
+            ->get();
     }
     //获取 当天已经完成任务数量
     public function getTaskedByDay(){

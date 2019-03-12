@@ -124,6 +124,7 @@ class OmgException extends BasicException
     const LINK_IS_INVALID = 4334;
 
     const CUSTOM_AWARD = 4340;
+    const CONFIG_NULL = 4341;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -218,6 +219,7 @@ class OmgException extends BasicException
         self::LINK_IS_INVALID => "链接失效",
 
         self::CUSTOM_AWARD => "相同期限福利券已存在，请重新定制",
+        self::CONFIG_NULL => "未找到配置数据",
 
     );
 
