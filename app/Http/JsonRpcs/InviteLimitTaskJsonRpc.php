@@ -18,7 +18,7 @@ class InviteLimitTaskJsonRpc extends JsonRpc
 
     public static $shareTaskName = 'invite_limit_task_exp';
 
-
+    //固定 活动名字
     public static $strToNumKey = [
             'invite_limit_task_exp'=>1,
             'invite_limit_task_bind'=>2,
@@ -31,22 +31,15 @@ class InviteLimitTaskJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function limitTaskDraw($params){
-        //任务编号
-        switch ($params->task) {
-            case 1:
-                $task = 'invite_limit_task_exp';
-                break;
-            case 2:
-                $task = 'invite_limit_task_bind';
-                break;
-            case 3:
-                $task = 'invite_limit_task_invest';
-                break;
-
-            default:
-                throw new OmgException(OmgException::PARAMS_ERROR);
-                break;
+        if(empty($params->task)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
         }
+        //任务编号
+        $task = array_search($params->task, self::$strToNumKey);
+        if(!$task){
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        
         //用户ID
     	global $userId;
         if(!$userId) {
@@ -109,30 +102,30 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         }
 
         $server = new InviteTaskService($userId);
-        $activit_all_done = $server->getTaskedByDay();
+        $activit_all_done = $server->getTaskedByDay();//查询的 属性表里面的‘完成数’
 
-        $activit_all_doing_obj = $server->getTaskingByDay();
+        $activit_all_doing_obj = $server->getTaskingByDay(); //select count(*) as user_count, alias_name from  where 当天，status，任务过期时间 > now() group by alias_name;
+        //转换数据结构  以活动名为键值
         $activit_all_doing = array_column($activit_all_doing_obj->ToArray(), 'user_count','alias_name');
 
 
 
-        $user_data = $server->userActivitData();//用户所有的数据
-        $done_task_array = [];//当前已经完成的任务[1,2,3]
-        $doing_task_array = [];//当前正在进行的任务[ [alias_name=>time] ]
+        $user_data = $server->userActivitData();//该用户当天所有的数据
+        $done_task_array = [];//该用户今天 已经完成的任务[1,2,3]
+        $doing_task_array = [];//该用户今天 正在进行的任务[ [alias_name=>time] ]
         
         $task_done_num = $server->getAllDoneTaskByUser();//活动期间内 用户完成的任务数
 
-        //遍历 当天用户各个任务的状态
+        //遍历 当天用户各个任务的状态  （显示给前端）
         foreach ($user_data as $key => $value) {
             if($value['status'] == 1){
                 array_push($done_task_array, $value['alias_name']);
             }else if($value['limit_time'] > date('Y-m-d H:i:s')){
                 $limit_time = strtotime($value['limit_time']) - time();
                 $doing_task_array[$value['alias_name']] = $limit_time;
-                // array_push($doing_task_array, [$value['alias_name']=> $limit_time ]);
             }
         }
-        $newArray = [];
+        $newArray = [];//task_info  数据
         foreach ($server->tasks_total as $key => $value) {
             //任务剩余
             $over_num = $value 
@@ -140,26 +133,16 @@ class InviteLimitTaskJsonRpc extends JsonRpc
                     - (isset($activit_all_doing[$key])?$activit_all_doing[$key]:0 );
 
             //0领取  1立即前往 2已完成 3已抢光
-
-            // if(array_key_exists($key,$doing_task_array)){
-            //     $task_status = 1;
-            // }else{
-            //     if(in_array($key, $done_task_array)){
-            //         $task_status = 2;
-            //     }else{
-            //         if($over_num){
-            //             $task_status = 0;
-            //         }else{
-            //             $task_status = 3;
-            //         }
-            //     }
-            // }
-            //js
-            //$task_status = array_key_exists($key,$doing_task_array)?1:in_array($key, $done_task_array)?2:$over_num?0:3;
             $task_status = !array_key_exists($key,$doing_task_array)?!in_array($key, $done_task_array)?!$over_num?3:0:2:1;
-
+            //任务倒计时
             $over_time = $task_status!=1?0:isset($doing_task_array[$key])?$doing_task_array[$key]:0;
-            $newArray[self::$strToNumKey[$key]] = ['status'=>$task_status,'over_num'=>$over_num,'over_time'=>$over_time];
+
+
+            $newArray[self::$strToNumKey[$key]] = [
+                'status'=>$task_status,
+                'over_num'=>$over_num,
+                'over_time'=>$over_time
+            ];
         }
         return array(
             'message' => 'success',
