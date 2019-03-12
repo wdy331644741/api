@@ -63,7 +63,7 @@ class InviteTaskService
     }
     private function getConfigReset(){
         return Cache::remember('INVITE_LIMIT_TASK_RESET', 60, function () {
-            $c = GlobalAttributes::getString(self::INVITE_LIMIT_TASK_RESET ,0);
+            $c = GlobalAttributes::getString(self::INVITE_LIMIT_TASK_RESET ,11);//默认每天重置时间11点
             if(empty($c)){
                 throw new OmgException(OmgException::CONFIG_NULL);
             }else{
@@ -81,7 +81,6 @@ class InviteTaskService
 
         //是否可再领取
         // $locked = GlobalAttributes::getNumberByTodaySeconds(self::EXP,0,3600*$this->invite_limit_task_reset );
-        // return $locked;
         if(!$this->isInsertTaskData($alias_name) ){
             return false;
         }
@@ -97,6 +96,7 @@ class InviteTaskService
         return true;
     }
 
+    //是否可以领取任务
     private function isInsertTaskData($alias_name){
         //抓去用户所有的领取数据
         $eloquent = $this->userTaskDataByDay()->where('alias_name',$alias_name);
@@ -110,12 +110,18 @@ class InviteTaskService
             //是否剩余可领取到任务
             if($doing->isEmpty()){
                 //剩余可领任务 = 今天100 - 今天已经完成该任务数-今天正在进行的任务数
-                return true;
+                $alreadyDone = GlobalAttributes::getNumber(self::EXP_BYDAY.$this->whitch_tasks);
+                $justDoingObj = $this->getTaskingByDay()->where('alias_name',$alias_name);
+
+                $justDoing = $justDoingObj->isEmpty()?0:$justDoingObj->first()->user_count;
+                // return $justDoing;
+                return $this->tasks_total[$alias_name] - $alreadyDone -$justDoing >0?:false;
             }
         }else{
             return false;
         }
     }
+
 
     private function userTaskDataByDay(){
         return InviteLimitTask::where(['user_id'=>$this->user_id , 'date_str'=>$this->whitch_tasks])
