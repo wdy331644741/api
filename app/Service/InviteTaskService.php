@@ -228,61 +228,67 @@ class InviteTaskService
             //投资触发
             $_user = $tag['from_user_id'];//活动配置中只 配置了邀请人奖励
             //获取奖品详情***********
-            $invite_award_info = Activity::where('alias_name', $alias_name)->with('award_invite')->first()->awards->ToArray();
-            $invite_money = SendAward::_getAwardInfo($invite_award_info[0]['award_type'],$invite_award_info[0]['award_id']);
-            $invited_money = 0;
+            $invite_award_info = Activity::where('alias_name', $alias_name)->with('award_invite')->first()->award_invite->ToArray();
+            $invite_money = SendAward::_getAwardInfo($invite_award_info[0]['award_type'],$invite_award_info[0]['award_id']);//获得活动-邀请人的奖励配置
+            $invited_money['money'] = 0;
 
             $invited_user = $this->user_id;
         }else{
             //绑卡触发
             $url = Config::get('award.reward_http_url');
             $client = new JsonRpcClient($url);
-            //获取邀请人id
+            //获取邀请人id*********
             $res = $client->getInviteUser(array('uid' => $this->user_id));
             if(!isset($res['result']['data']['id'])){
-                return false;//绑卡  没有邀请关系。不发奖
+                // return false;//绑卡  没有邀请关系。不发奖
+                throw new OmgException(OmgException::GET_ERROR_DATA);
             }
             $_user = $res['result']['data']['id'];
-
+            //*******************
             $invite_award_info = Activity::where('alias_name', $alias_name)->with('awards')->first()->awards->ToArray();
-            $invited_award_info = Activity::where('alias_name', $alias_name)->with('award_invite')->first()->awards->ToArray();
+            $invited_award_info = Activity::where('alias_name', $alias_name)->with('award_invite')->first()->award_invite->ToArray();
             $invite_money = SendAward::_getAwardInfo($invite_award_info[0]['award_type'],$invite_award_info[0]['award_id']);
             $invited_money = SendAward::_getAwardInfo($invited_award_info[0]['award_type'],$invited_award_info[0]['award_id']);
             //获取奖品详情***********
-            //邀请了
+            //邀请了：
             $invited_user = $this->user_id;
         }
         
-        $_update = InviteLimitTask::where(['user_id'=>$_user , 'date_str'=>$this->whitch_tasks, 'alias_name'=>$alias_name ,'status'=>0])
-        ->where('limit_time', '>', date('Y-m-d H:i:s'))
-        // ->lockforupdate()
-        ->first();
-        if(!empty($_update) ){
+        
             //事务开始
             DB::beginTransaction();
             $locked = GlobalAttribute::where(array('key' => $alias_name.$this->whitch_tasks) )
                     ->lockforupdate()->first();
+            $_update = InviteLimitTask::where([
+                                'user_id'=>$_user , 
+                                'date_str'=>$this->whitch_tasks, 
+                                'alias_name'=>$alias_name ,
+                                'status'=>0])
+                    ->where('limit_time', '>', date('Y-m-d H:i:s'))
+                    // ->lockforupdate()
+                    ->first();
+            if(empty($_update) ){
+                DB::rollBack();//领取任务 数据不存在
+                throw new OmgException(OmgException::DATA_ERROR);
+            }
             if(!$locked) {//如果不存在 新建一个 并锁住
                 $new_locked_id = GlobalAttribute::create(['key' => $alias_name.$this->whitch_tasks,  'number' => 0]);
                 $locked = GlobalAttribute::where(array('id' => $new_locked_id->id) )
                     ->lockforupdate()->first();
-                }
-                //每日限额
-                if($locked->number >= $this->tasks_total[$alias_name]){
-                    DB::rollBack();
-                    throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);//每日限制任务次数 已经达标（该奖品已经参与满）
-                }
-                //更新任务状态
-                
-                InviteLimitTask::where(['id'=> $_update['id'] ] )->update(['status' => 1 ,'user_prize' => $invite_money['money'],'invite_prize'=>$invited_money['money'], 'invite_user_id'=>$invited_user ]);
-                //累加任务完成数
-                $locked->number += 1;
-                $locked->save();
-                DB::commit();
-                return true;
-        }
-
-        return false;
+            }
+            //每日限额
+            if($locked->number >= $this->tasks_total[$alias_name]){
+                DB::rollBack();
+                throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);//每日限制任务次数 已经达标（该奖品已经参与满）
+            }
+            //更新任务状态
+            
+            InviteLimitTask::where(['id'=> $_update['id'] ] )->update(['status' => 1 ,'user_prize' => $invite_money['money'],'invite_prize'=>$invited_money['money'], 'invite_user_id'=>$invited_user ]);
+            //累加任务完成数
+            $locked->number += 1;
+            $locked->save();
+            DB::commit();
+            return true;
 
 
     }
