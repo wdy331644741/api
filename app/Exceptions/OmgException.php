@@ -108,6 +108,7 @@ class OmgException extends BasicException
 
     const CUSTOM_AWARD = 4340;
     const CONFIG_NULL = 4341;
+    const GET_ERROR_DATA = 4342;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -199,6 +200,7 @@ class OmgException extends BasicException
 
         self::CUSTOM_AWARD => "相同期限福利券已存在，请重新定制",
         self::CONFIG_NULL => "未找到配置数据",
+        self::GET_ERROR_DATA => "请求passport数据有误",
 
     );
 
