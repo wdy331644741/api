@@ -22,7 +22,7 @@ class Friend30LimitTask extends Migration
             
             $table->string('date_str')->index()->comment('标示任务批次（当天）');
             $table->string('date_time_str')->comment('领取任务时间戳');
-            $table->timestamp('limit_time')->comment('过期时间');
+            $table->timestamp('limit_time')->nullable()->comment('过期时间');
 
             $table->float('user_prize', 8, 2)->comment('用户赏金');
             $table->integer('invite_user_id')->index()->comment('邀请用户id');
