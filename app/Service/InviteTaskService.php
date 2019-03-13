@@ -283,7 +283,7 @@ class InviteTaskService
             }
             //更新任务状态
             
-            InviteLimitTask::where(['id'=> $_update['id'] ] )->update(['status' => 1 ,'user_prize' => $invite_money['money'],'invite_prize'=>$invited_money['money'], 'invite_user_id'=>$invited_user ]);
+            InviteLimitTask::where(['id'=> $_update['id'] ] )->update(['status' => 1 ,'user_prize' => $invited_money['money'],'invite_prize'=>$invite_money['money'], 'invite_user_id'=>$invited_user ]);
             //累加任务完成数
             $locked->number += 1;
             $locked->save();
