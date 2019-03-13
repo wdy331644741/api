@@ -7,6 +7,7 @@ use App\Service\ActivityService;
 use App\Service\Attributes;
 use App\Service\GlobalAttributes;
 use App\Service\InviteTaskService;
+use App\Service\SendMessage;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
 use Validator, Config, Request;
@@ -54,6 +55,10 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         }
         $ser = new InviteTaskService($userId);
         $res = $ser->addTaskByUser($task);
+
+        //领取成功发送 推送站内信
+        SendMessage::Mail($userId,'恭喜您在“邀友赚赏金”限时活动中抢到 50 元现金奖励任务，24 小时内完成任务则现金实时发放至您网利宝账户中。');
+        //发送成功 //return true/false
 
         return array(
 	            'message' => 'success',

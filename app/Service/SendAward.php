@@ -74,21 +74,7 @@ class SendAward
             return self::addJoins($userID, $activityInfo, 2, json_encode($ruleStatus['errmsg']));
         }
 
-        //*****活动参与人数加1*****
-        Activity::where('id',$activityInfo['id'])->increment('join_num');
-
-        //*****发奖之前做的附加条件操作*****
-        $additional_status = self::beforeSendAward($activityInfo, $triggerData);
-        //10月03日闯关状态修改
-        if($activityInfo['alias_name'] == 'gq_1003' && isset($additional_status['investment'])){
-            if(empty($additional_status) || $additional_status['investment'] < 10000){
-                return '不发奖';
-            }else{
-                $Attributes = new Attributes();
-                $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
-            }
-        }
-        //好友邀请3.0  绑卡、首投。不满足发奖条件时  by：王东洋
+        //好友邀请3.0  绑卡、首投。不满足发奖条件时(需要先领取任务)  by：王东洋
         if(in_array($activityInfo['alias_name'], ['invite_limit_task_bind', 'invite_limit_task_invest'])){
             
             if($activityInfo['alias_name'] == 'invite_limit_task_invest' 
@@ -106,6 +92,22 @@ class SendAward
             $d = $server->isTouchTask($activityInfo['alias_name'],$triggerData);
             if(!$d){
                 return '不发奖';
+            }
+        }
+        //好友邀请3.0 end
+
+        //*****活动参与人数加1*****
+        Activity::where('id',$activityInfo['id'])->increment('join_num');
+
+        //*****发奖之前做的附加条件操作*****
+        $additional_status = self::beforeSendAward($activityInfo, $triggerData);
+        //10月03日闯关状态修改
+        if($activityInfo['alias_name'] == 'gq_1003' && isset($additional_status['investment'])){
+            if(empty($additional_status) || $additional_status['investment'] < 10000){
+                return '不发奖';
+            }else{
+                $Attributes = new Attributes();
+                $Attributes->status($triggerData['user_id'],'cg_success','1003:1');
             }
         }
 
