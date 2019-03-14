@@ -21,34 +21,34 @@ class InviteTaskService
                         'invite_limit_task_invest'
                     );//用于给前端  数据格式转换
 
-    const INVITE_LIMIT_TASK = 'invite_limit_task';//后台全局变量 设置项
+    const INVITE_LIMIT_TASK       = 'invite_limit_task';//后台全局变量 设置项
     const INVITE_LIMIT_TASK_RESET = 'invite_limit_task_reset';
 
 
-    const EXP_BYDAY = 'invite_limit_task_exp';//每日 限购100份
-    const BIND_BYDAY = 'invite_limit_task_bind';
+    const EXP_BYDAY      = 'invite_limit_task_exp';//每日 限购100份
+    const BIND_BYDAY     = 'invite_limit_task_bind';
     const RECHARGE_BYDAY = 'invite_limit_task_invest';
 
 
     public $user_id = 0;
 
-    public $whitch_tasks = '';//获取是哪一天的任务批次
-    public $whitch_tasks_start = '';//获取是哪一天的任务批次 开始时间
-    public $tasks_total = array();//每天各任务总数
-    public $tasks_limit_time = array();
+    public $whitch_tasks            = '';//获取是哪一天的任务批次
+    public $whitch_tasks_start      = '';//获取是哪一天的任务批次 开始时间
+    public $tasks_total             = array();//每天各任务总数
+    public $tasks_limit_time        = array();
     public $invite_limit_task_reset = 0;//每天重置任务时间
     /**
      *  构造 从数据库中获取  好友邀请3.0的配置
      */
     public function __construct($userId = 0)
     {
-        $this->user_id = $userId;
-        $Config = $this->getConfig();
-        $this->tasks_total = array_column($Config,'number','string');
-        $this->tasks_limit_time = array_column($Config,'text','string');
+        $this->user_id                 = $userId;
+        $Config                        = $this->getConfig();
+        $this->tasks_total             = array_column($Config,'number','string');
+        $this->tasks_limit_time        = array_column($Config,'text','string');
         $this->invite_limit_task_reset = $this->getConfigReset();
-        $this->whitch_tasks_start = $this->getAutoTime();
-        $this->whitch_tasks = date('YmdH' , strtotime($this->whitch_tasks_start) );
+        $this->whitch_tasks_start      = $this->getAutoTime();
+        $this->whitch_tasks            = date('YmdH' , strtotime($this->whitch_tasks_start) );
     }
     //***********缓存 配置数据**************************
     private function getConfig(){
@@ -87,11 +87,11 @@ class InviteTaskService
 
         //记录添加
         InviteLimitTask::create([
-            'user_id'=> $this->user_id,
-            'alias_name'=> $alias_name,
-            'status'=> 0,
-            'date_str'=> $this->whitch_tasks,
-            'limit_time'=> $this->getTaskLimitTime($alias_name , $this->whitch_tasks_start)//领取任务的超时时间
+            'user_id'    => $this->user_id,
+            'alias_name' => $alias_name,
+            'status'     => 0,
+            'date_str'   => $this->whitch_tasks,
+            'limit_time' => $this->getTaskLimitTime($alias_name , $this->whitch_tasks_start)//领取任务的超时时间
         ]);
         return true;
     }
@@ -260,10 +260,10 @@ class InviteTaskService
             $locked = GlobalAttribute::where(array('key' => $alias_name.$this->whitch_tasks) )
                     ->lockforupdate()->first();
             $_update = InviteLimitTask::where([
-                                'user_id'=>$_user , 
-                                'date_str'=>$this->whitch_tasks, 
-                                'alias_name'=>$alias_name ,
-                                'status'=>0])
+                                'user_id'    =>$_user , 
+                                'date_str'   =>$this->whitch_tasks, 
+                                'alias_name' =>$alias_name ,
+                                'status'     =>0])
                     ->where('limit_time', '>', date('Y-m-d H:i:s'))
                     // ->lockforupdate()
                     ->first();
