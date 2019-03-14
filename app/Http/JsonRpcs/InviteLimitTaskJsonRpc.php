@@ -21,9 +21,9 @@ class InviteLimitTaskJsonRpc extends JsonRpc
 
     //固定 活动名字
     public static $strToNumKey = [
-            'invite_limit_task_exp'=>1,
-            'invite_limit_task_bind'=>2,
-            'invite_limit_task_invest'=>3,
+            'invite_limit_task_exp'    =>1,
+            'invite_limit_task_bind'   =>2,
+            'invite_limit_task_invest' =>3,
     ];
 
 	/**
@@ -61,8 +61,8 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         //发送成功 //return true/false
 
         return array(
-	            'message' => 'success',
-	            'data' => $res
+                'message' => 'success',
+                'data'    => $res
 	        );
     }
 
@@ -151,11 +151,11 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         }
         return array(
             'message' => 'success',
-            'data' => [
-                'is_login' => $userId?true:false,
+            'data'    => [
+                'is_login'      => $userId?true:false,
                 'task_done_num' => $task_done_num,
-                'invite_num' => 0,
-                'task_info' => $newArray
+                'invite_num'    => 0,
+                'task_info'     => $newArray
             ]
         );
 
