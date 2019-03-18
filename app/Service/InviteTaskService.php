@@ -295,7 +295,7 @@ class InviteTaskService
 
     //活动期间 所有的数据By user_id
     public function userActivitData(){
-        $_data = $this->userTaskDataByDay($this->user_id);
+        $_data = $this->userTaskDataByDay();
         return $_data;
     }
 
