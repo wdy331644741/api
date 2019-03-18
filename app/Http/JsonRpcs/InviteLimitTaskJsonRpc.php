@@ -10,6 +10,8 @@ use App\Service\InviteTaskService;
 use App\Service\SendMessage;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
+
+use App\Models\InviteLimitTask;
 use Validator, Config, Request,Crypt;
 
 class InviteLimitTaskJsonRpc extends JsonRpc
@@ -163,6 +165,21 @@ class InviteLimitTaskJsonRpc extends JsonRpc
                 'over_time'=>$over_time
             ];
         }
+
+
+        //优先级展示
+        $displayWhichTask = null;
+        foreach ($newArray as $key => $value) {
+            if($value['status'] == 0 && $value['over_num'] != 0){
+                $displayWhichTask_alias = array_search($key, self::$strToNumKey);
+                $displayWhichTask_name = ActivityService::GetActivityInfoByAlias($displayWhichTask_alias);
+                $displayWhichTask = ['activit_name'=>$displayWhichTask_name['name'],
+                                        'over_num' =>$value['over_num']
+                                    ];
+                break;
+            }
+        }
+        
         return array(
             'message' => 'success',
             'data'    => [
@@ -171,7 +188,8 @@ class InviteLimitTaskJsonRpc extends JsonRpc
                 'invite_num'    => 0,
                 'task_info'     => $newArray,
                 'login_data'    => $user_activity_data,
-                'share_crypt'   => $bind_share_crypt
+                'share_crypt'   => $bind_share_crypt,
+                'displayWhichTask'=> $displayWhichTask
             ]
         );
 
@@ -196,18 +214,47 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             }else{
                 $phone = substr_replace($phone, '*****', 3, 5);
             }
-            $detail[$phone]=array_sum(array_map(function($value){return $value['user_prize'];}, $value));
+            $sum_amount = array_sum(array_map(function($value){return $value['user_prize'];}, $value));
+            array_push($detail,['phone'=>$phone,'sum_amount'=>$sum_amount]);
         }
         return $detail;
     }
 
     /**
-     *  分享出去
+     *  根据加密吗 判断是否领取
      *
      * @JsonRpcMethod
      */
-    public function goOpenRed(){
-        return 1;
+    public function displayWhich($params){
+        if(empty($params->str)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $id = Crypt::decrypt($params->str);
+        $_data = InviteLimitTask::where('id',$id)->get()->first();
+
+        //有效任务
+        //根据用户ID获取手机号
+        $url = env('INSIDE_HTTP_URL');
+        $client = new JsonRpcClient($url);
+        $userBase = $client->userBasicInfo(array('userId'=>$_data['user_id']));
+        $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+        if(empty($phone)){
+            //throw new OmgException(OmgException::API_FAILED);
+            $phone = $_data['user_id'];
+            // $phone = '131*****448';
+        }else{
+            $phone = substr_replace($phone, '*****', 3, 5);
+        }
+
+        return array(
+                'message' => 'success',
+                'data'    => [
+                    'effective' => $_data['limit_time'] > date('Y-m-d H:i:s') ?true:false,
+                    'invite_user' => $phone,
+                    'status'=> $_data['status']
+                ]
+            );
+
     }
 
 }
