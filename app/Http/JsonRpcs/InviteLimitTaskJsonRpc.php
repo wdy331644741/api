@@ -185,11 +185,10 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             'data'    => [
                 'is_login'      => $userId?true:false,
                 'task_done_num' => $task_done_num,
-                'invite_num'    => 0,
                 'task_info'     => $newArray,
                 'login_data'    => $user_activity_data,
                 'share_crypt'   => $bind_share_crypt,
-                'displayWhichTask'=> $displayWhichTask
+                'displayWhichTask'=> $userId?$displayWhichTask:null
             ]
         );
 
