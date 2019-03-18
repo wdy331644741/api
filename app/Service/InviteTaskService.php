@@ -320,9 +320,9 @@ class InviteTaskService
 
     public function getAllDoneTaskByUser(){
         if($this->user_id){
-            return $_data = InviteLimitTask::where(['user_id'=>$this->user_id , 'status'=>1])->get()->count();
+            return $_data = InviteLimitTask::where(['user_id'=>$this->user_id , 'status'=>1])->get();
         }
-        return 0;
+        return collect([]);//前面rpc中要用->isEmpty方法判断。
     }
 
 
