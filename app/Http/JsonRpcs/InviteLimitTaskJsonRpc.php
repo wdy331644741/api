@@ -10,7 +10,7 @@ use App\Service\InviteTaskService;
 use App\Service\SendMessage;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
-use Validator, Config, Request;
+use Validator, Config, Request,Crypt;
 
 class InviteLimitTaskJsonRpc extends JsonRpc
 {
@@ -119,8 +119,17 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $done_task_array = [];//该用户今天 已经完成的任务[1,2,3]
         $doing_task_array = [];//该用户今天 正在进行的任务[ [alias_name=>time] ]
         
-        $task_done_num = $server->getAllDoneTaskByUser();//活动期间内 用户完成的任务数
+        $task_done = $server->getAllDoneTaskByUser();//活动期间内 用户完成的任务数
 
+        if($task_done->isEmpty()){
+            $task_done_num = 0;
+            $user_activity_data = false;
+        }else{
+            $task_done_num = $task_done->count();
+            $user_activity_data = $this->taskDetail($task_done);
+        }
+
+        $bind_share_crypt = '';
         //遍历 当天用户各个任务的状态  （显示给前端）
         foreach ($user_data as $key => $value) {
             if($value['status'] == 1){
@@ -128,6 +137,11 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             }else if($value['limit_time'] > date('Y-m-d H:i:s')){
                 $limit_time = strtotime($value['limit_time']) - time();
                 $doing_task_array[$value['alias_name']] = $limit_time;
+                //加密绑卡 任务 分析连接
+                if($value['alias_name'] == 'invite_limit_task_bind'){
+                    $bind_share_crypt = Crypt::encrypt($value['id']);
+                    // return $bind_share_crypt;
+                }
             }
         }
         $newArray = [];//task_info  数据
@@ -155,11 +169,45 @@ class InviteLimitTaskJsonRpc extends JsonRpc
                 'is_login'      => $userId?true:false,
                 'task_done_num' => $task_done_num,
                 'invite_num'    => 0,
-                'task_info'     => $newArray
+                'task_info'     => $newArray,
+                'login_data'    => $user_activity_data,
+                'share_crypt'   => $bind_share_crypt
             ]
         );
 
 
+    }
+
+    private function taskDetail($data){
+        $_data = $data->reject(function ($data) {
+                    return $data['alias_name'] == 'invite_limit_task_exp';
+                })->groupBy('invite_user_id')->ToArray();
+
+        $detail = [];
+        foreach ($_data as $key => $value) {
+            //根据用户ID获取手机号
+            $url = env('INSIDE_HTTP_URL');
+            $client = new JsonRpcClient($url);
+            $userBase = $client->userBasicInfo(array('userId'=>$key));
+            $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+            if(empty($phone)){
+                //throw new OmgException(OmgException::API_FAILED);
+                $phone = $key;
+            }else{
+                $phone = substr_replace($phone, '*****', 3, 5);
+            }
+            $detail[$phone]=array_sum(array_map(function($value){return $value['user_prize'];}, $value));
+        }
+        return $detail;
+    }
+
+    /**
+     *  分享出去
+     *
+     * @JsonRpcMethod
+     */
+    public function goOpenRed(){
+        return 1;
     }
 
 }
