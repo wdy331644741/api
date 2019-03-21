@@ -107,6 +107,8 @@ class OmgException extends BasicException
     const LINK_IS_INVALID = 4334;
 
     const CUSTOM_AWARD = 4340;
+    const ACTIVITY_NOT_JOIN = 4341;
+    const FUND_LACK_FAIL = 4344;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -197,6 +199,8 @@ class OmgException extends BasicException
         self::LINK_IS_INVALID => "链接失效",
 
         self::CUSTOM_AWARD => "相同期限福利券已存在，请重新定制",
+        self::ACTIVITY_NOT_JOIN => "请参与活动后再来兑换奖品",
+        self::FUND_LACK_FAIL => "您的踏青基金不足",
 
     );
 

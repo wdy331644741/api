@@ -6,6 +6,7 @@ use App\Exceptions\OmgException;
 use App\Models\HdSpring;
 use App\Service\Attributes;
 use App\Service\ActivityService;
+use App\Service\Func;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Pagination\Paginator;
 use Lib\JsonRpcClient;
@@ -38,10 +39,10 @@ class SpringJsonRpc extends JsonRpc
             $result['available'] = 1; //活动开始
         }
         if ($result['login'] && $result['available']) {
-            $join = Attributes::getNumber($userId, $config['spring_join_key']);
-            $result['join'] = is_null($join) ? 0 : $join;
-            if ($result['join']) {
-                $fund = Attributes::getNumber($userId, $config['alias_name']);
+            $join = Attributes::getItem($userId, $config['spring_join_key']);
+            if ($join) {
+                $result['join'] = 1;
+                $fund = Attributes::getNumber($userId, $config['spring_drew_user']);
                 $result['fund'] = is_null($fund) ? 0 : $fund;
             }
         }
@@ -64,7 +65,7 @@ class SpringJsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $join_key = Config::get('spring.spring_join_key');
-        Attributes::setItem($userId, $join_key, 1);
+        Attributes::setItem($userId, $join_key);
         return [
             'code' => 0,
             'message' => 'success',
@@ -78,23 +79,22 @@ class SpringJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function springList() {
-        $data = HdSpring::select('user_id', 'name')->where('type', '!=', 'empty')->orderBy('id', 'desc')->groupBy('user_id')->take(20)->get();
-        foreach ($data as &$item){
-            if(!empty($item) && isset($item['user_id']) && !empty($item['user_id'])){
-                $phone = Func::getUserPhone($item['user_id']);
-                $item['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
+        $data = HdSpring::select('user_id', 'name', 'created_at')->orderBy('id', 'desc')->limit(30)->get()->toArray();
+        foreach ($data as $k=>$v){
+            if(!empty($v['user_id'])){
+                $phone = Func::getUserPhone($v['user_id']);
+                $data[$k]['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
             }
         }
-//
-//        return [
-//            'code' => 0,
-//            'message' => 'success',
-//            'data' => $list,
-//        ];
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
     }
 
     /**
-     * 兑换记录
+     * 获取我的奖品列表
      *
      * @JsonRpcMethod
      */
@@ -102,40 +102,22 @@ class SpringJsonRpc extends JsonRpc
         global $userId;
         $num = isset($params->num) ? $params->num : 10;
         $page = isset($params->page) ? $params->page : 1;
-        $invitecode = isset($params->invitecode) ? $params->invitecode : '';
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
         if($num <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         if($page <= 0){
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
-        //传入invitedcode参数
-        if(isset($params->invitecode)) {
-            $userId = intval(base64_decode($invitecode));
-            if(!$userId){
-                throw new OmgException(OmgException::PARAMS_ERROR);
-            }
-        } else {
-            //不传invitedcode,默认$userId
-            if(!$userId){
-                throw new OmgException(OmgException::NO_LOGIN);
-            }
+        // 是否登录
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
         }
-        Paginator::currentPageResolver(function () use ($page) {
-            return $page;
-        });
-        $data = HdRatecouponFriend::select('f_userid', 'total_amount', 'updated_at')
-            ->where('p_userid', $userId)
-            ->orderBy('updated_at', 'desc')->paginate($num)->toArray();
-        $rData = array();
-        if(!empty($data['data'])) {
-            foreach ($data['data'] as &$item){
-                $wechatInfo = WechatUser::where('uid', $item['f_userid'])->first();
-                $item['nick_name'] = !empty($wechatInfo->nick_name) ? $wechatInfo->nick_name : "";
-                $item['headimgurl'] = !empty($wechatInfo->headimgurl) ? $wechatInfo->headimgurl : "";
-                $item['alias_name'] = $item['total_amount'] . "%";
-            }
-        }
+        $data = HdSpring::select('name', 'created_at')
+            ->where('user_id',$userId)
+            ->orderBy('id', 'desc')->paginate($num)->toArray();
         $rData['total'] = $data['total'];
         $rData['per_page'] = $data['per_page'];
         $rData['current_page'] = $data['current_page'];
@@ -143,7 +125,6 @@ class SpringJsonRpc extends JsonRpc
         $rData['from'] = $data['from'];
         $rData['to'] = $data['to'];
         $rData['list'] = $data['data'];
-
         return [
             'code' => 0,
             'message' => 'success',
@@ -152,89 +133,64 @@ class SpringJsonRpc extends JsonRpc
     }
 
     /**
-     * 兑换加息券（发奖）
+     * 兑换奖品（发奖）
      *
      * @JsonRpcMethod
      */
-    public function robratecouponExchange() {
+    public function springExchange($params) {
         global $userId;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $config = Config::get('robratecoupon');
+        $type = isset($params->type) ? $params->type : '';
+        if (!$type) {
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
+        $config = Config::get('spring');
+        $award = [];
+        foreach ($config['awards'] as $v) {
+            if ($v['alias_name'] == $type) {
+                $award = $v;
+            }
+        }
+        if (empty($award)) {
+            throw new OmgException(OmgException::PARAMS_ERROR);
+        }
         // 活动是否存在
         if(!ActivityService::isExistByAlias($config['alias_name'])) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $hasRateFlag = UserAttribute::where('user_id',$userId)->where('key',$config['drew_total_key'])->first();
-        if($hasRateFlag) {
-            throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
+        if (!Attributes::getItem($userId, $config['spring_join_key'])) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_JOIN);
         }
-        $item = UserAttribute::where('user_id',$userId)->where('key',$config['drew_user_key'])->first();
-        if(!$item || !$item->string) {
-            throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-        }
-        $amount = floor($item->string * 10) / 10;
-        if(!$amount || $amount > $config['max'] ) {
-            throw new OmgException(OmgException::INTEGRAL_REMOVE_FAIL);
-        }
-
         //事务开始
         DB::beginTransaction();
-        UserAttribute::where('user_id',$userId)->where('key',$config['drew_user_key'])->lockForUpdate()->get();
-        $amount = $this->getUserRateCoupon($userId, $config);//当前加息券值
-        $aliasName = 'jiaxi'.($amount * 10);
-        $awardName = $amount . "%加息券";
-        //发奖
-        $activityInfo = ActivityService::GetActivityInfoByAlias($config['alias_name']);
-        $awards = RobRateCouponService::sendAward($amount, $awardName, $userId, $activityInfo);
-        $remark['award'] = json_decode($awards['remark'], 1);
-        $addData['user_id'] = $userId;
-        $addData['award_name'] = $awardName;
-        $addData['alias_name'] = $aliasName;
-        $addData['ip'] = Request::getClientIp();
-        $addData['user_agent'] = Request::header('User-Agent');
-        $addData['type'] = 'activity';
-        $addData['remark'] = json_encode($remark, JSON_UNESCAPED_UNICODE);
-        if(isset($awards['status'])) {
-            $addData['status'] = 1;
+        $attr = Attributes::getItemLock($userId, $config['spring_drew_user']);
+        $fund = $attr->number;
+        if ($fund < $award['fund']) {
+            DB::rollBack();
+            throw new OmgException(OmgException::FUND_LACK_FAIL);
         }
-        HdRatecoupon::create($addData);
-        Attributes::setItem($userId, $config['drew_total_key'], 1, $amount);
+        $model = new HdSpring();
+        $model->user_id = $userId;
+        $model->name = $award['name'];
+        $model->alias_name = $award['alias_name'];
+        $model->status = 1;
+        if (!$model->save()) {
+            DB::rollBack();
+            throw new OmgException(OmgException::DATABASE_ERROR);
+        }
+        Attributes::decrement($userId, $config['spring_drew_user'], $award['fund']);
+        Attributes::increment($userId, $config['spring_drew_total'],$award['fund']);
         //事务提交结束
         DB::commit();
-        $return['name'] = $awardName;
-        $return['alias_name'] = $aliasName;
-        $return['size'] = $amount;
+        unset($award['fund']);
+        unset($award['alias_name']);
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $return,
+            'data' => $award,
         ];
-
-
-
-    }
-    //获取加息券的增加值
-    private function getAward($amount, $config, $success=true) {
-        if(!$success) {
-            return 0;
-        }
-        $rateList = $config['rate'];
-        // 获取权重总值
-        $totalWeight = $config['weight'];
-        $target = mt_rand(1, $totalWeight);
-        foreach($rateList as $rate) {
-            if( $amount >= $rate['min'] && $amount < $rate['max'] ) {
-                $target = $target - $rate['weight'];
-                if($target <= 0) {
-                        $round = mt_rand(1,3);
-                        return $config['awards'][$round - 1];
-                }
-                break;
-            }
-        }
-        return 0;
     }
 
 }
