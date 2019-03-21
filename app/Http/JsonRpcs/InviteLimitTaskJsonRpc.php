@@ -50,16 +50,16 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         }
 
     	// 活动是否存在
-        if(ActivityService::isExistByAlias($task)) {
-            
-        }else{
-        	throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        $act = ActivityService::GetActivityInfoByAlias($task);
+
+        if(empty($act)) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $ser = new InviteTaskService($userId);
         $res = $ser->addTaskByUser($task);
 
         //领取成功发送 推送站内信
-        SendMessage::Mail($userId,'恭喜您在“邀友赚赏金”限时活动中抢到 50 元现金奖励任务，24 小时内完成任务则现金实时发放至您网利宝账户中。');
+        SendMessage::Mail($userId,"恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，24小时内完成任务则奖励实时发放至您网利宝账户中。");
         //发送成功 //return true/false
 
         return array(
