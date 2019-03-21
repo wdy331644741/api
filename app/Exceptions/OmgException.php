@@ -124,8 +124,10 @@ class OmgException extends BasicException
     const LINK_IS_INVALID = 4334;
 
     const CUSTOM_AWARD = 4340;
+
     const CONFIG_NULL = 4341;
     const GET_ERROR_DATA = 4342;
+
     const ACTIVITY_NOT_JOIN = 4351;
     const FUND_LACK_FAIL = 4354;
 
