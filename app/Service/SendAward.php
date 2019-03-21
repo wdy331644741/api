@@ -2283,6 +2283,7 @@ class SendAward
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
         $message['code'] = isset($info['code']) ? $info['code'] : '';
+        $message['money'] = isset($info['money']) ? $info['money'] : 0;
 
         $userBasicInfo = Func::getUserBasicInfo($info['user_id']);//获取用户基本信息
         $message['respecteduname'] = self::setUserRespectedName($userBasicInfo);//用户尊称key：respecteduname
