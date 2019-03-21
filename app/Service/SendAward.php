@@ -224,7 +224,51 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 踏青活动 start **/
+            case 'spring_investment':
+                if(
+                    isset($triggerData['tag']) && $triggerData['tag'] == 'investment' && $triggerData['period'] >= 6
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
+                ){
+                //每邀请一名好友注册并首次出借 2000 元（6 月及以上标）
+                //邀请人和被邀请人均可获得 3000出游基金。
+                    //邀请人需点击“参与活动”后的邀请好友才可以满足奖励条件；
+                    $fromUserId = intval($triggerData['from_user_id']);
+                    if (
+                        $triggerData['is_first'] && $triggerData['Investment_amount'] >= 2000
+                        && $fromUserId && (empty($activityInfo['start_at']) || $triggerData['register_time'] >= $activityInfo['start_at'])
+                    )
+                    {
+                        $join = Attributes::getItem($fromUserId, 'spring_join_key');
+                        if ($join) {
+                            Attributes::increment($triggerData['user_id'], 'spring_drew_user', 3000);
+                            Attributes::increment($fromUserId, 'spring_drew_user', 3000);
+                        }
 
+                    }
+                    //出借送踏青基金
+                    if ($triggerData['Investment_amount'] >= 1000) {
+                        $fund = 0;
+                        switch ($triggerData['period']) {
+                            case 6:
+                                $fund = 500;
+                                break;
+                            case 12:
+                                $fund = 1000;
+                                break;
+                            case 18:
+                                $fund = 1200;
+                                break;
+                            case 24:
+                                $fund = 1500;
+                                break;
+                        }
+                        Attributes::increment($triggerData['user_id'], 'spring_drew_user', $fund);
+                    }
+                }
+                break;
+            /** 踏青活动 start **/
             /** 19 新春现金红包 start **/
             case '19amountshare_send':
                 if(
