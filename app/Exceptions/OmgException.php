@@ -107,8 +107,8 @@ class OmgException extends BasicException
     const LINK_IS_INVALID = 4334;
 
     const CUSTOM_AWARD = 4340;
-    const ACTIVITY_NOT_JOIN = 4341;
-    const FUND_LACK_FAIL = 4344;
+    const ACTIVITY_NOT_JOIN = 4351;
+    const FUND_LACK_FAIL = 4354;
 
     protected static $errorArray = array(
         //接口调用错误
