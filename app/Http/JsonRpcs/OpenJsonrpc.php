@@ -3,18 +3,20 @@
 namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
+use App\Service\Func;
 use Validator;
 use Lib\JsonRpcClient;
 use Lib\Session;
 use Lib\McQueue;
 use Lib\Weixin;
 use Config;
+use  \GuzzleHttp\Client;
 
 
 class OpenJsonRpc extends JsonRpc {
 
     private $_weixin = 'wechat';
-    
+
     /**
      * 微信绑定
      *
@@ -210,6 +212,127 @@ class OpenJsonRpc extends JsonRpc {
             'message' => 'success',
             'sign_package' =>$data,
         );
+    }
+
+    //--------------------- 兑吧 积分商城 JsonRPC-------------------------//
+
+    /**
+     * 免登录接口
+     *
+     * @JsonRpcMethod
+     */
+    public function getAutoLoginUrl($params){
+        global $userId;
+        $dbredirect = isset($params->dbredirect) ? $params->dbredirect : null;
+        $userInfo = Func::getUserBasicInfo($userId,false);
+        $score = $userInfo['score'];
+        if(empty($userId)){
+            $userId = "not_login";
+            $score = 0;
+        }
+        $timestamp=msectime();
+        $DbCnf = config('open.duiba');
+        $array=array("uid"=>$userId,"credits"=>$score,"appSecret"=>$DbCnf['AppSecret'],"appKey"=>$DbCnf['AppKey'],"timestamp"=>$timestamp);
+        if($dbredirect != null){
+            $array['redirect']=$dbredirect;
+        }
+        $sign=Func::DbSign($array);
+        $array['sign']=$sign;
+        $url=$this->duibaAssembleUrl($DbCnf['Base_AutoLogin_Url'],$array);
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$url,
+        );
+    }
+
+    /**
+     * 前置商品查询接口
+     *
+     * @JsonRpcMethod
+     */
+    public function getProductList($params){
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 5;
+        $httpClient = new Client([
+            'base_uri'=>"https://activity.m.duiba.com.cn",
+            'timeout'=>9999.0
+        ]);
+
+        $DbCnf = config('open.duiba');
+        $timestamp = msectime();
+        $arr = ['appKey'=>$DbCnf['AppKey'],'appSecret'=>$DbCnf['AppSecret'],'timestamp'=>$timestamp,'count'=>$pageNum];
+        $sign = Func::DbSign($arr);
+
+        $productUrl = "/queryForFrontItem/query?appKey=".$DbCnf['AppKey']."&timestamp=$timestamp&count=$pageNum&sign=$sign";
+        $res = $httpClient->request('GET', $productUrl, ['verify' => false]);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            if(isset($data['success']) && $data['success'] == 'true'){
+                return array(
+                    'code' => 0,
+                    'message' => "success",
+                    'data' =>$data['data'],
+                );
+            }
+        }
+        return array(
+            'code' => -1,
+            'message' => 'fail',
+            'data' =>null,
+        );
+
+    }
+
+    /**
+     * 前置秒杀商品查询接口
+     *
+     * @JsonRpcMethod
+     */
+    public function getSeckillProductList($params){
+        $pageNum = isset($params->pageNum) ? $params->pageNum : 5;
+        $httpClient = new Client([
+            'base_uri'=>"https://activity.m.duiba.com.cn",
+
+            'timeout'=>9999.0
+        ]);
+
+        $DbCnf = config('open.duiba');
+        $timestamp = msectime();
+        $arr = ['appKey'=>$DbCnf['AppKey'],'appSecret'=>$DbCnf['AppSecret'],'timestamp'=>$timestamp,'count'=>$pageNum];
+        $sign = Func::DbSign($arr);
+
+        $productUrl = "/gaw/querySeckillItem/querySeckillGoods?appKey=".$DbCnf['AppKey']."&timestamp=$timestamp&count=$pageNum&sign=$sign";
+        $res = $httpClient->request('GET', $productUrl, ['verify' => false]);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            if(isset($data['success']) && $data['success'] == 'true'){
+                return array(
+                    'code' => 0,
+                    'message' => $data['desc'],
+                    'data' =>$data['data'],
+                );
+            }
+        }
+        return array(
+            'code' => -1,
+            'message' => 'fail',
+            'data' =>null,
+        );
+    }
+
+
+
+    //--------------------- 兑吧 积分商城 JsonRPC end -------------------------//
+    /*
+	*构建参数请求的URL
+	*/
+    private function duibaAssembleUrl($url, $array)
+    {
+        unset($array['appSecret']);
+        foreach ($array as $key=>$value) {
+            $url=$url.$key."=".urlencode($value)."&";
+        }
+        return $url;
     }
 
 }

@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Models\DbIntegralmallLog;
 use App\Models\Statistics;
 use Illuminate\Http\Request;
 use Lib\JsonRpcClient;
@@ -11,6 +12,8 @@ use App\Models\JsonRpc;
 use App\Models\Admin;
 use App\Models\GlobalAttribute;
 use App\Service\SendAward;
+use  \GuzzleHttp\Client;
+use App\Models\DbIntegralmallAddtimesLog;
 use Config;
 
 class Func
@@ -259,6 +262,56 @@ class Func
     }
 
     /**
+     * 兑吧公共加活动次数接口
+     * @param $user_id 用户id
+     * @param $activityId 兑吧活动id
+     * @param $times 需要增加的次数
+     * @param $validType 增加次数类型，值为0和1（传0标示永久，传1标示每天）
+     * @return mixed
+     */
+    static function DbAddTimes($user_id,$activityId,$times = 1,$validType = 0){
+        $httpClient = new Client([
+            'base_uri'=>"https://activity.m.duiba.com.cn",
+            'timeout'=>9999.0
+        ]);
+        $uuid = self::create_guid();
+        $DbCnf = config('open.duiba');
+        $timestamp = msectime();
+        $arr = [
+            'appKey'=>$DbCnf['AppKey'],
+            'appSecret'=>$DbCnf['AppSecret'],
+            'timestamp'=>$timestamp,
+            'activityId'=>$activityId,
+            'times'=>$times,
+            'validType'=>$validType,
+            'bizId'=>$uuid,
+            'uid'=>$user_id
+        ];
+        $sign = self::DbSign($arr);
+        $addTimesUrl = "/activityVist/addTimes?appKey=".$DbCnf['AppKey']."&timestamp=".$timestamp."&activityId=".$activityId."&times=".$times."&validType=".$validType."&uid=".$user_id."&bizId=".urlencode($uuid)."&sign=".$sign;
+        $res = $httpClient->request('GET', $addTimesUrl, ['verify' => false]);
+        if($res->getStatusCode() == 200){
+            $data = (array)json_decode($res->getBody());
+            $obj = new DbIntegralmallAddtimesLog();
+            $obj->user_id = $user_id;
+            $obj->times = $times;
+            $obj->actId = $activityId;
+            $obj->validType = $validType;
+            $obj->bizId = $uuid;
+            if(isset($data['success']) && $data['success'] == 'true'){
+                $obj->status = 1;
+                $obj->save();
+                return true;
+            }else{
+                $obj->status = 0;
+                $obj->remark = isset($data['message']) ? $data['message'] : null;
+                $obj->save();
+                return false;
+            }
+        }
+    }
+
+    /**
      * 根据用户id获取用户基本信息
      * @param $user_id
      * @return mixed
@@ -450,6 +503,41 @@ class Func
         }
         //文件名
         return array('errcode'=>0,'data'=>Config::get('cms.img_http_url').$fileName);
+    }
+
+    /*
+	*  签名验证,通过签名验证的才能认为是合法的请求
+	*/
+    static public function DbSignVerify($appSecret,$array){
+        $newarray=array();
+        $newarray["appSecret"]=$appSecret;
+        reset($array);
+        $str = "";
+        while(list($key,$val) = each($array)){
+            if($key != "sign" ){
+                $str .=$key."-";
+                $newarray[$key]=$val;
+            }
+
+        }
+        $sign=self::DbSign($newarray);
+        if($sign == $array["sign"]){
+            return true;
+        }
+        return false;
+    }
+
+
+    /*
+	*  md5签名，$array中务必包含 appSecret
+	*/
+    static public function DbSign($array){
+        ksort($array);
+        $string="";
+        while (list($key, $val) = each($array)){
+            $string = $string . $val ;
+        }
+        return md5($string);
     }
 
     /*

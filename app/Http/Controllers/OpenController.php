@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests;
+use App\Models\DbIntegralmall;
+use App\Models\DbIntegralmallLog;
 use App\Models\FlowRechargeLog;
+use App\Models\IntegralMall;
 use App\Models\WechatUser;
+use App\Service\Func;
+use App\Service\SendAward;
 use Illuminate\Http\Request;
 use Lib\Weixin;
 use Lib\JsonRpcClient;
@@ -13,6 +18,7 @@ use Config;
 use App\Http\JsonRpcs\ActivityJsonRpc;
 use App\Models\Channel;
 use App\Service\SendMessage;
+use Exception;
 
 class OpenController extends Controller
 {
@@ -830,6 +836,244 @@ class OpenController extends Controller
 
         }
     }
+
+    //-------------------------------- 兑吧 积分商城 ---------------------//
+
+    /*
+	*  积分消耗请求的解析方法
+	*  当用户进行兑换时，兑吧会发起积分扣除请求，开发者收到请求后，可以通过此方法进行签名验证与解析，然后返回相应的格式
+	*  返回格式为：
+	*  成功：{"status":"ok", 'errorMessage':'', 'bizId': '20140730192133033', 'credits': '100'}
+	*  失败：{'status': 'fail','errorMessage': '失败原因（显示给用户）','credits': '100'}
+	*/
+    public function getParseCredit(Request $request){
+        $request_array = $request->all();
+        $DbCnf = config('open.duiba');
+        $appKey = $DbCnf['AppKey'];
+        $appSecret = $DbCnf['AppSecret'];
+        $userInfo = Func::getUserBasicInfo($request_array['uid'],true);
+        if($request_array["appKey"] != $appKey){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'appKey not match','credits'=>$userInfo['score']]);
+        }
+        if($request_array["timestamp"] == null ){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>"timestamp can't be null",'credits'=>$userInfo['score']]);
+        }
+        $verify=Func::DbSignVerify($appSecret,$request_array);
+        if(!$verify){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'sign verify fail','credits'=>$userInfo['score']]);
+        }
+
+        //虚拟奖品，调用孙峰接口减去积分
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        //用户积分
+        $iData['user_id'] = $request_array['uid'];
+        $iData['uuid'] = SendAward::create_guid();
+        $iData['source_id'] = 0;
+        $iData['source_name'] = "兑吧积分商城商品".$request_array['type'];
+        if(isset($request_array['itemCode'])){
+            $iData['source_name'] = "兑吧积分商城-自有虚拟商品".$request_array['itemCode'];
+        }
+        $iData['integral'] = $request_array['credits'];
+        $iData['remark'] = $request_array['description'];
+
+        //发送接口
+        $result = $client->integralUsageRecord($iData);
+        if (isset($result['result']) && $result['result']) {//成功
+            $myOrderSn = "WD".time().str_pad(mt_rand(1, 99999), 5, mt_rand(0,9), STR_PAD_LEFT);
+            $obj = new DbIntegralmall();
+            $obj->user_id = $request_array['uid'];
+            $obj->credits = $request_array['credits'];
+            $obj->itemCode = isset($request_array['itemCode']) ? $request_array['itemCode'] : null;
+            $obj->description = $request_array['description'];
+            $obj->orderNum = $request_array['orderNum'];
+            $obj->myOrderNum = $myOrderSn;
+            $obj->type = $request_array['type'];
+            $obj->facePrice = isset($request_array['facePrice']) ? $request_array['facePrice'] : null;
+            $obj->actualPrice = $request_array['actualPrice'];
+            $obj->ip = isset($request_array['ip']) ? $request_array['ip'] : null;
+            $obj->waitAudit = isset($request_array['waitAudit']) ? $request_array['waitAudit'] : null;
+            $obj->params = isset($request_array['params']) ? $request_array['params'] : null;
+            $obj->status = 2;
+            $obj->save();
+            return $this->outputNotCodeJson(['status'=>'ok','errorMessage'=>'success','bizId'=>$myOrderSn,'credits'=>$userInfo['score']-$request_array['credits']]);
+        }else{
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'扣除积分失败','credits'=>$userInfo['score']]);
+        }
+    }
+
+    /*
+    *  加积分请求的解析方法
+    *  当用点击签到，或者有签到弹层时候，兑吧会发起加积分请求，开发者收到请求后，可以通过此方法进行签名验证与解析，然后返回相应的格式
+    *  返回格式为：
+    *  成功：{"status":"ok", 'errorMessage':'', 'bizId': '20140730192133033', 'credits': '100'}
+    *  失败：{'status': 'fail','errorMessage': '失败原因（显示给用户）','credits': '100'}
+    */
+    function getAddCreditsConsume(Request $request){
+        $request_array = $request->all();
+        $DbCnf = config('open.duiba');
+        $appKey = $DbCnf['AppKey'];
+        $appSecret = $DbCnf['AppSecret'];
+        $userInfo = Func::getUserBasicInfo($request_array['uid'],true);
+        if($request_array["appKey"] != $appKey){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'appKey not match','credits'=>$userInfo['score']]);
+        }
+        if($request_array["timestamp"] == null ){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>"timestamp can't be null",'credits'=>$userInfo['score']]);
+        }
+        $verify=Func::DbSignVerify($appSecret,$request_array);
+        if(!$verify){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'sign verify fail','credits'=>$userInfo['score']]);
+        }
+        $data = DbIntegralmallLog::where(['orderNum'=>$request_array['orderNum'],'status'=>0])->first();
+        $source_name = "积分商城";
+        switch ($request_array['type']){
+            case 'game':
+                $source_name = "积分商城-游戏";
+                break;
+            case 'sign':
+                $source_name = "积分商城-签到";
+                break;
+            case 'reSign':
+                $source_name = "积分商城-补签";
+                break;
+            case 'hdtool':
+                $source_name = "积分商城-活动";
+                break;
+            default:
+                $source_name = "积分商城";
+                break;
+        }
+        if(empty($data)){
+            $info = array();
+            $info['user_id'] = $request_array['uid'];
+            $info['trigger'] = 4;
+            $info['source_name'] =$source_name;
+            $info['activity_id'] = 0;
+            $info['integral'] = $request_array['credits'];
+            $info['remark'] = isset($request_array['description']) ? $request_array['description'] : $source_name;
+            $res = SendAward::integralSend($info);
+            $myOrderSn = "WD".time(). str_pad(mt_rand(1, 99999), 5, mt_rand(0,9), STR_PAD_LEFT);
+            $obj = new DbIntegralmallLog();
+            $obj->user_id = $request_array['uid'];
+            $obj->credits = $request_array['credits'];
+            $obj->description = isset($request_array['description']) ? $request_array['description'] : null;
+            $obj->orderNum = $request_array['orderNum'];
+            $obj->myOrderNum = $myOrderSn;
+            $obj->type = $request_array['type'];
+            $obj->ip = isset($request_array['ip']) ? $request_array['ip'] : null;
+            if($res['status']){
+                $obj->status = 1;
+                $obj->save();
+                if(!$obj->id){
+                    $obj->status = 2;
+                    $obj->save();
+                }
+                return $this->outputNotCodeJson(['status'=>"ok","bizId"=>$myOrderSn,"errorMessage"=>"增加积分成功","credits"=>($userInfo['score']+$request_array['credits'])]);
+            }else{
+                $obj->status = 0;
+                $obj->save();
+            }
+        }else{
+            $info = array();
+            $info['user_id'] = $request_array['uid'];
+            $info['trigger'] = 4;
+            $info['source_name'] =$source_name;
+            $info['activity_id'] = 0;
+            $info['integral'] = $request_array['credits'];
+            $info['remark'] = isset($request_array['description']) ? $request_array['description'] : $source_name;
+            $res = SendAward::integralSend($info);
+            if($res['status']){
+                $uStatus = DbIntegralmallLog::where('orderNum',$request_array['orderNum'])->update(['status'=>1]);
+                if(!$uStatus){
+                    DbIntegralmallLog::where('orderNum',$request_array['orderNum'])->update(['status'=>2]);
+                }
+                return $this->outputNotCodeJson(['status'=>"ok","bizId"=>$data->myOrderNum,"errorMessage"=>"增加积分成功","credits"=>($userInfo['score']+$request_array['credits'])]);
+            }
+        }
+        return $this->outputNotCodeJson(['status'=>"fail","errorMessage"=>"增加积分失败","credits"=>$userInfo['score']]);
+    }
+
+     /*
+    *  兑换订单的结果通知请求的解析方法
+    *  当兑换订单成功时，兑吧会发送请求通知开发者，兑换订单的结果为成功或者失败，如果为失败，开发者需要将积分返还给用户
+    */
+    public function getParseCreditNotify(Request $request){
+        $request_array = $request->all();
+        $DbCnf = config('open.duiba');
+        $appKey = $DbCnf['AppKey'];
+        $appSecret = $DbCnf['AppSecret'];
+        if($request_array["appKey"] != $appKey){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'appKey not match']);
+        }
+        if($request_array["timestamp"] == null ){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>"timestamp can't be null"]);
+        }
+        $verify=Func::DbSignVerify($appSecret,$request_array);
+        if(!$verify){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'sign verify fail']);
+        }
+        $data = DbIntegralmall::where(['orderNum'=>$request_array['orderNum'],"status"=>2])->first();
+        if(empty($data)){
+            return "Records is not found";
+        }
+        if(isset($request_array['success']) && $request_array['success'] == "true"){
+            DbIntegralmall::where(['orderNum'=>$request_array['orderNum']])->update(['status'=>1]);
+            return 'ok';
+        }else{
+            $res = DbIntegralmall::where(['orderNum'=>$request_array['orderNum']])->update(['status'=>0,'remark'=>isset($request_array['errorMessage']) ? $request_array['errorMessage'] : null]);
+            if($res){
+                $info = array();
+                $info['user_id'] = $data['user_id'];
+                $info['trigger'] = 4;
+                $info['activity_id'] = 0;
+                $info['source_name'] = "积分商城退还积分";
+                $info['integral'] = $data['credits'];
+                $info['remark'] = "积分商城兑换失败，退还积分-".$data['orderNum'];
+                $res = SendAward::integralSend($info);
+                if(!$res['status']){
+                    return "Credits refund failed";
+                }
+            }else{
+                return "Update failed";
+            }
+            return 'ok';
+        }
+    }
+
+
+    /*
+    *  虚拟商品充值的解析方法
+    *  当用兑换虚拟商品时候，兑吧会发起虚拟商品请求，开发者收到请求后，可以通过此方法进行签名验证与解析，然后返回相应的格式
+    *  返回格式为：
+    *   成功：   {status:"success",credits:"10", supplierBizId:"no123456"}
+    *	失败：   {status:"fail ", errorMessage:"签名签证失败", supplierBizId:"no123456"}
+    */
+    function getVirtualRecharge(Request $request){
+        $request_array = $request->all();
+        $DbCnf = config('open.duiba');
+        $appKey = $DbCnf['AppKey'];
+        $appSecret = $DbCnf['AppSecret'];
+        if($request_array["appKey"] != $appKey){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'appKey not match','supplierBizId'=>"appKey-not-match"]);
+        }
+        if($request_array["timestamp"] == null ){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>"timestamp can't be null",'supplierBizId'=>"timestamp-can't-be-null"]);
+        }
+        $verify=Func::DbSignVerify($appSecret,$request_array);
+        if(!$verify){
+            return $this->outputNotCodeJson(['status'=>'fail','errorMessage'=>'sign verify fail','supplierBizId'=>"sign-verify-fail"]);
+        }
+        $awardArr = explode("-",$request_array['params']);
+        $return = SendAward::sendDataRole($request_array['uid'],$awardArr[1],$awardArr[0],0,'积分商城兑换自有虚拟商品');
+        if(is_array($return) && $return['status']){
+            $userInfo = Func::getUserBasicInfo($request_array['uid'],true);
+            return response()->json(array('status'=>"success",'credits'=>$userInfo['score'],'supplierBizId'=>$return['uuid']));
+        }
+        return response()->json(array('status'=>"fail",'errorMessage'=>"充值失败",'supplierBizId'=>isset($return['uuid']) ? $return['uuid'] : 'no-supplierBizId'));
+    }
+
+    //-------------------------------- 兑吧 积分商城end ---------------------//
 
     //拼接url后边参数
     private function convertUrlQuery($url){

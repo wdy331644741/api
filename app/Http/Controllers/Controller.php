@@ -18,6 +18,10 @@ class Controller extends BaseController
     protected function outputRpc($res) {
         return response()->json($this->rpc2json($res));
     }
+
+    protected function outputNotCodeJson($arr=array()){
+        return response()->json($arr);
+    }
     
     protected function rpc2json($res) {
         if(isset($res['error'])){
