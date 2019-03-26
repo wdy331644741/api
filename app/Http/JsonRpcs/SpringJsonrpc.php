@@ -98,37 +98,37 @@ class SpringJsonRpc extends JsonRpc
      *
      * @JsonRpcMethod
      */
-    public function springMyList($params) {
+    public function springMyList() {
         global $userId;
-        $num = isset($params->num) ? $params->num : 10;
-        $page = isset($params->page) ? $params->page : 1;
-        Paginator::currentPageResolver(function () use ($page) {
-            return $page;
-        });
-        if($num <= 0){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-        if($page <= 0){
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
+//        $num = isset($params->num) ? $params->num : 10;
+//        $page = isset($params->page) ? $params->page : 1;
+//        Paginator::currentPageResolver(function () use ($page) {
+//            return $page;
+//        });
+//        if($num <= 0){
+//            throw new OmgException(OmgException::API_MIS_PARAMS);
+//        }
+//        if($page <= 0){
+//            throw new OmgException(OmgException::API_MIS_PARAMS);
+//        }
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $data = HdSpring::select('name', 'created_at')
             ->where('user_id',$userId)
-            ->orderBy('id', 'desc')->paginate($num)->toArray();
-        $rData['total'] = $data['total'];
-        $rData['per_page'] = $data['per_page'];
-        $rData['current_page'] = $data['current_page'];
-        $rData['last_page'] = $data['last_page'];
-        $rData['from'] = $data['from'];
-        $rData['to'] = $data['to'];
-        $rData['list'] = $data['data'];
+            ->orderBy('id', 'desc')->get()->toArray();
+//        $rData['total'] = $data['total'];
+//        $rData['per_page'] = $data['per_page'];
+//        $rData['current_page'] = $data['current_page'];
+//        $rData['last_page'] = $data['last_page'];
+//        $rData['from'] = $data['from'];
+//        $rData['to'] = $data['to'];
+//        $rData['list'] = $data['data'];
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $rData,
+            'data' => $data,
         ];
     }
 
