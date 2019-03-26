@@ -225,10 +225,11 @@ class OpenJsonRpc extends JsonRpc {
         global $userId;
         $dbredirect = isset($params->dbredirect) ? $params->dbredirect : null;
         $userInfo = Func::getUserBasicInfo($userId,false);
-        $score = $userInfo['score'];
         if(empty($userId)){
             $userId = "not_login";
             $score = 0;
+        }else{
+            $score = isset($userInfo['score']) ? $userInfo['score'] : 0;
         }
         $timestamp=msectime();
         $DbCnf = config('open.duiba');
