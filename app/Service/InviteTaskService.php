@@ -229,8 +229,8 @@ class InviteTaskService
             $_user = $tag['from_user_id'];//活动配置中只 配置了邀请人奖励
             //获取奖品详情***********
             $invite_award_info = Activity::where('alias_name', $alias_name)->with('award_invite')->first()->award_invite->ToArray();
-            $invite_money = SendAward::_getAwardInfo($invite_award_info[0]['award_type'],$invite_award_info[0]['award_id']);//获得活动-邀请人的奖励配置
-            $invited_money['money'] = 0;
+            $invited_money = SendAward::_getAwardInfo($invite_award_info[0]['award_type'],$invite_award_info[0]['award_id']);//获得活动配置中-邀请人的奖励
+            $invite_money['money'] = 0;//被邀请人
 
             $invited_user = $this->user_id;
         }else{
