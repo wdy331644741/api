@@ -200,6 +200,23 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 逢10抽大奖 start **/
+            case 'perten_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && $triggerData['buy_time'] >= $activityInfo['start_at'] && $triggerData['period'] >= 6){
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if ( $amount >= 5000 ) {
+                        $num = intval($amount/5000);
+                        PerBaiService::addDrawNum($triggerData['user_id'],$num, 'investment', $triggerData['buy_time']);
+                    }
+                }
+                break;
+            //邀请人首投
+//            case 'perten_invite_investment':
+//                if( isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first'] && $triggerData['buy_time'] >= $activityInfo['start_at']){
+//                    PerBaiService::addDrawNum($triggerData['from_user_id'],1, 'invite', $triggerData['buy_time']);
+//                }
+//                break;
+            /** 逢10抽大奖 end **/
             /** 19 新春现金红包 start **/
             case '19amountshare_send':
                 if(
