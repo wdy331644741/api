@@ -4,7 +4,7 @@ namespace App\Http\JsonRpcs;
 
 use App\Exceptions\OmgException;
 use App\Models\Cms\Opinion;
-use Validator;
+use Validator, Cache;
 
 class OpinionJsonRpc extends JsonRpc {
     
@@ -44,4 +44,18 @@ class OpinionJsonRpc extends JsonRpc {
         }
 
     }
+
+    /**
+     * 晴空redis cash-key
+     *
+     * @JsonRpcMethod
+     */
+    public function refreshCache($params) {
+        return Cache::forget($params->key);
+        //
+        //Cache::flush();
+
+    }
+
+
 }
