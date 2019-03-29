@@ -97,7 +97,7 @@ return [
             'database' => env('ONLINE_DB_DATABASE', 'forge'),
             'username' => env('ONLINE_DB_USERNAME', 'forge'),
             'password' => env('ONLINE_DB_PASSWORD', ''),
-            'charset' => 'utf8',
+            'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
             'strict' => false,

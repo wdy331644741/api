@@ -48,9 +48,32 @@ class SendMail extends Command
         $ser = new InviteTaskService();
         $sgin_date = Carbon::parse($ser->whitch_tasks_start)->modify('-1 day')->toDateTimeString();
         $sgin = date('YmdH' , strtotime($sgin_date) );
-        dd($sgin);
-        $users = DB::connection('online_data')->table('friend_30_limit_task')->select();
 
+        $users = DB::connection('online_data')
+            ->table('activity_vote')
+            ->select(DB::raw('count(*) as user_count, vote'))
+            ->groupBy('status')
+            ->get();
+        dd($users);
+        
+        //领取任务人数
+        // // $users = DB::connection('online_data')
+        $receive = DB::connection('mysql')
+            ->table('friend_30_limit_task')
+            ->select(DB::raw('count(*) as user_count, alias_name'))
+            ->where(['date_str'=> $sgin])
+            ->groupBy('alias_name')
+            ->get();
+        
+
+        //完成任务数
+        $done = DB::connection('mysql')
+            ->table('friend_30_limit_task')
+            ->select(DB::raw('count(*) as user_count, alias_name ,sum(user_prize)+sum(invite_prize) as prize'))
+            ->where(['date_str'=> $sgin ,'status'=> 1])
+            ->groupBy('alias_name')
+            ->get();
+        dd($done);
 
         $mailAddressTest = ['331644741@qq.com'=>'wasd'];
         $mail = new PHPMailer();
