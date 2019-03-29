@@ -231,6 +231,14 @@ class SendAward
                     && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
                     && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
                 ){
+//                    渠道ID：wdtyfl 渠道名称：网贷天眼返利
+//                    渠道ID：wangdaizhijia  渠道名称：网贷之家
+//                    渠道ID：htfl   渠道名称：虎投返利
+//                    渠道ID：jffl   渠道名称：九富返利
+                    $user_info = Func::getUserBasicInfo($triggerData['user_id']);
+                    if ( in_array($user_info['from_channel'], ['wdtyfl', 'wangdaizhijia', 'htfl', 'jffl']) ) {
+                        return $return;
+                    }
                 //每邀请一名好友注册并首次出借 2000 元（6 月及以上标）
                 //邀请人和被邀请人均可获得 3000出游基金。
                     //邀请人需点击“参与活动”后的邀请好友才可以满足奖励条件；
