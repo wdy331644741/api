@@ -32,11 +32,10 @@ class Kernel extends ConsoleKernel
         // $schedule->command('VoteAwardDebug')
         //          ->hourly()->withoutOverlapping()->sendOutputTo($filePath);
 
-        //逢百抽大奖抓取深证成指数
-        //$schedule->command('Perbai')->weekdays()->withoutOverlapping()->timezone('Asia/Shanghai')->when(function () {
-            //15点整抓取不准,过两分开始
-        //    return date('Hi') >= 1530 && date('H') <= 23;
-      //  });
+        //逢10抽大奖抓取深证成指数
+        $schedule->command('Perbai')->weekdays()->withoutOverlapping()->timezone('Asia/Shanghai')->when(function () {
+            return date('Hi') >= 1530;
+        });
         $schedule->command('SendPush')->withoutOverlapping();
 
     }

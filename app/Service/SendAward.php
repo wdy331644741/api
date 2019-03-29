@@ -202,7 +202,14 @@ class SendAward
         switch ($activityInfo['alias_name']) {
             /** 逢10抽大奖 start **/
             case 'perten_investment':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2 && $triggerData['buy_time'] >= $activityInfo['start_at'] && $triggerData['period'] >= 6){
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2
+                    && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
+                    && $triggerData['period'] >= 6
+                )
+                {
                     $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
                     if ( $amount >= 5000 ) {
                         $num = intval($amount/5000);

@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
+use App\Service\PerBaiService;
 use Illuminate\Http\Request;
 use App\Jobs\PerHundredJob;
 use Validator;
-use Response;
+use Response, Cache;
 class PerHundredController extends Controller
 {
     /**
@@ -30,9 +31,6 @@ class PerHundredController extends Controller
             'first_award' => 'required|min:1|max:64',
             'first_img1' => 'required|min:1|max:255',
             'first_img2' => 'required|min:1|max:255',
-            'last_award' => 'required|min:1|max:64',
-            'last_img1' => 'required|min:1|max:255',
-            'last_img2' => 'required|min:1|max:255',
             'sunshine_award' => 'required|min:1|max:64',
             'sunshine_img1' => 'required|min:1|max:255',
             'sunshine_img2' => 'required|min:1|max:255',
@@ -42,20 +40,17 @@ class PerHundredController extends Controller
             'ultimate_pc2' => 'required|min:1|max:255',
             'first_pc1' => 'required|min:1|max:255',
             'first_pc2' => 'required|min:1|max:255',
-            'last_pc1' => 'required|min:1|max:255',
-            'last_pc2' => 'required|min:1|max:255',
             'sunshine_pc1' => 'required|min:1|max:255',
             'sunshine_pc2' => 'required|min:1|max:255',
             'award_text' => 'required|min:1|max:255',
             'ultimate_rule' => 'required|min:1|max:2000',
             'first_rule' => 'required|min:1|max:2000',
-            'last_rule' => 'required|min:1|max:2000',
             'sunshine_rule' => 'required|min:1|max:2000',
             'activity_rule' => 'required|min:1',
             'ultimate_price' => 'required|numeric',
             'first_price' => 'required|numeric',
-            'last_price' => 'required|numeric',
             'sunshine_price' => 'required|numeric',
+            'guess_award' => 'required|numeric',
         ];
         if($id > 0){
             unset($filter['numbers']);
@@ -73,9 +68,6 @@ class PerHundredController extends Controller
         $data['first_award'] = trim($request->first_award);
         $data['first_img1'] = trim($request->first_img1);
         $data['first_img2'] = trim($request->first_img2);
-        $data['last_award'] = trim($request->last_award);
-        $data['last_img1'] = trim($request->last_img1);
-        $data['last_img2'] = trim($request->last_img2);
         $data['sunshine_award'] = trim($request->sunshine_award);
         $data['sunshine_img1'] = trim($request->sunshine_img1);
         $data['sunshine_img2'] = trim($request->sunshine_img2);
@@ -86,22 +78,19 @@ class PerHundredController extends Controller
         $data['ultimate_pc2'] = trim($request->ultimate_pc2);
         $data['first_pc1'] = trim($request->first_pc1);
         $data['first_pc2'] = trim($request->first_pc2);
-        $data['last_pc1'] = trim($request->last_pc1);
-        $data['last_pc2'] = trim($request->last_pc2);
         $data['sunshine_pc1'] = trim($request->sunshine_pc1);
         $data['sunshine_pc2'] = trim($request->sunshine_pc2);
 
         $data['award_text'] = trim($request->award_text);
         $data['ultimate_rule'] = trim($request->ultimate_rule);
         $data['first_rule'] = trim($request->first_rule);
-        $data['last_rule'] = trim($request->last_rule);
         $data['sunshine_rule'] = trim($request->sunshine_rule);
         $data['activity_rule'] = trim($request->activity_rule);
 
         $data['ultimate_price'] = trim($request->ultimate_price);
         $data['first_price'] = trim($request->first_price);
-        $data['last_price'] = trim($request->last_price);
         $data['sunshine_price'] = trim($request->sunshine_price);
+        $data['guess_award'] = trim($request->guess_award);
         //添加
         if($id <= 0){
             $data['numbers'] = intval($request->numbers);
@@ -138,6 +127,11 @@ class PerHundredController extends Controller
             $data->status = 0;
         }
         $data->update();
+        if ($data->status == 1) {
+            PerBaiService::getActivityInfo();
+        } else {
+            PerBaiService::clearActivityInfo();
+        }
         return $this->outputJson(0,$data);
     }
 

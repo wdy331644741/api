@@ -33,6 +33,15 @@ class CreateTableHdPertenConfig extends Migration
             $table->string('first_pc2', 128)->default('')->comment('pc一马当先奖图片(大)');
             $table->string('sunshine_pc1', 128)->default('')->comment('pc阳光普照奖图片(小)');
             $table->string('sunshine_pc2', 128)->default('')->comment('pc阳光普照奖图片(大)');
+            $table->string('award_text')->default('')->comment('奖品专场文字');
+            $table->string('ultimate_rule',2000)->default('')->comment('终极大奖规则');
+            $table->string('first_rule', 2000)->default('')->comment('一马当先奖规则');
+            $table->string('sunshine_rule', 2000)->default('')->comment('阳光普照奖规则');
+            $table->text('activity_rule')->default('')->comment('活动规则');
+            $table->decimal('ultimate_price')->unsigned()->default('0.00')->comment('终极大奖价值');
+            $table->decimal('first_price')->unsigned()->default('0.00')->comment('一马当先奖价值');
+            $table->decimal('sunshine_price')->unsigned()->default('0.00')->comment('阳光普照奖价值');
+            $table->decimal('guess_award',10, 2)->unsigned()->default(0)->comment('天天猜瓜分金额');
             $table->text('remark')->default('')->comment('备注');
             $table->timestamps();
             $table->comment = '逢百抽奖活动配置';
