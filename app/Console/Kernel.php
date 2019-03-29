@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         Commands\VoteAwardDebug::class,
         Commands\Perbai::class,
         Commands\SendPush::class,
+        Commands\SendMail::class,
     ];
 
     /**

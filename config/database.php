@@ -89,6 +89,19 @@ return [
             "prefix" => '',
             "strict" => false,
             "engine" => null,
+        ],
+        'online_data' =>[
+            'driver' => 'mysql',
+            'host' => env('ONLINE_DB_HOST', 'localhost'),
+            'port' => env('ONLINE_DB_PORT', '3306'),
+            'database' => env('ONLINE_DB_DATABASE', 'forge'),
+            'username' => env('ONLINE_DB_USERNAME', 'forge'),
+            'password' => env('ONLINE_DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
         ]
 
     ],
