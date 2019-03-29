@@ -8,6 +8,7 @@ use App\Service\GlobalAttributes;
 use App\Service\SendAward;
 use App\Models\GlobalAttribute;
 use App\Models\Activity;
+use App\Service\SendMessage;
 
 use Lib\JsonRpcClient;
 
@@ -288,6 +289,14 @@ class InviteTaskService
             $locked->number += 1;
             $locked->save();
             DB::commit();
+            //发送极光push
+            if(isset($tag['tag']) && $tag['tag'] == 'investment'){
+                SendMessage::sendPush($tag['from_user_id'],'task_invest');
+            }else{
+                SendMessage::sendPush($_user,'invite_limit_task_bind');
+                SendMessage::sendPush($invited_user,'invite_limit_task_bind');
+            }
+
             return true;
 
 
