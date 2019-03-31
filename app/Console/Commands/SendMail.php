@@ -49,13 +49,13 @@ class SendMail extends Command
         $sgin_date = Carbon::parse($ser->whitch_tasks_start)->modify('-1 day')->toDateTimeString();
         $sgin = date('YmdH' , strtotime($sgin_date) );
 
-        $users = DB::connection('online_data')
-            ->table('activity_vote')
-            ->select(DB::raw('count(*) as user_count, vote'))
-            ->groupBy('status')
-            ->get();
-        dd($users);
-        
+        // $users = DB::connection('online_data')
+        //     ->table('activity_vote')
+        //     ->select(DB::raw('count(*) as user_count, vote'))
+        //     ->groupBy('status')
+        //     ->get();
+        // dd($users);
+
         //领取任务人数
         // // $users = DB::connection('online_data')
         $receive = DB::connection('mysql')
@@ -64,7 +64,8 @@ class SendMail extends Command
             ->where(['date_str'=> $sgin])
             ->groupBy('alias_name')
             ->get();
-        
+        $receive = array_column($receive, 'user_count','alias_name');
+
 
         //完成任务数
         $done = DB::connection('mysql')
@@ -73,7 +74,70 @@ class SendMail extends Command
             ->where(['date_str'=> $sgin ,'status'=> 1])
             ->groupBy('alias_name')
             ->get();
-        dd($done);
+        $done_count = array_column($done, 'user_count','alias_name');
+        $done_prize = array_column($done, 'prize','alias_name');
+
+
+        $headers = ['任务名','领任务人数', '完成任务人数','任务奖励'];
+
+
+        // $headers_data = array(['a'=>array_sum($receive),'b'=>array_sum($done_count)]);
+        // $this->table($headers, $headers_data);
+
+
+        $_data = [];
+        $table_tr = '';
+        foreach ($ser::TASK_ID as $key => $value) {
+            switch ($value) {
+                case 'invite_limit_task_exp':
+                    $name = '任务1（分享体验金）';
+                    break;
+                case 'invite_limit_task_bind':
+                    $name = '任务2（绑卡）';
+                    break;
+                case 'invite_limit_task_invest':
+                    $name = '任务3（邀请首投）';
+                    break;
+
+                default:
+                    $name = 'fuck';
+                    break;
+            }
+            $table_tr .= <<<HTML
+<tr><td>$name</td>
+<td>$receive[$value]</td>
+<td>$done_count[$value]</td>
+<td>$done_prize[$value]</td></tr>
+HTML;
+            $alisa = [
+                'a' => $value,
+                'b' => $receive[$value] , 
+                'c'=> $done_count[$value] ,
+                'd'=> $done_prize[$value] 
+            ];
+            array_push($_data, $alisa);
+        }
+
+
+
+        $mail_table = <<<HTML
+<html>
+<head>日期（批次）：$sgin</head>
+<body>
+<table border="1" style="border-collapse:collapse">
+<tr>
+<td>任务名</td>
+<td>领任务人数</td>
+<td>完成任务人数</td>
+<td>任务奖励</td>
+</tr>
+.$table_tr.
+</table>
+
+</body></html>
+HTML;
+
+
 
         $mailAddressTest = ['331644741@qq.com'=>'wasd'];
         $mail = new PHPMailer();
@@ -87,15 +151,14 @@ class SendMail extends Command
         $mail->Password = "4aA66HP9isMgxozK";        // SMTP 密码
         $mail->From = "wangdongyang@wanglibank.com";      // 发件人邮箱
         $mail->FromName =  "王东洋";  // 发件人
-        $mail->Subject = '赚呗核心指标日报';
+        $mail->Subject = '邀请好友3.0数据需求';
         $mail->CharSet = "UTF-8";            // 这里指定字符集！
         $mail->Encoding = "base64";
         //$mail->AddAttachment($file,'赚呗核心指标日报.xlsx'); // 添加附件,并指定名称
         $mail->IsHTML(true); //支持html格式内容
-        // $mail->Body = $template;
-        $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
+        $mail->Body = $mail_table;
         $mail->AltBody ="text/html";
-//return $mail;
+
         foreach($mailAddressTest as $k=>$val){
                 $mail->AddAddress($k,$val);
         }
@@ -104,15 +167,7 @@ class SendMail extends Command
             $error=$mail->ErrorInfo;
             return $error;
         }else{
-            $headers = ['领任务人数', '完成任务人数'];
-            $table1 = ['领取任务1人数', '完成任务1人数', '任务1奖励金额'];
-            $table2 = ['领取任务2人数', '完成任务2人数', '任务2奖励金额'];
-            $table3 = ['领取任务3人数', '完成任务3人数', '任务3奖励金额'];
-
-
-            $users = $arrayName = array(['Name'=>'shiwenyuan','Email'=>'shiwenyuan@111']);
-
-            $this->table($headers, $users);
+            $this->table($headers, $_data);
             return true;
         }
         
