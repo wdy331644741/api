@@ -64,6 +64,8 @@ class SendMail extends Command
             ->where(['date_str'=> $sgin])
             ->groupBy('alias_name')
             ->get();
+        //https://github.com/php/php-src/blob/PHP-7.0.0/UPGRADING#L629
+        $receive = json_decode(json_encode($receive), true);//测试环境php5版本 不支持对象数组
         $receive = array_column($receive, 'user_count','alias_name');
 
 
@@ -74,6 +76,8 @@ class SendMail extends Command
             ->where(['date_str'=> $sgin ,'status'=> 1])
             ->groupBy('alias_name')
             ->get();
+        //https://github.com/php/php-src/blob/PHP-7.0.0/UPGRADING#L629
+        $done = json_decode(json_encode($done), true);//测试环境php5版本 不支持对象数组
         $done_count = array_column($done, 'user_count','alias_name');
         $done_prize = array_column($done, 'prize','alias_name');
 
