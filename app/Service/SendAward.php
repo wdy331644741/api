@@ -248,6 +248,7 @@ class SendAward
                                 $fund = 1500;
                                 break;
                         }
+                        $fund = $fund * intval($triggerData['Investment_amount']/1000);
                         Attributes::increment($triggerData['user_id'], 'spring_drew_user', $fund);
                     }
                 }
