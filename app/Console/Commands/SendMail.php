@@ -49,16 +49,10 @@ class SendMail extends Command
         $sgin_date = Carbon::parse($ser->whitch_tasks_start)->modify('-1 day')->toDateTimeString();
         $sgin = date('YmdH' , strtotime($sgin_date) );
 
-        // $users = DB::connection('online_data')
-        //     ->table('activity_vote')
-        //     ->select(DB::raw('count(*) as user_count, vote'))
-        //     ->groupBy('status')
-        //     ->get();
-        // dd($users);
 
         //领取任务人数
-        // // $users = DB::connection('online_data')
-        $receive = DB::connection('mysql')
+        $receive = DB::connection('online_data')
+        // $receive = DB::connection('mysql')
             ->table('friend_30_limit_task')
             ->select(DB::raw('count(*) as user_count, alias_name'))
             ->where(['date_str'=> $sgin])
@@ -70,7 +64,8 @@ class SendMail extends Command
 
 
         //完成任务数
-        $done = DB::connection('mysql')
+        $done = DB::connection('online_data')
+        // $done = DB::connection('mysql')
             ->table('friend_30_limit_task')
             ->select(DB::raw('count(*) as user_count, alias_name ,sum(user_prize)+sum(invite_prize) as prize'))
             ->where(['date_str'=> $sgin ,'status'=> 1])
@@ -107,18 +102,23 @@ class SendMail extends Command
                     $name = 'fuck';
                     break;
             }
-            $table_tr .= <<<HTML
-<tr><td>$name</td>
-<td>$receive[$value]</td>
-<td>$done_count[$value]</td>
-<td>$done_prize[$value]</td></tr>
-HTML;
+            $b = isset($receive[$value])?$receive[$value]:null;
+            $c = isset($done_count[$value])?$done_count[$value]:null;
+            $d = isset($done_prize[$value])?$done_prize[$value]:null;
             $alisa = [
                 'a' => $value,
-                'b' => $receive[$value] , 
-                'c'=> $done_count[$value] ,
-                'd'=> $done_prize[$value] 
+                'b' =>  $b, 
+                'c' =>  $c,
+                'd' =>  $d
             ];
+
+            $table_tr .= <<<HTML
+<tr><td>$name</td>
+<td>$b</td>
+<td>$c</td>
+<td>$d</td></tr>
+HTML;
+            
             array_push($_data, $alisa);
         }
 
@@ -143,7 +143,7 @@ HTML;
 
 
 
-        $mailAddressTest = ['331644741@qq.com'=>'wasd'];
+        $mailAddressTest = ['331644741@qq.com'=>'wasd' ,'jiyunfei@wanglibank.com'=>'jiyunfei'];
         $mail = new PHPMailer();
         $mail->SMTPDebug = 2;           // 开启Debug
         $mail->IsSMTP();                // 使用SMTP模式发送新建
