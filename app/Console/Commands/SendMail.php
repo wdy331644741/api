@@ -57,8 +57,8 @@ class SendMail extends Command
         // dd($users);
 
         //领取任务人数
-        // // $users = DB::connection('online_data')
-        $receive = DB::connection('mysql')
+        $receive = DB::connection('online_data')
+        // $receive = DB::connection('mysql')
             ->table('friend_30_limit_task')
             ->select(DB::raw('count(*) as user_count, alias_name'))
             ->where(['date_str'=> $sgin])
@@ -70,7 +70,8 @@ class SendMail extends Command
 
 
         //完成任务数
-        $done = DB::connection('mysql')
+        $done = DB::connection('online_data')
+        // $done = DB::connection('mysql')
             ->table('friend_30_limit_task')
             ->select(DB::raw('count(*) as user_count, alias_name ,sum(user_prize)+sum(invite_prize) as prize'))
             ->where(['date_str'=> $sgin ,'status'=> 1])
