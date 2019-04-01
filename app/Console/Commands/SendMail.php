@@ -43,7 +43,7 @@ class SendMail extends Command
      */
     public function handle()
     {
-        $this->comment(PHP_EOL.'发送邮件脚本'.PHP_EOL.'记录日志：logs/vote_cash'.date('Y-m-d').'.log');
+        $this->comment(PHP_EOL.'发送邮件脚本'.PHP_EOL.'记录日志：logs/friend30_mail_data'.date('Y-m-d').'.log');
 
         $ser = new InviteTaskService();
         $sgin_date = Carbon::parse($ser->whitch_tasks_start)->modify('-1 day')->toDateTimeString();
@@ -143,7 +143,7 @@ HTML;
 
 
 
-        $mailAddressTest = ['331644741@qq.com'=>'wasd' ,'jiyunfei@wanglibank.com'=>'jiyunfei'];
+        $mailAddressTest = ['331644741@qq.com'=>'wasd' ,'jiyunfei@wanglibank.com'=>'jiyunfei','ranhaiqiang@wanglibank.com'=>'ranhaiqiang'];
         $mail = new PHPMailer();
         $mail->SMTPDebug = 2;           // 开启Debug
         $mail->IsSMTP();                // 使用SMTP模式发送新建
