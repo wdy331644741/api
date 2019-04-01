@@ -111,7 +111,7 @@ class InviteTaskService
             //是否剩余可领取到任务
             if($doing->isEmpty()){
                 //剩余可领任务 = 今天100 - 今天已经完成该任务数-今天正在进行的任务数
-                $alreadyDone = GlobalAttributes::getNumber(self::EXP_BYDAY.$this->whitch_tasks);
+                $alreadyDone = GlobalAttributes::getNumber($alias_name.$this->whitch_tasks);
                 $justDoingObj = $this->getTaskingByDay()->where('alias_name',$alias_name);
 
                 $justDoing = $justDoingObj->isEmpty()?0:$justDoingObj->first()->user_count;
