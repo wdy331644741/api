@@ -34,12 +34,78 @@ class AssistanceJsonRpc extends JsonRpc
         );
     }
     /**
+     *分享助力页面数据
+     * @JsonRpcMethod
+     */
+    public function assistanceInfo(){
+        global $userId;
+        $userId = 19;
+        if (empty($userId)) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $res = ['group_data'=>[],'assistance'=>[]];
+        //生成全局限制属性
+        $this->_attribute();
+        //我的团
+        $res['group_data'] = $this->_groupData($userId);
+        //我助力的团
+        $assistanceData = HdAssistance::where("user_id",$userId)->orderBy("id","desc")->first();
+        if(isset($assistanceData['group_user_id']) && isset($assistanceData['pid'])){
+            $res['assistance'] = $this->_assistanceData($assistanceData['group_user_id'],$assistanceData['pid']);
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        );
+    }
+    /**
+     * 开团接口
+     * @JsonRpcMethod
+     */
+    public function assistanceCreate($params){
+        global $userId;
+        $userId = 30;
+        if (empty($userId)) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $awardId = isset($params->award_id) ? $params->award_id : 0;
+        if($awardId <= 0){//缺少必要参数
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //事物开始
+        DB::beginTransaction();
+        //生成全局限制属性
+        $this->_attribute();
+        //锁住每天限制总数属性
+        GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
+        //判断今天有没有开团
+        $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
+        //判断今天开团数量
+        if(!empty($groupInfo)){//开团数已达上限
+            DB::rollBack();//回滚事物
+            throw new OmgException(OmgException::EXCEED_NUM_FAIL);
+        }
+        //添加开团数据
+        HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd")]);
+        //总限制+1
+        GlobalAttribute::where('key',$this->key.date("Ymd"))->increment("number");
+        //提交事物
+        DB::commit();
+        //开团成功返回
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => true
+        );
+    }
+    /**
      *分享助力注册人添加数据
      * @JsonRpcMethod
      */
     public function assistanceAddUser($params){
         global $userId;
-        $userId = 30;
+        $userId = 44;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -81,72 +147,6 @@ class AssistanceJsonRpc extends JsonRpc
             'code' => 0,
             'message' => 'success',
             'data' => true
-        );
-    }
-    /**
-     * 开团接口
-     * @JsonRpcMethod
-     */
-    public function assistanceCreate($params){
-        global $userId;
-        $userId = 19;
-        if (empty($userId)) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $awardId = isset($params->award_id) ? $params->award_id : 0;
-        if($awardId <= 0){//缺少必要参数
-            throw new OmgException(OmgException::API_MIS_PARAMS);
-        }
-        //事物开始
-        DB::beginTransaction();
-        //生成全局限制属性
-        $this->_attribute();
-        //锁住每天限制总数属性
-        GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
-        //判断今天有没有开团
-        $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
-        //判断今天开团数量
-        if(!empty($groupInfo)){//开团数已达上限
-            DB::rollBack();//回滚事物
-            throw new OmgException(OmgException::EXCEED_NUM_FAIL);
-        }
-        //添加开团数据
-        HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd")]);
-        //总限制+1
-        GlobalAttribute::where('key',$this->key.date("Ymd"))->increment("number");
-        //提交事物
-        DB::commit();
-        //开团成功返回
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => true
-        );
-    }
-    /**
-     *分享助力页面数据
-     * @JsonRpcMethod
-     */
-    public function assistanceInfo(){
-        global $userId;
-        $userId = 19;
-        if (empty($userId)) {
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $res = ['group_data'=>[],'assistance'=>[]];
-        //生成全局限制属性
-        $this->_attribute();
-        //我的团
-        $res['group_data'] = $this->_groupData($userId);
-        //我助力的团
-        $assistanceData = HdAssistance::where("user_id",$userId)->orderBy("id","desc")->first();
-        if(isset($assistanceData['group_user_id']) && isset($assistanceData['pid'])){
-            $res['assistance'] = $this->_assistanceData($assistanceData['group_user_id'],$assistanceData['pid']);
-        }
-        return array(
-            'code' => 0,
-            'message' => 'success',
-            'data' => $res
         );
     }
     //判断每天总限制是否存在
