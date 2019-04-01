@@ -1457,14 +1457,6 @@ class SendAward
             }
         }
 
-        //邀请好友3.0判断用户是否超过邀请发奖次数1
-        if(isset($activity['alias_name']) && $activity['alias_name'] == 'invite_limit_task_bind'){
-            $status = self::inviteNumLimit2($userId);
-            if($status === false){
-                return [];
-            }
-        }
-
         foreach($awardInvite as $award) {
             $res[] = Self::sendDataRole($userId, $award['award_type'], $award['award_id'], $activity['id'] ,'',0,0,$triggerData);
         }
