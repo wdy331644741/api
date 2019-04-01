@@ -39,7 +39,6 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceInfo(){
         global $userId;
-        $userId = 19;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -65,7 +64,6 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceCreate($params){
         global $userId;
-        $userId = 30;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -73,23 +71,28 @@ class AssistanceJsonRpc extends JsonRpc
         if($awardId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //事物开始
         DB::beginTransaction();
         //生成全局限制属性
         $this->_attribute();
         //锁住每天限制总数属性
-        GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
+        $globalAtt = GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
         //判断今天有没有开团
         $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
         //判断今天开团数量
-        if(!empty($groupInfo)){//开团数已达上限
+        if(!empty($groupInfo) || (isset($globalAtt['number']) && $globalAtt['number'] >= 50)){//开团数已达上限
             DB::rollBack();//回滚事物
             throw new OmgException(OmgException::EXCEED_NUM_FAIL);
         }
         //添加开团数据
         HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd")]);
         //总限制+1
-        GlobalAttribute::where('key',$this->key.date("Ymd"))->increment("number");
+        $globalAtt->increment("number",1);
+        $globalAtt->save();
         //提交事物
         DB::commit();
         //开团成功返回
@@ -105,7 +108,6 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceAddUser($params){
         global $userId;
-        $userId = 44;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -114,7 +116,7 @@ class AssistanceJsonRpc extends JsonRpc
         if($inviteId <= 0 || $groupId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
-        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance');
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
         if(empty($activityInfo)){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
@@ -122,9 +124,9 @@ class AssistanceJsonRpc extends JsonRpc
         $userInfo = Func::getUserBasicInfo($userId,false);
         $fromId = isset($userInfo['from_user_id']) ? $userInfo['from_user_id'] : 0;
         $registerTime = isset($userInfo['create_time']) ? $userInfo['create_time'] : '';
-//        if($inviteId != $fromId || $registerTime < $activityInfo['start_at'] || $registerTime > $activityInfo['end_at']){
-//            throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
-//        }
+        if($inviteId != $fromId || $registerTime < $activityInfo['start_at'] || $registerTime > $activityInfo['end_at']){
+            throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
+        }
         //判断团id是否已满
         $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
         if(!isset($groupInfo['id'])){

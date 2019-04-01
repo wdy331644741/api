@@ -4,6 +4,8 @@ namespace App\Service;
 use App\Models\Activity;
 use App\Models\ActivityJoin;
 use App\Models\ActivityGroup;
+use App\Models\HdAssistance;
+use DB;
 
 class ActivityService
 {
@@ -95,5 +97,43 @@ class ActivityService
             }
         )->where(['enable' => 1])->get();
         return $res;
+    }
+
+    /**
+     *
+     */
+    static function AssistanceRealName($userId){
+        if($userId <= 0 ){
+            return false;
+        }
+        //查询邀请人id
+        $info = Func::getUserBasicInfo($userId,1);
+        if(isset($info['from_user_id']) && $info['from_user_id'] > 0){
+            //事物开始
+            DB::beginTransaction();
+            //判断是否参与助力活动
+            $userInfo = HdAssistance::where("group_user_id",$info['from_user_id'])->where("user_id",$userId)->where("status",0)->lockForUpdate()->first();
+            if(!isset($userInfo['pid'])){
+                DB::rollBack();//回滚事物
+                return false;
+            }
+            //判断助力的团是否已满
+            $groupInfo = HdAssistance::where("id",$userInfo['pid'])->where("status",0)->lockForUpdate()->first();
+            if(isset($groupInfo['receive_num']) && $groupInfo['receive_num'] < 3){
+                //用户实名状态修改
+                $userInfo->status = 1;
+                $userInfo->save();
+                //用户实名状态修改
+                $groupInfo->increment("receive_num",1);
+                $groupInfo->save();
+                //提交事物
+                DB::commit();
+                return true;
+            }else{
+                DB::rollBack();//回滚事物
+                return false;
+            }
+        }
+        return false;
     }
 }
