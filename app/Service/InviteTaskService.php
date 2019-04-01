@@ -8,6 +8,7 @@ use App\Service\GlobalAttributes;
 use App\Service\SendAward;
 use App\Models\GlobalAttribute;
 use App\Models\Activity;
+use App\Service\SendMessage;
 
 use Lib\JsonRpcClient;
 
@@ -110,7 +111,7 @@ class InviteTaskService
             //是否剩余可领取到任务
             if($doing->isEmpty()){
                 //剩余可领任务 = 今天100 - 今天已经完成该任务数-今天正在进行的任务数
-                $alreadyDone = GlobalAttributes::getNumber(self::EXP_BYDAY.$this->whitch_tasks);
+                $alreadyDone = GlobalAttributes::getNumber($alias_name.$this->whitch_tasks);
                 $justDoingObj = $this->getTaskingByDay()->where('alias_name',$alias_name);
 
                 $justDoing = $justDoingObj->isEmpty()?0:$justDoingObj->first()->user_count;
@@ -288,6 +289,14 @@ class InviteTaskService
             $locked->number += 1;
             $locked->save();
             DB::commit();
+            //发送极光push
+            if(isset($tag['tag']) && $tag['tag'] == 'investment'){
+                SendMessage::sendPush($tag['from_user_id'],'task_invest');
+            }else{
+                SendMessage::sendPush($_user,'invite_limit_task_bind');
+                SendMessage::sendPush($invited_user,'invite_limit_task_bind');
+            }
+
             return true;
 
 
