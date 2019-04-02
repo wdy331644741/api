@@ -81,12 +81,25 @@ class AssistanceJsonRpc extends JsonRpc
         $this->_attribute();
         //锁住每天限制总数属性
         $globalAtt = GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
+        if(isset($globalAtt['number']) && $globalAtt['number'] >= 50){//开团超过50
+            DB::rollBack();//回滚事物
+            throw new OmgException(OmgException::OPENING_MORE_50);
+        }
         //判断今天有没有开团
         $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
         //判断今天开团数量
-        if(!empty($groupInfo) || (isset($globalAtt['number']) && $globalAtt['number'] >= 50)){//开团数已达上限
-            DB::rollBack();//回滚事物
-            throw new OmgException(OmgException::EXCEED_NUM_FAIL);
+        if(!empty($groupInfo)){//开团数已达上限
+            //判断之前的团有没有未满的
+            $notFull = HdAssistance::where('group_user_id',$userId)->where("receive_num","<",3)->count();
+            if($notFull > 0){
+                //之前有未满团提示
+                DB::rollBack();//回滚事物
+                throw new OmgException(OmgException::INCOMPLETE_REGIMENT);
+            }else{
+                //之前已满团提示
+                DB::rollBack();//回滚事物
+                throw new OmgException(OmgException::FULL_REGIMENT);
+            }
         }
         //添加开团数据
         HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd")]);
@@ -97,6 +110,30 @@ class AssistanceJsonRpc extends JsonRpc
         DB::commit();
         //开团成功返回
         return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => true
+        );
+    }
+    /**
+     *分享助力注册人添加数据
+     * @JsonRpcMethod
+     */
+    public function assistanceGroupIsFull($params){
+        $groupId = isset($params->group_id) ? $params->group_id : 0;
+        if($groupId <= 0){//缺少必要参数
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //判断团id是否已满
+        $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
+        if(isset($groupInfo['id'])){//未满团
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => false
+            );
+        }
+        return array(//已满团
             'code' => 0,
             'message' => 'success',
             'data' => true
