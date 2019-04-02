@@ -98,6 +98,9 @@ class Perbai extends Command
                 $ret->remark = json_encode($remark);
                 $ret->save();
             }
+
+            //天天猜发奖
+
             return false;
         } catch (Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";

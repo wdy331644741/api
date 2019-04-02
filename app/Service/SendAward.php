@@ -241,11 +241,19 @@ class SendAward
                 }
                 break;
             //邀请人首投
-//            case 'perten_invite_investment':
-//                if( isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment' && isset($triggerData['user_id']) && !empty($triggerData['user_id']) && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) && $triggerData['is_first'] && $triggerData['buy_time'] >= $activityInfo['start_at']){
-//                    PerBaiService::addDrawNum($triggerData['from_user_id'],1, 'invite', $triggerData['buy_time']);
-//                }
-//                break;
+            case 'perten_real_name':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag'])
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && $triggerData['tag'] == 'real_name'
+                    && ( empty($activityInfo['start_at']) || $triggerData['time'] >= $activityInfo['start_at'] )
+                ){
+                        $fromUser = Func::getUserBasicInfo($triggerData['user_id']);
+                        if ( $fromUser['from_user_id'] ) {
+                            PerBaiService::addGuessNumber($fromUser['from_user_id'], 5);
+                        }
+                }
+                break;
             /** 逢10抽大奖 end **/
             /** 踏青活动 start **/
             case 'spring_investment':

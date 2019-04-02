@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
+use App\Models\HdPertenStock;
 use App\Models\SendPush;
 use App\Models\UserAttribute;
 use App\Service\Attributes;
@@ -35,38 +36,61 @@ class PerBaiJsonrpc extends JsonRpc
             'available' => 0,
             'countdown' => 0,//倒计时
             'alert_status'=>0,//弹框状态
+            'alert_list'=>[],//弹框列表
             'node'=> 0,//提醒我
         ];
         if ( !empty($userId) ) {
             $result['login'] = 1;
         }
-            // 活动是否存在
-        $activity = PerBaiService::getActivityInfo();
         $time = time();
-        if ( $activity && $time < strtotime($activity['start_time']) ) {
+        // 活动配置信息
+        $activity = PerBaiService::getActivityInfo();
+        $period = isset($activity['id']) ? $activity['id'] : 0;
+        if ( $activity && $time > strtotime($activity['start_time']) ) {
             $result['available'] = 1;
+            //倒计时 秒数
             $countdown = strtotime($activity['start_time']) - $time;
             $result['countdown'] = $countdown > 0 ? $countdown : 0;
         }
         if ( $result['login'] && $result['available'] ) {
             $where['status'] = 2;//中奖状态
             $where['user_id'] = $userId;
-            $where['period'] = $activity['id'];//期数
+            $where['period'] = $period;//期数
             $perbai_model = HdPerbai::where($where)->orderBy('id', 'desc')->first();
             //弹框只显示一次
             if ($perbai_model) {
-                $result['alert_status'] = empty($perbai_model['remark']) ? 1 : 0;//是否弹出奖品
-                //奖品弹出列表
-                //不用更新时间,只是记录弹框状态显示或不显示
-                $perbai_model->timestamps = false;
-                $perbai_model->remark = 'alert';//弹框只显示一次
-                $perbai_model->save();
+                if ( empty($perbai_model['remark']) ) {
+                    $result['alert_status'] = 1;//弹框
+                    //不用更新时间,只是记录弹框状态显示或不显示
+                    $perbai_model->timestamps = false;
+                    $perbai_model->remark = 'alert';//弹框只显示一次
+                    $perbai_model->save();
+                    //奖品弹出列表
+                    $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at'])->where(['user_id'=>$userId, 'period'=>$period])->get()-toArray();
+                    foreach ($mylist as $k=>$v) {
+                        $mylist[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
+                        $mylist[$k]['created_at'] = date('m-d', strtotime($v['created_at']));
+                    }
+                    $result['alert_list'] = $mylist;
+                }
             }
-            $type = PerBaiService::$nodeType . $activity['id'];
+            //是否提醒
+            $type = PerBaiService::$nodeType . $period;
             $pushInfo = SendPush::where(['user_id'=>$userId, 'type'=>$type])->exists();
             if ($pushInfo) {
                 $result['node'] = 1;
             }
+        }
+        //首投是否已发放
+        $first_user = Cache::remember('fristAward', 30, function() use ($period){
+            $first = HdPerbai::where(['draw_number'=> 0, 'period'=>$period])->value('user_id');
+            return $first;
+        });
+        //首投文案显示
+        if ($first_user) {
+            $result['first_award'] = 1;//首投奖品  0未发，1已发
+            $phone = Func::getUserPhone($first_user);
+            $result['first_text'] = substr_replace($phone, '******', 3, 6);
         }
         return [
             'code' => 0,
@@ -130,41 +154,12 @@ class PerBaiJsonrpc extends JsonRpc
             }
         }
         return [
+
             'code' => 0,
             'message' => 'success',
             'data' => $data,
         ];
     }
-
-    /**
-     * 活动参与人数
-     *
-     * @JsonRpcMethod
-     */
-//    public function perbaiJoinNum() {
-//        $global_key = 'perbai_pv';
-//        $globalAttr = GlobalAttributes::getItem($global_key);
-//        $data['number'] = isset($globalAttr->number) ? $globalAttr->number : 0;
-//        return [
-//            'code' => 0,
-//            'message' => 'success',
-//            'data' => $data,
-//        ];
-//    }
-
-    /**
-     * 活动 PV 记录
-     *
-     * @JsonRpcMethod
-     */
-//    public function perbaiPv() {
-//        $global_key = 'perbai_pv';
-//        GlobalAttributes::increment($global_key);
-//        return [
-//            'code' => 0,
-//            'message' => 'success',
-//        ];
-//    }
 
     /**
      * 奖品图片
@@ -181,150 +176,76 @@ class PerBaiJsonrpc extends JsonRpc
     }
 
     /**
-     *  活动开奖状态信息
+     * 股指信息
      *
      * @JsonRpcMethod
      */
-    public function perbaiDrawStatus() {
-        global $userId;
-        //明天gao
-        $perbaiService = new PerBaiService();
-//        2已中奖、1未中奖，0待开奖
-        $data['status'] = 0;
-        $data['period'] = $perbaiService::$perbai_version;
-        $data['remain_number'] = PerBaiService::getRemainNum();
-        $data['shenzheng'] = null;
-        $data['create_time'] = null;
-//        //抽奖号码剩余个数
-        if ($data['remain_number'] == 0) {
-            $attr = GlobalAttributes::getItem($perbaiService::$perbai_version_end);
-            if ($attr && $attr['number'] > 0) {
-                    $data['shenzheng'] = sprintf("%.2f",$attr['number'] / 100);
-                    $data['create_time'] = $attr['string'];
-                    //开奖号码
-                    $draw_number = substr(strrev($attr['number']), 0, 4);
-                    $draw_info = HdPerbai::where(['draw_number'=>$draw_number, 'period'=>$perbaiService::$perbai_version])->first();
-                    $data['status'] = ($userId && $userId == $draw_info->user_id) ? 2 : 1;
-            }
-        }
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $data,
+    public function perbaiStock() {
+        $acvitity = PerBaiService::getActivityInfo();
+        $date = date('Y-m-d');
+        $return = [
+            'time' => $date,
+            'stock' => '',//未开盘为空
+            'draw_number' => '',//未开盘为空
+            'status' => 1,// 1未开盘
         ];
-    }
-
-    /**
-     * curl
-     *
-     * @JsonRpcMethod
-     */
-    public function perbaiCurl() {
-        $data = PerBaiService::curlSina();
-        return [
-            'code' => 0,
-            'message' => 'success',
-            'data' => $data,
-        ];
-    }
-    /**
-     * curl
-     *
-     * @JsonRpcMethod
-     */
-    public function perbaiBossAward()
-    {
-        $perbaiService = new PerBaiService();
-        $key = $perbaiService::$perbai_version_end;
-        $attr = GlobalAttribute::where(array('key' => $key))->first();
-        if (!$attr || $attr['number'] == 0) {
-            return [
-                'code' => -1,
-                'message' => 'fail',
-            ];
-        }
-        //次日开奖
-        $today = date('Ymd', time());
-        $oldday = date('Ymd', strtotime($attr['created_at']));
-        if ($oldday >= $today) {
-            return [
-                'code' => -1,
-                'message' => 'fail',
-            ];
-        }
-        //开奖号码
-        $draw_number = substr(strrev($attr['number']), 0, 4);
-        $config = Config::get('perbai');
-        $awards = $config['awards']['zhongjidajiang'];
-        //
-        $awardsName  = HdPerHundredConfig::where('status', 1)->value('ultimate_award');
-        $awards['name'] = $awardsName;
-        $update['award_name'] = $awards['name'];
-        $update['alias_name'] = $awards['alias_name'];
-        $update['uuid'] = 'wlb' . date('Ymd') . rand(1000, 9999);
-        $update['status'] = 2;
-        $where = [
-            'draw_number'=>$draw_number,
-            'period'=>$perbaiService::$perbai_version
-        ];
-        $perbai_model = HdPerbai::where($where)->first();
-        $res = HdPerbai::where($where)->update($update);
-        if(!$res) {
-            return [
-                'code' => -1,
-                'message' => 'fail',
-            ];
-        }
-        $sendData = [
-            'user_id'=>$perbai_model->user_id,
-            'awardname'=>$awards['name'],
-            'aliasname'=>$awards['award_name'],
-            'code'=>$update['uuid']
-        ];
-        PerBaiService::sendMessage(array($sendData));
-        return [
-            'code' => 0,
-            'message' => 'success',
-        ];
-    }
-
-    /**
-     * 往期
-     *
-     * @JsonRpcMethod
-     */
-    /*
-    public function perbaiAgo()
-    {
-        global $userId;
-        // 是否登录
-        if(!$userId){
-            throw new OmgException(OmgException::NO_LOGIN);
-        }
-        $key = 'perbai_end_';
-        $cache_key = $key . $userId;
-        $data = Cache::remember($cache_key, 10, function() use($userId, $key) {
-            $data = GlobalAttribute::select('key', 'number', 'string')->where('key','like', "{$key}%" )->get();
-            $perbaiService = new PerBaiService();
-            $period = $perbaiService::$perbai_version;
-            $return = [];
-            foreach ($data as $k=>$v){
-                $old_period = intval(str_replace($key, '', $v['key']));
-                if ($old_period == $period) {
-                    continue;
+        $w = date('w');
+        $h = date('Hi');
+        if ( in_array($date, PerBaiService::getStockClose()) || $w == 6 || $w == 0 ) {
+            $stock = HdPertenStock::where(['period'=>$acvitity['id']])->orderBy('id', 'desc')->first();
+            $return['time'] = $stock['curr_time'];
+            $return['stock'] = $stock['stock'];
+            $return['draw_number'] = PerBaiService::format($stock['draw_number']);
+            $return['status'] = 3;//3收盘后：显示”已开奖
+        } else if ( $h < 930) { //小于九点半 未开盘
+        } else {
+            $flag = true;
+            if ($h > 1530) {
+                $stock = HdPertenStock::where(['curr_time'=>$date, 'period'=>$acvitity['id']])->first();
+                if ($stock) {
+                    $return['time'] = $stock['curr_time'];
+                    $return['stock'] = $stock['stock'];
+                    $return['draw_number'] = PerBaiService::format($stock['draw_number']);
+                    $return['status'] = 3;//3收盘后：显示”已开奖
+                    $flag = false;
                 }
-                $return[$k]['period'] = $old_period;
-                $draw_number = substr(strrev($v['number']), 0, 4);
-                $award = HdPerbai::where(['user_id'=>$userId, 'period'=>$old_period, 'draw_number'=>$draw_number])->first();
-                $return[$k]['award'] = isset($award) ? $award['award_name'] : '未中奖';
-                $return[$k]['number'] = sprintf("%.2f",$v['number'] / 100);
-                $return[$k]['date'] = $v['string'];
             }
-            return $return;
-        });
-        return $data;
+            if ($flag) {
+                $stock = PerBaiService::getStockPrice();
+                $return['stock'] = round($stock[0], 2);
+                $draw_number = intval(substr(strrev($return['stock'] * 100), 0, 4));
+                $return['draw_number'] = PerBaiService::format($draw_number);
+                $return['status'] = 2;//2开盘 显示”待开奖
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $return,
+        ];
     }
-    */
+    /**
+     * 股指开奖记录
+     *
+     * @JsonRpcMethod
+     */
+    public function perbaiStockLog() {
+        $activity = PerBaiService::getActivityInfo();
+        $data = HdPertenStock::select(['curr_time', 'stock', 'draw_number', 'open_status'])->where(['period'=>$activity['id']])->get()->toArray();
+        foreach ($data as $k=>$v) {
+            $data[$k]['phone'] = '';
+            if ($v['open_status'] == 1) {
+                $userId = HdPerbai::where(['period'=>$activity['id'], 'draw_number'=>$v['draw_number']])->value('user_id');
+                $phone = Func::getUserPhone($userId);
+                $data[$k]['phone'] = substr_replace($phone, '******', 3, 6);
+            }
+        }
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $data,
+        ];
+    }
 
     /**
      * 提醒我
@@ -390,8 +311,7 @@ class PerBaiJsonrpc extends JsonRpc
 
     public function testPush($type=true)
     {
-        //
-        $activityConfig = HdPerHundredConfig::where(['status' => 1])->first();
+        $activityConfig = PerBaiService::getActivityInfo();
         if ($activityConfig || $type) {
             $beforeTen = strtotime('-10 minute', strtotime($activityConfig->start_time));
             if (time() > $beforeTen || $type) {
@@ -423,5 +343,72 @@ class PerBaiJsonrpc extends JsonRpc
             throw new \Exception('活动不存在');
         }
     }
+
+    /**
+     * 活动参与人数
+     *
+     * @JsonRpcMethod
+     */
+//    public function perbaiJoinNum() {
+//        $global_key = 'perbai_pv';
+//        $globalAttr = GlobalAttributes::getItem($global_key);
+//        $data['number'] = isset($globalAttr->number) ? $globalAttr->number : 0;
+//        return [
+//            'code' => 0,
+//            'message' => 'success',
+//            'data' => $data,
+//        ];
+//    }
+
+    /**
+     * 活动 PV 记录
+     *
+     * @JsonRpcMethod
+     */
+//    public function perbaiPv() {
+//        $global_key = 'perbai_pv';
+//        GlobalAttributes::increment($global_key);
+//        return [
+//            'code' => 0,
+//            'message' => 'success',
+//        ];
+//    }
+    /**
+     * 往期
+     *
+     * @JsonRpcMethod
+     */
+    /*
+    public function perbaiAgo()
+    {
+        global $userId;
+        // 是否登录
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $key = 'perbai_end_';
+        $cache_key = $key . $userId;
+        $data = Cache::remember($cache_key, 10, function() use($userId, $key) {
+            $data = GlobalAttribute::select('key', 'number', 'string')->where('key','like', "{$key}%" )->get();
+            $perbaiService = new PerBaiService();
+            $period = $perbaiService::$perbai_version;
+            $return = [];
+            foreach ($data as $k=>$v){
+                $old_period = intval(str_replace($key, '', $v['key']));
+                if ($old_period == $period) {
+                    continue;
+                }
+                $return[$k]['period'] = $old_period;
+                $draw_number = substr(strrev($v['number']), 0, 4);
+                $award = HdPerbai::where(['user_id'=>$userId, 'period'=>$old_period, 'draw_number'=>$draw_number])->first();
+                $return[$k]['award'] = isset($award) ? $award['award_name'] : '未中奖';
+                $return[$k]['number'] = sprintf("%.2f",$v['number'] / 100);
+                $return[$k]['date'] = $v['string'];
+            }
+            return $return;
+        });
+        return $data;
+    }
+    */
 }
 

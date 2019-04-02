@@ -2,6 +2,8 @@
 namespace App\Service;
 
 use App\Exceptions\OmgException;
+use App\Models\HdPertenGuess;
+use App\Models\HdPertenGuessLog;
 use App\Models\HdPertenStock;
 use App\Service\GlobalAttributes;
 use App\Models\GlobalAttribute;
@@ -13,6 +15,8 @@ use Config, Cache,DB;
 class PerBaiService
 {
     public static $nodeType = 'perten';//push提醒type
+    public static $guessKeyInvite = 'perten_guess_invite';//push提醒type
+    public static $guessKeyUser = 'perten_guess_user';//push提醒type
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type, $createTime)
     {
@@ -89,6 +93,9 @@ class PerBaiService
     }
 
     public static function curlSina($url) {
+            if (!$url) {
+                return false;
+            }
             // 创建一个新cURL资源
             $ch = curl_init();
             // 设置URL和相应的选项
@@ -181,8 +188,13 @@ class PerBaiService
 //　　（七）国庆节：10月1日（星期二）至10月7日（星期一）休市。
 //    （八）全年周六、周日休市。
         return [
-            '20190501', '20190607', '20190913', '20191001','20191002','20191003','20191004','20191006'
+            '2019-05-01', '2019-06-07', '2019-09-13', '2019-10-01','2019-10-02','2019-10-03','2019-10-04','2019-10-07'
         ];
+    }
+
+    public static function getStockNextTime()
+    {
+
     }
 
     public static function sendAward($userId, $money)
@@ -190,7 +202,7 @@ class PerBaiService
         $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 {{awardname}} 元现金，现金已发放至您账户余额，立即查看。";
         $uuid = create_guid();
         //发送接口
-        $result = Func::incrementAvailable($userId,999999,$uuid, $money,'stock');
+        $result = Func::incrementAvailable($userId,999999,$uuid, $money,'stock_index_cash');
         $return = ['award_name'=> $money, 'status'=> true];
         //发送消息&存储到日志
         if (isset($result['result']['code']) && $result['result']['code'] == 0) {//成功
@@ -202,5 +214,64 @@ class PerBaiService
             $return = array('award_name'=> $money, 'status'=>false,'err_data'=>$result);
         }
         return $result;
+    }
+
+    public static function addGuessNumber($userId, $number)
+    {
+        $activity = self::getActivityInfo();
+        //1.判断用户邀请得到的抽奖号的数量 ， >=50,  就不能得到了，每天
+        $max = Attributes::getNumberByDay($userId, self::$guessKeyInvite);
+        if ($max >= 100) {
+            return false;
+        }
+        if ( ($max + $number) >= 100 ) {
+            $number = 100 - $max;
+        }
+        Attributes::incrementByDay($userId, self::$guessKeyInvite, $number);
+        Attributes::increment($userId, self::$guessKeyUser, $number);
+    }
+
+    //天天猜发奖
+    public static function guessSendAward($period, $type)
+    {
+        $activity = self::getActivityInfo();
+        $totalMoney = $activity['guess_award'];
+        if ($totalMoney <= 0) {
+            return false;
+        }
+        $period = $activity['id'];
+        //总次数
+        $totalCount = HdPertenGuess::select(DB::raw('SUM(number) as total'))->where(['period'=>$period, 'type'=>$type, 'status'=>0])->value('total');
+        $totalCount = intval($totalCount);
+        if (!$totalCount) {
+            return false;
+        }
+        $data = HdPertenGuess::select('user_id', DB::raw('SUM(number) as total'))->where(['period'=>$period, 'type'=>$type, 'status'=>0])->groupBy('user_id')->get()->toArray();
+        if (!$data) {
+            return false;
+        }
+        $totalPeople = count($data);
+        foreach ($data as $v) {
+            $money = bcdiv(bcmul($totalMoney, $v['total'], 2), $totalCount, 2);
+            $tplParam = [
+                'money'=>$money,
+                'home_team'=>$weekConfig->home_team,
+                'guest_team'=>$weekConfig->guest_team,
+                'race_time'=>$weekConfig->race_time,
+                'total_count'=>$totalCount,
+                'total_people'=>$totalPeople,
+            ];
+            SendMessage::Mail($v['user_id'], self::$messageTpl, $tplParam);
+            SendMessage::Message($v['user_id'], self::$messageTpl, $tplParam);
+            $insert = HdWeeksGuessLog::create([
+                'user_id'=>$v['user_id'],
+                'period'=>$period,
+                'money'=>$money
+            ]);
+            HdWeeksGuess::where(['period'=>$period, 'type'=>$type, 'user_id'=>$v['user_id']])->update(['status'=>1]);
+        }
+        //次数清0
+        UserAttribute::where(['key'=>'weeksguess_drew_user'])->update(['number'=>0]);
+        return true;
     }
 }

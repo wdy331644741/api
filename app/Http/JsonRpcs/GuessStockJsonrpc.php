@@ -9,6 +9,7 @@ use App\Models\HdPertenGuessLog;
 use App\Models\HdPertenStock;
 use App\Models\HdWeeksGuessLog;
 use App\Service\PerBaiService;
+use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 use Config, Request, Cache,DB;
@@ -30,6 +31,7 @@ class GuessStockJsonrpc extends JsonRpc
             'countdown' => 0,
             'up' => 0,
             'down' => 0,
+            'alert'=>[],
         ];
         if ( !empty($userId) ) {
             $result['login'] = 1;
@@ -42,17 +44,25 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['available'] = 1;
             }
             $result['award'] = $activity['guess_award'];
-            $date = date("Y-m-d");
-            if ( $date )
+            $date = $date1 = date('Y-m-d');
+            $w = date('w', strtotime($date));
+            if ($w == 6 || $w == 0 || in_array($date, PerBaiService::getStockClose()) ) {
+                $date = $this->getStockNext($date);
+            }
             $h = date('Hi');
             //        T-1日15:30-T日13:00  预言T日涨跌
 //T日13:00-T日15:30  停止预言，等待开奖
 //T日15:30-T+1日13:00  预言T+1日涨跌
             if ( $h < 1300 ) {
-                $result['countdown'] = strtotime(date('Y-m-d 13:00:00')) - $time;
+                $result['countdown'] = strtotime("{$date} 13:00:00") - $time;
             }
             if ( $h >= 1530) {
-                $result['countdown'] = strtotime(date('Y-m-d 13:00:00', strtotime('+1 day'))) - $time;
+                $next_day = date('Y-m-d', strtotime('+1 day', strtotime($date1)));
+                $next_w = date('w', strtotime($next_day));
+                if ($next_w == 6 || $next_w == 0 || in_array($next_day, PerBaiService::getStockClose()) ) {
+                    $next_day = $this->getStockNext($next_day);
+                }
+                $result['countdown'] = strtotime("$next_day 13:00:00") - $time;
             }
         }
         $guess = HdPertenGuess::select('sum(number) total')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
@@ -63,6 +73,27 @@ class GuessStockJsonrpc extends JsonRpc
             if ($v['type'] == 2) {
                 $result['down'] = $v['total'];
             }
+        }
+
+        if ($result['login'] && $result['available']) {
+            $period = $activity['id'];
+            $alert = Cache::remeber('perten_alert_' . $userId, 10, function() use ($userId, $period) {
+                $data = array();
+                $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period])->orderBy('id', 'desc')->first();
+                if ($guess_alert && $guess_alert->alert == 0) {
+                    $curr_time = date('Y-m-d', strtotime($guess_alert->updated_at));
+                    $stock = HdPertenStock::where(['period'=>$period, 'curr_time'=>$curr_time])->first();
+                    if ($stock) {
+                        $data['time'] = $curr_time;
+                        $data['change'] = $stock->change_status;//1涨/2跌
+                        $money = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->whereRaw(" to_days(created_at) = {$curr_time} ")->value('money');
+                        $data['money'] = $money ? $money : 0;
+                        $guess_alert->alert = 1;
+                    }
+                }
+                return $data;
+            });
+            $result['alert'] = $alert;
         }
         return [
             'code' => 0,
@@ -205,6 +236,20 @@ class GuessStockJsonrpc extends JsonRpc
             'message' => 'success',
             'data' => $data,
         ];
+    }
+
+    protected function getStockNext($date)
+    {
+        $w = date('w', strtotime($date));
+        if ($w == 6 || $w == 0) {
+            $date = date('Y-m-d', strtotime('+1 week last monday', strtotime($date)));
+            return $this->getStockNext($date);
+        }
+        if ( in_array($date, ['2019-05-01', '2019-06-07', '2019-09-13', '2019-10-01','2019-10-02','2019-10-03','2019-10-04','2019-10-07']) ) {
+            $date = date('Y-m-d', strtotime('+1 day', strtotime($date)));
+            return $this->getStockNext($date);
+        }
+        return $date;
     }
 }
 
