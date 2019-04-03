@@ -18,6 +18,9 @@ class Kernel extends ConsoleKernel
         Commands\VoteAwardDebug::class,
         Commands\Perbai::class,
         Commands\SendPush::class,
+        Commands\PertenRemind::class,
+        Commands\PertenGuess::class,
+        Commands\PertenGuessAward::class,
     ];
 
     /**
@@ -32,11 +35,15 @@ class Kernel extends ConsoleKernel
         // $schedule->command('VoteAwardDebug')
         //          ->hourly()->withoutOverlapping()->sendOutputTo($filePath);
 
-        //逢10抽大奖抓取深证成指数
-        $schedule->command('Perbai')->weekdays()->withoutOverlapping()->timezone('Asia/Shanghai')->when(function () {
-            return date('Hi') >= 1530;
-        });
+        //逢10抽大奖15:00开奖
+        $schedule->command('Perbai')->weekdays()->daily("15:00");
+        //逢10活动前10分钟提醒
         $schedule->command('SendPush')->withoutOverlapping();
-
+        //每日14:00全量PUSH提醒获得抽奖号码用户
+        $schedule->command('PertenRemind')->dailyAt("14:00");
+        //每日 11:00 全量提醒获得抽奖号码用户（大盘预言）
+        $schedule->command('PertenGuess')->dailyAt("11:00");
+        //天天猜最后一次开奖
+        $schedule->command('PertenGuessAward')->weekdays()->daily("15:00");
     }
 }

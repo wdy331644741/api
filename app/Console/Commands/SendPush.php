@@ -43,39 +43,46 @@ class SendPush extends Command
      */
     public function handle()
     {
-        $activity = PerBaiService::getActivityInfo();
-        if (!$activity) {
+        try {
+            $activity = PerBaiService::getActivityInfo();
+            if (!$activity) {
+                throw new \Exception('活动不存在');
+            }
+            $beforeTen = strtotime('-10 minute', strtotime($activity->start_time));
+            $endTime = strtotime($activity->start_time);
+            $time = time();
+            if ($time > $beforeTen && $time < $endTime) {
+                $node = PerBaiService::$nodeType . $activity['id'];
+                $where = ['status'=>0, 'type'=> $node];
+                $count = \App\Models\SendPush::where($where)->count();
+                if (!$count) {
+                    throw new \Exception('没有要提醒的用户');
+                }
+                $perPage = 100;
+                $num = ceil($count / $perPage);
+                $id = \App\Models\SendPush::where($where)->value('id');
+                for ($i=0; $i<$num; $i++) {
+                    $data = \App\Models\SendPush::select('id','user_id')->where('id', '>=', $id)->where($where)->limit($perPage)->get()->toArray();
+                    $userIds = [];
+                    foreach ($data as $v) {
+                        $userIds[] = $v['user_id'];
+                    }
+                    if ($userIds) {
+                        $last = array_pop($data);
+                        $id = $last['id'];
+                        \App\Models\SendPush::where($where)->where('id', '<=', $id)->where($where)->update(['status'=>1]);
+                        $this->dispatch(new SendPushJob($userIds, 'activity_remind'));
+                    } else {
+                        return fasle;
+                    }
+                }
+            }
+            return false;
+        }catch (\Exception $e) {
+            $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
+            $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'console.SendPush.log');
+            file_put_contents($filepath, $log, FILE_APPEND);
             return false;
         }
-        $beforeTen = strtotime('-10 minute', strtotime($activity->start_time));
-        $endTime = strtotime($activity->start_time);
-        $time = time();
-        if ($time > $beforeTen && $time < $endTime) {
-            $node = PerBaiService::$nodeType . $activity['id'];
-            $where = ['status'=>0, 'type'=> $node];
-            $count = \App\Models\SendPush::where($where)->count();
-            if (!$count) {
-                return false;
-            }
-            $perPage = 100;
-            $num = ceil($count / $perPage);
-            $id = \App\Models\SendPush::where($where)->value('id');
-            for ($i=0; $i<$num; $i++) {
-                $data = \App\Models\SendPush::select('id','user_id')->where('id', '>=', $id)->where($where)->limit($perPage)->get()->toArray();
-                $userIds = [];
-                foreach ($data as $v) {
-                    $userIds[] = $v['user_id'];
-                }
-                if ($userIds) {
-                    $last = array_pop($data);
-                    $id = $last['id'];
-                    \App\Models\SendPush::where($where)->where('id', '<=', $id)->where($where)->update(['status'=>1]);
-                    $this->dispatch(new SendPushJob($userIds, 'activity_remind'));
-                } else {
-                    return fasle;
-                }
-            }
-        }
-        return false;
     }
 }

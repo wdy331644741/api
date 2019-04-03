@@ -16,7 +16,7 @@ class PerBaiService
 {
     public static $nodeType = 'perten';//push提醒type
     public static $guessKeyInvite = 'perten_guess_invite';//push提醒type
-    public static $guessKeyUser = 'perten_guess_user';//push提醒type
+    public static $guessKeyUser = 'perten_guess_user';//天天猜注数
     //用户随机中奖号码发放
     public  static function addDrawNum($userId, $number, $type, $createTime)
     {
@@ -82,6 +82,9 @@ class PerBaiService
                     throw new OmgException(OmgException::DATABASE_ERROR);
                 }
             }
+            $guessNum = count($info);
+            $guessKey = self::$guessKeyUser . $activity->id;
+            Attributes::increment($userId, $guessKey, $guessNum * 5);
             //事务提交结束
             DB::commit();
         } catch (Exception $e) {
@@ -206,7 +209,8 @@ class PerBaiService
         $return = ['award_name'=> $money, 'status'=> true];
         //发送消息&存储到日志
         if (isset($result['result']['code']) && $result['result']['code'] == 0) {//成功
-            $stockTemple = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，点击查看{活动链接}。";
+            $url = "https://". env(ACCOUNT_BASE_HOST) . '/';
+            $stockTemple = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，点击查看{".$url."}。";
             PerBaiService::sendMessage($userId, $stockTemple);
             $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，立即查看。";
             SendMessage::sendPush($userId, 'node', $stockPush);
@@ -228,11 +232,12 @@ class PerBaiService
             $number = 100 - $max;
         }
         Attributes::incrementByDay($userId, self::$guessKeyInvite, $number);
-        Attributes::increment($userId, self::$guessKeyUser, $number);
+        $guessKey = self::$guessKeyUser . $activity['id'];
+        Attributes::increment($userId, $guessKey, $number);
     }
 
     //天天猜发奖
-    public static function guessSendAward($period, $type)
+    public static function guessSendAward($type)
     {
         $activity = self::getActivityInfo();
         $totalMoney = $activity['guess_award'];
@@ -250,28 +255,59 @@ class PerBaiService
         if (!$data) {
             return false;
         }
+        $url = "https://". env(ACCOUNT_BASE_HOST) . '/';
+        $msgTempl = "亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看{".$url."}。";
+        $pushTempl="亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看。";
         $totalPeople = count($data);
         foreach ($data as $v) {
             $money = bcdiv(bcmul($totalMoney, $v['total'], 2), $totalCount, 2);
+            $guessLog = new HdPertenGuessLog();
+            $guessLog->user_id = $v['user_id'];
+            $guessLog->period = $period;
+            $guessLog->money = $money;
             $tplParam = [
                 'money'=>$money,
-                'home_team'=>$weekConfig->home_team,
-                'guest_team'=>$weekConfig->guest_team,
-                'race_time'=>$weekConfig->race_time,
-                'total_count'=>$totalCount,
-                'total_people'=>$totalPeople,
             ];
-            SendMessage::Mail($v['user_id'], self::$messageTpl, $tplParam);
-            SendMessage::Message($v['user_id'], self::$messageTpl, $tplParam);
-            $insert = HdWeeksGuessLog::create([
-                'user_id'=>$v['user_id'],
-                'period'=>$period,
-                'money'=>$money
-            ]);
-            HdWeeksGuess::where(['period'=>$period, 'type'=>$type, 'user_id'=>$v['user_id']])->update(['status'=>1]);
+            $result = self::experience($v['user_id'], $money);
+            if ($result === true) {
+                $guessLog->status = 1;
+            } else {
+                $guessLog->remark = $result;
+            }
+            $guessLog->save();
+            SendMessage::Mail($v['user_id'], $msgTempl, $tplParam);
+            SendMessage::Message($v['user_id'], $msgTempl, $tplParam);
+            SendMessage::sendPush($v['user_id'], 'test',$pushTempl);
         }
-        //次数清0
-        UserAttribute::where(['key'=>'weeksguess_drew_user'])->update(['number'=>0]);
+        HdPertenGuess::where(['period'=>$period, 'status'=>0])->update(['status'=>1]);
         return true;
+    }
+
+    public static function experience($userId, $money)
+    {
+        $data = array();
+        $url = Config::get("award.reward_http_url");
+        $client = new JsonRpcClient($url);
+        $uuid = create_guid();
+        //体验金
+        $data['user_id'] = $userId;
+        $data['uuid'] = $uuid;
+        $data['source_id'] = 999999;
+        $data['name'] = $money . "体验金";
+        //体验金额
+        $data['amount'] = $money;
+        $data['effective_start'] = date("Y-m-d H:i:s");
+        $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+7 days"));
+        $data['source_name'] = "天天猜大盘涨跌";
+        //发送接口
+        $result = $client->experience($data);
+        //发送消息&存储到日志
+        if (isset($result['result']) && $result['result']) {//成功
+            return true;
+        } else {//失败
+            //记录错误日志
+            $err = array('award_name' => $data['name'], 'err_data' => $result, 'url' => $url);
+            return $err;
+        }
     }
 }

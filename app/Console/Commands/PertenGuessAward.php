@@ -2,35 +2,26 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\PertenGuessJob;
 use App\Models\HdPerbai;
-use App\Models\GlobalAttribute;
 use App\Models\HdPerHundredConfig;
 use App\Models\HdPertenStock;
-use App\Service\Func;
-use App\Service\GlobalAttributes;
-use App\Service\PerBaiService;
-use App\Service\SendMessage;
 use Illuminate\Console\Command;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Config, DB;
 
-class Perbai extends Command
+class PertenGuessAward extends Command
 {
-    use DispatchesJobs;
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'Perbai';
+    protected $signature = 'PertenGuessAward';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = '抓取上证成指数';
+    protected $description = '天天猜大盘最后一次开奖';
 
     /**
      * Create a new command instance.
@@ -55,14 +46,21 @@ class Perbai extends Command
             if (!$activity) {
                 throw new \Exception('活动不存在');
             }
-            //活动未开始
-            if ( time() < strtotime($activity['start_time']) ) {
-                throw new \Exception('活动未开始');
+            //最后一个号码的时间，上一个开盘日的下午三点后
+            $curr_num = HdPerbai::where(['period'=>$activity['id']])->orderBy('id', 'desc')->first();
+            if ( !$curr_num || $curr_num['user_id'] == 0) {
+                throw new \Exception('号码不存在或号码没发完');
             }
-            //今天发出去号码就开奖
-            $curr_num = HdPerbai::where(['period'=>$activity['id']])->where('status', '>', 0)->whereRaw(" to_days(updated_at) = to_days(now()) ")->first();
-            if ( !$curr_num ) {
-                throw new \Exception('号码昨天已发完');
+            $stocked = HdPertenStock::where(['open_status'=>2, 'period'=>$activity['id']])->first();
+            if ($stocked) {
+                throw new \Exception('奖励已发完');
+            }
+            //最后一个号码的时间，上一个开盘日的下午三点后
+            $updated_at = strtotime($curr_num['updated_at']);
+            $last_stock = HdPertenStock::where(['open_status'=>1, 'period'=>$activity['id']])->orderBy('id', 'desc')->first();
+            $last_time = $last_stock['curr_time'];
+            if ( $updated_at <= strtotime("$last_time 15:00:00") ) {
+                throw new \Exception('奖励发放完');
             }
             $stock = PerBaiService::getStockPrice();
             if ($stock === false) {
@@ -86,28 +84,17 @@ class Perbai extends Command
                 'change_status'=> $change >= 0 ? 1 : 2,
                 'draw_number'=> $draw_number,
                 'curr_time'=> $stock_time,
+                'open_status'=> 2,
             ]);
             if (!$ret) {
                 throw new \Exception('Database error');
-            }
-            $perten = HdPerbai::where(['draw_number'=> $draw_number, 'period'=>$activity['id']])->first();
-            if (!$perten || $perten->user_id == 0) {
-                throw new \Exception('中奖号码没发出去');
-            }
-            $perten->award_name = $draw_number;
-            $perten->status = 2;
-            if ( $perten->save() ) {
-                $ret->open_status = 1;
-                $remark = PerBaiService::sendAward($perten->user_id, $draw_number);
-                $ret->remark = json_encode($remark);
-                $ret->save();
             }
             //天天猜发奖
             $this->dispatch(new PertenGuessJob($change));
             return false;
         } catch (\Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
-            $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'console.Perbai.log');
+            $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'console.PertenGuessAward.log');
             file_put_contents($filepath, $log, FILE_APPEND);
             return false;
         }

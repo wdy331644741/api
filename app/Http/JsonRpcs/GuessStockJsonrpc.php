@@ -119,7 +119,14 @@ class GuessStockJsonrpc extends JsonRpc
             $return['stock'] = $stock['stock'];
         } else {
             $flag = true;
-            if ($h > 1530) {
+            $stock = HdPertenStock::where(['period'=>$acvitity['id']])->orderBy('id', 'desc')->first();
+            if ($stock && $stock->open_status == 2) {
+                $return['time'] = $stock['curr_time'];
+                $return['change'] = $stock['change'];
+                $return['stock'] = $stock['stock'];
+                $flag = false;
+            }
+            if ($flag && $h > 1530) {
                 $stock = HdPertenStock::where(['curr_time'=>$date, 'period'=>$acvitity['id']])->first();
                 if ($stock) {
                     $return['time'] = $stock['curr_time'];
@@ -164,7 +171,8 @@ class GuessStockJsonrpc extends JsonRpc
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         DB::beginTransaction();
-        $userAttr = Attributes::getItemLock($userId, PerBaiService::$guessKeyUser);
+        $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
+        $userAttr = Attributes::getItemLock($userId, $guessKey);
         $user_num = isset($userAttr->number) ? $userAttr->number : 0;
         if ( $number > $user_num) {
             DB::rollBack();
