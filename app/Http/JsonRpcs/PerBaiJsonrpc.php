@@ -107,6 +107,9 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiRemain()
     {
+        if (!PerBaiService::getActivityInfo()) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $result['remain'] = PerBaiService::getRemainNum();
         $result['next'] = self::getNextNum();
         return [
@@ -127,6 +130,9 @@ class PerBaiJsonrpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $where = ['user_id'=>$userId, 'period'=>$activity->id];
         $data = HdPerbai::select('draw_number')->where($where)->get()->toArray();
         foreach ($data as $k=>$v) {
@@ -145,6 +151,9 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiList() {
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $where = ['status'=>2, 'period'=>$activity->id];
         $data = HdPerbai::select('user_id','award_name', 'updated_at')->where($where)->orderBy('updated_at', 'desc')->limit(30)->get()->toArray();
         foreach ($data as &$item){
@@ -168,6 +177,9 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiAwardInfo() {
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $data = [
             "ultimate_award"=>$activity['ultimate_award'],
             //"ultimate_img1"=>$activity['ultimate_img1'],
@@ -207,7 +219,10 @@ class PerBaiJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function perbaiStock() {
-        $acvitity = PerBaiService::getActivityInfo();
+        $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $date = date('Y-m-d');
         $return = [
             'time' => $date,
@@ -257,6 +272,9 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiStockLog() {
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $data = HdPertenStock::select(['curr_time', 'stock', 'draw_number', 'open_status'])->where(['period'=>$activity['id']])->where('open_status','<>', 2)->get()->toArray();
         foreach ($data as $k=>$v) {
             $data[$k]['phone'] = '';
@@ -329,6 +347,9 @@ class PerBaiJsonrpc extends JsonRpc
     public static function getNextNum() {
 
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $perbai = HdPerbai::where(['user_id'=>0, 'status'=>0, 'period'=>$activity->id])->first();
         if (!$perbai) {
             return $activity->numbers;
