@@ -219,8 +219,8 @@ class PerBaiJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function perbaiStock() {
-        $activity = PerBaiService::getActivityInfo();
-        if (!$activity) {
+        $acvitity = PerBaiService::getActivityInfo();
+        if (!$acvitity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $date = date('Y-m-d');
