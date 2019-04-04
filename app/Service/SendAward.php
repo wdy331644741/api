@@ -224,6 +224,38 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 逢10抽大奖 start **/
+            case 'perten_investment':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'investment'
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && isset($triggerData['scatter_type']) && $triggerData['scatter_type'] == 2
+                    && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
+                    && $triggerData['period'] >= 6
+                )
+                {
+                    $amount = isset($triggerData['Investment_amount']) ? intval($triggerData['Investment_amount']) : 0;
+                    if ( $amount >= 5000 ) {
+                        $num = intval($amount/5000);
+                        PerBaiService::addDrawNum($triggerData['user_id'],$num, 'investment', $triggerData['buy_time']);
+                    }
+                }
+                break;
+            //邀请人首投
+            case 'perten_real_name':
+                if(
+                    isset($triggerData['tag']) && !empty($triggerData['tag'])
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && $triggerData['tag'] == 'real_name'
+                    && ( empty($activityInfo['start_at']) || $triggerData['time'] >= $activityInfo['start_at'] )
+                ){
+                        $fromUser = Func::getUserBasicInfo($triggerData['user_id']);
+                        if ( $fromUser['from_user_id'] ) {
+                            PerBaiService::addGuessNumber($fromUser['from_user_id'], 5);
+                        }
+                }
+                break;
+            /** 逢10抽大奖 end **/
             /** 踏青活动 start **/
             case 'spring_investment':
                 if(

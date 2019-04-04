@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\SendPushJob;
 use App\Models\HdPerHundredConfig;
+use App\Service\PerBaiService;
 use App\Service\SendMessage;
 use Illuminate\Console\Command;
 use Config;
@@ -42,18 +43,20 @@ class SendPush extends Command
      */
     public function handle()
     {
-        //
-        $activityConfig = HdPerHundredConfig::where(['status' => 1])->first();
-        if ($activityConfig) {
-            $beforeTen = strtotime('-15 minute', strtotime($activityConfig->start_time));
-            $endTime = strtotime($activityConfig->start_time);
+        try {
+            $activity = PerBaiService::getActivityInfo();
+            if (!$activity) {
+                throw new \Exception('活动不存在');
+            }
+            $beforeTen = strtotime('-10 minute', strtotime($activity->start_time));
+            $endTime = strtotime($activity->start_time);
             $time = time();
             if ($time > $beforeTen && $time < $endTime) {
-                $node = Config::get('perbai.node');
+                $node = PerBaiService::$nodeType . $activity['id'];
                 $where = ['status'=>0, 'type'=> $node];
                 $count = \App\Models\SendPush::where($where)->count();
                 if (!$count) {
-                    return false;
+                    throw new \Exception('没有要提醒的用户');
                 }
                 $perPage = 100;
                 $num = ceil($count / $perPage);
@@ -74,7 +77,12 @@ class SendPush extends Command
                     }
                 }
             }
+            return false;
+        }catch (\Exception $e) {
+            $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
+            $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'console.SendPush.log');
+            file_put_contents($filepath, $log, FILE_APPEND);
+            return false;
         }
-        return false;
     }
 }

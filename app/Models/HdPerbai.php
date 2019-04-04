@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class HdPerbai extends Model
 {
 
-    public $table = 'hd_perbai';
+    public $table = 'hd_perten';
     public $timestamps = true;
 }
