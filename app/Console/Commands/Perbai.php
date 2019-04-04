@@ -50,7 +50,7 @@ class Perbai extends Command
     public function handle()
     {
         try {
-            $activity = HdPerHundredConfig::where(['status' => 1])->first();
+            $activity = PerBaiService::getActivityInfo();
             //活动不存在
             if (!$activity) {
                 throw new \Exception('活动不存在');
@@ -79,15 +79,14 @@ class Perbai extends Command
             if ($model) {
                 throw new \Exception('当前日期已抓取'.$stock_time);
             }
-            $ret = HdPertenStock::create([
-                'period'=> $activity['id'],
-                'stock'=> $price,
-                'change'=> $change,
-                'change_status'=> $change >= 0 ? 1 : 2,
-                'draw_number'=> $draw_number,
-                'curr_time'=> $stock_time,
-            ]);
-            if (!$ret) {
+            $ret = new HdPertenStock();
+            $ret->period = $activity['id'];
+            $ret->stock = $price;
+            $ret->change = $change;
+            $ret->change_status = $change >= 0 ? 1 : 2;
+            $ret->draw_number = $draw_number;
+            $ret->curr_time = $stock_time;
+            if (!$ret->save()) {
                 throw new \Exception('Database error');
             }
             $perten = HdPerbai::where(['draw_number'=> $draw_number, 'period'=>$activity['id']])->first();

@@ -66,7 +66,7 @@ class PerBaiJsonrpc extends JsonRpc
                     $perbai_model->remark = 'alert';//弹框只显示一次
                     $perbai_model->save();
                     //奖品弹出列表
-                    $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at'])->where(['user_id'=>$userId, 'period'=>$period])->get()-toArray();
+                    $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at'])->where(['user_id'=>$userId, 'period'=>$period, 'status'=>2])->get()->toArray();
                     foreach ($mylist as $k=>$v) {
                         $mylist[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
                         $mylist[$k]['created_at'] = date('m-d', strtotime($v['created_at']));
@@ -168,10 +168,36 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiAwardInfo() {
         $activity = PerBaiService::getActivityInfo();
+        $data = [
+            "ultimate_award"=>$activity['ultimate_award'],
+            //"ultimate_img1"=>$activity['ultimate_img1'],
+            //"ultimate_img2"=>$activity['ultimate_img2'],
+            "first_award"=>$activity['first_award'],
+            "first_img1"=>$activity['first_img1'],
+            "first_img2"=>$activity['first_img2'],
+            "sunshine_award"=>$activity['sunshine_award'],
+            "sunshine_img1"=>$activity['sunshine_img1'],
+            "sunshine_img2"=>$activity['sunshine_img2'],
+            "start_time"=>$activity['start_time'],
+           // "ultimate_pc1"=>$activity['ultimate_pc1'],
+           // "ultimate_pc2"=>$activity['ultimate_pc2'],
+            "first_pc1"=>$activity['first_pc1'],
+            "first_pc2"=>$activity['first_pc2'],
+            "sunshine_pc1"=>$activity['sunshine_pc1'],
+            "sunshine_pc2"=>$activity['sunshine_pc2'],
+           // "award_text"=>$activity['award_text'],
+           // "ultimate_rule"=>$activity['ultimate_rule'],
+           // "first_rule"=>$activity['first_rule'],
+          //  "sunshine_rule"=>$activity['sunshine_rule'],
+            "activity_rule"=>$activity['activity_rule'],
+            "first_price"=>$activity['first_price'],
+            "sunshine_price"=>$activity['sunshine_price'],
+            "guess_award"=>$activity['guess_award'],
+        ];
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $activity,
+            'data' => $data,
         ];
     }
 
@@ -231,9 +257,10 @@ class PerBaiJsonrpc extends JsonRpc
      */
     public function perbaiStockLog() {
         $activity = PerBaiService::getActivityInfo();
-        $data = HdPertenStock::select(['curr_time', 'stock', 'draw_number', 'open_status'])->where(['period'=>$activity['id']])->get()->toArray();
+        $data = HdPertenStock::select(['curr_time', 'stock', 'draw_number', 'open_status'])->where(['period'=>$activity['id']])->where('open_status','<>', 2)->get()->toArray();
         foreach ($data as $k=>$v) {
             $data[$k]['phone'] = '';
+            $data[$k]['curr_time'] = date('Y-m-d', strtotime($v['curr_time']));
             if ($v['open_status'] == 1) {
                 $userId = HdPerbai::where(['period'=>$activity['id'], 'draw_number'=>$v['draw_number']])->value('user_id');
                 $phone = Func::getUserPhone($userId);

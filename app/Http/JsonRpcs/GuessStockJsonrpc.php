@@ -8,6 +8,7 @@ use App\Models\HdPertenGuess;
 use App\Models\HdPertenGuessLog;
 use App\Models\HdPertenStock;
 use App\Models\HdWeeksGuessLog;
+use App\Service\Attributes;
 use App\Service\PerBaiService;
 use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -65,7 +66,7 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['countdown'] = strtotime("$next_day 13:00:00") - $time;
             }
         }
-        $guess = HdPertenGuess::select('sum(number) total')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
+        $guess = HdPertenGuess::selectRaw('sum(number) total')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
         foreach ($guess as $v) {
             if ($v['type'] == 1) {
                 $result['up'] = $v['total'];
@@ -157,6 +158,7 @@ class GuessStockJsonrpc extends JsonRpc
     public function stockDraw($params)
     {
         global $userId;
+        $userId = 246;
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -185,6 +187,7 @@ class GuessStockJsonrpc extends JsonRpc
             'number'=>$number,
             'status'=>0,
         ]);
+        var_dump($insert);die;
         if (!$insert) {
             DB::rollBack();
             throw new OmgException(OmgException::DATA_ERROR);

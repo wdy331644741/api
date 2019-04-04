@@ -8,5 +8,5 @@ class HdPertenStock extends Model
 {
 
     public $table = 'hd_perten_stock';
-    public $timestamps = true;
+//    public $timestamps = true;
 }

@@ -14,6 +14,7 @@ use App\Http\JsonRpcs\DaZhuanPanJsonRpc;
 use App\Http\JsonRpcs\DoubleElevenJsonrpc;
 use App\Http\JsonRpcs\DoubleTwelveJsonrpc;
 use App\Http\JsonRpcs\EndYearInvestJsonrpc;
+use App\Http\JsonRpcs\GuessStockJsonrpc;
 use App\Http\JsonRpcs\HockeyJsonRpc;
 use App\Http\JsonRpcs\JianmianhuiJsonrpc;
 use App\Http\JsonRpcs\JumpJsonRpc;
@@ -161,6 +162,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new WeeksGuessJsonrpc());//周末竞猜
         $jsonRpcServer->addService(new InviteLimitTaskJsonRpc());//好友邀请3.0
         $jsonRpcServer->addService(new SpringJsonRpc());//周末竞猜
+        $jsonRpcServer->addService(new GuessStockJsonrpc());//天天猜大盘
 
 
         $jsonRpcServer->processingRequests();

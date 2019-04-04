@@ -53,7 +53,7 @@ class PerBaiService
                     $update['award_name'] = $activityConfig->first_award;
                     $update['status'] = 2;
                     //站内信，短信，push
-                    $url = "https://". env(ACCOUNT_BASE_HOST) . '/wechat/address';
+                    $url = "https://". env('ACCOUNT_BASE_HOST') . '/wechat/address';
                     $msg = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖". $activityConfig->first_award ."，请于当期活动结束后及时联系平台客服人员兑换奖品。温馨提示：确保您在网利宝平台的收货地址准确无误，立即完收货地址：{".$url."}，客朋电话：400-858-8066。";
                     self::sendMessage($userId, $msg);
                     $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖". $activityConfig->first_award ."，立即查看。";
@@ -62,8 +62,8 @@ class PerBaiService
                 } else if ( 0 === ($draw_number%10) ) {
                     $update['award_name'] = $activityConfig->sunshine_award;
                     $update['status'] = 2;
-                    $activity = ActivityService::GetActivityedInfoByAlias('perten_jingdongka');
-                    SendAward::addAwardByActivity($userId, $activity->id);
+                    $activityJd = ActivityService::GetActivityedInfoByAlias('perten_jingdongka');
+                    SendAward::addAwardByActivity($userId, $activityJd->id);
 //                    "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：100京东卡，京东卡卡密：****，点击查看{活动链接}";
                     $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：".$activityConfig->sunshine_award ."，立即查看。";
 //                    SendMessage::sendPush($userId ,'test', $push);
@@ -83,7 +83,7 @@ class PerBaiService
                 }
             }
             $guessNum = count($info);
-            $guessKey = self::$guessKeyUser . $activity->id;
+            $guessKey = self::$guessKeyUser . $activityConfig->id;
             Attributes::increment($userId, $guessKey, $guessNum * 5);
             //事务提交结束
             DB::commit();
@@ -209,7 +209,7 @@ class PerBaiService
         $return = ['award_name'=> $money, 'status'=> true];
         //发送消息&存储到日志
         if (isset($result['result']['code']) && $result['result']['code'] == 0) {//成功
-            $url = "https://". env(ACCOUNT_BASE_HOST) . '/';
+            $url = "https://". env('ACCOUNT_BASE_HOST') . '/';
             $stockTemple = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，点击查看{".$url."}。";
             PerBaiService::sendMessage($userId, $stockTemple);
             $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，立即查看。";
@@ -255,7 +255,7 @@ class PerBaiService
         if (!$data) {
             return false;
         }
-        $url = "https://". env(ACCOUNT_BASE_HOST) . '/';
+        $url = "https://". env('ACCOUNT_BASE_HOST') . '/';
         $msgTempl = "亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看{".$url."}。";
         $pushTempl="亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看。";
         $totalPeople = count($data);

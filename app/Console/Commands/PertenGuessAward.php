@@ -78,6 +78,7 @@ class PertenGuessAward extends Command
                 throw new \Exception('当前日期已抓取'.$stock_time);
             }
             $ret = HdPertenStock::create([
+
                 'period'=> $activity['id'],
                 'stock'=> $price,
                 'change'=> $change,
