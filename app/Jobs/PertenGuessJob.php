@@ -20,7 +20,7 @@ class PertenGuessJob extends Job implements ShouldQueue
      */
     public function __construct($type)
     {
-        $this->number = $type;
+        $this->type = $type;
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Models\GlobalAttribute;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
 use Config, Cache,DB;
+use Lib\JsonRpcClient;
 
 
 class PerBaiService
@@ -203,7 +204,7 @@ class PerBaiService
     public static function sendAward($userId, $money)
     {
         $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 {{awardname}} 元现金，现金已发放至您账户余额，立即查看。";
-        $uuid = create_guid();
+        $uuid = SendAward::create_guid();
         //发送接口
         $result = Func::incrementAvailable($userId,999999,$uuid, $money,'stock_index_cash');
         $return = ['award_name'=> $money, 'status'=> true];
@@ -277,7 +278,8 @@ class PerBaiService
             $guessLog->save();
             SendMessage::Mail($v['user_id'], $msgTempl, $tplParam);
             SendMessage::Message($v['user_id'], $msgTempl, $tplParam);
-            SendMessage::sendPush($v['user_id'], 'test',$pushTempl);
+            //todo
+//            SendMessage::sendPush($v['user_id'], 'test',$pushTempl);
         }
         HdPertenGuess::where(['period'=>$period, 'status'=>0])->update(['status'=>1]);
         return true;
@@ -288,7 +290,7 @@ class PerBaiService
         $data = array();
         $url = Config::get("award.reward_http_url");
         $client = new JsonRpcClient($url);
-        $uuid = create_guid();
+        $uuid = SendAward::create_guid();
         //体验金
         $data['user_id'] = $userId;
         $data['uuid'] = $uuid;

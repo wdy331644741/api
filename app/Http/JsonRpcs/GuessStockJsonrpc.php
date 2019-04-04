@@ -9,6 +9,7 @@ use App\Models\HdPertenGuessLog;
 use App\Models\HdPertenStock;
 use App\Models\HdWeeksGuessLog;
 use App\Service\Attributes;
+use App\Service\Func;
 use App\Service\PerBaiService;
 use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -78,23 +79,20 @@ class GuessStockJsonrpc extends JsonRpc
 
         if ($result['login'] && $result['available']) {
             $period = $activity['id'];
-            $alert = Cache::remeber('perten_alert_' . $userId, 10, function() use ($userId, $period) {
-                $data = array();
-                $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period])->orderBy('id', 'desc')->first();
-                if ($guess_alert && $guess_alert->alert == 0) {
-                    $curr_time = date('Y-m-d', strtotime($guess_alert->updated_at));
-                    $stock = HdPertenStock::where(['period'=>$period, 'curr_time'=>$curr_time])->first();
-                    if ($stock) {
-                        $data['time'] = $curr_time;
-                        $data['change'] = $stock->change_status;//1涨/2跌
-                        $money = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->whereRaw(" to_days(created_at) = {$curr_time} ")->value('money');
-                        $data['money'] = $money ? $money : 0;
-                        $guess_alert->alert = 1;
-                    }
+            $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period])->orderBy('id', 'desc')->first();
+            if ($guess_alert && $guess_alert->alert == 0) {
+                $curr_time = date('Y-m-d', strtotime($guess_alert->updated_at));
+                $stock = HdPertenStock::where(['period'=>$period, 'curr_time'=>$curr_time])->first();
+                if ($stock) {
+                    $data['time'] = $curr_time;
+                    $data['change'] = $stock->change_status;//1涨/2跌
+                    $money = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->whereRaw(" date(created_at) = {$curr_time} ")->value('money');
+                    $data['money'] = $money ? $money : 0;
+                    $guess_alert->alert = 1;
+                    $guess_alert->save();
+                    $result['alert'] = $data;
                 }
-                return $data;
-            });
-            $result['alert'] = $alert;
+            }
         }
         return [
             'code' => 0,
@@ -115,14 +113,14 @@ class GuessStockJsonrpc extends JsonRpc
         $h = date('Hi');
         if ( in_array($date, PerBaiService::getStockClose()) || $w == 6 || $w == 0 || $h < 930 ) {
             $stock = HdPertenStock::where(['period'=>$acvitity['id']])->orderBy('id', 'desc')->first();
-            $return['time'] = $stock['curr_time'];
+            $return['time'] = date('Y-m-d', strtotime($stock['curr_time']));
             $return['change'] = $stock['change'];
             $return['stock'] = $stock['stock'];
         } else {
             $flag = true;
             $stock = HdPertenStock::where(['period'=>$acvitity['id']])->orderBy('id', 'desc')->first();
             if ($stock && $stock->open_status == 2) {
-                $return['time'] = $stock['curr_time'];
+                $return['time'] = date('Y-m-d', strtotime($stock['curr_time']));
                 $return['change'] = $stock['change'];
                 $return['stock'] = $stock['stock'];
                 $flag = false;
@@ -130,7 +128,7 @@ class GuessStockJsonrpc extends JsonRpc
             if ($flag && $h > 1530) {
                 $stock = HdPertenStock::where(['curr_time'=>$date, 'period'=>$acvitity['id']])->first();
                 if ($stock) {
-                    $return['time'] = $stock['curr_time'];
+                    $return['time'] = date('Y-m-d', strtotime($stock['curr_time']));
                     $return['change'] = $stock['change'];
                     $return['stock'] = $stock['stock'];
                     $flag = false;
@@ -158,7 +156,6 @@ class GuessStockJsonrpc extends JsonRpc
     public function stockDraw($params)
     {
         global $userId;
-        $userId = 246;
         // 是否登录
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
@@ -187,7 +184,6 @@ class GuessStockJsonrpc extends JsonRpc
             'number'=>$number,
             'status'=>0,
         ]);
-        var_dump($insert);die;
         if (!$insert) {
             DB::rollBack();
             throw new OmgException(OmgException::DATA_ERROR);
@@ -209,6 +205,9 @@ class GuessStockJsonrpc extends JsonRpc
      */
     public function stockGuessList() {
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $data = HdWeeksGuessLog::selectRaw("user_id, sum(money) m")->where('period', $activity['id'])->groupBy('user_id')->orderBy('m', 'desc')->limit(50)->get()->toArray();
         foreach ($data as $k=>$v) {
             $phone = Func::getUserPhone($v['user_id']);
@@ -226,26 +225,29 @@ class GuessStockJsonrpc extends JsonRpc
      *
      * @JsonRpcMethod
      */
-    public function weeksGuessRecord() {
+    public function stockMyRecord() {
         global $userId;
         if (!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $activity = PerBaiService::getActivityInfo();
+        if (!$activity) {
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         $period = $activity['id'];
-        $data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
+//        $data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
             $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
             foreach ($list as $k=>$v) {
-                $list[$k]['up'] = HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" to_days(created_at) = {$v['curr_time']}")->value('total');
-                $list[$k]['down'] = HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" to_days(created_at) = {$v['curr_time']}")->value('total');
+                $list[$k]['up'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+                $list[$k]['down'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
                 $list[$k]['money'] = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
         }
-            return $list;
-        });
+//            return $list;
+//        });
         return [
             'code' => 0,
             'message' => 'success',
-            'data' => $data,
+            'data' => $list,
         ];
     }
 
