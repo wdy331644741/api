@@ -161,7 +161,7 @@ class InviteLimitTaskJsonRpc extends JsonRpc
 
             $newArray[self::$strToNumKey[$key]] = [
                 'status'=>$task_status,
-                'over_num'=>$over_num,
+                'over_num'=>$over_num < 0 ? 0 : $over_num,
                 'over_time'=>$over_time
             ];
         }
