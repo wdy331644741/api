@@ -58,6 +58,9 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $ser = new InviteTaskService($userId);
         $res = $ser->addTaskByUser($task);
 
+        if(!$res){
+            throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
+        }
         //领取成功发送 推送站内信
         SendMessage::Mail($userId,"恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。");
         //发送成功 //return true/false
