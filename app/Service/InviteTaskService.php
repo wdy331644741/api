@@ -82,8 +82,10 @@ class InviteTaskService
 
         //是否可再领取
         // $locked = GlobalAttributes::getNumberByTodaySeconds(self::EXP,0,3600*$this->invite_limit_task_reset );
+        DB::beginTransaction();
         if(!$this->isInsertTaskData($alias_name) ){
-            return false;
+            DB::rollBack();
+            throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
         }
 
         //记录添加
@@ -94,6 +96,7 @@ class InviteTaskService
             'date_str'   => $this->whitch_tasks,
             'limit_time' => $this->getTaskLimitTime($alias_name , $this->whitch_tasks_start)//领取任务的超时时间
         ]);
+        DB::commit();
         return true;
     }
 
@@ -111,12 +114,16 @@ class InviteTaskService
             //是否剩余可领取到任务
             if($doing->isEmpty()){
                 //剩余可领任务 = 今天100 - 今天已经完成该任务数-今天正在进行的任务数
-                $alreadyDone = GlobalAttributes::getNumber($alias_name.$this->whitch_tasks);
+                // $alreadyDone = GlobalAttributes::getNumber($alias_name.$this->whitch_tasks);
+                $alreadyDone = GlobalAttribute::where(array('key' => $alias_name.$this->whitch_tasks))->lockforupdate()->first();
+                if(empty($alreadyDone) || !isset($alreadyDone['number']) ){
+                    return false;//获取锁失败
+                }
                 $justDoingObj = $this->getTaskingByDay()->where('alias_name',$alias_name);
 
                 $justDoing = $justDoingObj->isEmpty()?0:$justDoingObj->first()->user_count;
                 // return $justDoing;
-                return $this->tasks_total[$alias_name] - $alreadyDone -$justDoing >0?:false;
+                return $this->tasks_total[$alias_name] - $alreadyDone['number'] -$justDoing >0?:false;
             }
         }else{
             return false;
