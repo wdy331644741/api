@@ -49,7 +49,6 @@ class WeeksGuessJsonrpc extends JsonRpc
                 'rate_win' => 0,//主胜 支持数
                 'rate_eq' => 0,//主平 支持数
                 'rate_lose' => 0,//主负 支持数
-                'rate_lose' => 0,//主负 支持数
                 ];
         // 用户是否登录
         if($userId) {

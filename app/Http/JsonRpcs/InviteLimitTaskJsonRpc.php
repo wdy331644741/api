@@ -152,7 +152,7 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             $over_num = $value 
                     - (isset($activit_all_done[$key])?$activit_all_done[$key]:0 )
                     - (isset($activit_all_doing[$key])?$activit_all_doing[$key]:0 );
-
+            $over_num = $over_num < 0 ? 0 : $over_num;
             //0领取  1立即前往 2已完成 3已抢光
             $task_status = !array_key_exists($key,$doing_task_array)?!in_array($key, $done_task_array)?!$over_num?3:0:2:1;
             //任务倒计时
