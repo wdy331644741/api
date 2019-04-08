@@ -212,7 +212,10 @@ class SendAward
 //                    渠道ID：htfl   渠道名称：虎投返利
 //                    渠道ID：jffl   渠道名称：九富返利
                     $user_info = Func::getUserBasicInfo($triggerData['user_id']);
-                    if ( in_array($user_info['from_channel'], ['wdtyfl', 'wangdaizhijia', 'htfl', 'jffl']) ) {
+                    if (
+                        in_array($user_info['from_channel'], ['wdtyfl', 'wangdaizhijia', 'htfl', 'jffl'])
+                    && $triggerData['register_time'] >= $activityInfo['start_at']
+                    ) {
                         return $return;
                     }
                 //每邀请一名好友注册并首次出借 2000 元（6 月及以上标）
