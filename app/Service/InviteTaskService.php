@@ -100,8 +100,8 @@ class InviteTaskService
             'limit_time' => $limit_time//领取任务的超时时间
         ]);
         //添加到redis集合 计数。//4月9号11点即时生效
-        // if(time() >= 1554778800){
-        if(time() >= 0){
+        if(time() >= 1554778800){
+        // if(time() >= 0){
             //invite_limit_task_bind2019040811  :1554713738/user_id
             $res = Redis::ZADD($alias_name.$this->whitch_tasks, strtotime($limit_time) ,$this->user_id);
         }
