@@ -128,7 +128,13 @@ class InviteTaskService
                 if(empty($alreadyDone) || !isset($alreadyDone['number']) ){
                     return false;//获取锁失败
                 }
-                
+                //判断已经领取
+                $count = InviteLimitTask::where(['user_id'=>$this->user_id , 
+                                        'date_str'=>$this->whitch_tasks,
+                                        'alias_name'=> $alias_name])->where('limit_time','>',date('Y-m-d H:i:s'))->count();
+                if($count >= 1){
+                    return false;
+                }
                 $justDoing = $this->getTaskingByDayRedis($alias_name);
                 // return $justDoing;
                 return $this->tasks_total[$alias_name] - $alreadyDone['number'] -$justDoing >0?:false;
@@ -337,6 +343,20 @@ class InviteTaskService
         return Redis::ZCOUNT($key,time(),'+inf');
     }
 
+    //获取 当天增在进行的任务数量 info接口调用
+    public function getTaskingInfoRedis(){
+
+        $newArray = [
+            'invite_limit_task_exp' => 0,
+            'invite_limit_task_bind' => 0,
+            'invite_limit_task_invest'=> 0
+        ];
+        foreach ($newArray as $key => $value) {
+            $count = Redis::ZCOUNT($key.$this->whitch_tasks ,time(),'+inf');
+            $newArray[$key] = $count;
+        }
+        return $newArray;
+    }
     //获取 当天增在进行的任务数量
     public function getTaskingByDay(){
         return $_data = InviteLimitTask::select(DB::raw('count(*) as user_count, alias_name'))

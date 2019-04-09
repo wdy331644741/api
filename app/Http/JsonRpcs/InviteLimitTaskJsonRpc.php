@@ -114,11 +114,11 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $server = new InviteTaskService($userId);
         $activit_all_done = $server->getTaskedByDay();//查询的 属性表里面的‘完成数’
 
-        $activit_all_doing_obj = $server->getTaskingByDay(); //select count(*) as user_count, alias_name from  where 当天，status，任务过期时间 > now() group by alias_name;
-        //转换数据结构  以活动名为键值
-        $activit_all_doing = array_column($activit_all_doing_obj->ToArray(), 'user_count','alias_name');
+        // $activit_all_doing_obj = $server->getTaskingByDay(); //select count(*) as user_count, alias_name from  where 当天，status，任务过期时间 > now() group by alias_name;
+        // //转换数据结构  以活动名为键值
+        // $activit_all_doing = array_column($activit_all_doing_obj->ToArray(), 'user_count','alias_name');
 
-
+        $activit_all_doing = $server->getTaskingInfoRedis();
 
         $user_data = $server->userActivitData();//该用户当天所有的数据
         $done_task_array = [];//该用户今天 已经完成的任务[1,2,3]
