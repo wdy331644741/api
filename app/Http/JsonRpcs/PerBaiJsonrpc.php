@@ -229,6 +229,7 @@ class PerBaiJsonrpc extends JsonRpc
             'stock' => '',//未开盘为空
             'draw_number' => '',//未开盘为空
             'status' => 1,// 1未开盘
+            'phone' => '',
         ];
         $w = date('w');
         $h = date('Hi');
@@ -238,6 +239,16 @@ class PerBaiJsonrpc extends JsonRpc
             $return['stock'] = $stock['stock'];
             $return['draw_number'] = PerBaiService::format($stock['draw_number']);
             $return['status'] = 3;//3收盘后：显示”已开奖
+            $key = 'perbai_' . $return['draw_number'];
+            if ( !Cache::has($key)) {
+                $userId = HdPerbai::where(['period'=>$acvitity['id'], 'draw_number'=>$stock['draw_number']])->value('user_id');
+                Cache::put($key, $userId, 10);
+            }
+            $userId = Cache::get($key);
+            if ($userId > 0) {
+                $phone = Func::getUserPhone($userId);
+                $return['phone'] = substr_replace($phone, '******', 3, 6);
+            }
         } else if ( $h < 930) { //小于九点半 未开盘
         } else {
             $flag = true;
@@ -248,6 +259,17 @@ class PerBaiJsonrpc extends JsonRpc
                     $return['stock'] = $stock['stock'];
                     $return['draw_number'] = PerBaiService::format($stock['draw_number']);
                     $return['status'] = 3;//3收盘后：显示”已开奖
+                    //显示中奖文案,  缓存
+                    $key = 'perbai_' . $return['draw_number'];
+                    if ( !Cache::has($key)) {
+                        $userId = HdPerbai::where(['period'=>$acvitity['id'], 'draw_number'=>$stock['draw_number']])->value('user_id');
+                        Cache::put($key, $userId, 10);
+                    }
+                    $userId = Cache::get($key);
+                    if ($userId > 0) {
+                        $phone = Func::getUserPhone($userId);
+                        $return['phone'] = substr_replace($phone, '******', 3, 6);
+                    }
                     $flag = false;
                 }
             }

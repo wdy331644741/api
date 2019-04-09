@@ -76,6 +76,8 @@ class PerBaiService
                         $stock->open_status = 1;
                         $stock->remark = json_encode($remark);
                         $stock->save();
+                        $update['award_name'] = $activityConfig->ultimate_award;
+                        $update['status'] = 2;
                     }
                 }
                 $updateRes = HdPerbai::where(['id' => $v['id']])->update($update);
@@ -218,6 +220,8 @@ class PerBaiService
         }else{//失败
             $return = array('award_name'=> $money, 'status'=>false,'err_data'=>$result);
         }
+        $key = 'perbai_' . $money;
+        Cache::forget($key);
         return $result;
     }
 
