@@ -46,6 +46,15 @@ class WeeksGuessService
                 'period'=>$period,
                 'money'=>$money
             ]);
+            //发现金
+            $uuid = Func::create_guid();
+            $result = Func::incrementAvailable($v['user_id'],999999, $uuid, $money,'weekend_guessing');
+            //发送消息&存储到日志
+            if ( !(isset($result['result']['code']) && $result['result']['code'] == 0) ) {
+                $err = array('err_data'=>$result);
+                $insert->remark = json_encode($err);
+                $insert->save();
+            }
             HdWeeksGuess::where(['period'=>$period, 'type'=>$type, 'user_id'=>$v['user_id']])->update(['status'=>1]);
         }
         //次数清0
