@@ -131,6 +131,10 @@ class OmgException extends BasicException
     const ACTIVITY_NOT_JOIN = 4351;
     const FUND_LACK_FAIL = 4354;
 
+    const OPENING_MORE_50 = 4355;
+    const FULL_REGIMENT = 4356;
+    const INCOMPLETE_REGIMENT = 4357;
+
     protected static $errorArray = array(
         //接口调用错误
         self::API_MIS_PARAMS => "缺少必要参数",
@@ -228,6 +232,10 @@ class OmgException extends BasicException
         self::GET_ERROR_DATA => "请求passport数据有误",
         self::ACTIVITY_NOT_JOIN => "请参与活动后再来兑换奖品",
         self::FUND_LACK_FAIL => "您的踏青基金不足",
+
+        self::OPENING_MORE_50 => "今日开团数已达上限",
+        self::FULL_REGIMENT => "之前的团已满",
+        self::INCOMPLETE_REGIMENT => "之前的团有未满",
 
     );
 

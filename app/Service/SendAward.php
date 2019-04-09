@@ -224,6 +224,18 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /**助力活动实名 START**/
+            case 'assistance_real_name':
+                if(
+                    isset($triggerData['tag']) && $triggerData['tag'] == 'real_name'
+                    && isset($triggerData['user_id']) && $triggerData['user_id'] > 0
+                    && ( empty($activityInfo['start_at']) || $triggerData['time'] >= $activityInfo['start_at'] )
+                ) {
+                    ActivityService::AssistanceRealName($triggerData['user_id']);
+                }
+                break;
+            /**助力活动实名 END**/
+            
             /** 逢10抽大奖 start **/
             case 'perten_investment':
                 if(
@@ -256,6 +268,7 @@ class SendAward
                 }
                 break;
             /** 逢10抽大奖 end **/
+
             /** 踏青活动 start **/
             case 'spring_investment':
                 if(
@@ -313,6 +326,7 @@ class SendAward
                 }
                 break;
             /** 踏青活动 start **/
+
             /** 19 新春现金红包 start **/
             case '19amountshare_send':
                 if(
