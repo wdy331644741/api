@@ -65,14 +65,14 @@ class PerBaiJsonrpc extends JsonRpc
                     $perbai_model->timestamps = false;
                     $perbai_model->remark = 'alert';//弹框只显示一次
                     $perbai_model->save();
-                    //奖品弹出列表
-                    $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at'])->where(['user_id'=>$userId, 'period'=>$period, 'status'=>2])->get()->toArray();
-                    foreach ($mylist as $k=>$v) {
-                        $mylist[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
-                        $mylist[$k]['created_at'] = date('m-d', strtotime($v['created_at']));
-                    }
-                    $result['alert_list'] = $mylist;
                 }
+                //奖品弹出列表
+                $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at'])->where(['user_id'=>$userId, 'period'=>$period, 'status'=>2])->get()->toArray();
+                foreach ($mylist as $k=>$v) {
+                    $mylist[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
+                    $mylist[$k]['created_at'] = date('m-d', strtotime($v['created_at']));
+                }
+                $result['alert_list'] = $mylist;
             }
             //是否提醒
             $type = PerBaiService::$nodeType . $period;
