@@ -53,6 +53,7 @@ class PerBaiService
                 if ( 0 === $draw_number) {
                     $update['award_name'] = $activityConfig->first_award;
                     $update['status'] = 2;
+                    $update['alias_name'] = 'yimadangxian';
                     //站内信，短信，push
                     $url = "https://". env('ACCOUNT_BASE_HOST') . '/wechat/address';
                     $msg = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖". $activityConfig->first_award ."，请于当期活动结束后及时联系平台客服人员兑换奖品。温馨提示：确保您在网利宝平台的收货地址准确无误，立即完收货地址：{".$url."}，客朋电话：400-858-8066。";
@@ -63,6 +64,7 @@ class PerBaiService
                 } else if ( 0 === ($draw_number%10) ) {
                     $update['award_name'] = $activityConfig->sunshine_award;
                     $update['status'] = 2;
+                    $update['alias_name'] = 'jdcard';
                     $activityJd = ActivityService::GetActivityedInfoByAlias('perten_jingdongka');
                     SendAward::addAwardByActivity($userId, $activityJd->id);
 //                    "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：100京东卡，京东卡卡密：****，点击查看{活动链接}";
@@ -78,6 +80,7 @@ class PerBaiService
                         $stock->save();
                         $update['award_name'] = $activityConfig->ultimate_award;
                         $update['status'] = 2;
+                        $update['alias_name'] = 'stock';
                     }
                 }
                 $updateRes = HdPerbai::where(['id' => $v['id']])->update($update);

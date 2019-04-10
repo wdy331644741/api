@@ -98,6 +98,7 @@ class Perbai extends Command
             }
             $perten->award_name = $draw_number;
             $perten->status = 2;
+            $perten->alias_name = 'stock';
             if ( $perten->save() ) {
                 $ret->open_status = 1;
                 $remark = PerBaiService::sendAward($perten->user_id, $draw_number);
