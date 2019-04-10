@@ -67,8 +67,13 @@ class PerBaiJsonrpc extends JsonRpc
                     $perbai_model->save();
                 }
                 //奖品弹出列表
-                $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at'])->where(['user_id'=>$userId, 'period'=>$period, 'status'=>2])->get()->toArray();
+                $mylist = HdPerbai::select(['award_name', 'draw_number', 'created_at', 'alias_name'])->where(['user_id'=>$userId, 'period'=>$period, 'status'=>2])->get()->toArray();
                 foreach ($mylist as $k=>$v) {
+                    $img = '';
+                    $v['alias_name'] == 'yimadangxian' && $img = $activity->first_img1;
+                    $v['alias_name'] == 'jdcard' && $img = $activity->sunshine_img1;
+                    $v['alias_name'] == 'stock' && $img = $activity->ultimate_img1;
+                    $mylist[$k]['img'] = $img;
                     $mylist[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
                     $mylist[$k]['created_at'] = date('m-d', strtotime($v['created_at']));
                 }
