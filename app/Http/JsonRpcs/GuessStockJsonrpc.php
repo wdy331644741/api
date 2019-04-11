@@ -30,6 +30,7 @@ class GuessStockJsonrpc extends JsonRpc
             'login' => 0,
             'available' => 0,
             'award' => 0,
+            'number'=>0,//预言注数
             'countdown' => 0,
             'up' => 0,
             'down' => 0,
@@ -93,6 +94,8 @@ class GuessStockJsonrpc extends JsonRpc
                     $result['alert'] = $data;
                 }
             }
+            $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
+            $result['number'] = Attributes::getNumber($userId, $guessKey);
         }
         return [
             'code' => 0,
