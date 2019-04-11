@@ -14,10 +14,12 @@ use App\Service\Func;
 
 use App\Models\InviteLimitTask;
 use Validator, Config, Request,Crypt,Cache;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Jobs\LimitTaskPushJob;
 
 class InviteLimitTaskJsonRpc extends JsonRpc
 {
-
+    use DispatchesJobs;
     /* 好友邀请3.0 限时任务 */
 
     public static $shareTaskName = 'invite_limit_task_exp';
@@ -63,11 +65,15 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
         }
 
-        //异步发送*****************
-        //领取成功发送 推送站内信
-        SendMessage::Mail($userId,"恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。");
-
-        //领取成功发送 推送极光push
+        //异步发送*****************体验金不发
+        if($params->task == 2 || $params->task == 3){
+            $message_str = "恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。";
+            //站内信
+            $this->dispatch(new LimitTaskPushJob($userId,$message_str,'mail'));
+            
+            //领取成功发送 推送极光push
+        }
+        
 
 
 
