@@ -5,9 +5,12 @@ namespace App\Console\Commands;
 use App\Models\HdPerbai;
 use App\Service\PerBaiService;
 use Illuminate\Console\Command;
+use App\Jobs\SendPushJob;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class PertenRemind extends Command
 {
+    use DispatchesJobs;
     /**
      * The name and signature of the console command.
      *
@@ -53,14 +56,14 @@ class PertenRemind extends Command
                 throw new \Exception('号码已发完');
             }
             $count = $data = HdPerbai::where(['period'=>$activity['id']])->where('status', '>', 0)->distinct('user_id')->count('user_id');
-            $pushTpl = "有人@你，已获得的抽奖号码{{count}}个，每日万元股指现金奖励和 100 元京东卡可领取，立即去查看！";
             $perPage = 100;
             $num = ceil($count / $perPage);
             for ($i=0; $i<$num; $i++) {
                 $offset = $i * $perPage;
                 $data = HdPerbai::selectRaw('user_id, count(*) c')->where(['period'=>$activity['id']])->where('status', '>', 0)->groupBy('user_id')->offset($offset)->limit($perPage)->get()->toArray();
                 foreach ($data as $v) {
-                    $this->dispatch(new SendPushJob($v['user_id'], 'activity_remind', ['count'=>$v['c']]));
+                    $pushTpl = "有人@你，已获得的抽奖号码{".$v['c']."}个，每日万元股指现金奖励和 100 元京东卡可领取，立即去查看！";
+                    $this->dispatch(new SendPushJob($v['user_id'], 'custom', $pushTpl));
                 }
             }
             return true;

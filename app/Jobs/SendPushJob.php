@@ -19,7 +19,7 @@ class SendPushJob extends Job implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($userIds,$node, $tplParam=[])
+    public function __construct($userIds,$node, $tplParam="")
     {
         $this->node = $node;
         $this->userIds = $userIds;

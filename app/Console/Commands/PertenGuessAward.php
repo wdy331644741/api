@@ -5,10 +5,14 @@ namespace App\Console\Commands;
 use App\Models\HdPerbai;
 use App\Models\HdPerHundredConfig;
 use App\Models\HdPertenStock;
+use App\Service\PerBaiService;
 use Illuminate\Console\Command;
+use App\Jobs\PertenGuessJob;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class PertenGuessAward extends Command
 {
+    use DispatchesJobs;
     /**
      * The name and signature of the console command.
      *
@@ -77,12 +81,12 @@ class PertenGuessAward extends Command
             if ($model) {
                 throw new \Exception('当前日期已抓取'.$stock_time);
             }
+            $change_status = $change >= 0 ? 1 : 2;
             $ret = HdPertenStock::create([
-
                 'period'=> $activity['id'],
                 'stock'=> $price,
                 'change'=> $change,
-                'change_status'=> $change >= 0 ? 1 : 2,
+                'change_status'=> $change_status,
                 'draw_number'=> $draw_number,
                 'curr_time'=> $stock_time,
                 'open_status'=> 2,
@@ -91,7 +95,7 @@ class PertenGuessAward extends Command
                 throw new \Exception('Database error');
             }
             //天天猜发奖
-            $this->dispatch(new PertenGuessJob($change));
+            $this->dispatch(new PertenGuessJob($change_status));
             return false;
         } catch (\Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
