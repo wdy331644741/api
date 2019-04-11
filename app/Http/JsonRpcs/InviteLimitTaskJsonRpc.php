@@ -10,9 +10,10 @@ use App\Service\InviteTaskService;
 use App\Service\SendMessage;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
+use App\Service\Func;
 
 use App\Models\InviteLimitTask;
-use Validator, Config, Request,Crypt;
+use Validator, Config, Request,Crypt,Cache;
 
 class InviteLimitTaskJsonRpc extends JsonRpc
 {
@@ -61,9 +62,14 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         if(!$res){
             throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
         }
+
+        //异步发送*****************
         //领取成功发送 推送站内信
         SendMessage::Mail($userId,"恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。");
-        //发送成功 //return true/false
+
+        //领取成功发送 推送极光push
+
+
 
         return array(
                 'message' => 'success',
@@ -258,5 +264,49 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             );
 
     }
+
+    /**
+     * 限时任务 获奖轮播
+     *
+     * @JsonRpcMethod
+     */
+    public function limitTaskAwards(){
+        $ser = new InviteTaskService();
+        $key = 'limitTaskAwards'.$ser->whitch_tasks;
+
+        $_data = Cache::remember($key,2, function() use ($ser){
+                return InviteLimitTask::select('user_id','invite_user_id','user_prize','invite_prize')
+                    ->where('date_str',$ser->whitch_tasks)
+                    ->where('status','=',1)
+                    ->where('user_prize','!=',0)
+                    ->orderBy('updated_at', 'desc')
+                    ->take(10)->get()
+                    ->map(function ($item, $key){
+                        //$getnum = 10;
+                        $newArray = [];
+                        $phone1 = protectPhone(Func::getUserPhone($item['user_id']) );
+                        $phone2 = $item['invite_user_id']?protectPhone(Func::getUserPhone($item['invite_user_id']) ) : 0;
+
+                        // array_push($newArray, array('user' => $item['user_id'], 'cash'=>$item['user_prize']) );
+                        // array_push($newArray, array('user' => $item['user_id'], 'cash'=>$item['invite_prize']) );
+
+                        if(!empty($phone1) && strlen($phone1) == 11){
+                            array_push($newArray, array('user' => $phone1, 'cash'=>$item['user_prize']) );
+                        }
+                        if(!empty($phone2) && strlen($phone2) == 11){
+                            array_push($newArray, array('user' => $phone2, 'cash'=>$item['invite_prize']) );
+                        }
+                        return $newArray;
+                    })->collapse()->slice(0,10);
+            
+        });
+        return array(
+                'message' => 'success',
+                'data'    => $_data
+            );
+        
+    }
+
+
 
 }
