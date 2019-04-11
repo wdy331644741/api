@@ -15,7 +15,7 @@ use App\Service\Func;
 use App\Models\InviteLimitTask;
 use Validator, Config, Request,Crypt,Cache;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use App\Jobs\LimitTaskPushJob;
+use App\Jobs\MsgPushJob;
 
 class InviteLimitTaskJsonRpc extends JsonRpc
 {
@@ -69,9 +69,10 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         if($params->task == 2 || $params->task == 3){
             $message_str = "恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。";
             //站内信
-            $this->dispatch(new LimitTaskPushJob($userId,$message_str,'mail'));
+            $this->dispatch(new MsgPushJob($userId,$message_str,'mail'));
             
             //领取成功发送 推送极光push
+            $this->dispatch(new MsgPushJob($userId,$message_str,'push'));
         }
         
 

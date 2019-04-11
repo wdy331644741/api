@@ -109,4 +109,29 @@ class SendMessage
         }
         return false;
     }
+    //极光push 接口改版
+    public static function sendPushTem($userID,$template,$arr=array()){
+        if(empty($template)){
+            return false;
+        }
+        $content = self::msgTemplate($template,$arr);
+
+        $params = array();
+        $params['user_id'] = $userID;
+        $params['node_name'] = 'custom';
+        $params['tplParam'] = array();
+        $params['customTpl'] = $content;
+
+        $url = Config::get('cms.message_http_url');
+        $client = new JsonRpcClient($url);
+        $res = $client->sendJpush($params);
+        if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            return true;
+        }
+        if(isset($res['error']['message'])){
+            return $res['error']['message'];
+        }
+        return false;
+    }
+
 }
