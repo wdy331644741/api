@@ -38,6 +38,8 @@ class PerBaiJsonrpc extends JsonRpc
             'alert_status'=>0,//弹框状态
             'alert_list'=>[],//弹框列表
             'node'=> 0,//提醒我
+            'first_award'=>0,
+            'first_text'=>'',
         ];
         if ( !empty($userId) ) {
             $result['login'] = 1;
