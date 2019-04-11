@@ -30,7 +30,6 @@ class PerBaiJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function perbaiInfo() {
-        SendMessage::sendPush(246, 'custom', "亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：100元，今日已可以预言明日大盘结果");die;
         global $userId;
         $result = [
             'login' => 0,
@@ -47,11 +46,19 @@ class PerBaiJsonrpc extends JsonRpc
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
         $period = isset($activity['id']) ? $activity['id'] : 0;
-        if ( $activity && $time > strtotime($activity['start_time']) ) {
-            $result['available'] = 1;
+        if ( $activity ) {
             //倒计时 秒数
             $countdown = strtotime($activity['start_time']) - $time;
             $result['countdown'] = $countdown > 0 ? $countdown : 0;
+            //是否提醒
+            $type = PerBaiService::$nodeType . $period;
+            $pushInfo = SendPush::where(['user_id'=>$userId, 'type'=>$type])->exists();
+            if ($pushInfo) {
+                $result['node'] = 1;
+            }
+            if( $time > strtotime($activity['start_time']) ) {
+                $result['available'] = 1;
+            }
         }
         if ( $result['login'] && $result['available'] ) {
             $where['status'] = 2;//中奖状态
@@ -79,12 +86,6 @@ class PerBaiJsonrpc extends JsonRpc
                     $mylist[$k]['created_at'] = date('m-d', strtotime($v['created_at']));
                 }
                 $result['alert_list'] = $mylist;
-            }
-            //是否提醒
-            $type = PerBaiService::$nodeType . $period;
-            $pushInfo = SendPush::where(['user_id'=>$userId, 'type'=>$type])->exists();
-            if ($pushInfo) {
-                $result['node'] = 1;
             }
         }
         //首投是否已发放
