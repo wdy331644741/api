@@ -15,6 +15,7 @@ class CreateHdAssistance extends Migration
         Schema::create('hd_assistance', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('group_user_id')->default(0)->comment('团长id');
+            $table->integer('group_ranking')->nullable()->comment('团排名');
             $table->integer('pid')->default(0)->comment('团长记录id');
             $table->integer('user_id')->default(0)->comment('团员id');
             $table->tinyInteger('group_num')->default(0)->comment('团员人数');
@@ -26,6 +27,7 @@ class CreateHdAssistance extends Migration
             $table->timestamp('complete_time')->nullable()->comment('满团时间');
             $table->timestamps();
             $table->index('group_user_id');
+            $table->index('group_ranking');
             $table->index('pid');
             $table->index('user_id');
             $table->index('award');

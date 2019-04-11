@@ -12,6 +12,7 @@ use DB,Request;
 class AssistanceJsonRpc extends JsonRpc
 {
     private $key = 'assistance_';
+    private $groupTotal = 50;
     /**
      *  生成分享链接
      *
@@ -38,19 +39,72 @@ class AssistanceJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function assistanceInfo(){
+        $res = ['activity_num'=>0,'surplus'=>0,'award_list'=>[]];
+        //生成全局限制属性
+        $this->_attribute();
+        //获取参与人数
+        $groupUserCount = HdAssistance::groupBy("group_user_id")->count();
+        $userCount = HdAssistance::groupBy("user_id")->count();
+        $res['activity_num'] = $groupUserCount + $userCount;
+        //获取剩余团数
+        $groupCount = GlobalAttribute::select("number")->where('key',$this->key.date("Ymd"))->first();
+        $res['surplus'] = isset($groupCount['number']) && $groupCount['number'] > 0 ? $this->groupTotal - $groupCount['number'] : $groupCount['number'];
+        //获奖列表
+        $receiveList = HdAssistance::select("user_id","award")->where('receive_status',1)->take(10)->orderBy("updated_at","desc")->get()->toArray();
+        if(!empty($receiveList)){
+            foreach($receiveList as $item){
+                if(isset($item['user_id']) && isset($item['award'])){
+                    if($item['award'] == 1){
+                        $award = "榨汁机";
+                    }else{
+                        $award = "足浴桶";
+                    }
+                    $userId = $this->_getUserInfo($item['user_id']);
+                    $res['award_list'][] = $userId['mobile']."刚刚助力成功，获得".$award."礼品";
+                }
+            }
+        }
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        );
+    }
+    /**
+     *分享助力页面数据
+     * @JsonRpcMethod
+     */
+    public function assistanceMyInfo(){
         global $userId;
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $res = ['group_data'=>[],'assistance'=>[]];
+        $res = ['my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
         //生成全局限制属性
         $this->_attribute();
         //我的团
-        $res['group_data'] = $this->_groupData($userId);
+        $res['my_group_data'] = $this->_groupData($userId);
         //我助力的团
         $assistanceData = HdAssistance::where("user_id",$userId)->orderBy("id","desc")->first();
         if(isset($assistanceData['group_user_id']) && isset($assistanceData['pid'])){
-            $res['assistance'] = $this->_assistanceData($assistanceData['group_user_id'],$assistanceData['pid']);
+            $res['my_assistance'] = $this->_assistanceData($assistanceData['group_user_id'],$assistanceData['pid']);
+        }
+        //我的团列表
+        $myGroupList = HdAssistance::where('group_user_id',$userId)->where("pid",0)->orderBy("id","asc")->get()->toArray();
+        if(!empty($myGroupList)){
+            foreach($myGroupList as $item){
+                if(isset($item['group_ranking'])){//我的团列表
+                    $res['my_group_list'][] = ['ranking'=>$item['group_ranking'],"count"=>$item['group_num'],"status"=>$item['group_num']>=3 ? true : false];
+                }
+                if(isset($item['group_ranking'])){//我的奖品列表
+                    $res['my_award_list'][] = ['ranking'=>$item['group_ranking'],"award"=>$item['award'] == 1 ? "榨汁机" : "足浴桶","status"=>$item['receive_status'] == 1 ? true : false];
+                }
+            }
+        }
+        $myAssistanceList = HdAssistance::where('user_id',$userId)->orderBy("id","asc")->first();
+        if(isset($myAssistanceList['group_ranking'])){
+            $myAssistance = ['ranking'=>$myAssistanceList['group_ranking'],"award"=>$myAssistanceList['award'] == 1 ? "榨汁机" : "足浴桶","status"=>$myAssistanceList['receive_status'] == 1 ? true : false];
+            array_push($res['my_award_list'],$myAssistance);
         }
         return array(
             'code' => 0,
@@ -81,7 +135,7 @@ class AssistanceJsonRpc extends JsonRpc
         $this->_attribute();
         //锁住每天限制总数属性
         $globalAtt = GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
-        if(isset($globalAtt['number']) && $globalAtt['number'] >= 50){//开团超过50
+        if(isset($globalAtt['number']) && $globalAtt['number'] >= $this->groupTotal){//开团超过50
             DB::rollBack();//回滚事物
             throw new OmgException(OmgException::OPENING_MORE_50);
         }
@@ -102,7 +156,9 @@ class AssistanceJsonRpc extends JsonRpc
             }
         }
         //添加开团数据
-        HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd")]);
+        $rankingMax = HdAssistance::select(DB::raw('MAX(`group_ranking`) as ranking'))->first();
+        $rankingMax = isset($rankingMax['ranking']) && $rankingMax['ranking'] > 0 ? $rankingMax['ranking'] + 1 : 1;
+        HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd"),'group_ranking'=>$rankingMax]);
         //总限制+1
         $globalAtt->increment("number",1);
         $globalAtt->save();
@@ -116,7 +172,7 @@ class AssistanceJsonRpc extends JsonRpc
         );
     }
     /**
-     *分享助力注册人添加数据
+     *判断是否满团
      * @JsonRpcMethod
      */
     public function assistanceGroupIsFull($params){
@@ -165,7 +221,7 @@ class AssistanceJsonRpc extends JsonRpc
             throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
         }
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
+        $groupInfo = HdAssistance::where("id",$groupId)->where("group_user_id",$inviteId)->where("group_num","<",3)->first();
         if(!isset($groupInfo['id'])){
             throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);
         }
@@ -177,15 +233,47 @@ class AssistanceJsonRpc extends JsonRpc
         //添加到团里，且未实名
         HdAssistance::insertGetId([
             'group_user_id' => $inviteId,
+            'group_ranking' => isset($groupInfo['group_ranking']) ? $groupInfo['group_ranking'] : 0,
             'pid' => $groupId,
             'user_id' => $userId,
             'award' => isset($groupInfo['award']) ? $groupInfo['award'] : 0,
-            'day' => date("Ymd")
+            'day' => date("Ymd"),
+            'created_at' => date("Y-m-d H:i:s")
         ]);
         return array(
             'code' => 0,
             'message' => 'success',
             'data' => true
+        );
+    }
+    /**
+     * 领取实物奖励
+     * @JsonRpcMethod
+     */
+    public function assistanceReceive($params){
+        global $userId;
+        if (empty($userId)) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $groupUserId = isset($params->group_user_id) ? $params->group_user_id : 0;
+        if($groupUserId <= 0){//缺少必要参数
+            throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        //判断团id是否已满
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('status',1)->first();
+        if(isset($groupInfo['id'])){//已实名
+            //修改领取状态
+            HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->update(['receive_status'=>1,'updated_at'=>date("Y-m-d H:i:s")]);
+            return array(
+                'code' => 0,
+                'message' => 'success',
+                'data' => true
+            );
+        }
+        return array(//已满团
+            'code' => 0,
+            'message' => 'success',
+            'data' => false
         );
     }
     //判断每天总限制是否存在

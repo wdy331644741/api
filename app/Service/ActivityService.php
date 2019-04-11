@@ -124,8 +124,13 @@ class ActivityService
                 $userInfo->status = 1;
                 $userInfo->save();
                 //用户实名状态修改
-                $groupInfo->increment("receive_num",1);
+                $groupInfo->increment("group_num",1);
                 $groupInfo->save();
+                if($groupInfo->receive_num == 3){
+                    //添加满团时间
+                    $groupInfo->complete_time = date("Y-m-d H:i:s");
+                    $groupInfo->save();
+                }
                 //提交事物
                 DB::commit();
                 return true;
