@@ -286,15 +286,19 @@ class AssistanceJsonRpc extends JsonRpc
     }
     //获取我的团数据
     private function _groupData($userId){
-        $groupData = HdAssistance::select("pid","user_id")->where("group_user_id",$userId)->where('status',1)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
+        $groupData = HdAssistance::select("id","group_user_id")->where("group_user_id",$userId)->where("pid",0)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
         $res = [];
         $groupInfo = $this->_getUserInfo($userId);
         if(count($groupData) > 0){
             $i = 1;
             foreach($groupData as $item){
-                if($item['pid'] > 0){
-                    $res[$item['pid']][0] = $groupInfo;
-                    $res[$item['pid']][$i] = isset($item['user_id']) && $item['user_id'] > 0 ? $this->_getUserInfo($item['user_id']) : "--";
+                $res[$item['id']][0] = $groupInfo;
+                //判断有没有助力成功人
+                $userData = HdAssistance::select("pid","user_id")->where("group_user_id",$userId)->where("status",1)->get()->toArray();
+                if(count($userData) > 0){
+                    foreach ($userData as $val){
+                        $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : "--";
+                    }
                     $i++;
                 }
             }
