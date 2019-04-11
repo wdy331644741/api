@@ -5,9 +5,12 @@ namespace App\Console\Commands;
 use App\Models\UserAttribute;
 use App\Service\PerBaiService;
 use Illuminate\Console\Command;
+use App\Jobs\SendPushJob;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class PertenGuess extends Command
 {
+    use DispatchesJobs;
     /**
      * The name and signature of the console command.
      *
@@ -54,7 +57,6 @@ class PertenGuess extends Command
             }
             $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
             $count = $data = UserAttribute::where(['key'=>$guessKey])->count();
-            $pushTpl = "有人@你，你在大盘猜涨跌活动中剩余{{count}}个预言注数，今日奖励为 500 万体验金，竞猜截止 13:00，立即去参加";
             $perPage = 100;
             $num = ceil($count / $perPage);
             for ($i=0; $i<$num; $i++) {
@@ -64,7 +66,8 @@ class PertenGuess extends Command
                     if ($v['number'] <= 0) {
                         continue;
                     }
-                    $this->dispatch(new SendPushJob($v['user_id'], 'activity_remind', ['count'=>$v['number']]));
+                    $pushTpl = "有人@你，你在大盘猜涨跌活动中剩余".$v['number']."个预言注数，今日奖励为 500 万体验金，竞猜截止 13:00，立即去参加";
+                    $this->dispatch(new SendPushJob($v['user_id'], 'custom', $pushTpl));
                 }
             }
             return true;

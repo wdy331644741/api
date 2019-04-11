@@ -58,18 +58,20 @@ class PerBaiService
                     $url = "https://". env('ACCOUNT_BASE_HOST') . '/wechat/address';
                     $msg = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖". $activityConfig->first_award ."，请于当期活动结束后及时联系平台客服人员兑换奖品。温馨提示：确保您在网利宝平台的收货地址准确无误，立即完收货地址：{".$url."}，客朋电话：400-858-8066。";
                     self::sendMessage($userId, $msg);
-                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖". $activityConfig->first_award ."，立即查看。";
-//                    SendMessage::sendPush($userId ,'test', $push);
+                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖{". $activityConfig->first_award ."}，立即查看。";
+                    SendMessage::sendPush($userId ,'custom', $push);
                     //逢10奖
                 } else if ( 0 === ($draw_number%10) ) {
                     $update['award_name'] = $activityConfig->sunshine_award;
                     $update['status'] = 2;
                     $update['alias_name'] = 'jdcard';
                     $activityJd = ActivityService::GetActivityedInfoByAlias('perten_jingdongka');
+                    //奖品配置短信站内信
                     SendAward::addAwardByActivity($userId, $activityJd->id);
 //                    "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：100京东卡，京东卡卡密：****，点击查看{活动链接}";
-                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：".$activityConfig->sunshine_award ."，立即查看。";
-//                    SendMessage::sendPush($userId ,'test', $push);
+                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：100京东卡，立即查看。";
+//                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：".$activityConfig->sunshine_award ."，立即查看。";
+                    SendMessage::sendPush($userId ,'custom', $push);
                 } else {
                     //股指开奖了，号码没发出去的情况
                     $stock = HdPertenStock::where(['period'=>$activityConfig->id, 'open_status'=>0, 'draw_number'=>$draw_number])->first();
@@ -208,18 +210,18 @@ class PerBaiService
 
     public static function sendAward($userId, $money)
     {
-        $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 {{awardname}} 元现金，现金已发放至您账户余额，立即查看。";
+//        $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 {{awardname}} 元现金，现金已发放至您账户余额，立即查看。";
         $uuid = SendAward::create_guid();
         //发送接口
         $result = Func::incrementAvailable($userId,999999,$uuid, $money,'stock_index_cash');
         $return = ['award_name'=> $money, 'status'=> true];
         //发送消息&存储到日志
         if (isset($result['result']['code']) && $result['result']['code'] == 0) {//成功
-            $url = "https://". env('ACCOUNT_BASE_HOST') . '/';
-            $stockTemple = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，点击查看{".$url."}。";
+//            $url = "https://". env('ACCOUNT_BASE_HOST') . '/';
+            $stockTemple = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，点击查看{http://u6.gg/srRPB}。";
             PerBaiService::sendMessage($userId, $stockTemple);
-            $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖 ".$money." 元现金，现金已发放至您账户余额，立即查看。";
-            SendMessage::sendPush($userId, 'node', $stockPush);
+            $stockPush = "亲爱的用户，恭喜您在逢 10 股指活动中获得股指现金大奖{ ".$money."}元现金，现金已发放至您账户余额，立即查看。";
+            SendMessage::sendPush($userId, 'custom', $stockPush);
         }else{//失败
             $return = array('award_name'=> $money, 'status'=>false,'err_data'=>$result);
         }
@@ -263,9 +265,8 @@ class PerBaiService
         if (!$data) {
             return false;
         }
-        $url = "https://". env('ACCOUNT_BASE_HOST') . '/';
-        $msgTempl = "亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看{".$url."}。";
-        $pushTempl="亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看。";
+//        $url = "https://". env('ACCOUNT_BASE_HOST') . '/';
+        $msgTempl = "亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{{money}}元，今日已可以预言明日大盘结果，立即去查看{http://u6.gg/srRPB}。";
         $totalPeople = count($data);
         foreach ($data as $v) {
             $money = bcdiv(bcmul($totalMoney, $v['total'], 2), $totalCount, 2);
@@ -285,8 +286,8 @@ class PerBaiService
             $guessLog->save();
             SendMessage::Mail($v['user_id'], $msgTempl, $tplParam);
             SendMessage::Message($v['user_id'], $msgTempl, $tplParam);
-            //todo
-//            SendMessage::sendPush($v['user_id'], 'test',$pushTempl);
+            $pushTempl="亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：{$money}元，今日已可以预言明日大盘结果，立即去查看。";
+            SendMessage::sendPush($v['user_id'], 'custom',$pushTempl);
         }
         HdPertenGuess::where(['period'=>$period, 'status'=>0])->update(['status'=>1]);
         return true;
@@ -306,7 +307,7 @@ class PerBaiService
         //体验金额
         $data['amount'] = $money;
         $data['effective_start'] = date("Y-m-d H:i:s");
-        $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+7 days"));
+        $data['effective_end'] = date("Y-m-d H:i:s", strtotime("+3 days"));
         $data['source_name'] = "天天猜大盘涨跌";
         //发送接口
         $result = $client->experience($data);

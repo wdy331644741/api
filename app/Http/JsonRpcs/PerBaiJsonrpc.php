@@ -30,6 +30,7 @@ class PerBaiJsonrpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function perbaiInfo() {
+        SendMessage::sendPush(246, 'custom', "亲爱的用户，恭喜您在天天猜大盘涨跌活动中赢得瓜分体验金金额：100元，今日已可以预言明日大盘结果");die;
         global $userId;
         $result = [
             'login' => 0,

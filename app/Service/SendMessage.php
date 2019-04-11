@@ -91,21 +91,24 @@ class SendMessage
         return $newTemplate;
     }
 
-    public static function sendPush($userID,$nodeName,$arr=[]){
-        $params = new \stdClass();
-        $params->user_id = $userID;
-        $params->node_name = $nodeName;
-        //$params['user_id'] = $userID;
-        //$params['node_name'] = $nodeName;
-        //$params['tplParam'] = $arr;
+    public static function sendPush($userID,$nodeName,$customTpl='', $arr=[]){
+//        $params = new \stdClass();
+//        $params->user_id = $userID;
+//        $params->node_name = $nodeName;
+        $params['user_id'] = $userID;
+        $params['node_name'] = $nodeName;
+        $params['tplParam'] = $arr;
+        $params['customTpl'] = $customTpl;
         $url = Config::get('cms.message_http_url');
         $client = new JsonRpcClient($url);
         $res = $client->sendJpush($params);
         if(isset($res['result']['code']) && $res['result']['code'] === 0){
+            file_put_contents(storage_path('logs/'.$nodeName .date('Y-m-d').'.log'),date('y-m-d H:i:s').'=>'.json_encode($res).PHP_EOL,FILE_APPEND);
             return true;
         }
         if(isset($res['error']['message'])){
-            return $res['error']['message'];
+//            return $res['error']['message'];
+            file_put_contents(storage_path('logs/'.$nodeName .date('Y-m-d').'.log'),date('y-m-d H:i:s').'=>'.json_encode($res).PHP_EOL,FILE_APPEND);
         }
         return false;
     }

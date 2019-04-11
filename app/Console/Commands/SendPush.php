@@ -71,7 +71,7 @@ class SendPush extends Command
                         $last = array_pop($data);
                         $id = $last['id'];
                         \App\Models\SendPush::where($where)->where('id', '<=', $id)->where($where)->update(['status'=>1]);
-                        $this->dispatch(new SendPushJob($userIds, 'activity_remind'));
+                        $this->dispatch(new SendPushJob($userIds, 'custom', '您的 Apple Watch 4 已安排，10:00即将开抢，提前登录准备好姿势，等你来抢！'));
                     } else {
                         return fasle;
                     }
