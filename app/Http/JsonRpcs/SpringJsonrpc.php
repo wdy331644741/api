@@ -143,7 +143,7 @@ class SpringJsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $type = isset($params->type) ? $params->type : '';
-        $num = isset($params->num) ? $params->number : 0;
+        $num = isset($params->num) ? $params->num : 0;
         if (!$type || !$num) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
@@ -178,7 +178,7 @@ class SpringJsonRpc extends JsonRpc
         $model->name = $award['name'];
         $model->alias_name = $award['alias_name'];
         $model->status = 1;
-        //$model->number = $num;
+        $model->number = $num;
         if (!$model->save()) {
             DB::rollBack();
             throw new OmgException(OmgException::DATABASE_ERROR);
