@@ -109,6 +109,18 @@ class AssistanceJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        //生成全局限制属性
+        $this->_attribute();
+        //锁住每天限制总数属性
+        $globalAtt = GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
+        if(isset($globalAtt['number']) && $globalAtt['number'] >= $this->groupTotal){//开团超过50
+            DB::rollBack();//回滚事物
+            throw new OmgException(OmgException::OPENING_MORE_50);
+        }
         //判断今天有没有开团
         $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
         //判断今天开团数量
@@ -192,6 +204,10 @@ class AssistanceJsonRpc extends JsonRpc
         if($groupId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
         //判断团id是否已满
         $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
         if(isset($groupInfo['id'])){//未满团
@@ -270,6 +286,10 @@ class AssistanceJsonRpc extends JsonRpc
         $groupUserId = isset($params->group_user_id) ? $params->group_user_id : 0;
         if($groupUserId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
         $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('group_num',">=",3)->first();
