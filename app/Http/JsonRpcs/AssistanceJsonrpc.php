@@ -283,13 +283,13 @@ class AssistanceJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
-        if(empty($activityInfo)){
-            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
-        }
         $groupUserId = isset($params->group_user_id) ? $params->group_user_id : 0;
         if($groupUserId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
         $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('group_num',">=",3)->first();
