@@ -60,6 +60,7 @@ class PerBaiService
                     self::sendMessage($userId, $msg);
                     $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖{". $activityConfig->first_award ."}，立即查看。";
                     SendMessage::sendPush($userId ,'custom', $push);
+                    Cache::forget('fristAward');
                     //逢10奖
                 } else if ( 0 === ($draw_number%10) ) {
                     $update['award_name'] = $activityConfig->sunshine_award;
