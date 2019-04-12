@@ -40,7 +40,7 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceInfo(){
         global $userId;
-        $res = ['activity_num'=>0,'surplus'=>0,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
+        $res = ['activity_num'=>0,'surplus'=>0,"today_group_open_status"=>false,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
         //生成全局限制属性
         $this->_attribute();
         //获取参与人数
@@ -66,6 +66,9 @@ class AssistanceJsonRpc extends JsonRpc
             }
         }
         if ($userId > 0) {//登录获取我的信息
+            //判断今天是否已开团
+            $isOpen = HdAssistance::where("group_user_id", $userId)->where("day",date("Ymd"))->count();
+            $res['today_group_open_status'] = $isOpen > 0 ? false : true;
             //我的团
             $res['my_group_data'] = $this->_groupData($userId);
             //我助力的团
