@@ -13,6 +13,7 @@ use App\Service\SendMessage;
 use Lib\JsonRpcClient;
 
 use DB, Config,Cache;
+use Illuminate\Support\Facades\Redis;
 
 class InviteTaskService
 {
@@ -80,20 +81,31 @@ class InviteTaskService
             return false;
         }
 
+
         //是否可再领取
         // $locked = GlobalAttributes::getNumberByTodaySeconds(self::EXP,0,3600*$this->invite_limit_task_reset );
+        DB::beginTransaction();
         if(!$this->isInsertTaskData($alias_name) ){
+            DB::rollBack();
             return false;
         }
 
+        $limit_time = $this->getTaskLimitTime($alias_name , $this->whitch_tasks_start);
         //记录添加
         InviteLimitTask::create([
             'user_id'    => $this->user_id,
             'alias_name' => $alias_name,
             'status'     => 0,
             'date_str'   => $this->whitch_tasks,
-            'limit_time' => $this->getTaskLimitTime($alias_name , $this->whitch_tasks_start)//领取任务的超时时间
+            'limit_time' => $limit_time//领取任务的超时时间
         ]);
+        //添加到redis集合 计数。//4月9号11点即时生效
+        if(time() >= 1554778800){
+        // if(time() >= 0){
+            //invite_limit_task_bind2019040811  :1554713738/user_id
+            $res = Redis::ZADD($alias_name.$this->whitch_tasks, strtotime($limit_time) ,$this->user_id);
+        }
+        DB::commit();
         return true;
     }
 
@@ -111,16 +123,26 @@ class InviteTaskService
             //是否剩余可领取到任务
             if($doing->isEmpty()){
                 //剩余可领任务 = 今天100 - 今天已经完成该任务数-今天正在进行的任务数
-                $alreadyDone = GlobalAttributes::getNumber($alias_name.$this->whitch_tasks);
-                $justDoingObj = $this->getTaskingByDay()->where('alias_name',$alias_name);
-
-                $justDoing = $justDoingObj->isEmpty()?0:$justDoingObj->first()->user_count;
+                // $alreadyDone = GlobalAttributes::getNumber($alias_name.$this->whitch_tasks);
+                $alreadyDone = GlobalAttribute::where(array('key' => $alias_name.$this->whitch_tasks))->lockforupdate()->first();
+                if(empty($alreadyDone) || !isset($alreadyDone['number']) ){
+                    return false;//获取锁失败
+                }
+                //判断已经领取
+                $count = InviteLimitTask::where(['user_id'=>$this->user_id , 
+                                        'date_str'=>$this->whitch_tasks,
+                                        'alias_name'=> $alias_name])->where('limit_time','>',date('Y-m-d H:i:s'))->count();
+                if($count >= 1){
+                    return false;
+                }
+                $justDoing = $this->getTaskingByDayRedis($alias_name);
                 // return $justDoing;
-                return $this->tasks_total[$alias_name] - $alreadyDone -$justDoing >0?:false;
+                return $this->tasks_total[$alias_name] - $alreadyDone['number'] -$justDoing >0?:false;
             }
-        }else{
-            return false;
         }
+        
+        return false;
+        
     }
 
 
@@ -242,7 +264,8 @@ class InviteTaskService
             $res = $client->getInviteUser(array('uid' => $this->user_id));
             if(!isset($res['result']['data']['id'])){
                 // return false;//绑卡  没有邀请关系。不发奖
-                throw new OmgException(OmgException::GET_ERROR_DATA);
+                return false;
+                //throw new OmgException(OmgException::GET_ERROR_DATA);
             }
             $_user = $res['result']['data']['id'];
             //*******************
@@ -270,7 +293,8 @@ class InviteTaskService
                     ->first();
             if(empty($_update) ){
                 DB::rollBack();//领取任务 数据不存在
-                throw new OmgException(OmgException::DATA_ERROR);
+                return false;
+                //throw new OmgException(OmgException::DATA_ERROR);
             }
             if(!$locked) {//如果不存在 新建一个 并锁住
                 $new_locked_id = GlobalAttribute::create(['key' => $alias_name.$this->whitch_tasks,  'number' => 0]);
@@ -280,7 +304,8 @@ class InviteTaskService
             //每日限额
             if($locked->number >= $this->tasks_total[$alias_name]){
                 DB::rollBack();
-                throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);//每日限制任务次数 已经达标（该奖品已经参与满）
+                return false;
+                //throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);//每日限制任务次数 已经达标（该奖品已经参与满）
             }
             //更新任务状态
             
@@ -308,6 +333,30 @@ class InviteTaskService
         return $_data;
     }
 
+    //获取 当天增在进行的任务数量  redis
+    public function getTaskingByDayRedis($alias_name){
+        $key = $alias_name.$this->whitch_tasks;
+        if(!Redis::EXISTS($key)){//如果不存在 查询数据库
+            $justDoingObj = $this->getTaskingByDay()->where('alias_name',$alias_name);
+            return $justDoingObj->isEmpty()?0:$justDoingObj->first()->user_count;
+        }
+        return Redis::ZCOUNT($key,time(),'+inf');
+    }
+
+    //获取 当天增在进行的任务数量 info接口调用
+    public function getTaskingInfoRedis(){
+
+        $newArray = [
+            'invite_limit_task_exp' => 0,
+            'invite_limit_task_bind' => 0,
+            'invite_limit_task_invest'=> 0
+        ];
+        foreach ($newArray as $key => $value) {
+            $count = Redis::ZCOUNT($key.$this->whitch_tasks ,time(),'+inf');
+            $newArray[$key] = $count;
+        }
+        return $newArray;
+    }
     //获取 当天增在进行的任务数量
     public function getTaskingByDay(){
         return $_data = InviteLimitTask::select(DB::raw('count(*) as user_count, alias_name'))

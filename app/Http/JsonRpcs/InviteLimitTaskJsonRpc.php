@@ -10,13 +10,16 @@ use App\Service\InviteTaskService;
 use App\Service\SendMessage;
 use Lib\JsonRpcClient;
 use App\Service\SendAward;
+use App\Service\Func;
 
 use App\Models\InviteLimitTask;
-use Validator, Config, Request,Crypt;
+use Validator, Config, Request,Crypt,Cache;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Jobs\MsgPushJob;
 
 class InviteLimitTaskJsonRpc extends JsonRpc
 {
-
+    use DispatchesJobs;
     /* 好友邀请3.0 限时任务 */
 
     public static $shareTaskName = 'invite_limit_task_exp';
@@ -58,9 +61,33 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $ser = new InviteTaskService($userId);
         $res = $ser->addTaskByUser($task);
 
-        //领取成功发送 推送站内信
-        SendMessage::Mail($userId,"恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。");
-        //发送成功 //return true/false
+        if(!$res){
+            throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
+        }
+
+        //异步发送*****************体验金不发
+        switch ($params->task) {
+            case 2:
+                $message_str = '恭喜您在“邀友赚赏金”限时活动中抢到18元现金奖励任务，限2小时内完成任务，则现金实时发放至您网利宝账户中。';
+                break;
+            case 3:
+                $message_str = '恭喜您在“邀友赚赏金”限时活动中抢到100元现金奖励任务，限24小时内完成任务，则现金实时发放至您网利宝账户中。';
+                break;
+            default:
+                $message_str = '';
+                break;
+        }
+        if(!empty($message_str)){
+            // $message_str = "恭喜您在“邀友赚赏金”限时活动中抢到“{$act['name']}”任务，规定时间内完成任务则奖励实时发放至您网利宝账户中。";
+            //站内信
+            $this->dispatch(new MsgPushJob($userId,$message_str,'mail'));
+            
+            //领取成功发送 推送极光push
+            $this->dispatch(new MsgPushJob($userId,$message_str,'push'));
+        }
+        
+
+
 
         return array(
                 'message' => 'success',
@@ -111,11 +138,11 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $server = new InviteTaskService($userId);
         $activit_all_done = $server->getTaskedByDay();//查询的 属性表里面的‘完成数’
 
-        $activit_all_doing_obj = $server->getTaskingByDay(); //select count(*) as user_count, alias_name from  where 当天，status，任务过期时间 > now() group by alias_name;
-        //转换数据结构  以活动名为键值
-        $activit_all_doing = array_column($activit_all_doing_obj->ToArray(), 'user_count','alias_name');
+        // $activit_all_doing_obj = $server->getTaskingByDay(); //select count(*) as user_count, alias_name from  where 当天，status，任务过期时间 > now() group by alias_name;
+        // //转换数据结构  以活动名为键值
+        // $activit_all_doing = array_column($activit_all_doing_obj->ToArray(), 'user_count','alias_name');
 
-
+        $activit_all_doing = $server->getTaskingInfoRedis();
 
         $user_data = $server->userActivitData();//该用户当天所有的数据
         $done_task_array = [];//该用户今天 已经完成的任务[1,2,3]
@@ -152,7 +179,7 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             $over_num = $value 
                     - (isset($activit_all_done[$key])?$activit_all_done[$key]:0 )
                     - (isset($activit_all_doing[$key])?$activit_all_doing[$key]:0 );
-
+            $over_num = $over_num < 0 ? 0 : $over_num;
             //0领取  1立即前往 2已完成 3已抢光
             $task_status = !array_key_exists($key,$doing_task_array)?!in_array($key, $done_task_array)?!$over_num?3:0:2:1;
             //任务倒计时
@@ -255,5 +282,49 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             );
 
     }
+
+    /**
+     * 限时任务 获奖轮播
+     *
+     * @JsonRpcMethod
+     */
+    public function limitTaskAwards(){
+        // $ser = new InviteTaskService();
+        $key = 'limitTaskAwards';
+
+        $_data = Cache::remember($key,2, function(){
+                return InviteLimitTask::select('user_id','invite_user_id','user_prize','invite_prize')
+                    // ->where('date_str',$ser->whitch_tasks)
+                    ->where('status','=',1)
+                    ->where('user_prize','!=',0)
+                    ->orderBy('updated_at', 'desc')
+                    ->take(10)->get()
+                    ->map(function ($item, $key){
+                        //$getnum = 10;
+                        $newArray = [];
+                        $phone1 = protectPhone(Func::getUserPhone($item['user_id']) );
+                        $phone2 = $item['invite_user_id']?protectPhone(Func::getUserPhone($item['invite_user_id']) ) : 0;
+
+                        // array_push($newArray, array('user' => $item['user_id'], 'cash'=>$item['user_prize']) );
+                        // array_push($newArray, array('user' => $item['user_id'], 'cash'=>$item['invite_prize']) );
+
+                        if(!empty($phone1) && strlen($phone1) == 11){
+                            array_push($newArray, array('user' => $phone1, 'cash'=>$item['user_prize']) );
+                        }
+                        if(!empty($phone2) && strlen($phone2) == 11 && $item['invite_prize']){
+                            array_push($newArray, array('user' => $phone2, 'cash'=>$item['invite_prize']) );
+                        }
+                        return $newArray;
+                    })->collapse()->slice(0,10);
+            
+        });
+        return array(
+                'message' => 'success',
+                'data'    => $_data
+            );
+        
+    }
+
+
 
 }
