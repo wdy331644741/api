@@ -40,7 +40,7 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceInfo(){
         global $userId;
-        $res = ['activity_num'=>0,'surplus'=>0,'today_group_open_status'=>false,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
+        $res = ['activity_num'=>0,'surplus'=>0,"today_group_open_status"=>false,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
         //生成全局限制属性
         $this->_attribute();
         //获取参与人数
@@ -164,12 +164,12 @@ class AssistanceJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
     public function assistanceGroupIsFull($params){
-        global $userId;
-        if (empty($userId)) {
-            throw new OmgException(OmgException::NO_LOGIN);
+        $groupId = isset($params->group_id) ? $params->group_id : 0;
+        if($groupId <= 0){//缺少必要参数
+            throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$userId)->where("group_num","<",3)->first();
+        $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
         if(isset($groupInfo['id'])){//未满团
             return array(
                 'code' => 0,
