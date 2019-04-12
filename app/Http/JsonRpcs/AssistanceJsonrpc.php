@@ -40,6 +40,7 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceInfo(){
         global $userId;
+        $userId = 19;
         $res = ['activity_num'=>0,'surplus'=>0,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
         //生成全局限制属性
         $this->_attribute();
@@ -279,18 +280,24 @@ class AssistanceJsonRpc extends JsonRpc
     }
     //获取我的团数据
     private function _groupData($userId){
-        $groupData = HdAssistance::select("id","group_user_id")->where("group_user_id",$userId)->where("pid",0)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
+        $groupData = HdAssistance::select("id","group_user_id","group_ranking","group_num")->where("group_user_id",$userId)->where("pid",0)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
         $res = [];
         $groupInfo = $this->_getUserInfo($userId);
         if(count($groupData) > 0){
             $i = 1;
             foreach($groupData as $item){
-                $res[$item['id']][0] = $groupInfo;
+                //团id
+                $groupInfo['group_id'] = $item['id'];
+                //第几团
+                $groupInfo['ranking'] = $item['group_ranking'];
+                //团人员
+                $groupInfo['group_count'] = 3-$item['group_num'];
                 //判断有没有助力成功人
                 $userData = HdAssistance::select("pid","user_id")->where("group_user_id",$userId)->where("status",1)->get()->toArray();
+                $res[$item['id']][0] = $groupInfo;//第一条团长信息
                 if(count($userData) > 0){
                     foreach ($userData as $val){
-                        $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : "--";
+                        $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : [];//团员信息
                     }
                     $i++;
                 }
@@ -307,15 +314,21 @@ class AssistanceJsonRpc extends JsonRpc
     }
     //获取我参与的团数据
     private function _assistanceData($userId,$pid){
-        $groupData = HdAssistance::select("pid","user_id")->where("pid",$pid)->where('status',1)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
+        $groupData = HdAssistance::select("id","pid","group_user_id","user_id","group_ranking","group_num")->where("pid",$pid)->where('status',1)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
         $res = [];
         $groupInfo = $this->_getUserInfo($userId);
         if(count($groupData) > 0){
             $i = 1;
             foreach($groupData as $item){
                 if($item['pid'] > 0){
-                    $res[$item['pid']][0] = $groupInfo;
-                    $res[$item['pid']][$i] = isset($item['user_id']) && $item['user_id'] > 0 ? $this->_getUserInfo($item['user_id']) : "--";
+                    //团id
+                    $groupInfo['group_id'] = $item['id'];
+                    //第几团
+                    $groupInfo['ranking'] = $item['group_ranking'];
+                    //团人员
+                    $groupInfo['group_count'] = 3-$item['group_num'];
+                    $res[$item['pid']][0] = $groupInfo;//第一条为团长信息
+                    $res[$item['pid']][$i] = isset($item['user_id']) && $item['user_id'] > 0 ? $this->_getUserInfo($item['user_id']) : [];//团员信息
                     $i++;
                 }
             }
