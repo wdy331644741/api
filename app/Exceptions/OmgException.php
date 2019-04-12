@@ -134,6 +134,7 @@ class OmgException extends BasicException
     const OPENING_MORE_50 = 4355;
     const FULL_REGIMENT = 4356;
     const INCOMPLETE_REGIMENT = 4357;
+    const TODAY_IS_OPEN = 4358;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -236,7 +237,7 @@ class OmgException extends BasicException
         self::OPENING_MORE_50 => "今日开团数已达上限",
         self::FULL_REGIMENT => "之前的团已满",
         self::INCOMPLETE_REGIMENT => "之前的团有未满",
-
+        self::TODAY_IS_OPEN => "今日已开团",
     );
 
     public function __construct($code, $data = array())

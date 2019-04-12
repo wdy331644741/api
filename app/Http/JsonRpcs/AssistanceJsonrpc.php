@@ -40,7 +40,7 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceInfo(){
         global $userId;
-        $res = ['activity_num'=>0,'surplus'=>0,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
+        $res = ['activity_num'=>0,'surplus'=>0,"today_group_open_status"=>false,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
         //生成全局限制属性
         $this->_attribute();
         //获取参与人数
@@ -66,6 +66,9 @@ class AssistanceJsonRpc extends JsonRpc
             }
         }
         if ($userId > 0) {//登录获取我的信息
+            //判断今天是否已开团
+            $isOpen = HdAssistance::where("group_user_id", $userId)->where("day",date("Ymd"))->count();
+            $res['today_group_open_status'] = $isOpen > 0 ? false : true;
             //我的团
             $res['my_group_data'] = $this->_groupData($userId);
             //我助力的团
@@ -98,6 +101,50 @@ class AssistanceJsonRpc extends JsonRpc
         );
     }
     /**
+     * 开团选择奖品前判断接口
+     * @JsonRpcMethod
+     */
+    public function assistanceCreateBefore(){
+        global $userId;
+        if (empty($userId)) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
+        }
+        //生成全局限制属性
+        $this->_attribute();
+        //锁住每天限制总数属性
+        $globalAtt = GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
+        if(isset($globalAtt['number']) && $globalAtt['number'] >= $this->groupTotal){//开团超过50
+            DB::rollBack();//回滚事物
+            throw new OmgException(OmgException::OPENING_MORE_50);
+        }
+        //判断今天有没有开团
+        $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
+        //判断今天开团数量
+        if(!empty($groupInfo)){//开团数已达上限
+            //判断之前的团有没有未满的
+            $notFull = HdAssistance::where('group_user_id',$userId)->where("receive_num","<",3)->count();
+            if($notFull > 0){
+                //之前有未满团提示
+                DB::rollBack();//回滚事物
+                throw new OmgException(OmgException::INCOMPLETE_REGIMENT);
+            }else{
+                //之前已满团提示
+                DB::rollBack();//回滚事物
+                throw new OmgException(OmgException::FULL_REGIMENT);
+            }
+        }
+        //开团成功返回
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => true
+        );
+    }
+    /**
      * 开团接口
      * @JsonRpcMethod
      */
@@ -127,18 +174,10 @@ class AssistanceJsonRpc extends JsonRpc
         //判断今天有没有开团
         $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
         //判断今天开团数量
-        if(!empty($groupInfo)){//开团数已达上限
-            //判断之前的团有没有未满的
-            $notFull = HdAssistance::where('group_user_id',$userId)->where("receive_num","<",3)->count();
-            if($notFull > 0){
-                //之前有未满团提示
-                DB::rollBack();//回滚事物
-                throw new OmgException(OmgException::INCOMPLETE_REGIMENT);
-            }else{
-                //之前已满团提示
-                DB::rollBack();//回滚事物
-                throw new OmgException(OmgException::FULL_REGIMENT);
-            }
+        if(!empty($groupInfo)){//今日已开团
+            //今日已开团
+            DB::rollBack();//回滚事物
+            throw new OmgException(OmgException::TODAY_IS_OPEN);
         }
         //添加开团数据
         $rankingMax = HdAssistance::select(DB::raw('MAX(`group_ranking`) as ranking'))->first();
@@ -164,6 +203,10 @@ class AssistanceJsonRpc extends JsonRpc
         $groupId = isset($params->group_id) ? $params->group_id : 0;
         if($groupId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
         $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
@@ -243,6 +286,10 @@ class AssistanceJsonRpc extends JsonRpc
         $groupUserId = isset($params->group_user_id) ? $params->group_user_id : 0;
         if($groupUserId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
+        }
+        $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
+        if(empty($activityInfo)){
+            throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
         $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('group_num',">=",3)->first();

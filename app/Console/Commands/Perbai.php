@@ -96,9 +96,18 @@ class Perbai extends Command
             if (!$perten || $perten->user_id == 0) {
                 throw new \Exception('中奖号码没发出去');
             }
-            $perten->award_name = $draw_number;
-            $perten->status = 2;
+            if ($perten->status == 2) {
+                $userId = $perten->user_id;
+                $draw_number = $perten->draw_number;
+                $period = $perten->period;
+                $perten = new HdPerbai();
+                $perten->user_id = $userId;
+                $perten->draw_number = $draw_number;
+                $perten->period = $period;
+            }
+            $perten->award_name = $activity['ultimate_award'];
             $perten->alias_name = 'stock';
+            $perten->status = 2;
             if ( $perten->save() ) {
                 $ret->open_status = 1;
                 $remark = PerBaiService::sendAward($perten->user_id, $draw_number);
