@@ -26,7 +26,6 @@ class GuessStockJsonrpc extends JsonRpc
      */
     public function stockInfo() {
         global $userId;
-        $userId = 246;
         $result = [
             'login' => 0,
             'available' => 0,
