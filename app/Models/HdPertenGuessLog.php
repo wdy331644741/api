@@ -7,5 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class HdPertenGuessLog extends Model
 {
     public $table = 'hd_perten_guess_log';
+    protected $guarded = ['created_at', 'updated_at'];
 }
 

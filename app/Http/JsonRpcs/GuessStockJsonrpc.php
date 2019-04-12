@@ -26,6 +26,7 @@ class GuessStockJsonrpc extends JsonRpc
      */
     public function stockInfo() {
         global $userId;
+        $userId = 246;
         $result = [
             'login' => 0,
             'available' => 0,
@@ -81,18 +82,21 @@ class GuessStockJsonrpc extends JsonRpc
         if ($result['login'] && $result['available']) {
             $period = $activity['id'];
             $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period])->orderBy('id', 'desc')->first();
-            if ($guess_alert && $guess_alert->alert == 0) {
+            if ($guess_alert) {
                 $curr_time = date('Y-m-d', strtotime($guess_alert->updated_at));
-                $stock = HdPertenStock::where(['period'=>$period, 'curr_time'=>$curr_time])->first();
+                $data['time'] = $curr_time;
+                $stock = HdPertenStock::where(['period' => $period, 'curr_time' => $curr_time])->first();
                 if ($stock) {
-                    $data['time'] = $curr_time;
                     $data['change'] = $stock->change_status;//1涨/2跌
-                    $money = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->whereRaw(" date(created_at) = {$curr_time} ")->value('money');
-                    $data['money'] = $money ? $money : 0;
-                    $guess_alert->alert = 1;
-                    $guess_alert->save();
-                    $result['alert'] = $data;
                 }
+                $data['money'] = 0;
+                if ($guess_alert->alert == 0) {
+                        $money = HdPertenGuessLog::where(['period' => $period, 'user_id' => $userId])->whereRaw(" date(created_at) = {$curr_time} ")->value('money');
+                        $data['money'] = $money;
+                        $guess_alert->alert = 1;
+                        $guess_alert->save();
+                }
+                $result['alert'] = $data;
             }
             $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
             $result['number'] = Attributes::getNumber($userId, $guessKey);
@@ -211,7 +215,7 @@ class GuessStockJsonrpc extends JsonRpc
         if (!$activity) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
-        $data = HdWeeksGuessLog::selectRaw("user_id, sum(money) m")->where('period', $activity['id'])->groupBy('user_id')->orderBy('m', 'desc')->limit(50)->get()->toArray();
+        $data = HdPertenGuessLog::selectRaw("user_id, sum(money) m")->where('period', $activity['id'])->groupBy('user_id')->orderBy('m', 'desc')->limit(50)->get()->toArray();
         foreach ($data as $k=>$v) {
             $phone = Func::getUserPhone($v['user_id']);
             $data[$k]['phone'] = !empty($phone) ? substr_replace($phone, '******', 3, 6) : "";
