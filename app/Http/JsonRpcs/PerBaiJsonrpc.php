@@ -143,7 +143,7 @@ class PerBaiJsonrpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $where = ['user_id'=>$userId, 'period'=>$activity->id];
-        $data = HdPerbai::select('draw_number')->where($where)->get()->toArray();
+        $data = HdPerbai::select('draw_number')->distinct()->where($where)->get()->toArray();
         foreach ($data as $k=>$v) {
             $data[$k]['draw_number'] = PerBaiService::format($v['draw_number']);
         }
