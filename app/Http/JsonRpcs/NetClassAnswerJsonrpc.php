@@ -49,11 +49,16 @@ class NetClassAnswerJsonRpc extends JsonRpc {
                 $str = $plan_status?'立即学习':'已完成';
             }
 
-            $res[$plan_key] = [
+            // $res[$plan_key] = [
+            //     'answer_status' => $answer_status,
+            //     'award' => $award_data['name'],
+            //     'plan_status' => $str
+            // ];
+            array_push($res, [
                 'answer_status' => $answer_status,
                 'award' => $award_data['name'],
                 'plan_status' => $str
-            ];
+            ]);
 
         }
 
