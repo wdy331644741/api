@@ -47,9 +47,9 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             if ($key >0) {
                 //上一plan 是否完成
                 $befor_str = pow(2,$activits[$key-1]['des']) - 1 - (isset($status_data[$plan_key-1])?$status_data[$plan_key-1]:0);
-                $str = $befor_str?'待解锁':'立即学习';
+                $str = $befor_str?2:1;
             }else{
-                $str = $plan_status?'立即学习':'已完成';
+                $str = $plan_status?1:0;
             }
 
             // $res[$plan_key] = [
