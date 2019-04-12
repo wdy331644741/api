@@ -57,9 +57,11 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             //     'award' => $award_data['name'],
             //     'plan_status' => $str
             // ];
+            //已完成 0，立即学习 1，待解锁 2 ，带上线
             array_push($res, [
                 'answer_status' => $answer_status,
                 'award' => $award_data['name'],
+                'plan_id' => $plan_key,
                 'plan_status' => $str
             ]);
 
