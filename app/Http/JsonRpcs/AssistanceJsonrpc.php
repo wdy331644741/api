@@ -40,7 +40,6 @@ class AssistanceJsonRpc extends JsonRpc
      */
     public function assistanceInfo(){
         global $userId;
-        $userId = 19;
         $res = ['activity_num'=>0,'surplus'=>0,'award_list'=>[],'my_group_data'=>[],'my_assistance'=>[],'my_group_list'=>[],'my_award_list'=>[]];
         //生成全局限制属性
         $this->_attribute();
