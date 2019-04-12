@@ -39,6 +39,7 @@ class PerBaiService
                 return false;
             }
             $msg_flag = [];
+            $stockArr = [];
             foreach ($info as $v) {
                 $draw_number = intval($v['draw_number']);
                 $update = [
@@ -60,6 +61,7 @@ class PerBaiService
                     self::sendMessage($userId, $msg);
                     $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得首投实物大奖{". $activityConfig->first_award ."}，立即查看。";
                     SendMessage::sendPush($userId ,'custom', $push);
+                    Cache::forget('fristAward');
                     //逢10奖
                 } else if ( 0 === ($draw_number%10) ) {
                     $update['award_name'] = $activityConfig->sunshine_award;
@@ -72,14 +74,38 @@ class PerBaiService
                     $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：100京东卡，立即查看。";
 //                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：".$activityConfig->sunshine_award ."，立即查看。";
                     SendMessage::sendPush($userId ,'custom', $push);
+                    //股指开奖和倍数号码相同
+                    $stock = HdPertenStock::where(['period'=>$activityConfig->id, 'open_status'=>0, 'draw_number'=>$draw_number])->first();
+                    if ($stock) {
+                        $insert = HdPerbai::create([
+                            'user_id' => $userId,
+                            'status'=>2,
+                            'type'=>$type,
+                            'period'=>$activityConfig->id,
+                            'created_at'=>$createTime,
+                            'updated_at'=>$createTime,
+                            'award_name' => $activityConfig->ultimate_award,
+                            'alias_name' => 'stock',
+                            'draw_number' => $draw_number,
+                        ]);
+                        if ($insert) {
+//                            $remark = self::sendAward($userId, $draw_number);
+                            $stock->open_status = 1;
+//                            $stock->remark = json_encode($remark);
+                            $stock->save();
+                            $stockArr[] = $stock;
+                        }
+                    }
                 } else {
                     //股指开奖了，号码没发出去的情况
                     $stock = HdPertenStock::where(['period'=>$activityConfig->id, 'open_status'=>0, 'draw_number'=>$draw_number])->first();
                     if ($stock) {
-                        $remark = self::sendAward($userId, $draw_number);
+                        //以防事务失败，奖励发了,  请求rpc，事务无法回滚rpc接口
+//                        $remark = self::sendAward($userId, $draw_number);
                         $stock->open_status = 1;
-                        $stock->remark = json_encode($remark);
+//                        $stock->remark = json_encode($remark);
                         $stock->save();
+                        $stockArr[] = $stock;
                         $update['award_name'] = $activityConfig->ultimate_award;
                         $update['status'] = 2;
                         $update['alias_name'] = 'stock';
@@ -95,6 +121,12 @@ class PerBaiService
             Attributes::increment($userId, $guessKey, $guessNum * 5);
             //事务提交结束
             DB::commit();
+            //以防事务失败，奖励发了,事务无法回滚rpc接口
+            foreach ($stockArr as $stock) {
+                $remark = self::sendAward($userId, $stock->draw_number);
+                $stock->remark = json_encode($remark);
+                $stock->save();
+            }
         } catch (Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] userId: ' . $userId . ' number:' . $number . ' error:' . $e->getMessage() . "\r\n";
             $filepath = storage_path('logs' . DIRECTORY_SEPARATOR . 'perten.sql.log');
