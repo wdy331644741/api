@@ -115,7 +115,7 @@ class SpringJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = HdSpring::select('name', 'created_at')
+        $data = HdSpring::select('name', 'number', 'created_at')
             ->where('user_id',$userId)
             ->orderBy('id', 'desc')->get()->toArray();
 //        $rData['total'] = $data['total'];
