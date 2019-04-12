@@ -9,12 +9,15 @@ use App\Service\SendAward;
 use App\Models\Activity;
 use Illuminate\Support\Facades\Redis;
 use Validator;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Jobs\ActiveSendAwardJob;//异步主动发奖
 
 class NetClassAnswerJsonRpc extends JsonRpc {
     
     private static $_plan = "NetClassAnswer";
     private static $activity_grep = "NetClassAnswer_group";
 
+    use DispatchesJobs;
     /**
      * 状态
      *
@@ -132,7 +135,8 @@ class NetClassAnswerJsonRpc extends JsonRpc {
 
         //放到任务调度里面去
         if( (pow(2,$act['des']) - 1 - $answer) ==0){
-            SendAward::ActiveSendAward($userId,self::$_plan.$plan);
+            $this->dispatch(new ActiveSendAwardJob($userId,self::$_plan.$plan) );
+            // SendAward::ActiveSendAward($userId,self::$_plan.$plan);
         }
         
         return true;
