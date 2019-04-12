@@ -9,4 +9,5 @@ class HdPerbai extends Model
 
     public $table = 'hd_perten';
     public $timestamps = true;
+    public $guarded = [];
 }

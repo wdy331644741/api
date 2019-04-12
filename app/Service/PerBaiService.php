@@ -73,6 +73,27 @@ class PerBaiService
                     $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：100京东卡，立即查看。";
 //                    $push = "亲爱的用户，恭喜您在逢 10 股指活动中获得逢 10 倍数大奖：".$activityConfig->sunshine_award ."，立即查看。";
                     SendMessage::sendPush($userId ,'custom', $push);
+                    //股指开奖和倍数号码相同
+                    $stock = HdPertenStock::where(['period'=>$activityConfig->id, 'open_status'=>0, 'draw_number'=>$draw_number])->first();
+                    if ($stock) {
+                        $insert = HdPerbai::create([
+                            'user_id' => $userId,
+                            'status'=>2,
+                            'type'=>$type,
+                            'period'=>$activityConfig->id,
+                            'created_at'=>$createTime,
+                            'updated_at'=>$createTime,
+                            'award_name' => $activityConfig->ultimate_award,
+                            'alias_name' => 'stock',
+                            'draw_number' => $draw_number,
+                        ]);
+                        if ($insert) {
+                            $remark = self::sendAward($userId, $draw_number);
+                            $stock->open_status = 1;
+                            $stock->remark = json_encode($remark);
+                            $stock->save();
+                        }
+                    }
                 } else {
                     //股指开奖了，号码没发出去的情况
                     $stock = HdPertenStock::where(['period'=>$activityConfig->id, 'open_status'=>0, 'draw_number'=>$draw_number])->first();
