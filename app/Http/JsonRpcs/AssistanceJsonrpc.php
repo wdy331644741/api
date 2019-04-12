@@ -101,6 +101,38 @@ class AssistanceJsonRpc extends JsonRpc
         );
     }
     /**
+     * 开团选择奖品前判断接口
+     * @JsonRpcMethod
+     */
+    public function assistanceCreateBefore(){
+        global $userId;
+        if (empty($userId)) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //判断今天有没有开团
+        $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
+        //判断今天开团数量
+        if(!empty($groupInfo)){//开团数已达上限
+            //判断之前的团有没有未满的
+            $notFull = HdAssistance::where('group_user_id',$userId)->where("receive_num","<",3)->count();
+            if($notFull > 0){
+                //之前有未满团提示
+                DB::rollBack();//回滚事物
+                throw new OmgException(OmgException::INCOMPLETE_REGIMENT);
+            }else{
+                //之前已满团提示
+                DB::rollBack();//回滚事物
+                throw new OmgException(OmgException::FULL_REGIMENT);
+            }
+        }
+        //开团成功返回
+        return array(
+            'code' => 0,
+            'message' => 'success',
+            'data' => true
+        );
+    }
+    /**
      * 开团接口
      * @JsonRpcMethod
      */
@@ -130,18 +162,10 @@ class AssistanceJsonRpc extends JsonRpc
         //判断今天有没有开团
         $groupInfo = HdAssistance::where('group_user_id',$userId)->where("day",date("Ymd"))->first();
         //判断今天开团数量
-        if(!empty($groupInfo)){//开团数已达上限
-            //判断之前的团有没有未满的
-            $notFull = HdAssistance::where('group_user_id',$userId)->where("receive_num","<",3)->count();
-            if($notFull > 0){
-                //之前有未满团提示
-                DB::rollBack();//回滚事物
-                throw new OmgException(OmgException::INCOMPLETE_REGIMENT);
-            }else{
-                //之前已满团提示
-                DB::rollBack();//回滚事物
-                throw new OmgException(OmgException::FULL_REGIMENT);
-            }
+        if(!empty($groupInfo)){//今日已开团
+            //今日已开团
+            DB::rollBack();//回滚事物
+            throw new OmgException(OmgException::TODAY_IS_OPEN);
         }
         //添加开团数据
         $rankingMax = HdAssistance::select(DB::raw('MAX(`group_ranking`) as ranking'))->first();
