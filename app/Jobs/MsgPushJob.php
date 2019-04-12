@@ -40,7 +40,7 @@ class MsgPushJob extends Job implements ShouldQueue
                 $res = SendMessage::Mail($this->user_id,$this->SendMessage_content);
                 break;
             case 'push':
-                $res = SendMessage::sendPushTem($this->user_id,$this->SendMessage_content);
+                $res = SendMessage::sendPush($this->user_id,'custom',$this->SendMessage_content);
                 break;
             case 'mess':
                 // SendMessage::Message($this->user_id,$this->SendMessage_content);
