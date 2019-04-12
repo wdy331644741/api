@@ -295,6 +295,13 @@ class AssistanceJsonRpc extends JsonRpc
                     $i++;
                 }
             }
+            if(count($res) > 0){
+                $result = [];
+                foreach($res as $val){
+                    $result[] = $val;
+                }
+                return $result;
+            }
         }
         return $res;
     }
