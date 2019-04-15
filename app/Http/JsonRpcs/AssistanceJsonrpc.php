@@ -343,7 +343,9 @@ class AssistanceJsonRpc extends JsonRpc
                 $res[$item['id']][0] = $groupInfo;//第一条团长信息
                 if(count($userData) > 0){
                     foreach ($userData as $val){
-                        $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : [];//团员信息
+                        if($item['id'] == $val['pid']){
+                            $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : [];//团员信息
+                        }
                     }
                     $i++;
                 }
