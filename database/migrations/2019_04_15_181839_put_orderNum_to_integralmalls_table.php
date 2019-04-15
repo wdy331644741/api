@@ -13,7 +13,7 @@ class PutOrderNumToIntegralmallsTable extends Migration
     public function up()
     {
         Schema::table('integralmalls', function (Blueprint $table) {
-            $table->string('orderNum',50)->comment('兑吧订单号')->index();
+            $table->string('orderNum',50)->comment('兑吧订单号')->change();
         });
     }
 
@@ -25,7 +25,7 @@ class PutOrderNumToIntegralmallsTable extends Migration
     public function down()
     {
         Schema::table('integralmalls', function (Blueprint $table) {
-            $table->string('orderNum',20)->comment('兑吧订单号')->index();
+            $table->string('orderNum',20)->comment('兑吧订单号')->change();
         });
     }
 }

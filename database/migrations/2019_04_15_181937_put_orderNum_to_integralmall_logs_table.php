@@ -13,7 +13,7 @@ class PutOrderNumToIntegralmallLogsTable extends Migration
     public function up()
     {
         Schema::table('integralmall_logs', function (Blueprint $table) {
-            $table->string('orderNum',50)->comment('兑吧订单号')->index();
+            $table->string('orderNum',50)->comment('兑吧订单号')->change();
         });
     }
 
@@ -25,7 +25,7 @@ class PutOrderNumToIntegralmallLogsTable extends Migration
     public function down()
     {
         Schema::table('integralmall_logs', function (Blueprint $table) {
-            $table->string('orderNum',20)->comment('兑吧订单号')->index();
+            $table->string('orderNum',20)->comment('兑吧订单号')->change();
         });
     }
 }
