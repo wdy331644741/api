@@ -25,7 +25,7 @@ class AssistanceJsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $baseUrl = env('APP_URL');
-        $shareCode = urlencode(authcode($userId."-".date('Ymd'),'ENCODE',env('APP_KEY')));
+        $shareCode = urlencode(authcode($userId,'ENCODE',env('APP_KEY')."Assistance"));
         $userInfo = Func::getUserBasicInfo($userId,true);
         $shareUrl = $baseUrl."/active/new_year/luck_draw.html?shareCode=".$shareCode."&inviteCode=".$userInfo['invite_code'];
         return array(
@@ -232,9 +232,10 @@ class AssistanceJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $inviteId = isset($params->invite_id) ? $params->invite_id : 0;
+        $shareCode = isset($params->shareCode) ? $params->shareCode : "";
+        $inviteId = authcode($shareCode,'DECODE',env('APP_KEY')."Assistance");
         $groupId = isset($params->group_id) ? $params->group_id : 0;
-        if($inviteId <= 0 || $groupId <= 0){//缺少必要参数
+        if($inviteId <= 0 || $groupId <= 0 || empty($shareCode)){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
@@ -283,8 +284,9 @@ class AssistanceJsonRpc extends JsonRpc
         if (empty($userId)) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $groupUserId = isset($params->group_user_id) ? $params->group_user_id : 0;
-        if($groupUserId <= 0){//缺少必要参数
+        $groupUserId = isset($params->group_user_id) ? intval($params->group_user_id) : 0;
+        $awardId = isset($params->award_id) ? intval($params->award_id) : 0;
+        if($groupUserId <= 0 || $awardId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
@@ -292,12 +294,12 @@ class AssistanceJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('group_num',">=",3)->first();
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award_id',$awardId)->where('group_num',">=",3)->first();
         if(isset($groupInfo['id'])){//已满团
-            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('status',1)->first();
+            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award_id',$awardId)->where('status',1)->first();
             if(isset($userStatus['id'])){//领取成功
                 //修改领取状态
-                HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->update(['receive_status'=>1,'updated_at'=>date("Y-m-d H:i:s")]);
+                HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award_id',$awardId)->update(['receive_status'=>1,'updated_at'=>date("Y-m-d H:i:s")]);
                 return array(
                     'code' => 0,
                     'message' => 'success',
