@@ -44,6 +44,7 @@ use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
 use App\Service\Hockey;
 use App\Service\CatchDollService;//邀请注册送 抓娃娃机会
+use App\Service\InviteTaskService;//好友邀请3.0
 
 class SendAward
 {
@@ -71,6 +72,28 @@ class SendAward
             //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
             return self::addJoins($userID, $activityInfo, 2, json_encode($ruleStatus['errmsg']));
         }
+
+        //好友邀请3.0  绑卡、首投。不满足发奖条件时(需要先领取任务)  by：王东洋
+        if(in_array($activityInfo['alias_name'], ['invite_limit_task_bind', 'invite_limit_task_invest'])){
+            
+            if($activityInfo['alias_name'] == 'invite_limit_task_invest' 
+                && isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) 
+                && $triggerData['tag'] == 'investment' ){
+
+                $task3_user = $triggerData['from_user_id'];//任务3 奖励是给from_user_id的
+            }else{
+                $task3_user = 0;
+            }
+            $server = new InviteTaskService($userID);
+
+            $d = $server->isTouchTask($activityInfo['alias_name'],$triggerData);
+            if(!$d){
+                return '不发奖';
+            }
+        }
+        //好友邀请3.0 end
 
         //*****活动参与人数加1*****
         Activity::where('id',$activityInfo['id'])->increment('join_num');
@@ -200,6 +223,63 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 踏青活动 start **/
+            case 'spring_investment':
+                if(
+                    isset($triggerData['tag']) && $triggerData['tag'] == 'investment' && $triggerData['period'] >= 6
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
+                ){
+//                    渠道ID：wdtyfl 渠道名称：网贷天眼返利
+//                    渠道ID：wangdaizhijia  渠道名称：网贷之家
+//                    渠道ID：htfl   渠道名称：虎投返利
+//                    渠道ID：jffl   渠道名称：九富返利
+                    $user_info = Func::getUserBasicInfo($triggerData['user_id']);
+                    if (
+                        in_array($user_info['from_channel'], ['wdtyfl', 'wangdaizhijia', 'htfl', 'jffl'])
+                    && $triggerData['register_time'] >= $activityInfo['start_at']
+                    ) {
+                        return $return;
+                    }
+                //每邀请一名好友注册并首次出借 2000 元（6 月及以上标）
+                //邀请人和被邀请人均可获得 3000出游基金。
+                    //邀请人需点击“参与活动”后的邀请好友才可以满足奖励条件；
+                    $fromUserId = intval($triggerData['from_user_id']);
+                    if (
+                        $triggerData['is_first'] && $triggerData['Investment_amount'] >= 2000
+                        && $fromUserId && (empty($activityInfo['start_at']) || $triggerData['register_time'] >= $activityInfo['start_at'])
+                    )
+                    {
+                        $join = Attributes::getItem($fromUserId, 'spring_join_key');
+                        if ($join) {
+                            Attributes::increment($triggerData['user_id'], 'spring_drew_user', 3000);
+                            Attributes::increment($fromUserId, 'spring_drew_user', 3000);
+                        }
+
+                    }
+                    //出借送踏青基金
+                    if ($triggerData['Investment_amount'] >= 1000) {
+                        $fund = 0;
+                        switch ($triggerData['period']) {
+                            case 6:
+                                $fund = 500;
+                                break;
+                            case 12:
+                                $fund = 1000;
+                                break;
+                            case 18:
+                                $fund = 1200;
+                                break;
+                            case 24:
+                                $fund = 1500;
+                                break;
+                        }
+                        $fund = $fund * intval($triggerData['Investment_amount']/1000);
+                        Attributes::increment($triggerData['user_id'], 'spring_drew_user', $fund);
+                    }
+                }
+                break;
+            /** 踏青活动 start **/
             /** 19 新春现金红包 start **/
             case '19amountshare_send':
                 if(
@@ -2229,6 +2309,7 @@ class SendAward
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
         $message['code'] = isset($info['code']) ? $info['code'] : '';
+        $message['money'] = isset($info['money']) ? $info['money'] : 0;
 
         $userBasicInfo = Func::getUserBasicInfo($info['user_id']);//获取用户基本信息
         $message['respecteduname'] = self::setUserRespectedName($userBasicInfo);//用户尊称key：respecteduname

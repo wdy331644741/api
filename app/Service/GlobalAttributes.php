@@ -44,19 +44,17 @@ class GlobalAttributes
     }
 
     static public function getNumber($key, $default = null) {
-        if(empty($uid) || empty($key)) {
+        if(empty($key)) {
             return false;
         }
-        $res = GlobalAttribute::where(array('user_id' => $uid, 'key' => $key))->first();
+        $res = GlobalAttribute::where(array('key' => $key))->first();
         if(!$res) {
-            if(!is_null($default)) {
-                $attribute = new UserAttribute();
+                $attribute = new GlobalAttribute();
                 $attribute->key = $key;
                 $attribute->number = intval($default);
                 $attribute->save();
+                return intval($default);
             }
-            return $default;
-        }
 
         return $res['number'];
     }
@@ -66,6 +64,17 @@ class GlobalAttributes
             return false;
         }
         $res = GlobalAttribute::where(array( 'key' => $key))->first();
+        if(!$res) {
+            return false;
+        }
+        return $res;
+    }
+
+    static function getItems($key) {
+        if(empty($key)) {
+            return false;
+        }
+        $res = GlobalAttribute::where(array( 'key' => $key ))->get();
         if(!$res) {
             return false;
         }
