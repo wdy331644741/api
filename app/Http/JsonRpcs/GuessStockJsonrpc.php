@@ -69,12 +69,14 @@ class GuessStockJsonrpc extends JsonRpc
             }
         }
         $guess = HdPertenGuess::selectRaw('sum(number) total')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
-        foreach ($guess as $v) {
-            if ($v['type'] == 1) {
-                $result['up'] = $v['total'];
-            }
-            if ($v['type'] == 2) {
-                $result['down'] = $v['total'];
+        if(count($guess) > 0){
+            foreach ($guess as $v) {
+                if ($v['type'] == 1) {
+                    $result['up'] = $v['total'];
+                }
+                if ($v['type'] == 2) {
+                    $result['down'] = $v['total'];
+                }
             }
         }
 
