@@ -68,7 +68,7 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['countdown'] = strtotime("$next_day 13:00:00") - $time;
             }
         }
-        $guess = HdPertenGuess::selectRaw('sum(number) total')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
+        $guess = HdPertenGuess::selectRaw('sum(number) total,`type`')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
         if(count($guess) > 0){
             foreach ($guess as $v) {
                 if ($v['type'] == 1) {
