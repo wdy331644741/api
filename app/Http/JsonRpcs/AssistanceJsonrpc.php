@@ -294,12 +294,26 @@ class AssistanceJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award_id',$awardId)->where('group_num',">=",3)->first();
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award_id',$awardId)->where("receive_status",0)->where('group_num',">=",3)->first();
         if(isset($groupInfo['id'])){//已满团
-            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award_id',$awardId)->where('status',1)->first();
+            //团长领取自己的
+            if($groupUserId == $userId){
+                $groupInfo->receive_status = 1;
+                $groupInfo->updated_at = date("Y-m-d H:i:s");
+                $groupInfo->save();
+                return array(
+                    'code' => 0,
+                    'message' => 'success',
+                    'data' => true
+                );
+            }
+            //团员领取
+            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award_id',$awardId)->where("receive_status",0)->where('status',1)->first();
             if(isset($userStatus['id'])){//领取成功
                 //修改领取状态
-                HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award_id',$awardId)->update(['receive_status'=>1,'updated_at'=>date("Y-m-d H:i:s")]);
+                $userStatus->receive_status = 1;
+                $userStatus->updated_at = date("Y-m-d H:i:s");
+                $userStatus->save();
                 return array(
                     'code' => 0,
                     'message' => 'success',
