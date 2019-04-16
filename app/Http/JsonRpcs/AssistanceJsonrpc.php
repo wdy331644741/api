@@ -294,7 +294,7 @@ class AssistanceJsonRpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award_id',$awardId)->where("receive_status",0)->where('group_num',">=",3)->first();
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award',$awardId)->where("receive_status",0)->where('group_num',">=",3)->first();
         if(isset($groupInfo['id'])){//已满团
             //团长领取自己的
             if($groupUserId == $userId){
@@ -308,7 +308,7 @@ class AssistanceJsonRpc extends JsonRpc
                 );
             }
             //团员领取
-            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award_id',$awardId)->where("receive_status",0)->where('status',1)->first();
+            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award',$awardId)->where("receive_status",0)->where('status',1)->first();
             if(isset($userStatus['id'])){//领取成功
                 //修改领取状态
                 $userStatus->receive_status = 1;
