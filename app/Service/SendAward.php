@@ -44,6 +44,7 @@ use App\Service\CollectCardService;
 use App\Service\OctLotteryService;
 use App\Service\Hockey;
 use App\Service\CatchDollService;//邀请注册送 抓娃娃机会
+use App\Service\InviteTaskService;//好友邀请3.0
 
 class SendAward
 {
@@ -71,6 +72,28 @@ class SendAward
             //添加到活动参与表 1频次验证不通过2规则不通过3发奖成功
             return self::addJoins($userID, $activityInfo, 2, json_encode($ruleStatus['errmsg']));
         }
+
+        //好友邀请3.0  绑卡、首投。不满足发奖条件时(需要先领取任务)  by：王东洋
+        if(in_array($activityInfo['alias_name'], ['invite_limit_task_bind', 'invite_limit_task_invest'])){
+            
+            if($activityInfo['alias_name'] == 'invite_limit_task_invest' 
+                && isset($triggerData['tag']) && !empty($triggerData['tag']) 
+                && isset($triggerData['user_id']) && !empty($triggerData['user_id']) 
+                && isset($triggerData['from_user_id']) && !empty($triggerData['from_user_id']) 
+                && $triggerData['tag'] == 'investment' ){
+
+                $task3_user = $triggerData['from_user_id'];//任务3 奖励是给from_user_id的
+            }else{
+                $task3_user = 0;
+            }
+            $server = new InviteTaskService($userID);
+
+            $d = $server->isTouchTask($activityInfo['alias_name'],$triggerData);
+            if(!$d){
+                return '不发奖';
+            }
+        }
+        //好友邀请3.0 end
 
         //*****活动参与人数加1*****
         Activity::where('id',$activityInfo['id'])->increment('join_num');
@@ -1953,7 +1976,7 @@ class SendAward
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //存储到日志&发送消息
-                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'uuid'=>$uuid,'status'=>true);
                 $info['status'] = 1;
                 $info['uuid'] = $uuid;
                 $info['remark'] = json_encode($arr);
@@ -1961,7 +1984,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'uuid'=>$uuid,'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -2031,7 +2054,7 @@ class SendAward
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
-                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'uuid'=>$uuid,'status'=>true,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['status'] = 1;
                 $info['uuid'] = $uuid;
                 $info['remark'] = json_encode($arr);
@@ -2039,7 +2062,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'uuid'=>$uuid,'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url,'child_user_id' => isset($data['child_user_id']) ? $data['child_user_id'] : '');
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -2088,7 +2111,7 @@ class SendAward
             //发送消息&存储到日志
             if (isset($result['result']) && $result['result']) {//成功
                 //发送消息&存储日志
-                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>true);
+                $arr = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'uuid'=>$uuid,'status'=>true);
                 $info['status'] = 1;
                 $info['uuid'] = $uuid;
                 $info['remark'] = json_encode($arr);
@@ -2096,7 +2119,7 @@ class SendAward
                 return $arr;
             }else{//失败
                 //记录错误日志
-                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','err_data'=>$result,'url'=>$url);
+                $err = array('award_id'=>$info['id'],'award_name'=>$info['name'],'award_type'=>$info['award_type'],'status'=>false,'err_msg'=>'send_fail','uuid'=>$uuid,'err_data'=>$result,'url'=>$url);
                 $info['remark'] = json_encode($err);
                 self::addLog($info);
                 return $err;
@@ -2286,6 +2309,7 @@ class SendAward
         $message['sourcename'] = $info['source_name'];
         $message['awardname'] = $info['name'];
         $message['code'] = isset($info['code']) ? $info['code'] : '';
+        $message['money'] = isset($info['money']) ? $info['money'] : 0;
 
         $userBasicInfo = Func::getUserBasicInfo($info['user_id']);//获取用户基本信息
         $message['respecteduname'] = self::setUserRespectedName($userBasicInfo);//用户尊称key：respecteduname

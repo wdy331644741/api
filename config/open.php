@@ -34,5 +34,10 @@ return [
         ]
 
         
+    ],
+    "duiba"=>[
+        'AppKey'=>'3Pwf3saWFCjYCy9SXvgv81u3JrKM',
+        'AppSecret'=>'4QJ2MaGnpigGW3zY4USZnixFH48Y',
+        'Base_AutoLogin_Url'=>'http://www.duiba.com.cn/autoLogin/autologin?'
     ]
 ];

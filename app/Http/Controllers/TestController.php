@@ -31,6 +31,14 @@ class TestController extends Controller
     public function getCustomExperience(){
         return view('custom_experience');
     }
+
+    public function getAdd(Request $request){
+        $res = Func::DbAddTimes(28,3422687,2);
+        if($res){
+            return 111;
+        }
+        return 222;
+    }
     public function postCustomExperience(Request $request){
         $this->param = [];
         $this->param['sourceId'] = intval($request->source_id);
