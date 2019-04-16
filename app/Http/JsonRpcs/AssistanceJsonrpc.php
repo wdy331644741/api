@@ -350,6 +350,8 @@ class AssistanceJsonRpc extends JsonRpc
             foreach($groupData as $item){
                 //团id
                 $groupInfo['group_id'] = $item['id'];
+                //团长id
+                $groupInfo['group_user_id'] = $userId;
                 //第几团
                 $groupInfo['ranking'] = $item['group_ranking'];
                 //团人员
@@ -387,6 +389,8 @@ class AssistanceJsonRpc extends JsonRpc
                 if($item['pid'] > 0){
                     //团id
                     $groupInfo['group_id'] = $item['id'];
+                    //团长id
+                    $groupInfo['group_user_id'] = $userId;
                     //第几团
                     $groupInfo['ranking'] = $item['group_ranking'];
                     //团人员

@@ -128,6 +128,7 @@ class ActivityService
                 $groupInfo->save();
                 if($groupInfo->receive_num == 3){
                     //添加满团时间
+                    $groupInfo->status = 1;
                     $groupInfo->complete_time = date("Y-m-d H:i:s");
                     $groupInfo->save();
                 }
