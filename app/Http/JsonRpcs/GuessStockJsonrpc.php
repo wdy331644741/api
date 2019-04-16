@@ -13,6 +13,7 @@ use App\Service\Func;
 use App\Service\PerBaiService;
 use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Service\GlobalAttributes;
 
 use Config, Request, Cache,DB;
 
@@ -40,6 +41,9 @@ class GuessStockJsonrpc extends JsonRpc
             $result['login'] = 1;
         }
         $time = time();
+        //活动规则配置
+        $actRule = GlobalAttributes::getItem('perten_config_actrule');
+        $result['act_rule'] = $actRule->text;
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
         if ( $activity ) {
