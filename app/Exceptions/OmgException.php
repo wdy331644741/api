@@ -111,7 +111,7 @@ class OmgException extends BasicException
     const GET_ERROR_DATA = 4342;
     const ACTIVITY_NOT_JOIN = 4351;
     const FUND_LACK_FAIL = 4354;
-    const LIMIT_LEVEL = 4355;
+    const LIMIT_LEVEL = 4385;
 
     protected static $errorArray = array(
         //接口调用错误
