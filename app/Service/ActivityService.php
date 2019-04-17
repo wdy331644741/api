@@ -142,4 +142,20 @@ class ActivityService
         }
         return false;
     }
+    
+    /**
+     * 获取分组内活动id 去掉时间限制
+     *
+     * @param $aliasName
+     * @return array
+     */
+    static function GetActivityInfoByGroupStatus($alias) {
+        // $res = DB::table('')
+        //根据别名 查出id
+        $act_group_id = ActivityGroup::where('name',$alias)->first();
+        //连接模型 查出分组下的 活动id
+        $res = ActivityGroup::find($act_group_id['id'])->activities()
+        ->get();
+        return $res;
+    }
 }

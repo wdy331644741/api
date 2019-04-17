@@ -31,7 +31,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
 
         $status_data = $userId?Attributes::getJsonText($userId,self::$_plan):[];
 
-        $activits = ActivityService::GetActivityInfoByGroup(self::$activity_grep);
+        $activits = ActivityService::GetActivityInfoByGroupStatus(self::$activity_grep);
 
         foreach ($activits as $key => $value) {
 
@@ -46,14 +46,21 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             }
             $plan_status = pow(2,$value['des']) - 1 - $answer_status;
 
+            //根据答题状态判断  是否完成**************
             if ($key >0) {
                 //上一plan 是否完成
                 $befor_str = pow(2,$activits[$key-1]['des']) - 1 - (isset($status_data[$plan_key-1])?$status_data[$plan_key-1]:0);
-                $str = $befor_str?2:1;
+                $str = !$befor_str?$plan_status?1:0:2;
             }else{
                 $str = $plan_status?1:0;
             }
+            //************************************
 
+
+            //根据活动是否上线 强转状态
+            if($value['enable'] == 0){
+                $str = 3;
+            }
             // $res[$plan_key] = [
             //     'answer_status' => $answer_status,
             //     'award' => $award_data['name'],
