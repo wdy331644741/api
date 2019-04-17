@@ -130,7 +130,7 @@ class OmgException extends BasicException
 
     const ACTIVITY_NOT_JOIN = 4351;
     const FUND_LACK_FAIL = 4354;
-    const LIMIT_LEVEL = 4355;
+    const LIMIT_LEVEL = 4385;
 
     const OPENING_MORE_50 = 4355;
     const FULL_REGIMENT = 4356;
