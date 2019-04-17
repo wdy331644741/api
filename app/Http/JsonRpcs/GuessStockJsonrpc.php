@@ -244,12 +244,20 @@ class GuessStockJsonrpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $period = $activity['id'];
-//        $data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
-            $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
-            foreach ($list as $k=>$v) {
-                $list[$k]['up'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-                $list[$k]['down'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-                $list[$k]['money'] = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+        //$data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
+        $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
+        foreach ($list as $k=>$v) {
+            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userMoney = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+            if($userUp == 0 && $userDown == 0){
+                unset($list[$k]);
+            }else{
+                $list[$k]['up'] = $userUp;
+                $list[$k]['down'] = $userDown;
+                $list[$k]['money'] = intval( $userMoney);
+            }
+
         }
 //            return $list;
 //        });
