@@ -58,6 +58,17 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         if(empty($act)) {
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
+
+        //任务2领取 增加  用户会员等级限制
+        if($params->task == 2){
+            $user_info = Func::getUserBasicInfo($userId);
+            if(!isset($user_info['level']) || $user_info['level'] < 0 ){
+                throw new OmgException(OmgException::LIMIT_LEVEL);
+            }
+
+        }
+        
+
         $ser = new InviteTaskService($userId);
         $res = $ser->addTaskByUser($task);
 
@@ -127,6 +138,10 @@ class InviteLimitTaskJsonRpc extends JsonRpc
     public function friendLimitTaskInfo(){
         //用户ID
         global $userId;
+        if(!empty($userId)){
+            //首页刷新一下用户的基本信息，记入缓存。为领任务时判断会员等级
+            Func::getUserBasicInfo($userId);
+        }
 
         // 活动是否存在
         if(ActivityService::isExistByAlias(self::$shareTaskName)) {
@@ -230,10 +245,11 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $detail = [];
         foreach ($_data as $key => $value) {
             //根据用户ID获取手机号
-            $url = env('INSIDE_HTTP_URL');
-            $client = new JsonRpcClient($url);
-            $userBase = $client->userBasicInfo(array('userId'=>$key));
-            $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+            $phone = Func::getUserPhone($_data['user_id']);
+            // $url = env('INSIDE_HTTP_URL');
+            // $client = new JsonRpcClient($url);
+            // $userBase = $client->userBasicInfo(array('userId'=>$key));
+            // $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
             if(empty($phone)){
                 //throw new OmgException(OmgException::API_FAILED);
                 $phone = $key;
@@ -260,10 +276,12 @@ class InviteLimitTaskJsonRpc extends JsonRpc
 
         //有效任务
         //根据用户ID获取手机号
-        $url = env('INSIDE_HTTP_URL');
-        $client = new JsonRpcClient($url);
-        $userBase = $client->userBasicInfo(array('userId'=>$_data['user_id']));
-        $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
+        $phone = Func::getUserPhone($_data['user_id']);
+
+        // $url = env('INSIDE_HTTP_URL');
+        // $client = new JsonRpcClient($url);
+        // $userBase = $client->userBasicInfo(array('userId'=>$_data['user_id']));
+        // $phone = isset($userBase['result']['data']['phone']) ? $userBase['result']['data']['phone'] : '';
         if(empty($phone)){
             //throw new OmgException(OmgException::API_FAILED);
             $phone = $_data['user_id'];
