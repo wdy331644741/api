@@ -135,6 +135,7 @@ class OmgException extends BasicException
     const FULL_REGIMENT = 4356;
     const INCOMPLETE_REGIMENT = 4357;
     const TODAY_IS_OPEN = 4358;
+    const GROUP_NOT_EXIST = 4359;
 
     protected static $errorArray = array(
         //接口调用错误
@@ -238,6 +239,7 @@ class OmgException extends BasicException
         self::FULL_REGIMENT => "之前的团已满",
         self::INCOMPLETE_REGIMENT => "之前的团有未满",
         self::TODAY_IS_OPEN => "今日已开团",
+        self::GROUP_NOT_EXIST => "该团不存在",
     );
 
     public function __construct($code, $data = array())
