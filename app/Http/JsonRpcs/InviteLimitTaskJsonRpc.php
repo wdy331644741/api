@@ -76,13 +76,16 @@ class InviteLimitTaskJsonRpc extends JsonRpc
             throw new OmgException(OmgException::CONDITION_NOT_ENOUGH);
         }
 
-        //异步发送*****************体验金不发
+        //异步发送*****************
         switch ($params->task) {
             case 2:
                 $message_str = '恭喜您在“邀友赚赏金”限时活动中抢到18元现金奖励任务，限2小时内完成任务，则现金实时发放至您网利宝账户中。';
                 break;
             case 3:
                 $message_str = '恭喜您在“邀友赚赏金”限时活动中抢到100元现金奖励任务，限24小时内完成任务，则现金实时发放至您网利宝账户中。';
+                break;
+            case 1:
+                $message_str = '恭喜您在“邀友赚赏金”限时活动中抢到8888元体验金奖励任务，限1分钟内完成任务，则奖励实时发放至您网利宝账户中。';
                 break;
             default:
                 $message_str = '';
