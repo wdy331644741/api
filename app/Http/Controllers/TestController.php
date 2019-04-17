@@ -22,6 +22,7 @@ use App\Models\Cqssc;
 use App\Service\NvshenyueService;
 use App\Service\TzyxjService;
 use App\Service\PoBaiYiService;
+use App\Jobs\PertenGuessJob;
 
 use Excel;
 
@@ -30,6 +31,12 @@ class TestController extends Controller
 {
     public function getCustomExperience(){
         return view('custom_experience');
+    }
+
+    //手动推送任务到队列
+    public function getManualPush(){
+        $this->dispatch(new PertenGuessJob(1));
+        return "success";
     }
     public function postCustomExperience(Request $request){
         $this->param = [];
