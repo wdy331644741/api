@@ -182,7 +182,7 @@ class AssistanceJsonRpc extends JsonRpc
         //添加开团数据
         $rankingMax = HdAssistance::select(DB::raw('MAX(`group_ranking`) as ranking'))->first();
         $rankingMax = isset($rankingMax['ranking']) && $rankingMax['ranking'] > 0 ? $rankingMax['ranking'] + 1 : 1;
-        HdAssistance::create(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd"),'group_ranking'=>$rankingMax]);
+        $id = HdAssistance::insertGetId(['group_user_id'=>$userId,'award'=>$awardId,'day'=>date("Ymd"),'group_ranking'=>$rankingMax]);
         //总限制+1
         $globalAtt->increment("number",1);
         $globalAtt->save();
@@ -192,7 +192,7 @@ class AssistanceJsonRpc extends JsonRpc
         return array(
             'code' => 0,
             'message' => 'success',
-            'data' => true
+            'data' => $id
         );
     }
     /**
@@ -204,24 +204,36 @@ class AssistanceJsonRpc extends JsonRpc
         if($groupId <= 0){//缺少必要参数
             throw new OmgException(OmgException::API_MIS_PARAMS);
         }
+        $res = ["status"=>false,"data"=>[]];
         $activityInfo = ActivityService::GetActivityInfoByAlias('assistance_real_name');
         if(empty($activityInfo)){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("id",$groupId)->where("group_num","<",3)->first();
-        if(isset($groupInfo['id'])){//未满团
+        $groupInfo = HdAssistance::where("id",$groupId)->where("pid",0)->where("user_id",0)->first();
+        if(isset($groupInfo['id'])){
+            if($groupInfo['group_num'] >= 3){//已满团
+                $res['status'] = true;
+            }
+            //获取团信息
+            $data = $this->_groupData($groupInfo['group_user_id']);
+            if(!empty($data)){
+                foreach($data as $item){
+                    foreach($item as $value){
+                        if(isset($value['group_id']) && $value['group_id'] == $groupId){
+                            $res['data'] = $item;
+                        }
+                    }
+                }
+            }
             return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => false
+                'data' => $res
             );
         }
-        return array(//已满团
-            'code' => 0,
-            'message' => 'success',
-            'data' => true
-        );
+        //团不存在
+        throw new OmgException(OmgException::GROUP_NOT_EXIST);
     }
     /**
      *分享助力注册人添加数据
