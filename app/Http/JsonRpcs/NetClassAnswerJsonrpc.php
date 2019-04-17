@@ -17,6 +17,8 @@ class NetClassAnswerJsonRpc extends JsonRpc {
     private static $_plan = "NetClassAnswer";
     private static $activity_grep = "NetClassAnswer_group";
 
+    private static $share_exp = "NetClassAnswer_share_exp";
+
     use DispatchesJobs;
     /**
      * 状态
@@ -143,6 +145,23 @@ class NetClassAnswerJsonRpc extends JsonRpc {
         
         return true;
 
+    }
+
+
+    /**
+     * 分享给直抵红包
+     *
+     * @JsonRpcMethod
+     */
+    public function shareNetClass(){
+        global $userId;
+
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        //按照别名发送奖励
+        $this->dispatch(new ActiveSendAwardJob($userId ,self::$share_exp) );
+        return true;
     }
 
 
