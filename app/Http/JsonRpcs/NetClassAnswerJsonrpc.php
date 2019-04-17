@@ -36,7 +36,12 @@ class NetClassAnswerJsonRpc extends JsonRpc {
         foreach ($activits as $key => $value) {
 
             $award_info = Activity::where('alias_name', $value['alias_name'])->with('awards')->first()->awards;
-            $award_data = SendAward::_getAwardInfo($award_info[0]['award_type'],$award_info[0]['award_id']);
+            if($award_info->isEmpty() ) {
+                 $award_data['name'] = '奖品还没有上线';
+            }else{
+                $award_data = SendAward::_getAwardInfo($award_info[0]['award_type'],$award_info[0]['award_id']);
+            }
+            // $award_data = SendAward::_getAwardInfo($award_info[0]['award_type'],$award_info[0]['award_id']);
             $plan_key = str_replace(self::$_plan,'',$value['alias_name']);
 
 
@@ -44,7 +49,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             if(empty($value['des'])){
                 throw new OmgException(OmgException::PARSE_ERROR);
             }
-            $plan_status = pow(2,$value['des']) - 1 - $answer_status;
+            $plan_status = pow(2,(int)$value['des']) - 1 - $answer_status;
 
             //根据答题状态判断  是否完成**************
             if ($key >0) {
