@@ -80,7 +80,7 @@ class GuessStockJsonrpc extends JsonRpc
 
         if ($result['login'] && $result['available']) {
             $period = $activity['id'];
-            $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period])->orderBy('id', 'desc')->first();
+            $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period, 'alert'=>0])->orderBy('id', 'desc')->first();
             if ($guess_alert) {
                 $curr_time = date('Y-m-d', strtotime($guess_alert->updated_at));
                 $data['time'] = $curr_time;
