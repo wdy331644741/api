@@ -103,7 +103,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             'message' => 'success',
             'data'    => [
                 'is_login' => $userId?true:false,
-                'plan_status' => array_merge($done_res,$res)
+                'plan_status' => array_merge($res,$done_res)
             ]
         ];
     }
