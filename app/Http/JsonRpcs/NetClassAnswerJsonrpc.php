@@ -136,7 +136,12 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             }
         }
 
+        $status = pow(2,(int)$act['des']) - 1 - $answer;
+
         if(!empty($user_answered) && array_key_exists($plan, $user_answered)){
+            if($user_answered[$plan] == $answer && $status == 0){//如果已经答对，返回false
+                return false;
+            }
             $user_answered[$plan] |= $answer;//与 位运算（算出最终状态）
 
         }else{
@@ -150,7 +155,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
         $act = ActivityService::GetActivityInfoByAlias(self::$_plan.$plan);
 
         //放到任务调度里面去
-        if( (pow(2,$act['des']) - 1 - $answer) ==0){
+        if($status == 0){
             $this->dispatch(new ActiveSendAwardJob($userId,self::$_plan.$plan) );
             // SendAward::ActiveSendAward($userId,self::$_plan.$plan);
         }
