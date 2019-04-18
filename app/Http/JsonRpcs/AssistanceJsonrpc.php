@@ -118,7 +118,6 @@ class AssistanceJsonRpc extends JsonRpc
         //锁住每天限制总数属性
         $globalAtt = GlobalAttribute::where('key',$this->key.date("Ymd"))->lockForUpdate()->first();
         if(isset($globalAtt['number']) && $globalAtt['number'] >= $this->groupTotal){//开团超过50
-            DB::rollBack();//回滚事物
             throw new OmgException(OmgException::OPENING_MORE_50);
         }
         //判断今天有没有开团
@@ -129,11 +128,9 @@ class AssistanceJsonRpc extends JsonRpc
             $notFull = HdAssistance::where('group_user_id',$userId)->where("receive_num","<",3)->count();
             if($notFull > 0){
                 //之前有未满团提示
-                DB::rollBack();//回滚事物
                 throw new OmgException(OmgException::INCOMPLETE_REGIMENT);
             }else{
                 //之前已满团提示
-                DB::rollBack();//回滚事物
                 throw new OmgException(OmgException::FULL_REGIMENT);
             }
         }
@@ -261,14 +258,18 @@ class AssistanceJsonRpc extends JsonRpc
         if($inviteId != $fromId || $registerTime < $activityInfo['start_at'] || $registerTime > $activityInfo['end_at']){
             throw new OmgException(OmgException::DAYS_NOT_ENOUGH);
         }
+        //事物开始
+        DB::beginTransaction();
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("id",$groupId)->where("group_user_id",$inviteId)->where("group_num","<",3)->first();
+        $groupInfo = HdAssistance::where("id",$groupId)->where("group_user_id",$inviteId)->where("group_num","<",3)->lockForUpdate()->first();
         if(!isset($groupInfo['id'])){
+            DB::rollBack();//回滚事物
             throw new OmgException(OmgException::ONEYUAN_FULL_FAIL);
         }
         //判断是否助力过该团
         $count = HdAssistance::where("group_user_id",$inviteId)->where("user_id",$userId)->count();
         if($count > 0){
+            DB::rollBack();//回滚事物
             throw new OmgException(OmgException::ALREADY_EXIST);
         }
         //添加到团里，且未实名
@@ -281,6 +282,8 @@ class AssistanceJsonRpc extends JsonRpc
             'day' => date("Ymd"),
             'created_at' => date("Y-m-d H:i:s")
         ]);
+        //提交事物
+        DB::commit();
         return array(
             'code' => 0,
             'message' => 'success',
@@ -305,14 +308,18 @@ class AssistanceJsonRpc extends JsonRpc
         if(empty($activityInfo)){
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
+        //事物开始
+        DB::beginTransaction();
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award',$awardId)->where("receive_status",0)->where('group_num',">=",3)->first();
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award',$awardId)->where("receive_status",0)->where('group_num',">=",3)->lockForUpdate()->first();
         if(isset($groupInfo['id'])){//已满团
             //团长领取自己的
             if($groupUserId == $userId){
                 $groupInfo->receive_status = 1;
                 $groupInfo->updated_at = date("Y-m-d H:i:s");
                 $groupInfo->save();
+                //提交事物
+                DB::commit();
                 return array(
                     'code' => 0,
                     'message' => 'success',
@@ -320,24 +327,28 @@ class AssistanceJsonRpc extends JsonRpc
                 );
             }
             //团员领取
-            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award',$awardId)->where("receive_status",0)->where('status',1)->first();
+            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award',$awardId)->where("receive_status",0)->where('status',1)->lockForUpdate()->first();
             if(isset($userStatus['id'])){//领取成功
                 //修改领取状态
                 $userStatus->receive_status = 1;
                 $userStatus->updated_at = date("Y-m-d H:i:s");
                 $userStatus->save();
+                //提交事物
+                DB::commit();
                 return array(
                     'code' => 0,
                     'message' => 'success',
                     'data' => true
                 );
             }
+            DB::rollBack();//回滚事物
             return array(//领取失败
                 'code' => 0,
                 'message' => 'success',
                 'data' => false
             );
         }
+        DB::rollBack();//回滚事物
         return array(//领取失败
             'code' => 0,
             'message' => 'success',
