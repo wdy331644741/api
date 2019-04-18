@@ -13,6 +13,7 @@ use App\Service\Func;
 use App\Service\PerBaiService;
 use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use App\Service\GlobalAttributes;
 
 use Config, Request, Cache,DB;
 
@@ -40,6 +41,9 @@ class GuessStockJsonrpc extends JsonRpc
             $result['login'] = 1;
         }
         $time = time();
+        //活动规则配置
+        $actRule = GlobalAttributes::getItem('perten_config_actrule');
+        $result['act_rule'] = $actRule->text;
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
         if ( $activity ) {
@@ -68,13 +72,15 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['countdown'] = strtotime("$next_day 13:00:00") - $time;
             }
         }
-        $guess = HdPertenGuess::selectRaw('sum(number) total')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
-        foreach ($guess as $v) {
-            if ($v['type'] == 1) {
-                $result['up'] = $v['total'];
-            }
-            if ($v['type'] == 2) {
-                $result['down'] = $v['total'];
+        $guess = HdPertenGuess::selectRaw('sum(number) total,`type`')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
+        if(count($guess) > 0){
+            foreach ($guess as $v) {
+                if ($v['type'] == 1) {
+                    $result['up'] = $v['total'];
+                }
+                if ($v['type'] == 2) {
+                    $result['down'] = $v['total'];
+                }
             }
         }
 
@@ -241,12 +247,20 @@ class GuessStockJsonrpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $period = $activity['id'];
-//        $data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
-            $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
-            foreach ($list as $k=>$v) {
-                $list[$k]['up'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-                $list[$k]['down'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-                $list[$k]['money'] = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+        //$data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
+        $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
+        foreach ($list as $k=>$v) {
+            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userMoney = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+            if($userUp == 0 && $userDown == 0){
+                unset($list[$k]);
+            }else{
+                $list[$k]['up'] = $userUp;
+                $list[$k]['down'] = $userDown;
+                $list[$k]['money'] = intval( $userMoney);
+            }
+
         }
 //            return $list;
 //        });

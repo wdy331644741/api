@@ -114,8 +114,9 @@ class Perbai extends Command
                 $ret->remark = json_encode($remark);
                 $ret->save();
             }
+            $type = $change >= 0 ? 1 : 2;
             //天天猜发奖
-            $this->dispatch(new PertenGuessJob($change));
+            $this->dispatch(new PertenGuessJob($type));
             return false;
         } catch (\Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
