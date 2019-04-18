@@ -27,7 +27,7 @@ class AssistanceJsonRpc extends JsonRpc
         $baseUrl = env('APP_URL');
         $shareCode = urlencode(authcode($userId,'ENCODE',env('APP_KEY')."Assistance"));
         $userInfo = Func::getUserBasicInfo($userId,true);
-        $shareUrl = $baseUrl."/active/new_year/luck_draw.html?shareCode=".$shareCode."&inviteCode=".$userInfo['invite_code'];
+        $shareUrl = $baseUrl."/app/power/regist?shareCode=".$shareCode."&inviteCode=".$userInfo['invite_code'];
         return array(
             'code' => 0,
             'message' => 'success',
