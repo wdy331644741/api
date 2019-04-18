@@ -76,17 +76,21 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['countdown'] = strtotime("$next_day 13:00:00") - $time;
             }
         }
-        $guess = HdPertenGuess::selectRaw('sum(number) total,`type`')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
-        if(count($guess) > 0){
-            foreach ($guess as $v) {
-                if ($v['type'] == 1) {
-                    $result['up'] = $v['total'];
-                }
-                if ($v['type'] == 2) {
-                    $result['down'] = $v['total'];
+        if($result['login']){
+            //用户的涨跌总数
+            $guess = HdPertenGuess::selectRaw('sum(number) total,`type`')->where(['user_id'=>$userId,'status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
+            if(count($guess) > 0){
+                foreach ($guess as $v) {
+                    if ($v['type'] == 1) {
+                        $result['up'] = $v['total'];
+                    }
+                    if ($v['type'] == 2) {
+                        $result['down'] = $v['total'];
+                    }
                 }
             }
         }
+
 
         if ($result['login'] && $result['available']) {
             $period = $activity['id'];
@@ -100,8 +104,8 @@ class GuessStockJsonrpc extends JsonRpc
                 }
                 $data['money'] = 0;
                 if ($guess_alert->alert == 0) {
-                        $money = HdPertenGuessLog::where(['period' => $period, 'user_id' => $userId])->whereRaw(" date(created_at) = {$curr_time} ")->value('money');
-                        $data['money'] = $money;
+                        $money = HdPertenGuessLog::where(['period' => $period, 'user_id' => $userId])->whereRaw(" date(created_at) = '{$curr_time}' ")->value('money');
+                        $data['money'] = intval($money);
                         $guess_alert->alert = 1;
                         $guess_alert->save();
                 }
@@ -282,15 +286,15 @@ class GuessStockJsonrpc extends JsonRpc
         //$data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
         $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
         foreach ($list as $k=>$v) {
-            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1,'status'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId,'type'=>2,'status'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
             $userMoney = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
             if($userUp == 0 && $userDown == 0){
                 unset($list[$k]);
             }else{
                 $list[$k]['up'] = $userUp;
                 $list[$k]['down'] = $userDown;
-                $list[$k]['money'] = intval( $userMoney);
+                $list[$k]['money'] = intval($userMoney);
             }
 
         }
