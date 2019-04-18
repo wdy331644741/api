@@ -31,12 +31,17 @@ class NetClassAnswerJsonRpc extends JsonRpc {
 
         $status_data = $userId?Attributes::getJsonText($userId,self::$_plan):[];
 
-        $activits = ActivityService::GetActivityInfoByGroup(self::$activity_grep);
+        $activits = ActivityService::GetActivityInfoByGroupStatus(self::$activity_grep);
 
         foreach ($activits as $key => $value) {
 
             $award_info = Activity::where('alias_name', $value['alias_name'])->with('awards')->first()->awards;
-            $award_data = SendAward::_getAwardInfo($award_info[0]['award_type'],$award_info[0]['award_id']);
+            if($award_info->isEmpty() ) {
+                 $award_data['name'] = '奖品还没有上线';
+            }else{
+                $award_data = SendAward::_getAwardInfo($award_info[0]['award_type'],$award_info[0]['award_id']);
+            }
+            // $award_data = SendAward::_getAwardInfo($award_info[0]['award_type'],$award_info[0]['award_id']);
             $plan_key = str_replace(self::$_plan,'',$value['alias_name']);
 
 
@@ -44,16 +49,23 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             if(empty($value['des'])){
                 throw new OmgException(OmgException::PARSE_ERROR);
             }
-            $plan_status = pow(2,$value['des']) - 1 - $answer_status;
+            $plan_status = pow(2,(int)$value['des']) - 1 - $answer_status;
 
+            //根据答题状态判断  是否完成**************
             if ($key >0) {
                 //上一plan 是否完成
                 $befor_str = pow(2,$activits[$key-1]['des']) - 1 - (isset($status_data[$plan_key-1])?$status_data[$plan_key-1]:0);
-                $str = $befor_str?2:1;
+                $str = !$befor_str?$plan_status?1:0:2;
             }else{
                 $str = $plan_status?1:0;
             }
+            //************************************
 
+
+            //根据活动是否上线 强转状态
+            if($value['enable'] == 0){
+                $str = 3;
+            }
             // $res[$plan_key] = [
             //     'answer_status' => $answer_status,
             //     'award' => $award_data['name'],
@@ -124,7 +136,12 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             }
         }
 
+        $status = pow(2,(int)$act['des']) - 1 - $answer;
+
         if(!empty($user_answered) && array_key_exists($plan, $user_answered)){
+            if($user_answered[$plan] == $answer && $status == 0){//如果已经答对，返回false
+                return false;
+            }
             $user_answered[$plan] |= $answer;//与 位运算（算出最终状态）
 
         }else{
@@ -138,7 +155,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
         $act = ActivityService::GetActivityInfoByAlias(self::$_plan.$plan);
 
         //放到任务调度里面去
-        if( (pow(2,$act['des']) - 1 - $answer) ==0){
+        if($status == 0){
             $this->dispatch(new ActiveSendAwardJob($userId,self::$_plan.$plan) );
             // SendAward::ActiveSendAward($userId,self::$_plan.$plan);
         }

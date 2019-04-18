@@ -34,15 +34,19 @@ class GuessStockJsonrpc extends JsonRpc
             'number'=>0,//预言注数
             'countdown' => 0,
             'up' => 0,
+            'win_status'=>1,//默认已经弹窗过
             'down' => 0,
             'alert'=>[],
         ];
         if ( !empty($userId) ) {
             $result['login'] = 1;
+            $winStatus = Attributes::getNumberByDay($userId,"perten_window_status");
+            $result['win_status'] = $winStatus;
         }
         $time = time();
         //活动规则配置
         $actRule = GlobalAttributes::getItem('perten_config_actrule');
+
         $result['act_rule'] = $actRule->text;
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
@@ -86,7 +90,7 @@ class GuessStockJsonrpc extends JsonRpc
 
         if ($result['login'] && $result['available']) {
             $period = $activity['id'];
-            $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period])->orderBy('id', 'desc')->first();
+            $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period, 'alert'=>0])->orderBy('id', 'desc')->first();
             if ($guess_alert) {
                 $curr_time = date('Y-m-d', strtotime($guess_alert->updated_at));
                 $data['time'] = $curr_time;
@@ -211,6 +215,34 @@ class GuessStockJsonrpc extends JsonRpc
     }
 
     /**
+     * 设置弹窗状态
+     *
+     * @JsonRpcMethod
+     */
+    public function setIsPopup() {
+        global $userId;
+        // 是否登录
+        if(!$userId){
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+        $key = "perten_window_status";
+        $num = Attributes::getNumberByDay($userId,$key);
+        if($num){
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' => "已修改过",
+            ];
+        }
+        Attributes::setItem($userId,$key,1);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => "成功",
+        ];
+    }
+
+    /**
      * 列表
      *
      * @JsonRpcMethod
@@ -247,12 +279,20 @@ class GuessStockJsonrpc extends JsonRpc
             throw new OmgException(OmgException::ACTIVITY_NOT_EXIST);
         }
         $period = $activity['id'];
-//        $data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
-            $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
-            foreach ($list as $k=>$v) {
-                $list[$k]['up'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-                $list[$k]['down'] = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-                $list[$k]['money'] = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+        //$data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
+        $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
+        foreach ($list as $k=>$v) {
+            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>2])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
+            $userMoney = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+            if($userUp == 0 && $userDown == 0){
+                unset($list[$k]);
+            }else{
+                $list[$k]['up'] = $userUp;
+                $list[$k]['down'] = $userDown;
+                $list[$k]['money'] = intval( $userMoney);
+            }
+
         }
 //            return $list;
 //        });

@@ -130,6 +130,7 @@ class OmgException extends BasicException
 
     const ACTIVITY_NOT_JOIN = 4351;
     const FUND_LACK_FAIL = 4354;
+    const LIMIT_LEVEL = 4385;
 
     const OPENING_MORE_50 = 4355;
     const FULL_REGIMENT = 4356;
@@ -234,6 +235,7 @@ class OmgException extends BasicException
         self::GET_ERROR_DATA => "请求passport数据有误",
         self::ACTIVITY_NOT_JOIN => "请参与活动后再来兑换奖品",
         self::FUND_LACK_FAIL => "您的踏青基金不足",
+        self::LIMIT_LEVEL => "会员等级不符合",
 
         self::OPENING_MORE_50 => "今日开团数已达上限",
         self::FULL_REGIMENT => "之前的团已满",
