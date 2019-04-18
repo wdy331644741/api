@@ -28,6 +28,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
     public function classAnswerStatus() {
         global $userId;
         $res = [];
+        $done_res = [];//已经完成的攻略，用于排序
 
         $status_data = $userId?Attributes::getJsonText($userId,self::$_plan):[];
 
@@ -71,15 +72,30 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             //     'award' => $award_data['name'],
             //     'plan_status' => $str
             // ];
+
+
             //已完成 0，立即学习 1，待解锁 2 ，带上线
-            array_push($res, [
-                'answer_status' => $answer_status,
-                'award' => $award_data['name'],
-                'plan_id' => $plan_key,
-                'plan_status' => $str
-            ]);
+            //排序 优先展示 立即学习
+            if(!$str){//已经完成
+                array_push($done_res, [
+                    'answer_status' => $answer_status,
+                    'award' => $award_data['name'],
+                    'plan_id' => $plan_key,
+                    'plan_status' => $str
+                ]);
+            }else{
+                array_push($res, [
+                    'answer_status' => $answer_status,
+                    'award' => $award_data['name'],
+                    'plan_id' => $plan_key,
+                    'plan_status' => $str
+                ]);
+            }
+            
 
         }
+
+
 
         //plan状态：立即学习，待解锁，已完成，待上线
         return [
@@ -87,7 +103,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             'message' => 'success',
             'data'    => [
                 'is_login' => $userId?true:false,
-                'plan_status' => $res
+                'plan_status' => array_merge($done_res,$res)
             ]
         ];
     }
@@ -136,6 +152,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             }
         }
 
+        $act = ActivityService::GetActivityInfoByAlias(self::$_plan.$plan);
         $status = pow(2,(int)$act['des']) - 1 - $answer;
 
         if(!empty($user_answered) && array_key_exists($plan, $user_answered)){
