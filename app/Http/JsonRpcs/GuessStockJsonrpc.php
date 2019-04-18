@@ -101,7 +101,7 @@ class GuessStockJsonrpc extends JsonRpc
                 $data['money'] = 0;
                 if ($guess_alert->alert == 0) {
                         $money = HdPertenGuessLog::where(['period' => $period, 'user_id' => $userId])->whereRaw(" date(created_at) = {$curr_time} ")->value('money');
-                        $data['money'] = $money;
+                        $data['money'] = intval($money);
                         $guess_alert->alert = 1;
                         $guess_alert->save();
                 }
