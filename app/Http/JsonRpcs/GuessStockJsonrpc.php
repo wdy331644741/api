@@ -33,6 +33,8 @@ class GuessStockJsonrpc extends JsonRpc
             'award' => 0,
             'number'=>0,//预言注数
             'countdown' => 0,
+            'all_up' => 0,
+            'all_down' => 0,
             'up' => 0,
             'win_status'=>1,//默认已经弹窗过
             'down' => 0,
@@ -76,6 +78,19 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['countdown'] = strtotime("$next_day 13:00:00") - $time;
             }
         }
+        //涨跌总数
+        $guess = HdPertenGuess::selectRaw('sum(number) total,`type`')->where(['status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
+        if(count($guess) > 0){
+            foreach ($guess as $v) {
+                if ($v['type'] == 1) {
+                    $result['all_up'] = $v['total'];
+                }
+                if ($v['type'] == 2) {
+                    $result['all_down'] = $v['total'];
+                }
+            }
+        }
+
         if($result['login']){
             //用户的涨跌总数
             $guess = HdPertenGuess::selectRaw('sum(number) total,`type`')->where(['user_id'=>$userId,'status'=>0, 'period'=>$activity['id']])->groupBy('type')->get()->toArray();
