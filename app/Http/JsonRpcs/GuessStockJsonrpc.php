@@ -127,7 +127,7 @@ class GuessStockJsonrpc extends JsonRpc
                 $result['alert'] = $data;
             }
             $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
-            $result['number'] = Attributes::getNumber($userId, $guessKey);
+            $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
         }
         return [
             'code' => 0,
