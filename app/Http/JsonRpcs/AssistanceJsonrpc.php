@@ -434,9 +434,9 @@ class AssistanceJsonRpc extends JsonRpc
                     foreach ($userData as $val){
                         if($item['id'] == $val['pid']){
                             $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : [];//团员信息
+                            $i++;
                         }
                     }
-                    $i++;
                 }
             }
             if(count($res) > 0){
