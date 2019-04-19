@@ -305,11 +305,11 @@ class GuessStockJsonrpc extends JsonRpc
         $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
         foreach ($list as $k=>$v) {
             $num = count($list);
-            $startTime = $list[$num+1]['curr_time']."00:00:00";
-            if(($k+1) <= $num){
-                $startTime = $list[$k+1]['curr_time']."15:30:00";
+            $startTime = $v['curr_time']." 00:00:00";
+            if(($k+1) < $num){
+                $startTime = $list[$k+1]['curr_time']." 15:30:00";
             }
-            $endTime = $v['curr_time']."13:00:00";
+            $endTime = $v['curr_time']." 13:00:00";
 
             $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1,'status'=>1])->where("created_at",">=",$startTime)->where("created_at","<",$endTime)->value('total'));
             $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId,'type'=>2,'status'=>1])->where("created_at",">=",$startTime)->where("created_at","<",$endTime)->value('total'));
