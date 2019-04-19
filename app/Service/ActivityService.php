@@ -5,7 +5,7 @@ use App\Models\Activity;
 use App\Models\ActivityJoin;
 use App\Models\ActivityGroup;
 use App\Models\HdAssistance;
-use DB;
+use DB,Cache;
 
 class ActivityService
 {
@@ -123,9 +123,10 @@ class ActivityService
                 //用户实名状态修改
                 $userInfo->status = 1;
                 $userInfo->save();
-                //用户实名状态修改
+                //团人员加1
                 $groupInfo->increment("group_num",1);
                 $groupInfo->save();
+                //判断是否满团
                 if($groupInfo->receive_num == 3){
                     //添加满团时间
                     $groupInfo->status = 1;
@@ -134,6 +135,9 @@ class ActivityService
                 }
                 //提交事物
                 DB::commit();
+                //删除我的团缓存
+                Cache::forget("user_assistance_".$groupInfo['group_user_id']);
+                Cache::forget("user_assistance_".$userId);
                 return true;
             }else{
                 DB::rollBack();//回滚事物
