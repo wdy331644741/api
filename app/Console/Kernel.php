@@ -21,6 +21,7 @@ class Kernel extends ConsoleKernel
         Commands\PertenRemind::class,
         Commands\PertenGuess::class,
         Commands\PertenGuessAward::class,
+        Commands\PertenGuessActStatus::class,
     ];
 
     /**
@@ -37,6 +38,8 @@ class Kernel extends ConsoleKernel
 
         //逢10抽大奖15:30开奖
         $schedule->command('Perbai')->weekdays()->at("15:30");
+        //天天猜大盘13:00查看逢十号码是否发送完
+        $schedule->command('Perbai')->weekdays()->at("13:00");
         //逢10活动前10分钟提醒
         $schedule->command('SendPush')->withoutOverlapping();
         //每日14:00全量PUSH提醒获得抽奖号码用户

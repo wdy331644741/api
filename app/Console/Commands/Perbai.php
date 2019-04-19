@@ -4,13 +4,8 @@ namespace App\Console\Commands;
 
 use App\Jobs\PertenGuessJob;
 use App\Models\HdPerbai;
-use App\Models\GlobalAttribute;
-use App\Models\HdPerHundredConfig;
 use App\Models\HdPertenStock;
-use App\Service\Func;
-use App\Service\GlobalAttributes;
 use App\Service\PerBaiService;
-use App\Service\SendMessage;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Config, DB;
@@ -62,7 +57,7 @@ class Perbai extends Command
             $perbaiNumber = HdPerbai::where(['period'=>$activity['id'], 'status'=>0])->first();
             if (!$perbaiNumber) {
                 //今天发出去号码就开奖   $perbaiNumber为null说明号码发完了
-                GlobalAttributes::setItem('perten_guess_status'.$activity['id'],1);
+                //GlobalAttributes::setItem('perten_guess_status'.$activity['id'],1);  放到13:00执行
                 $curr_num = HdPerbai::where(['period'=>$activity['id']])->where('status', '>', 0)->whereRaw(" to_days(updated_at) = to_days(now()) ")->first();
                 if ( !$curr_num ) {
                     throw new \Exception('号码昨天已发完');
