@@ -304,9 +304,16 @@ class GuessStockJsonrpc extends JsonRpc
         //$data = Cache::remeber('perten_guess' . $userId, 10, function() use ($userId, $period) {
         $list = HdPertenStock::select(['curr_time', 'stock', 'change'])->where(['period'=>$period])->orderBy('id', 'desc')->get()->toArray();
         foreach ($list as $k=>$v) {
-            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1,'status'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId,'type'=>2,'status'=>1])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('total'));
-            $userMoney = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->value('money');
+            $num = count($list);
+            $startTime = $list[$num+1]['curr_time']."00:00:00";
+            if(($k+1) <= $num){
+                $startTime = $list[$k+1]['curr_time']."15:30:00";
+            }
+            $endTime = $v['curr_time']."13:00:00";
+
+            $userUp = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId, 'type'=>1,'status'=>1])->where("created_at",">=",$startTime)->where("created_at","<",$endTime)->value('total'));
+            $userDown = intval(HdPertenGuess::selectRaw("sum(number) total")->where(['period'=>$period, 'user_id'=>$userId,'type'=>2,'status'=>1])->where("created_at",">=",$startTime)->where("created_at","<",$endTime)->value('total'));
+            $userMoney = HdPertenGuessLog::where(['period'=>$period, 'user_id'=>$userId])->whereRaw(" date(created_at) = '{$v['curr_time']}'")->value('money');
             if($userUp == 0 && $userDown == 0){
                 unset($list[$k]);
             }else{
