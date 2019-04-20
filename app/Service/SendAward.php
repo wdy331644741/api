@@ -321,7 +321,7 @@ class SendAward
                 if(
                     isset($triggerData['tag']) && !empty($triggerData['tag'])
                     && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
-                    && $triggerData['tag'] == 'investment' && $triggerData['novice_exclusive'] == 0 //非新手标
+                    && $triggerData['tag'] == 'investment' && $triggerData['novice_exclusive'] != 1 //非新手标(只有1是新手标)
                     && ( empty($activityInfo['start_at']) || $triggerData['buy_time'] >= $activityInfo['start_at'] )
                 ){
                     //周六周日
