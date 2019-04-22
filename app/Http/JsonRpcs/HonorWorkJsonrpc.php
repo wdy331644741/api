@@ -19,6 +19,7 @@ class HonorWorkJsonRpc extends JsonRpc {
     use DispatchesJobs;
     /**
      * 劳动红包领取状态
+     *TODO 读取config 加入缓存。
      *
      * @JsonRpcMethod
      */
@@ -48,7 +49,7 @@ class HonorWorkJsonRpc extends JsonRpc {
                 //当这两个徽章不存在时
                 if(!Cache::has('HonorWork_'.$userId)){
                     $this->dispatch(new HonorWorkUpdateJob($userId));
-                    Cache::put('HonorWork_'.$userId,1,1);//5分钟刷新一次用户属性
+                    Cache::put('HonorWork_'.$userId,1,5);//5分钟刷新一次用户属性
                 }
             }
             return [
@@ -195,5 +196,59 @@ class HonorWorkJsonRpc extends JsonRpc {
             'message' => 'fail',
             'data' =>isset($data['msg']) ? $data['msg'] : '失败'
         ];
+    }
+
+
+    /**
+     * 领取福利一、二、三四
+     *
+     * @JsonRpcMethod
+     */
+    public function workingWelfareDraw($params){
+        global $userId;
+        $userId = 5101340;
+        if(!$userId) {
+            throw new OmgException(OmgException::NO_LOGIN);
+        }
+
+        if(empty($params->welfare)){
+            throw new OmgException(OmgException::PARAMS_NEED_ERROR);
+        }
+        $config = Config::get('honor_work');
+        $key = isset($config['key']) ? $config['key'] : '';
+        $alias_act = 'honor_work_'.$params->welfare;
+        //检查用户属性 是否符合条件
+        DB::beginTransaction();
+        $res = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->lockForUpdate()->first();
+        if($res){
+            $userAttrData = json_decode($res->text,1);
+            $user_badge = $userAttrData['badge'];
+            $honor_count = array_count_values($user_badge);
+
+            //1当前福利 未领取 && 勋章个数符合条件
+            if($userAttrData['welfare'][$params->welfare]['status'] !=1 && $honor_count[1] >= $userAttrData['welfare'][$params->welfare]['condition']){
+                $userAttrData['welfare'][$params->welfare]['status'] = 1;
+                //更新数据
+                $updatestatus = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->update(['text'=>json_encode($userAttrData)]);
+            }
+        }
+
+        if(isset($updatestatus)){
+            //按照活动别名发奖
+            //TODO 放入job发奖
+            DB::commit();
+            return [
+                'code' => 0,
+                'message' => 'success',
+                'data' =>'领取成功'
+            ];
+        }
+        DB::rollBack();
+        return [
+            'code' => -1,
+            'message' => 'fail',
+            'data' =>'领取失败'
+        ];
+
     }
 }

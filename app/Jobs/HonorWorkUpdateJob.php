@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Models\UserAttribute;
 use App\Models\ActivityJoin;
 use App\Service\ActivityService;
-use Config;
+use Config,DB;
 
 class HonorWorkUpdateJob extends Job implements ShouldQueue
 {
@@ -48,7 +48,7 @@ class HonorWorkUpdateJob extends Job implements ShouldQueue
 
 
         DB::beginTransaction();
-        $res = UserAttribute::where(['key'=>$this->config['key'],'user_id'=>$this->user_id])
+        $res = UserAttribute::where(['key'=> $this->config['key'],'user_id'=>$this->user_id])
             ->lockForUpdate()->first();
         if($res){
             $userAttrData = json_decode($res->text,1);
@@ -58,7 +58,8 @@ class HonorWorkUpdateJob extends Job implements ShouldQueue
             if($check_in >= 3){
                 $userAttrData['badge']['qinlao'] = 1;
             }
-            $updatestatus = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->update(['text'=>json_encode($userAttrData)]);
+            $updatestatus = UserAttribute::where(['key'=>$this->config['key'],'user_id'=>$this->user_id])
+                ->update(['text'=>json_encode($userAttrData)]);
             if(isset($updatestatus)){
                 DB::commit();
                 return 1;
