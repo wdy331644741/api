@@ -293,10 +293,10 @@ class AssistanceJsonRpc extends JsonRpc
         //事物开始
         DB::beginTransaction();
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award',$awardId)->where("receive_status",0)->where('group_num',">=",3)->lockForUpdate()->first();
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award',$awardId)->where('group_num',">=",3)->lockForUpdate()->first();
         if(isset($groupInfo['id'])){//已满团
             //团长领取自己的
-            if($groupUserId == $userId){
+            if($groupUserId == $userId && $groupInfo->receive_status == 0){
                 $groupInfo->receive_status = 1;
                 $groupInfo->increment("receive_num",1);
                 $groupInfo->updated_at = date("Y-m-d H:i:s");
