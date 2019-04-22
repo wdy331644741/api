@@ -5,6 +5,7 @@ use App\Models\Activity;
 use App\Models\ActivityJoin;
 use App\Models\ActivityGroup;
 use App\Models\HdAssistance;
+use App\Service\SendMessage;
 use DB,Cache;
 
 class ActivityService
@@ -138,7 +139,9 @@ class ActivityService
                 //发送短信和push
                 $msg = "您的助力团已成功，可以去填写收货地址等待接收礼品啦！";
                 SendMessage::Mail($groupInfo['group_user_id'],$msg);
+                SendMessage::sendPush($groupInfo['group_user_id'],"assistance");
                 SendMessage::Mail($userId,$msg);
+                SendMessage::sendPush($userId,"assistance");
                 //删除我的团缓存
                 Cache::forget("user_assistance_".$groupInfo['group_user_id']);
                 Cache::forget("user_assistance_".$userId);
