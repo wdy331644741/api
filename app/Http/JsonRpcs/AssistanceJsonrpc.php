@@ -298,6 +298,7 @@ class AssistanceJsonRpc extends JsonRpc
             //团长领取自己的
             if($groupUserId == $userId){
                 $groupInfo->receive_status = 1;
+                $groupInfo->increment("receive_num",1);
                 $groupInfo->updated_at = date("Y-m-d H:i:s");
                 $groupInfo->save();
                 //提交事物
@@ -317,6 +318,9 @@ class AssistanceJsonRpc extends JsonRpc
                 $userStatus->receive_status = 1;
                 $userStatus->updated_at = date("Y-m-d H:i:s");
                 $userStatus->save();
+                //团长领取人数加1
+                $groupInfo->increment("receive_num",1);
+                $groupInfo->save();
                 //提交事物
                 DB::commit();
                 //删除我的团缓存
