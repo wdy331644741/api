@@ -353,14 +353,15 @@ class AssistanceJsonRpc extends JsonRpc
         $groupCount = GlobalAttribute::select("number")->where('key',$this->key.date("Ymd"))->first();
         $res['surplus'] = isset($groupCount['number']) && $groupCount['number'] > 0 ? $this->groupTotal - $groupCount['number'] : $groupCount['number'];
         //获奖列表
-        $receiveList = HdAssistance::select("user_id","award")->where('receive_status',1)->take(10)->orderBy("updated_at","desc")->get()->toArray();
+        $receiveList = HdAssistance::select("group_user_id","pid","user_id","award")->where('receive_status',1)->take(10)->orderBy("updated_at","desc")->get()->toArray();
         if(!empty($receiveList)){
             foreach($receiveList as $item){
                 if(isset($item['user_id']) && isset($item['award'])){
+                    $item['user_id'] = $item['pid'] <= 0 ? $item['group_user_id'] : $item['user_id'];
                     if($item['award'] == 1){
-                        $award = "榨汁机";
-                    }else{
                         $award = "足浴桶";
+                    }else{
+                        $award = "榨汁机";
                     }
                     $userId = $this->_getUserInfo($item['user_id']);
                     $res['award_list'][] = $userId['mobile']."刚刚助力成功，获得".$award."礼品";
@@ -383,21 +384,31 @@ class AssistanceJsonRpc extends JsonRpc
             $res['my_assistance'] = $this->_assistanceData($assistanceData['group_user_id'], $assistanceData['pid']);
         }
         //我的团列表
-        $myGroupList = HdAssistance::where('group_user_id', $userId)->where("pid", 0)->orderBy("id", "asc")->get()->toArray();
-        if (!empty($myGroupList)) {
+        $myGroupList = HdAssistance::where('group_user_id', $userId)->where("pid", 0)->orderBy("group_num", "asc")->orderBy("id", "desc")->get()->toArray();
+        //我的奖品
+        $myGroupAwardList = HdAssistance::where('group_user_id', $userId)->where("pid", 0)->orderBy("receive_status", "asc")->orderBy("id", "desc")->get()->toArray();
+        if (!empty($myGroupList) && !empty($myGroupAwardList)) {
             foreach ($myGroupList as $item) {
                 if (isset($item['group_ranking'])) {//我的团列表
                     $res['my_group_list'][] = ['ranking' => $item['group_ranking'], "count" => $item['group_num'], "status" => $item['group_num'] >= 3 ? true : false];
                 }
+            }
+            foreach ($myGroupList as $item) {
                 if (isset($item['group_ranking'])) {//我的奖品列表
-                    $res['my_award_list'][] = ['ranking' => $item['group_ranking'], "award" => $item['award'] == 1 ? "榨汁机" : "足浴桶", "status" => $item['receive_status'] == 1 ? true : false];
+                    $res['my_award_list'][] = ['ranking' => $item['group_ranking'], "award" => $item['award'] == 1 ? "足浴桶" : "榨汁机", "status" => $item['receive_status'] == 1 ? true : false];
                 }
             }
         }
-        $myAssistanceList = HdAssistance::where('user_id', $userId)->orderBy("id", "asc")->first();
+        $myAssistanceList = HdAssistance::where('user_id', $userId)->first();
         if (isset($myAssistanceList['group_ranking'])) {
-            $myAssistance = ['ranking' => $myAssistanceList['group_ranking'], "award" => $myAssistanceList['award'] == 1 ? "榨汁机" : "足浴桶", "status" => $myAssistanceList['receive_status'] == 1 ? true : false];
-            array_push($res['my_award_list'], $myAssistance);
+            $myAssistance = ['ranking' => $myAssistanceList['group_ranking'], "award" => $myAssistanceList['award'] == 1 ? "足浴桶" : "榨汁机", "status" => $myAssistanceList['receive_status'] == 1 ? true : false];
+            if($myAssistanceList['receive_status'] == 1){
+                //插入最后
+                array_push($res['my_award_list'], $myAssistance);
+            }else{
+                //插入第一
+                array_unshift($res['my_award_list'], $myAssistance);
+            }
         }
         //加入缓存
         Cache::put($this->cacheKey.$userId,$res,10);
@@ -413,7 +424,7 @@ class AssistanceJsonRpc extends JsonRpc
     }
     //获取我的团数据
     private function _groupData($userId){
-        $groupData = HdAssistance::select("id","group_user_id","group_ranking","group_num")->where("group_user_id",$userId)->where("pid",0)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
+        $groupData = HdAssistance::select("id","group_user_id","group_ranking","group_num")->where("group_user_id",$userId)->where("pid",0)->orderBy('id', 'DESC')->get()->toArray();
         $res = [];
         $groupInfo = $this->_getUserInfo($userId);
         if(count($groupData) > 0){
@@ -426,7 +437,7 @@ class AssistanceJsonRpc extends JsonRpc
                 //第几团
                 $groupInfo['ranking'] = $item['group_ranking'];
                 //团人员
-                $groupInfo['group_count'] = 3-$item['group_num'];
+                $groupInfo['group_count'] = 3-$item['group_num'] >= 0 ? 3-$item['group_num'] : 0;
                 //判断有没有助力成功人
                 $userData = HdAssistance::select("pid","user_id")->where("group_user_id",$userId)->where("status",1)->get()->toArray();
                 $res[$item['id']][0] = $groupInfo;//第一条团长信息
@@ -442,7 +453,11 @@ class AssistanceJsonRpc extends JsonRpc
             if(count($res) > 0){
                 $result = [];
                 foreach($res as $val){
-                    $result[] = $val;
+                    $value = [];
+                    foreach($val as $vals){
+                        $value[] = $vals;
+                    }
+                    $result[] = $value;
                 }
                 return $result;
             }
@@ -474,7 +489,11 @@ class AssistanceJsonRpc extends JsonRpc
             if(count($res) > 0){
                 $result = [];
                 foreach($res as $val){
-                    $result[] = $val;
+                    $value = [];
+                    foreach($val as $vals){
+                        $value[] = $vals;
+                    }
+                    $result[] = $value;
                 }
                 return $result;
             }
