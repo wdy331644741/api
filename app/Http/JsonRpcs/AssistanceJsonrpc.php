@@ -473,6 +473,9 @@ class AssistanceJsonRpc extends JsonRpc
         $groupData = HdAssistance::select("id","pid","group_user_id","user_id","group_ranking","group_num")->where("pid",$pid)->where('status',1)->orderBy("pid","desc")->orderBy('id', 'ASC')->get()->toArray();
         $res = [];
         $groupInfo = $this->_getUserInfo($userId);
+        //获取团人数
+        $data = HdAssistance::where("id",$pid)->first();
+        $groupNum = isset($data->group_num) ? $data->group_num : 0;
         if(count($groupData) > 0){
             $i = 1;
             foreach($groupData as $item){
@@ -484,7 +487,7 @@ class AssistanceJsonRpc extends JsonRpc
                     //第几团
                     $groupInfo['ranking'] = $item['group_ranking'];
                     //团人员
-                    $groupInfo['group_count'] = 3-$item['group_num'];
+                    $groupInfo['group_count'] = 3-$groupNum >= 0 ? 3-$groupNum : 0;
                     $res[$item['pid']][0] = $groupInfo;//第一条为团长信息
                     $res[$item['pid']][$i] = isset($item['user_id']) && $item['user_id'] > 0 ? $this->_getUserInfo($item['user_id']) : [];//团员信息
                     $i++;
