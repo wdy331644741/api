@@ -20,10 +20,10 @@ class AssistanceJsonRpc extends JsonRpc
      * @JsonRpcMethod
      */
 
-    public function assistanceShareUrl(){
-        global $userId;
-        if (empty($userId)) {
-            throw new OmgException(OmgException::NO_LOGIN);
+    public function assistanceShareUrl($params){
+        $userId = isset($params->user_id) ? $params->user_id : 0;
+        if($userId <= 0){//缺少必要参数
+            throw new OmgException(OmgException::API_MIS_PARAMS);
         }
         $baseUrl = env('APP_URL');
         $shareCode = urlencode(authcode($userId,'ENCODE',env('APP_KEY')."Assistance"));
@@ -476,12 +476,13 @@ class AssistanceJsonRpc extends JsonRpc
         //获取团人数
         $data = HdAssistance::where("id",$pid)->first();
         $groupNum = isset($data->group_num) ? $data->group_num : 0;
+        $groupId = isset($data->id) ? $data->id : 0;
         if(count($groupData) > 0){
             $i = 1;
             foreach($groupData as $item){
                 if($item['pid'] > 0){
                     //团id
-                    $groupInfo['group_id'] = $item['id'];
+                    $groupInfo['group_id'] = $groupId;
                     //团长id
                     $groupInfo['group_user_id'] = $userId;
                     //第几团
