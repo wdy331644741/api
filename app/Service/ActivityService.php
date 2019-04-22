@@ -119,7 +119,7 @@ class ActivityService
             }
             //判断助力的团是否已满
             $groupInfo = HdAssistance::where("id",$userInfo['pid'])->where("status",0)->lockForUpdate()->first();
-            if(isset($groupInfo['receive_num']) && $groupInfo['receive_num'] < 3){
+            if(isset($groupInfo['group_num']) && $groupInfo['group_num'] < 3){
                 //用户实名状态修改
                 $userInfo->status = 1;
                 $userInfo->save();
@@ -127,7 +127,7 @@ class ActivityService
                 $groupInfo->increment("group_num",1);
                 $groupInfo->save();
                 //判断是否满团
-                if($groupInfo->receive_num == 3){
+                if($groupInfo->group_num == 3){
                     //添加满团时间
                     $groupInfo->status = 1;
                     $groupInfo->complete_time = date("Y-m-d H:i:s");
@@ -135,6 +135,10 @@ class ActivityService
                 }
                 //提交事物
                 DB::commit();
+                //发送短信和push
+                $msg = "您的助力团已成功，可以去填写收货地址等待接收礼品啦！";
+                SendMessage::Mail($groupInfo['group_user_id'],$msg);
+                SendMessage::Mail($userId,$msg);
                 //删除我的团缓存
                 Cache::forget("user_assistance_".$groupInfo['group_user_id']);
                 Cache::forget("user_assistance_".$userId);
