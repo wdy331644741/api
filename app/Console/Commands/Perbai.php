@@ -58,7 +58,15 @@ class Perbai extends Command
             if (!$perbaiNumber) {
                 //今天发出去号码就开奖   $perbaiNumber为null说明号码发完了
                 //GlobalAttributes::setItem('perten_guess_status'.$activity['id'],1);  放到13:00执行
-                $curr_num = HdPerbai::where(['period'=>$activity['id']])->where('status', '>', 0)->whereRaw(" to_days(updated_at) = to_days(now()) ")->first();
+                $stock = HdPertenStock::where(['period'=>$activity['id']])->orderBy('id','desc')->first();
+                $startTime = "";
+                $endTime = date("Y-m-d 13:00:00");
+                if($stock){
+                    $startTime = $stock->curr_time." 15:30:00";
+                }else{
+                    $startTime = date('Y-m-d 00:00:00');
+                }
+                $curr_num = HdPerbai::where(['period'=>$activity['id']])->where('status', '>', 0)->where('updated_at','>=',$startTime)->where('updated_at','<=',$endTime)->first();
                 if ( !$curr_num ) {
                     throw new \Exception('号码昨天已发完');
                 }

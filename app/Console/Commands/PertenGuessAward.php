@@ -63,7 +63,7 @@ class PertenGuessAward extends Command
             $updated_at = strtotime($curr_num['updated_at']);
             $last_stock = HdPertenStock::where(['open_status'=>1, 'period'=>$activity['id']])->orderBy('id', 'desc')->first();
             $last_time = $last_stock['curr_time'];
-            if ( $updated_at <= strtotime("$last_time 15:00:00") ) {
+            if ( $updated_at <= strtotime("$last_time 15:30:00") ) {
                 throw new \Exception('奖励发放完');
             }
             $stock = PerBaiService::getStockPrice();
