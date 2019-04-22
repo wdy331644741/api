@@ -64,7 +64,7 @@ class Perbai extends Command
                 if($stock){
                     $startTime = $stock->curr_time." 15:30:00";
                 }else{
-                    $startTime = date('Y-m-d 00:00:00');
+                    $startTime = $activity['start_time'];
                 }
                 $curr_num = HdPerbai::where(['period'=>$activity['id']])->where('status', '>', 0)->where('updated_at','>=',$startTime)->where('updated_at','<=',$endTime)->first();
                 if ( !$curr_num ) {
