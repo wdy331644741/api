@@ -110,7 +110,7 @@ class GuessStockJsonrpc extends JsonRpc
         }
 
 
-        if ($result['login'] && $result['available']) {
+        if ($result['login'] ) {//&& $result['available']
             $period = $activity['id'];
             $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period, 'alert'=>0])->orderBy('id', 'desc')->first();
             if ($guess_alert) {
