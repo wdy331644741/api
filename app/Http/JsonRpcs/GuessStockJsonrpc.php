@@ -29,7 +29,7 @@ class GuessStockJsonrpc extends JsonRpc
         global $userId;
         $result = [
             'login' => 0,
-            'available' => 0,
+            'available' => 2,
             'award' => 0,
             'number'=>0,//预言注数
             'countdown' => 0,
@@ -54,10 +54,13 @@ class GuessStockJsonrpc extends JsonRpc
         $activity = PerBaiService::getActivityInfo();
         $actStatus = GlobalAttributes::getNumber('perten_guess_status'.$activity['id']);
         if ( $activity ) {
-            if(!$actStatus){
-                if ( $time > strtotime($activity['start_time']) ) {
-                    $result['available'] = 1;
-                }
+            //活动开始
+            if ( $time > strtotime($activity['start_time']) ) {
+                $result['available'] = 1;
+            }
+            //如果活动号码都抽完了，活动结束 available=0
+            if($actStatus){
+                $result['available'] = 0;
             }
             $result['award'] = $activity['guess_award'];
             $date = $date1 = date('Y-m-d');
@@ -110,7 +113,7 @@ class GuessStockJsonrpc extends JsonRpc
         }
 
 
-        if ($result['login'] ) {//&& $result['available']
+        if ($result['login'] && $result['available'] == 1) {
             $period = $activity['id'];
             $guess_alert = HdPertenGuess::where(['status'=>1, 'user_id'=>$userId, 'period'=>$period, 'alert'=>0])->orderBy('id', 'desc')->first();
             if ($guess_alert) {
@@ -128,11 +131,10 @@ class GuessStockJsonrpc extends JsonRpc
                         $guess_alert->save();
                 }
                 $result['alert'] = $data;
+                //活动开始后查询预言数量
+                $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
+                $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
             }
-        }
-        if ($result['login'] && $result['available'] ) {
-            $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
-            $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
         }
         return [
             'code' => 0,
