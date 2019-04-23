@@ -357,11 +357,10 @@ class AssistanceJsonRpc extends JsonRpc
         $groupCount = GlobalAttribute::select("number")->where('key',$this->key.date("Ymd"))->first();
         $res['surplus'] = isset($groupCount['number']) && $groupCount['number'] > 0 ? $this->groupTotal - $groupCount['number'] : $groupCount['number'];
         //获奖列表
-        $receiveList = HdAssistance::select("group_user_id","pid","user_id","award")->where('receive_status',1)->take(10)->orderBy("updated_at","desc")->get()->toArray();
+        $receiveList = HdAssistance::select("user_id","award")->where('receive_status',1)->where('user_id',">",0)->take(10)->orderBy("updated_at","desc")->get()->toArray();
         if(!empty($receiveList)){
             foreach($receiveList as $item){
                 if(isset($item['user_id']) && isset($item['award'])){
-                    $item['user_id'] = $item['pid'] <= 0 ? $item['group_user_id'] : $item['user_id'];
                     if($item['award'] == 1){
                         $award = "足浴桶";
                     }else{
