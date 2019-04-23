@@ -37,9 +37,9 @@ return [
         'qinlao'=>0,//签到3天
         'tashi'=>0,//踏实奖章
         'xianjin'=>0,
-        'mofan'=>1,
-        'aixin'=>1,
-        'jingye'=>1,
+        'mofan'=>0,
+        'aixin'=>0,
+        'jingye'=>0,
         'laodong'=>0
     ],
     'welfare'=>[
