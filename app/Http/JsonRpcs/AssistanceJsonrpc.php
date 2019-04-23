@@ -393,7 +393,10 @@ class AssistanceJsonRpc extends JsonRpc
         if (!empty($myGroupList) && !empty($myGroupAwardList)) {
             foreach ($myGroupList as $item) {
                 if (isset($item['group_ranking'])) {//我的团列表
-                    $res['my_group_list'][] = ['ranking' => $item['group_ranking'], "count" => $item['group_num'], "status" => $item['group_num'] >= 3 ? true : false];
+                    //获取团参与人数
+                    $groupCount = HdAssistance::where('pid', $item['id'])->count();
+                    $count = $item['group_num']."人/".$groupCount."人";
+                    $res['my_group_list'][] = ['ranking' => $item['group_ranking'], "count" => $count, "status" => $item['group_num'] >= 3 ? true : false];
                 }
             }
             foreach ($myGroupList as $item) {
