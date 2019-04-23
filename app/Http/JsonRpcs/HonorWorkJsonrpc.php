@@ -10,6 +10,7 @@ use App\Exceptions\OmgException;
 use App\Service\Func;
 use App\Service\SendAward;
 use Config,DB,Cache;
+use Illuminate\Support\Facades\Redis;
 
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\HonorWorkUpdateJob;
@@ -137,9 +138,13 @@ class HonorWorkJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function workingWelfareList(){
+        $list_key = 'honor_work_welfare';
+        $data = Redis::LRANGE($list_key,0,20);
+//        return $data;
         $data = [];
         array_push($data,['username'=>'188****88','award'=>'2000积分']);
         array_push($data,['username'=>'188****18','award'=>'1.5%加息券']);
+
         return [
             'code' => 0,
             'message' => 'success',
