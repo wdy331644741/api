@@ -133,15 +133,15 @@ class ActivityService
                     $groupInfo->status = 1;
                     $groupInfo->complete_time = date("Y-m-d H:i:s");
                     $groupInfo->save();
+                    //发送短信和push
+                    $msg = "您的助力团已成功，可以去填写收货地址等待接收礼品啦！";
+                    SendMessage::Mail($groupInfo['group_user_id'],$msg);
+                    SendMessage::sendPush($groupInfo['group_user_id'],"assistance");
+                    SendMessage::Mail($userId,$msg);
+                    SendMessage::sendPush($userId,"assistance");
                 }
                 //提交事物
                 DB::commit();
-                //发送短信和push
-                $msg = "您的助力团已成功，可以去填写收货地址等待接收礼品啦！";
-                SendMessage::Mail($groupInfo['group_user_id'],$msg);
-                SendMessage::sendPush($groupInfo['group_user_id'],"assistance");
-                SendMessage::Mail($userId,$msg);
-                SendMessage::sendPush($userId,"assistance");
                 //删除我的团缓存
                 Cache::forget("user_assistance_".$groupInfo['group_user_id']);
                 Cache::forget("user_assistance_".$userId);
