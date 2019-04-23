@@ -27,8 +27,6 @@ class HonorWorkJsonRpc extends JsonRpc {
     public function workingInfo() {
         global $userId;
 
-        $userId = 5101340;
-
 
         $config = Config::get('honor_work');
         $awards = isset($config['red']) ? $config['red'] : [];
@@ -139,7 +137,14 @@ class HonorWorkJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function workingWelfareList(){
-
+        $data = [];
+        array_push($data,['username'=>'188****88','award'=>'2000积分']);
+        array_push($data,['username'=>'188****18','award'=>'1.5%加息券']);
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' =>$data
+        ];
     }
 
     /**
@@ -207,7 +212,6 @@ class HonorWorkJsonRpc extends JsonRpc {
      */
     public function workingWelfareDraw($params){
         global $userId;
-        $userId = 5101340;
         if(!$userId) {
             throw new OmgException(OmgException::NO_LOGIN);
         }
@@ -236,7 +240,7 @@ class HonorWorkJsonRpc extends JsonRpc {
 
         if(isset($updatestatus)){
             //按照活动别名发奖
-            //TODO 4种福利发奖 放入job发奖
+            //TODO 4种福利发奖 放入job发奖、放入redis列表轮播
             $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
             DB::commit();
             return [
