@@ -81,6 +81,7 @@ use App\Http\JsonRpcs\InviteLimitTaskJsonRpc;
 use App\Http\JsonRpcs\AssistanceJsonrpc;
 
 use App\Http\JsonRpcs\NetClassAnswerJsonRpc;
+use App\Http\JsonRpcs\HonorWorkJsonRpc;
 
 class RpcController extends Controller
 {
@@ -179,6 +180,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new GuessStockJsonrpc());//天天猜大盘
         $jsonRpcServer->addService(new AssistanceJsonrpc());//助力活动
         $jsonRpcServer->addService(new NetClassAnswerJsonRpc());//网贷课堂答题
+        $jsonRpcServer->addService(new HonorWorkJsonRpc());//劳动光荣
 
 
         $jsonRpcServer->processingRequests();
