@@ -133,22 +133,26 @@ class HonorWorkJsonRpc extends JsonRpc {
 
     /**
      * 福利轮播图
-     * TODO 福利轮播图
+     *
      *
      * @JsonRpcMethod
      */
     public function workingWelfareList(){
+        $newData = [];
         $list_key = 'honor_work_welfare';
         $data = Redis::LRANGE($list_key,0,20);
-//        return $data;
-        $data = [];
-        array_push($data,['username'=>'188****88','award'=>'2000积分']);
-        array_push($data,['username'=>'188****18','award'=>'1.5%加息券']);
+        foreach ($data as $value){
+            $tempArray = explode(',' ,$value);
+            array_push($newData,['username'=>$tempArray[0],'award'=>$tempArray[1] ]);
+        }
+
+        //array_push($data,['username'=>'188****88','award'=>'2000积分']);
+        //array_push($data,['username'=>'188****18','award'=>'1.5%加息券']);
 
         return [
             'code' => 0,
             'message' => 'success',
-            'data' =>$data
+            'data' =>$newData
         ];
     }
 
@@ -236,7 +240,7 @@ class HonorWorkJsonRpc extends JsonRpc {
             $honor_count = array_count_values($user_badge);
 
             //1当前福利 未领取 && 勋章个数符合条件
-            if($userAttrData['welfare'][$params->welfare]['status'] !=1 && $honor_count[1] >= $userAttrData['welfare'][$params->welfare]['condition']){
+            if($userAttrData['welfare'][$params->welfare]['status'] !=1 && isset($honor_count[1]) && $honor_count[1] >= $userAttrData['welfare'][$params->welfare]['condition']){
                 $userAttrData['welfare'][$params->welfare]['status'] = 1;
                 //更新数据
                 $updatestatus = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->update(['text'=>json_encode($userAttrData)]);
@@ -245,7 +249,6 @@ class HonorWorkJsonRpc extends JsonRpc {
 
         if(isset($updatestatus)){
             //按照活动别名发奖
-            //TODO 4种福利发奖 放入job发奖、放入redis列表轮播
             $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
             DB::commit();
             return [

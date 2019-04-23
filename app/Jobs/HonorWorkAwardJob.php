@@ -48,10 +48,13 @@ class HonorWorkAwardJob extends Job implements ShouldQueue
         if(isset($res[0]) && !empty($res[0]) && $res[0]['status']){
             //获取用户手机号
             $phone = protectPhone(Func::getUserPhone($this->userId) );
-            array_push($_data,['username'=> $phone,'award'=>$res[0]['award_name']]);
-            $str = "{$phone},{$res[0]['award_name']}";
-            //放入redis 列表
-            Redis::LPUSH('honor_work_welfare',$str);
+            if(strlen($phone) == 11){
+                array_push($_data,['username'=> $phone,'award'=>$res[0]['award_name']]);
+                $str = "{$phone},{$res[0]['award_name']}";
+                //放入redis 列表
+                Redis::LPUSH('honor_work_welfare',$str);
+            }
+
         }
         dd($_data);
     }
