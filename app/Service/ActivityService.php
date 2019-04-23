@@ -142,9 +142,15 @@ class ActivityService
                 }
                 //提交事物
                 DB::commit();
-                //删除我的团缓存
+                //删除团长缓存
                 Cache::forget("user_assistance_".$groupInfo['group_user_id']);
-                Cache::forget("user_assistance_".$userId);
+                //删除所有团员缓存
+                $groupUser = HdAssistance::select("user_id")->where("pid",$groupInfo['id'])->get()->toArray();
+                foreach($groupUser as $val){
+                    if(isset($val['user_id'])){
+                        Cache::forget("user_assistance_".$val['user_id']);
+                    }
+                }
                 return true;
             }else{
                 DB::rollBack();//回滚事物
