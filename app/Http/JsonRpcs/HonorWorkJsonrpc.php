@@ -13,6 +13,7 @@ use Config,DB,Cache;
 
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Jobs\HonorWorkUpdateJob;
+use App\Jobs\HonorWorkAwardJob;
 
 class HonorWorkJsonRpc extends JsonRpc {
 
@@ -133,7 +134,7 @@ class HonorWorkJsonRpc extends JsonRpc {
 
     /**
      * 福利轮播图
-     * TODO
+     * TODO 福利轮播图
      *
      * @JsonRpcMethod
      */
@@ -216,7 +217,7 @@ class HonorWorkJsonRpc extends JsonRpc {
         }
         $config = Config::get('honor_work');
         $key = isset($config['key']) ? $config['key'] : '';
-        $alias_act = 'honor_work_'.$params->welfare;
+        $alias_act = 'honor_work_'.$params->welfare;//对应活动别名
         //检查用户属性 是否符合条件
         DB::beginTransaction();
         $res = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->lockForUpdate()->first();
@@ -235,7 +236,8 @@ class HonorWorkJsonRpc extends JsonRpc {
 
         if(isset($updatestatus)){
             //按照活动别名发奖
-            //TODO 放入job发奖
+            //TODO 4种福利发奖 放入job发奖
+            $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
             DB::commit();
             return [
                 'code' => 0,
