@@ -96,6 +96,10 @@ class Perbai extends Command
             if (!$ret->save()) {
                 throw new \Exception('Database error');
             }
+            //中奖号码没发完，天天猜依然开奖
+            $type = $change >= 0 ? 1 : 2;
+            //天天猜发奖
+            $this->dispatch(new PertenGuessJob($type));
             $perten = HdPerbai::where(['draw_number'=> $draw_number, 'period'=>$activity['id']])->first();
             if (!$perten || $perten->user_id == 0) {
                 throw new \Exception('中奖号码没发出去');
@@ -118,9 +122,7 @@ class Perbai extends Command
                 $ret->remark = json_encode($remark);
                 $ret->save();
             }
-            $type = $change >= 0 ? 1 : 2;
-            //天天猜发奖
-            $this->dispatch(new PertenGuessJob($type));
+
             return false;
         } catch (\Exception $e) {
             $log = '[' . date('Y-m-d H:i:s') . '] crontab error:' . $e->getMessage() . "\r\n";
