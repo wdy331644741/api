@@ -133,10 +133,10 @@ class GuessStockJsonrpc extends JsonRpc
                         $guess_alert->save();
                 }
                 $result['alert'] = $data;
-                //活动开始后查询预言数量
-                $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
-                $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
             }
+            //活动开始后查询预言数量
+            $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
+            $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
         }
         return [
             'code' => 0,
