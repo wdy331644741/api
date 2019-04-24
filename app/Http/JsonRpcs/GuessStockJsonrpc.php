@@ -53,9 +53,9 @@ class GuessStockJsonrpc extends JsonRpc
         $result['act_rule'] = $actRule->text;
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
-        $result['start_time'] = date("Y年m月d日H:s",strtotime($activity['start_time']));
         $actStatus = GlobalAttributes::getNumber('perten_guess_status'.$activity['id']);
         if ( $activity ) {
+            $result['start_time'] = date("Y年m月d日H:s",strtotime($activity['start_time']));
             //活动开始
             if ( $time > strtotime($activity['start_time']) ) {
                 $result['available'] = 1;
