@@ -293,10 +293,11 @@ class AssistanceJsonRpc extends JsonRpc
         //事物开始
         DB::beginTransaction();
         //判断团id是否已满
-        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where('award',$awardId)->where('group_num',">=",3)->lockForUpdate()->first();
+        $groupInfo = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",0)->where('award',$awardId)->where('group_num',">=",3)->where('status',1)->where('receive_status',0)->lockForUpdate()->first();
+        //团长领取
         if(isset($groupInfo['id'])){//已满团
             //团长领取自己的
-            if($groupUserId == $userId && $groupInfo->receive_status == 0){
+            if($groupUserId == $userId){
                 $groupInfo->receive_status = 1;
                 $groupInfo->increment("receive_num",1);
                 $groupInfo->updated_at = date("Y-m-d H:i:s");
@@ -311,32 +312,27 @@ class AssistanceJsonRpc extends JsonRpc
                     'data' => true
                 );
             }
-            //团员领取
-            $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award',$awardId)->where("receive_status",0)->where('status',1)->lockForUpdate()->first();
-            if(isset($userStatus['id'])){//领取成功
-                //修改领取状态
-                $userStatus->receive_status = 1;
-                $userStatus->updated_at = date("Y-m-d H:i:s");
-                $userStatus->save();
-                //团长领取人数加1
-                $groupInfo->increment("receive_num",1);
-                $groupInfo->save();
-                //提交事物
-                DB::commit();
-                //删除我的团缓存
-                Cache::forget($this->cacheKey.$groupUserId);
-                Cache::forget($this->cacheKey.$userId);
-                return array(
-                    'code' => 0,
-                    'message' => 'success',
-                    'data' => true
-                );
-            }
-            DB::rollBack();//回滚事物
-            return array(//领取失败
+        }
+        //团员领取
+        $userStatus = HdAssistance::where("group_user_id",$groupUserId)->where("user_id",$userId)->where('award',$awardId)->where("receive_status",0)->where('status',1)->lockForUpdate()->first();
+        if(isset($userStatus['id'])){//领取成功
+            //修改领取状态
+            $userStatus->receive_status = 1;
+            $userStatus->updated_at = date("Y-m-d H:i:s");
+            $userStatus->save();
+            //团长领取人数加1
+            $groupData = HdAssistance::where("id",$userStatus->pid)->first();
+            $groupData->increment("receive_num",1);
+            $groupData->save();
+            //提交事物
+            DB::commit();
+            //删除我的团缓存
+            Cache::forget($this->cacheKey.$groupUserId);
+            Cache::forget($this->cacheKey.$userId);
+            return array(
                 'code' => 0,
                 'message' => 'success',
-                'data' => false
+                'data' => true
             );
         }
         DB::rollBack();//回滚事物
