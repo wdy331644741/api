@@ -396,12 +396,12 @@ class AssistanceJsonRpc extends JsonRpc
                 }
             }
             foreach ($myGroupList as $item) {
-                if (isset($item['group_ranking'])) {//我的奖品列表
+                if (isset($item['group_ranking']) && isset($item['group_num']) && $item['group_num'] >= 3) {//我的奖品列表(满团和助力成功的团)
                     $res['my_award_list'][] = ['ranking' => $item['group_ranking'], "award" => $item['award'] == 1 ? "足浴桶" : "榨汁机", "status" => $item['receive_status'] == 1 ? true : false];
                 }
             }
         }
-        $myAssistanceList = HdAssistance::where('user_id', $userId)->first();
+        $myAssistanceList = HdAssistance::where('user_id', $userId)->where('status', 1)->first();
         if (isset($myAssistanceList['group_ranking'])) {
             $myAssistance = ['ranking' => $myAssistanceList['group_ranking'], "award" => $myAssistanceList['award'] == 1 ? "足浴桶" : "榨汁机", "status" => $myAssistanceList['receive_status'] == 1 ? true : false];
             if($myAssistanceList['receive_status'] == 1){
