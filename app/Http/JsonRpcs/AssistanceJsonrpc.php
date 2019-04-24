@@ -432,22 +432,24 @@ class AssistanceJsonRpc extends JsonRpc
         if(count($groupData) > 0){
             $i = 1;
             foreach($groupData as $item){
-                //团id
-                $groupInfo['group_id'] = $item['id'];
-                //团长id
-                $groupInfo['group_user_id'] = $userId;
-                //第几团
-                $groupInfo['ranking'] = $item['group_ranking'];
-                //团人员
-                $groupInfo['group_count'] = 3-$item['group_num'] >= 0 ? 3-$item['group_num'] : 0;
-                //判断有没有助力成功人
-                $userData = HdAssistance::select("pid","user_id")->where("group_user_id",$userId)->where("status",1)->get()->toArray();
-                $res[$item['id']][0] = $groupInfo;//第一条团长信息
-                if(count($userData) > 0){
-                    foreach ($userData as $val){
-                        if($item['id'] == $val['pid']){
-                            $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : [];//团员信息
-                            $i++;
+                if(isset($item['group_num']) && $item['group_num'] < 3){
+                    //团id
+                    $groupInfo['group_id'] = $item['id'];
+                    //团长id
+                    $groupInfo['group_user_id'] = $userId;
+                    //第几团
+                    $groupInfo['ranking'] = $item['group_ranking'];
+                    //团人员
+                    $groupInfo['group_count'] = 3-$item['group_num'] >= 0 ? 3-$item['group_num'] : 0;
+                    //判断有没有助力成功人
+                    $userData = HdAssistance::select("pid","user_id")->where("group_user_id",$userId)->where("status",1)->get()->toArray();
+                    $res[$item['id']][0] = $groupInfo;//第一条团长信息
+                    if(count($userData) > 0){
+                        foreach ($userData as $val){
+                            if($item['id'] == $val['pid']){
+                                $res[$item['id']][$i] = isset($val['user_id']) && $val['user_id'] > 0 ? $this->_getUserInfo($val['user_id']) : [];//团员信息
+                                $i++;
+                            }
                         }
                     }
                 }
