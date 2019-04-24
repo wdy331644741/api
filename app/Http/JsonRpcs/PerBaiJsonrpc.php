@@ -40,6 +40,7 @@ class PerBaiJsonrpc extends JsonRpc
             'node'=> 0,//提醒我
             'first_award'=>0,
             'first_text'=>'',
+            'start_time' => 0,
         ];
         if ( !empty($userId) ) {
             $result['login'] = 1;
@@ -49,6 +50,7 @@ class PerBaiJsonrpc extends JsonRpc
         $activity = PerBaiService::getActivityInfo();
         $period = isset($activity['id']) ? $activity['id'] : 0;
         if ( $activity ) {
+            $result['start_time'] = date("Y年m月d日H:s",strtotime($activity['start_time']));
             //倒计时 秒数
             $countdown = strtotime($activity['start_time']) - $time;
             $result['countdown'] = $countdown > 0 ? $countdown : 0;
@@ -284,7 +286,7 @@ class PerBaiJsonrpc extends JsonRpc
             }
             if ($flag) {
                 $stock = PerBaiService::getStockPrice();
-                $return['stock'] = round($stock[0], 2);
+                $return['stock'] = sprintf("%.2f",round($stock[0], 2));
                 $draw_number = intval(substr(strrev($return['stock'] * 100), 0, 4));
                 $return['draw_number'] = PerBaiService::format($draw_number);
                 $return['status'] = 2;//2开盘 显示”待开奖

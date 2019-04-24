@@ -53,9 +53,9 @@ class GuessStockJsonrpc extends JsonRpc
         $result['act_rule'] = $actRule->text;
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
-        $result['start_time'] = date("Y年m月d日H:s",strtotime($activity['start_time']));
         $actStatus = GlobalAttributes::getNumber('perten_guess_status'.$activity['id']);
         if ( $activity ) {
+            $result['start_time'] = date("Y年m月d日H:s",strtotime($activity['start_time']));
             //活动开始
             if ( $time > strtotime($activity['start_time']) ) {
                 $result['available'] = 1;
@@ -133,10 +133,10 @@ class GuessStockJsonrpc extends JsonRpc
                         $guess_alert->save();
                 }
                 $result['alert'] = $data;
-                //活动开始后查询预言数量
-                $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
-                $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
             }
+            //活动开始后查询预言数量
+            $guessKey = PerBaiService::$guessKeyUser . $activity['id'];
+            $result['number'] = intval(Attributes::getNumber($userId, $guessKey));
         }
         return [
             'code' => 0,
@@ -181,7 +181,7 @@ class GuessStockJsonrpc extends JsonRpc
             if ($flag) {
                 $stock = PerBaiService::getStockPrice();
                 $return['time'] = $date;
-                $return['stock'] = round($stock[0], 2);
+                $return['stock'] = sprintf("%.2f",round($stock[0], 2));
                 $return['change'] = round($stock[1], 2);
             }
         }
