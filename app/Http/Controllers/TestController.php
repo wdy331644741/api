@@ -33,10 +33,20 @@ class TestController extends Controller
         return view('custom_experience');
     }
 
+
     //手动推送任务到队列
-    public function getManualPush(){
+    public function getManualPush()
+    {
         $this->dispatch(new PertenGuessJob(1));
         return "success";
+    }
+
+    public function getAdd(Request $request){
+        $res = Func::DbAddTimes(28,3422687,2);
+        if($res){
+            return 111;
+        }
+        return 222;
     }
     public function postCustomExperience(Request $request){
         $this->param = [];

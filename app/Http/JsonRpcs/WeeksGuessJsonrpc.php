@@ -29,7 +29,7 @@ class WeeksGuessJsonrpc extends JsonRpc
                 'available' => 0,//1开始，0 结束
                 'start_time' => '',//开始时间
                 'end_time' => '',//结束时间
-                'guess_status' => 0,//0未开始1竞猜中2竞猜结束
+                'guess_status' => 0,//0未开始1竞猜中2竞猜结束3/已开奖
                 'guess_overtime' => 0,//竞猜倒计时
                 'number' => 0,//竞猜机会
                 'join' => 0,//参与人数
@@ -75,6 +75,9 @@ class WeeksGuessJsonrpc extends JsonRpc
             }
             if ($time > $guess_end) {
                 $result['guess_status'] = 2;
+            }
+            if ($weeksConfig->draw_status == 1) {
+                $result['guess_status'] = 3;
             }
             $difftime = $guess_end - strtotime('now');
             $result['guess_overtime'] = $difftime > 0 ? $difftime : 0;

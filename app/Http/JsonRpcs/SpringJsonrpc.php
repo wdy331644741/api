@@ -115,7 +115,7 @@ class SpringJsonRpc extends JsonRpc
         if(!$userId){
             throw new OmgException(OmgException::NO_LOGIN);
         }
-        $data = HdSpring::select('name', 'created_at')
+        $data = HdSpring::select('name',"number", 'created_at')
             ->where('user_id',$userId)
             ->orderBy('id', 'desc')->get()->toArray();
 //        $rData['total'] = $data['total'];
@@ -143,7 +143,8 @@ class SpringJsonRpc extends JsonRpc
             throw new OmgException(OmgException::NO_LOGIN);
         }
         $type = isset($params->type) ? $params->type : '';
-        if (!$type) {
+        $num = isset($params->num) ? $params->num : 0;
+        if (!$type || !$num) {
             throw new OmgException(OmgException::PARAMS_ERROR);
         }
         $config = Config::get('spring');
@@ -167,7 +168,8 @@ class SpringJsonRpc extends JsonRpc
         DB::beginTransaction();
         $attr = Attributes::getItemLock($userId, $config['spring_drew_user']);
         $fund = $attr->number;
-        if ($fund < $award['fund']) {
+        $award_fund = $award['fund'] * $num;
+        if ($fund < $award_fund ) {
             DB::rollBack();
             throw new OmgException(OmgException::FUND_LACK_FAIL);
         }
@@ -176,12 +178,13 @@ class SpringJsonRpc extends JsonRpc
         $model->name = $award['name'];
         $model->alias_name = $award['alias_name'];
         $model->status = 1;
+        $model->number = $num;
         if (!$model->save()) {
             DB::rollBack();
             throw new OmgException(OmgException::DATABASE_ERROR);
         }
-        Attributes::decrement($userId, $config['spring_drew_user'], $award['fund']);
-        Attributes::increment($userId, $config['spring_drew_total'],$award['fund']);
+        Attributes::decrement($userId, $config['spring_drew_user'], $award_fund);
+        Attributes::increment($userId, $config['spring_drew_total'],$award_fund);
         //事务提交结束
         DB::commit();
         unset($award['fund']);

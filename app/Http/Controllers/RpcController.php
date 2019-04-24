@@ -78,6 +78,7 @@ use App\Http\JsonRpcs\DoubleEggLottJsonRpc;
 use App\Http\JsonRpcs\AmountShare19JsonRpc;
 use App\Http\JsonRpcs\YeardAwardJsonRpc;
 use App\Http\JsonRpcs\InviteLimitTaskJsonRpc;
+use App\Http\JsonRpcs\NetClassAnswerJsonRpc;
 
 class RpcController extends Controller
 {
@@ -163,6 +164,8 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new InviteLimitTaskJsonRpc());//好友邀请3.0
         $jsonRpcServer->addService(new SpringJsonRpc());//周末竞猜
         $jsonRpcServer->addService(new GuessStockJsonrpc());//天天猜大盘
+        $jsonRpcServer->addService(new NetClassAnswerJsonRpc());//网贷课堂答题
+
 
 
         $jsonRpcServer->processingRequests();
