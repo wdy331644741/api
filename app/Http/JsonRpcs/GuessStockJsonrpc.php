@@ -181,7 +181,7 @@ class GuessStockJsonrpc extends JsonRpc
             if ($flag) {
                 $stock = PerBaiService::getStockPrice();
                 $return['time'] = $date;
-                $return['stock'] = round($stock[0], 2);
+                $return['stock'] = sprintf("%.2f",round($stock[0], 2));
                 $return['change'] = round($stock[1], 2);
             }
         }

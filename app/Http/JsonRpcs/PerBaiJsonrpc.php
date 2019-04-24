@@ -286,7 +286,7 @@ class PerBaiJsonrpc extends JsonRpc
             }
             if ($flag) {
                 $stock = PerBaiService::getStockPrice();
-                $return['stock'] = round($stock[0], 2);
+                $return['stock'] = sprintf("%.2f",round($stock[0], 2));
                 $draw_number = intval(substr(strrev($return['stock'] * 100), 0, 4));
                 $return['draw_number'] = PerBaiService::format($draw_number);
                 $return['status'] = 2;//2开盘 显示”待开奖
