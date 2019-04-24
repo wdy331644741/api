@@ -49,14 +49,14 @@ class HonorWorkJsonRpc extends JsonRpc {
             if(!$res_text['badge']['xianfeng'] || !$res_text['badge']['xianfeng'] ){
                 //当这两个徽章不存在时 去检查签到
                 if(!Cache::has('HonorWork_check_in_'.$userId)){
-                    $this->dispatch(new HonorWorkUpdateJob($userId));
+                    $this->dispatch(new HonorWorkUpdateJob($userId ,'check_in_alias'));
                     Cache::put('HonorWork_check_in_'.$userId,1,5);//5分钟刷新一次用户属性
                 }
             }
             if(!$res_text['badge']['tashi']){
-                //去检查  注册 TODO  分开检查
+                //去检查  注册 分开检查
                 if(!Cache::has('HonorWork_check_invite'.$userId)){
-                    $this->dispatch(new HonorWorkUpdateJob($userId));
+                    $this->dispatch(new HonorWorkUpdateJob($userId ,'check_invite'));
                     Cache::put('HonorWork_check_invite'.$userId,1,5);//5分钟刷新一次用户属性
                 }
             }
