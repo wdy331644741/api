@@ -11,7 +11,7 @@ use App\Models\HdWeeksGuessLog;
 use App\Service\Attributes;
 use App\Service\Func;
 use App\Service\PerBaiService;
-use function GuzzleHttp\Psr7\str;
+//use function GuzzleHttp\Psr7\str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use App\Service\GlobalAttributes;
 
@@ -38,6 +38,7 @@ class GuessStockJsonrpc extends JsonRpc
             'up' => 0,
             'win_status'=>1,//默认已经弹窗过
             'down' => 0,
+            'start_time' => 0,
             'alert'=>[],
         ];
         if ( !empty($userId) ) {
@@ -52,6 +53,7 @@ class GuessStockJsonrpc extends JsonRpc
         $result['act_rule'] = $actRule->text;
         // 活动配置信息
         $activity = PerBaiService::getActivityInfo();
+        $result['start_time'] = date("Y年m月d日H:s",strtotime($activity['start_time']));
         $actStatus = GlobalAttributes::getNumber('perten_guess_status'.$activity['id']);
         if ( $activity ) {
             //活动开始
