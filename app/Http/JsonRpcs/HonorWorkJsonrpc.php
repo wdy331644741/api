@@ -23,6 +23,7 @@ class HonorWorkJsonRpc extends JsonRpc {
      * 劳动红包领取状态
      *TODO 读取config 加入缓存。
      *
+     *
      * @JsonRpcMethod
      */
     public function workingInfo() {
@@ -46,10 +47,17 @@ class HonorWorkJsonRpc extends JsonRpc {
             //队列刷新签到 属性
             $res_text = json_decode($res->text,1);
             if(!$res_text['badge']['xianfeng'] || !$res_text['badge']['xianfeng'] ){
-                //当这两个徽章不存在时
-                if(!Cache::has('HonorWork_'.$userId)){
-                    $this->dispatch(new HonorWorkUpdateJob($userId));
-                    Cache::put('HonorWork_'.$userId,1,5);//5分钟刷新一次用户属性
+                //当这两个徽章不存在时 去检查签到
+                if(!Cache::has('HonorWork_check_in_'.$userId)){
+                    $this->dispatch(new HonorWorkUpdateJob($userId ,'check_in_alias'));
+                    Cache::put('HonorWork_check_in_'.$userId,1,5);//5分钟刷新一次用户属性
+                }
+            }
+            if(!$res_text['badge']['tashi']){
+                //去检查  注册 分开检查
+                if(!Cache::has('HonorWork_check_invite'.$userId)){
+                    $this->dispatch(new HonorWorkUpdateJob($userId ,'check_invite'));
+                    Cache::put('HonorWork_check_invite'.$userId,1,5);//5分钟刷新一次用户属性
                 }
             }
             return [

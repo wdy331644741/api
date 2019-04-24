@@ -124,7 +124,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
         $answer = $params->answer;
 
         //是否触发间隔限制 500毫秒
-        if($this->isTooOften($userId, 500 ,1)) {
+        if($this->isTooOften($userId, 300 ,1)) {
             throw new OmgException(OmgException::API_BUSY);
         }
 
@@ -166,7 +166,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
         }
 
         Attributes::setItem($userId,self::$_plan,0,'',json_encode($user_answered));
-        $this->isTooOften($userId, 500 ,0);//删除redis lock
+        $this->isTooOften($userId, 300 ,0);//删除redis lock
 
         //是否全部答对、主动发奖
         $act = ActivityService::GetActivityInfoByAlias(self::$_plan.$plan);

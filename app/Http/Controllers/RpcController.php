@@ -82,6 +82,7 @@ use App\Http\JsonRpcs\AssistanceJsonrpc;
 
 use App\Http\JsonRpcs\NetClassAnswerJsonRpc;
 use App\Http\JsonRpcs\HonorWorkJsonRpc;
+use App\Http\JsonRpcs\ResultWorkJsonRpc;
 
 class RpcController extends Controller
 {
@@ -181,6 +182,7 @@ class RpcController extends Controller
         $jsonRpcServer->addService(new AssistanceJsonrpc());//助力活动
         $jsonRpcServer->addService(new NetClassAnswerJsonRpc());//网贷课堂答题
         $jsonRpcServer->addService(new HonorWorkJsonRpc());//劳动光荣
+        $jsonRpcServer->addService(new ResultWorkJsonRpc());//劳动光荣 -收获场
 
 
         $jsonRpcServer->processingRequests();
