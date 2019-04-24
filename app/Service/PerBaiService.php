@@ -235,9 +235,61 @@ class PerBaiService
         ];
     }
 
-    public static function getStockNextTime()
+    public static function getStockNextTime($time=null)
     {
+        if(empty($time)){
+            $time =time();
+        }
+        $w = date('w',$time);
+        switch ($w){
+            case 5:
+                if(date("Hi") < 1530 && date("Y-m-d") != "2019-06-07" && date("Y-m-d") != "2019-09-13" && date("Y-m-d") != "2019-10-04"){
+                    $ntime = time();
+                }else{
+                    $ntime = strtotime("+ 3 days",$time);
+                }
+                break;
+            case 6:
+                $ntime = strtotime("+ 2 days",$time);
+                break;
+            case 0:
+                $ntime = strtotime("+ 1 days",$time);
+                break;
+            default:
+                if(date("Hi") < 1530){
+                    $ntime = time();
+                }else{
+                    $ntime = strtotime("+ 1 days",$time);
+                }
+        }
 
+        $ndate = date("Y-m-d",$ntime);
+        if ( in_array($ndate, self::getStockClose())) {
+            switch ($ndate){
+                case "2019-06-07":
+                    $ndate = date("Y-m-d",strtotime("+ 3 days",$ntime));
+                    break;
+                case "2019-09-13":
+                    $ndate = date("Y-m-d",strtotime("+ 3 days",$ntime));
+                    break;
+                case "2019-10-01":
+                    $ndate = date("Y-m-d",strtotime("+ 7 days",$ntime));
+                    break;
+                case "2019-10-02":
+                    $ndate = date("Y-m-d",strtotime("+ 6 days",$ntime));
+                    break;
+                case "2019-10-03":
+                    $ndate = date("Y-m-d",strtotime("+ 5 days",$ntime));
+                    break;
+                case "2019-10-04":
+                    $ndate = date("Y-m-d",strtotime("+ 4 days",$ntime));
+                    break;
+                default:
+                    $ndate = date("Y-m-d",strtotime("+ 1 days",$ntime));
+            }
+
+        }
+        return $ndate;
     }
 
     public static function sendAward($userId, $money)

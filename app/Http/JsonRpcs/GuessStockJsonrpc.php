@@ -160,6 +160,7 @@ class GuessStockJsonrpc extends JsonRpc
             $return['time'] = date('Y-m-d', strtotime($stock['curr_time']));
             $return['change'] = $stock['change'];
             $return['stock'] = $stock['stock'];
+            $return['next_time'] = PerBaiService::getStockNextTime();
         } else {
             $flag = true;
             $stock = HdPertenStock::where(['period'=>$acvitity['id']])->orderBy('id', 'desc')->first();
@@ -167,6 +168,7 @@ class GuessStockJsonrpc extends JsonRpc
                 $return['time'] = date('Y-m-d', strtotime($stock['curr_time']));
                 $return['change'] = $stock['change'];
                 $return['stock'] = $stock['stock'];
+                $return["next_time"] = null;
                 $flag = false;
             }
             if ($flag && $h > 1530) {
@@ -175,6 +177,7 @@ class GuessStockJsonrpc extends JsonRpc
                     $return['time'] = date('Y-m-d', strtotime($stock['curr_time']));
                     $return['change'] = $stock['change'];
                     $return['stock'] = $stock['stock'];
+                    $return['next_time'] = PerBaiService::getStockNextTime();
                     $flag = false;
                 }
             }
@@ -183,6 +186,7 @@ class GuessStockJsonrpc extends JsonRpc
                 $return['time'] = $date;
                 $return['stock'] = sprintf("%.2f",round($stock[0], 2));
                 $return['change'] = round($stock[1], 2);
+                $return["next_time"] = PerBaiService::getStockNextTime();
             }
         }
         return [
