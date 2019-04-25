@@ -248,7 +248,7 @@ class InviteLimitTaskJsonRpc extends JsonRpc
         $detail = [];
         foreach ($_data as $key => $value) {
             //根据用户ID获取手机号
-            $phone = Func::getUserPhone($_data['user_id']);
+            $phone = Func::getUserPhone($key);
             // $url = env('INSIDE_HTTP_URL');
             // $client = new JsonRpcClient($url);
             // $userBase = $client->userBasicInfo(array('userId'=>$key));
