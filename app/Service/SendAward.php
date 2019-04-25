@@ -45,6 +45,7 @@ use App\Service\OctLotteryService;
 use App\Service\Hockey;
 use App\Service\CatchDollService;//邀请注册送 抓娃娃机会
 use App\Service\InviteTaskService;//好友邀请3.0
+use App\Service\HonorWorkService;//劳动场 使用红包
 
 class SendAward
 {
@@ -223,6 +224,24 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 劳动光荣-劳动场 start **/
+            case 'honor_work_check_in':
+                break;
+            case 'honor_work_invite':
+                break;
+            case 'honor_work_red_use':
+                if(isset($triggerData['tag']) && $triggerData['tag'] == 'success_trade_coupon_info'
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && isset($triggerData['addonincome_type']) && $triggerData['addonincome_type'] ==1
+                    && isset($triggerData['addonincome_id']) && !empty($triggerData['addonincome_id'])
+                ){
+                    //检查红包使用情况
+                    $ser = new HonorWorkService($triggerData['user_id'] ,$triggerData['addonincome_id']);
+                    $ser->updateHonorWorkAttr();
+                }
+                break;
+            /** 劳动光荣-劳动场 end **/
+
             /** 踏青活动 start **/
             case 'spring_investment':
                 if(
