@@ -53,13 +53,14 @@ class HonorWorkJsonRpc extends JsonRpc {
                     Cache::put('HonorWork_check_in_'.$userId,1,5);//5分钟刷新一次用户属性
                 }
             }
-            if(!$res_text['badge']['tashi']){
-                //去检查  注册 分开检查
-                if(!Cache::has('HonorWork_check_invite'.$userId)){
-                    $this->dispatch(new HonorWorkUpdateJob($userId ,'check_invite'));
-                    Cache::put('HonorWork_check_invite'.$userId,1,5);//5分钟刷新一次用户属性
-                }
-            }
+//这一逻辑 写在消息触发 实时中
+//            if(!$res_text['badge']['tashi']){
+//                //去检查  注册 分开检查
+//                if(!Cache::has('HonorWork_check_invite'.$userId)){
+//                    $this->dispatch(new HonorWorkUpdateJob($userId ,'check_invite'));
+//                    Cache::put('HonorWork_check_invite'.$userId,1,5);//5分钟刷新一次用户属性
+//                }
+//            }
             return [
                 'code' => 0,
                 'message' => 'success',
