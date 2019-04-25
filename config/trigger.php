@@ -38,6 +38,14 @@ return [
         8=>array(
             'name' => '签到',
             'model_name' => 'daylySignin',
+        ),
+        //  9: '社区发帖',
+        //  10: '社区点赞',
+        //  11: '社区评论',
+        //  12: '主题加精',
+        13=>array(
+            'name' => '使用福利券',
+            'model_name' => 'success_trade_coupon_info',
         )
     ]
 
