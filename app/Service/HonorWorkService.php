@@ -6,7 +6,7 @@ use App\Models\InviteLimitTask;
 use App\Service\Attributes;
 use App\Service\GlobalAttributes;
 use App\Service\SendAward;
-use App\Models\GlobalAttribute;
+use App\Models\UserAttribute;
 use App\Models\Activity;
 use App\Service\ActivityService;
 
@@ -29,7 +29,7 @@ class HonorWorkService
     public function __construct($userId = 0 ,$id=0)
     {
         $this->user_id                 = $userId;
-        $this->act_ids = $this->getAliasID();
+        //$this->act_ids = $this->getAliasID();//TODO 使用红包
     }
     //***********缓存劳动场红包别名 列表**************************
     private function getAliasID(){
@@ -58,6 +58,39 @@ class HonorWorkService
         return true;
     }
 
+    //签到  发放勋章
+    public function updateCheckInAttr(){
 
+    }
+
+
+    //注册发放 踏实勋章
+    public function updateHonorInviteAttr($from_user_id){
+
+        DB::beginTransaction();
+        $res = UserAttribute::where(['key'=> self::HONOR_CONFIG,'user_id'=>$from_user_id])
+            ->lockForUpdate()->first();
+        if($res){
+            $userAttrData = json_decode($res->text,1);
+
+            //邀请注册数
+            if($userAttrData['badge']['tashi'] == 1 ){
+                DB::rollBack();//已经有勋章  不发送
+                return 0;
+            }
+            $userAttrData['badge']['tashi'] = 1;//发房 踏实勋章
+
+            $updatestatus = UserAttribute::where(['key'=>self::HONOR_CONFIG,'user_id'=>$from_user_id])
+                ->update(['text'=>json_encode($userAttrData)]);
+            if(isset($updatestatus)){
+                DB::commit();
+                return 1;
+            }
+        }
+
+        DB::rollBack();
+        return 0;
+
+    }
 
 }

@@ -226,17 +226,29 @@ class SendAward
         switch ($activityInfo['alias_name']) {
             /** 劳动光荣-劳动场 start **/
             case 'honor_work_check_in':
+                //签到  统计次数  不能写在before SendAward方法里面
+                //if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    //$ser = new HonorWorkService($triggerData['user_id'] );
+                    //$ser->updateCheckInAttr();
+                //}
                 break;
             case 'honor_work_invite':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'
+                    && !empty($triggerData['from_user_id']) ){
+
+                    $ser = new HonorWorkService($triggerData['user_id'] );
+                    $ser->updateHonorInviteAttr($triggerData['from_user_id']);
+                }
                 break;
             case 'honor_work_red_use':
+                //TODO 等待建强接口
                 if(isset($triggerData['tag']) && $triggerData['tag'] == 'success_trade_coupon_info'
                     && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
                     && isset($triggerData['addonincome_type']) && $triggerData['addonincome_type'] ==1
                     && isset($triggerData['addonincome_id']) && !empty($triggerData['addonincome_id'])
                 ){
                     //检查红包使用情况
-                    $ser = new HonorWorkService($triggerData['user_id'] ,$triggerData['addonincome_id']);
+                    $ser = new HonorWorkService($triggerData['user_id']);
                     $ser->updateHonorWorkAttr();
                 }
                 break;
