@@ -256,8 +256,10 @@ class HonorWorkJsonRpc extends JsonRpc {
         }
 
         if(isset($updatestatus)){
-            //按照活动别名发奖
-            $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
+            //按照活动别名发奖  福利三、四。不实时发放。活动结束后 统计发放
+            if($alias_act == 'honor_work_welfare1' || $alias_act =='honor_work_welfare2'){
+                $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
+            }
             DB::commit();
             return [
                 'code' => 0,
