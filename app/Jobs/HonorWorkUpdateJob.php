@@ -41,7 +41,7 @@ class HonorWorkUpdateJob extends Job implements ShouldQueue
         $activityId = ActivityService::GetActivityInfoByAlias($check_in_alias);
 
         $activityId = isset($activityId['id']) ? $activityId['id'] : 0;
-        if($activityId <= 0 || $activityId_invite <= 0) {
+        if($activityId <= 0) {
             return 0;
         }
 
