@@ -7,6 +7,7 @@ use App\Service\Attributes;
 use App\Service\GlobalAttributes;
 use App\Service\SendAward;
 use App\Models\UserAttribute;
+use App\Models\ActivityJoin;
 use App\Models\Activity;
 use App\Service\ActivityService;
 
@@ -49,7 +50,7 @@ class HonorWorkService
     //***************************************************
 
     //使用特定的红包 返回remark 到活动参与表
-    public function updateHonorWorkAttr($source_id)
+    public function isSpecialRed($source_id)
     {
         if (!$this->user_id ) {
             return false;
@@ -64,11 +65,75 @@ class HonorWorkService
 
     }
 
-    //签到  发放勋章
-    public function updateCheckInAttr(){
+    //签到、使用红包 更新用户属性
+    //type :check_in_alias|check_red
+    public function updateCheckInAttr($type,$source_id = 0)
+    {
+        $config = Config::get(self::HONOR_CONFIG);
+        //获取要检查的活动别名（签到、邀请注册）
+        $check_in_alias = $config['rule'][$type];
+        $activityId = ActivityService::GetActivityInfoByAlias($check_in_alias);
+
+        $activityId = isset($activityId['id']) ? $activityId['id'] : 0;
+        if($activityId <= 0) {
+            return 0;
+        }
+
+        if($type == 'check_red' && $this->isSpecialRed($source_id)){
+            //先查看本次 "使用红包回调"是不是指定到8个红包
+            $check_in = ActivityJoin::select('created_at', 'user_id')
+                ->where('user_id', $this->user_id)
+                ->where('activity_id', $activityId)
+                ->where('status',3)
+                ->where('remark','[1]')//使用到是 指定到8个红包
+                ->orderBy('id', 'desc')->count();
+        }else{
+            $check_in = ActivityJoin::select('created_at', 'user_id')
+                ->where('user_id', $this->user_id)
+                ->where('activity_id', $activityId)
+                ->where('status',3)
+                ->orderBy('id', 'desc')->count();
+        }
+
+
+        DB::beginTransaction();
+        $res = UserAttribute::where(['key'=> $config['key'],'user_id'=>$this->user_id])
+            ->lockForUpdate()->first();
+        if($res){
+            $userAttrData = json_decode($res->text,1);
+            ////签到数**************************
+            if($type == 'check_in_alias' && $check_in < 3){
+                $userAttrData['badge']['xianfeng'] = 1;//签到第一次 发房 勤劳勋章
+                if($check_in == 2){//累计已经签到2次  再加本次签到 共计3次
+                    $userAttrData['badge']['qinlao'] = 1;
+                }
+            }
+            //红包使用数********************
+            if($type == 'check_red' && $check_in < 4){
+
+                $userAttrData['badge']['xianjin'] = 1;//发房 先进勋章
+                if($check_in == 1){
+                    $userAttrData['badge']['mofan'] = 1;//发房 先进勋章
+                }elseif ($check_in == 2){
+                    $userAttrData['badge']['aixin'] = 1;//发房 先进勋章
+                }elseif ($check_in == 3){
+                    $userAttrData['badge']['jingye'] = 1;//发房 先进勋章
+                }
+            }
+
+            //**********************************
+            $updatestatus = UserAttribute::where(['key'=>$config['key'],'user_id'=>$this->user_id])
+                ->update(['text'=>json_encode($userAttrData)]);
+            if(isset($updatestatus)){
+                DB::commit();
+                return 1;
+            }
+        }
+
+        DB::rollBack();
+        return 0;
 
     }
-
 
     //注册发放 踏实勋章
     public function updateHonorInviteAttr($from_user_id){

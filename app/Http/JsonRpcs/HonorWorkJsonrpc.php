@@ -45,26 +45,26 @@ class HonorWorkJsonRpc extends JsonRpc {
         $res = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->first();
         if($res){
             //队列刷新签到 属性
-            $res_text = json_decode($res->text,1);
-            if(!$res_text['badge']['xianfeng']
-                || !$res_text['badge']['xianfeng']
-                || !Cache::has('HonorWork_check_in_'.$userId)
-            ){
-                //当这两个徽章不存在时 去检查签到
-                $this->dispatch(new HonorWorkUpdateJob($userId ,'check_in_alias'));
-                Cache::put('HonorWork_check_in_'.$userId,1,5);//5分钟刷新一次用户属性
-
-            }
-            //更新使用红包勋章
-            if(!$res_text['badge']['xianjin']
-                || !$res_text['badge']['mofan']
-                || !$res_text['badge']['aixin']
-                || !$res_text['badge']['jingye']
-                || !Cache::has('HonorWork_red_use_'.$userId)
-            ){
-                $this->dispatch(new HonorWorkUpdateJob($userId ,'check_red'));
-                Cache::put('HonorWork_red_use_'.$userId,1,5);//5分钟刷新一次用户属性
-            }
+//            $res_text = json_decode($res->text,1);
+//            if(!$res_text['badge']['xianfeng']
+//                || !$res_text['badge']['xianfeng']
+//                || !Cache::has('HonorWork_check_in_'.$userId)
+//            ){
+//                //当这两个徽章不存在时 去检查签到
+//                $this->dispatch(new HonorWorkUpdateJob($userId ,'check_in_alias'));
+//                Cache::put('HonorWork_check_in_'.$userId,1,5);//5分钟刷新一次用户属性
+//
+//            }
+//            //更新使用红包勋章
+//            if(!$res_text['badge']['xianjin']
+//                || !$res_text['badge']['mofan']
+//                || !$res_text['badge']['aixin']
+//                || !$res_text['badge']['jingye']
+//                || !Cache::has('HonorWork_red_use_'.$userId)
+//            ){
+//                $this->dispatch(new HonorWorkUpdateJob($userId ,'check_red'));
+//                Cache::put('HonorWork_red_use_'.$userId,1,5);//5分钟刷新一次用户属性
+//            }
 //这一逻辑 写在消息触发 实时中
 //            if(!$res_text['badge']['tashi']){
 //                //去检查  注册 分开检查
@@ -269,10 +269,8 @@ class HonorWorkJsonRpc extends JsonRpc {
         }
 
         if(isset($updatestatus)){
-            //按照活动别名发奖  福利三、四。不实时发放。活动结束后 统计发放
-            if($alias_act == 'honor_work_welfare1' || $alias_act =='honor_work_welfare2'){
-                $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
-            }
+            $this->dispatch(new HonorWorkAwardJob($userId ,$alias_act));
+
             DB::commit();
             return [
                 'code' => 0,
