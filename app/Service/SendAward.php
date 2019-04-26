@@ -232,12 +232,12 @@ class SendAward
                     $ser->updateCheckInAttr('check_in_alias');
                 }
                 break;
-            case 'honor_work_invite':
-                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'
-                    && !empty($triggerData['from_user_id']) ){
+            case 'honor_work_invite'://注册绑卡
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'bind_bank_card'
+                    && !empty($triggerData['user_id']) ){
 
                     $ser = new HonorWorkService($triggerData['user_id'] );
-                    $ser->updateHonorInviteAttr($triggerData['from_user_id']);
+                    $ser->updateHonorInviteAttr($triggerData['user_id']);
                 }
                 break;
             case 'honor_work_red_use':

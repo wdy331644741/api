@@ -10,7 +10,7 @@ use App\Models\UserAttribute;
 use App\Models\ActivityJoin;
 use App\Models\Activity;
 use App\Service\ActivityService;
-
+use App\Service\Func;
 use Lib\JsonRpcClient;
 
 use DB, Config,Cache;
@@ -135,11 +135,12 @@ class HonorWorkService
 
     }
 
-    //注册发放 踏实勋章
-    public function updateHonorInviteAttr($from_user_id){
+    //绑卡发放 踏实勋章
+    public function updateHonorInviteAttr($user_id){
 
+        $from_user_id = Func::getUserBasicInfo($user_id);
         DB::beginTransaction();
-        $res = UserAttribute::where(['key'=> self::HONOR_CONFIG,'user_id'=>$from_user_id])
+        $res = UserAttribute::where(['key'=> self::HONOR_CONFIG,'user_id'=>$from_user_id['from_user_id']])
             ->lockForUpdate()->first();
         if($res){
             $userAttrData = json_decode($res->text,1);
@@ -151,7 +152,7 @@ class HonorWorkService
             }
             $userAttrData['badge']['tashi'] = 1;//发房 踏实勋章
 
-            $updatestatus = UserAttribute::where(['key'=>self::HONOR_CONFIG,'user_id'=>$from_user_id])
+            $updatestatus = UserAttribute::where(['key'=>self::HONOR_CONFIG,'user_id'=>$from_user_id['from_user_id']])
                 ->update(['text'=>json_encode($userAttrData)]);
             if(isset($updatestatus)){
                 DB::commit();
