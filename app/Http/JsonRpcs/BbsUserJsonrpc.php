@@ -635,7 +635,7 @@ class BbsUserJsonRpc extends JsonRpc {
         });
 
         $res = Thread::where(['isverify'=>1,'user_id'=>$this->userId])
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->paginate($pageNum)
             ->toArray();
         $rData['list'] = $res['data'];
@@ -671,7 +671,7 @@ class BbsUserJsonRpc extends JsonRpc {
         $res = Comment::select('id','tid', 'content', 'isverify', 'verify_time', 'created_at',  'updated_at')
             ->where(['isverify'=>1,'user_id'=>$this->userId])
             ->with('thread')
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -705,7 +705,7 @@ class BbsUserJsonRpc extends JsonRpc {
         });
         $res = Pm::where(['user_id'=>$this->userId,'msg_type'=>$params->type])
             ->with('fromUsers','threads','comments','replyInfo')
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->paginate($pageNum)
             ->toArray();
         $rData['list'] = $res['data'];

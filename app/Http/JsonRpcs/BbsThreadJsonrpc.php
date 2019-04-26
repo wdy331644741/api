@@ -72,7 +72,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -127,7 +127,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('ishot DESC,created_at DESC')
+            ->orderByRaw('ishot DESC,id DESC')
             ->paginate($pageNum)
             ->toArray();
 
@@ -170,7 +170,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('isgreat DESC,created_at DESC')
+            ->orderByRaw('isgreat DESC,id DESC')
             ->paginate($pageNum)
             ->toArray();
         return [
@@ -211,7 +211,7 @@ class BbsThreadJsonRpc extends JsonRpc
             ->with('collection')
             ->with('zan')
             ->with('read')
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->paginate($pageNum)
             ->toArray();
         return [
@@ -286,7 +286,7 @@ class BbsThreadJsonRpc extends JsonRpc
         });
         $res =Thread::select("id","cover","title","type_id","url","isgreat", "ishot","isofficial","video_code","is_new","is_special","new","created_at","updated_at")
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$params->type_id])
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->paginate($pageNum)
             ->toArray();
         return array(
@@ -324,7 +324,7 @@ class BbsThreadJsonRpc extends JsonRpc
     private  function getBbsThreadTopOne($type_id){
         $res =Thread::select("id","cover","title","type_id","url","created_at","updated_at",'')
             ->where(['istop'=>1,'isverify'=>1,'type_id'=>$type_id])
-            ->orderByRaw('created_at DESC')
+            ->orderByRaw('id DESC')
             ->first();
         return $res;
     }
