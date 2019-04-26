@@ -44,8 +44,8 @@ class HonorWorkJsonRpc extends JsonRpc {
         }
         $res = UserAttribute::where(['key'=>$key,'user_id'=>$userId])->first();
         if($res){
+            $res_text = json_decode($res->text,1);
             //队列刷新签到 属性
-//            $res_text = json_decode($res->text,1);
 //            if(!$res_text['badge']['xianfeng']
 //                || !$res_text['badge']['xianfeng']
 //                || !Cache::has('HonorWork_check_in_'.$userId)
