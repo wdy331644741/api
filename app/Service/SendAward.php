@@ -226,11 +226,11 @@ class SendAward
         switch ($activityInfo['alias_name']) {
             /** 劳动光荣-劳动场 start **/
             case 'honor_work_check_in':
-                //签到  统计次数  不能写在before SendAward方法里面
-                //if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
-                    //$ser = new HonorWorkService($triggerData['user_id'] );
-                    //$ser->updateCheckInAttr();
-                //}
+
+                if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'daylySignin'){
+                    $ser = new HonorWorkService($triggerData['user_id'] );
+                    $ser->updateCheckInAttr('check_in_alias');
+                }
                 break;
             case 'honor_work_invite':
                 if(isset($triggerData['tag']) && !empty($triggerData['tag']) && $triggerData['tag'] == 'register'
@@ -248,7 +248,8 @@ class SendAward
                 ){
                     //检查红包使用情况 返回使用的指定的8个红包
                     $ser = new HonorWorkService($triggerData['user_id']);
-                    return $ser->updateHonorWorkAttr($triggerData['source_id']);
+                    $ser->updateCheckInAttr('check_red',$triggerData['source_id']);
+                    return $ser->isSpecialRed($triggerData['source_id']);//f返回remark标示，累加红包记录
                 }
                 break;
             /** 劳动光荣-劳动场 end **/
