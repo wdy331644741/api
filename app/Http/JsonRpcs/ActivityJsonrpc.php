@@ -1378,6 +1378,11 @@ class ActivityJsonRpc extends JsonRpc {
      */
     public function originalSinAwardList(){
         $res = [];
+        return [
+            'code' => 0,
+            'message' => 'success',
+            'data' => $res
+        ];//活动结束直接返回空
         $alias = ["original_sin_real_name_limit","original_sin_investment_limit"];
         $activityId = Activity::whereIn('alias_name',$alias)->select("id")->get()->toArray();
 

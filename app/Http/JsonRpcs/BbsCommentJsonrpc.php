@@ -56,7 +56,7 @@ class BbsCommentJsonRpc extends JsonRpc {
            ->with('zan')
            ->with('replyUser')
            ->with('officeReply')
-           ->orderBy('created_at',$sort)
+           ->orderBy('id',$sort)
            ->paginate($pageNum)
            ->toArray();
 
