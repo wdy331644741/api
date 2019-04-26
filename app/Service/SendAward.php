@@ -241,15 +241,14 @@ class SendAward
                 }
                 break;
             case 'honor_work_red_use':
-                //TODO 等待建强接口
                 if(isset($triggerData['tag']) && $triggerData['tag'] == 'success_trade_coupon_info'
                     && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
                     && isset($triggerData['addonincome_type']) && $triggerData['addonincome_type'] ==1
-                    && isset($triggerData['addonincome_id']) && !empty($triggerData['addonincome_id'])
+                    && isset($triggerData['source_id']) && !empty($triggerData['source_id'])
                 ){
-                    //检查红包使用情况
+                    //检查红包使用情况 返回使用的指定的8个红包
                     $ser = new HonorWorkService($triggerData['user_id']);
-                    $ser->updateHonorWorkAttr();
+                    return $ser->updateHonorWorkAttr($triggerData['source_id']);
                 }
                 break;
             /** 劳动光荣-劳动场 end **/

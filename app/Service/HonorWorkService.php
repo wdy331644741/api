@@ -26,7 +26,7 @@ class HonorWorkService
     /**
      *  构造 从数据库中获取  好友邀请3.0的配置
      */
-    public function __construct($userId = 0 ,$id=0)
+    public function __construct($userId = 0)
     {
         $this->user_id                 = $userId;
         //$this->act_ids = $this->getAliasID();//TODO 使用红包
@@ -38,24 +38,30 @@ class HonorWorkService
             $aliasIDs=[];
             foreach ($config['red'] as $k=>$v){
                 $act_info = ActivityService::GetActivityedInfoByAlias($k);
-                array_push($aliasIDs,$act_info->id);
+                if(!empty($act_info)){
+                    array_push($aliasIDs,$act_info->id);
+                }
             }
 
             return $aliasIDs;
         });
     }
     //***************************************************
-    //领取任务  新增数据
-    public function updateHonorWorkAttr()
+
+    //使用特定的红包 返回remark 到活动参与表
+    public function updateHonorWorkAttr($source_id)
     {
         if (!$this->user_id ) {
             return false;
         }
 
-//        DB::beginTransaction();
-//
-//        DB::commit();
-        return true;
+        $red_array = $this->getAliasID();
+        if(in_array($source_id , $red_array)){
+            return 1;
+        }else{
+            return 0;
+        }
+
     }
 
     //签到  发放勋章

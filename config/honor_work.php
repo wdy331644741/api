@@ -4,8 +4,8 @@ return [
     'rule'=>[
         'share'=>'laodong',//分享给踏实勋章
         'check_in_alias' => 'honor_work_check_in',//记录签到数据
-        'check_invite' => 'honor_work_invite' //邀请注册送勋章
-
+        //'check_invite' => 'honor_work_invite' //邀请注册送勋章
+        'check_red' => 'honor_work_red_use',//记录签到数据
     ],
     'red' => [//红包列表
         'red_honor_work_38'=>[
