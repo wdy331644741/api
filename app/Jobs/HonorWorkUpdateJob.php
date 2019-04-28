@@ -41,32 +41,52 @@ class HonorWorkUpdateJob extends Job implements ShouldQueue
         $activityId = ActivityService::GetActivityInfoByAlias($check_in_alias);
 
         $activityId = isset($activityId['id']) ? $activityId['id'] : 0;
-        if($activityId <= 0 || $activityId_invite <= 0) {
+        if($activityId <= 0) {
             return 0;
         }
 
-        $check_in = ActivityJoin::select('created_at', 'user_id')
-            ->where('user_id', $this->user_id)
-            ->where('activity_id', $activityId)
-            ->where('status',3)
-            ->orderBy('id', 'desc')->count();
+        if($this->type == 'check_red'){
+            $check_in = ActivityJoin::select('created_at', 'user_id')
+                ->where('user_id', $this->user_id)
+                ->where('activity_id', $activityId)
+                ->where('status',3)
+                ->where('remark','[1]')//使用到是 指定到6个红包
+                ->orderBy('id', 'desc')->count();
+        }else{
+            $check_in = ActivityJoin::select('created_at', 'user_id')
+                ->where('user_id', $this->user_id)
+                ->where('activity_id', $activityId)
+                ->where('status',3)
+                ->orderBy('id', 'desc')->count();
+        }
+
 
         DB::beginTransaction();
         $res = UserAttribute::where(['key'=> $this->config['key'],'user_id'=>$this->user_id])
             ->lockForUpdate()->first();
         if($res){
             $userAttrData = json_decode($res->text,1);
-            ////签到数
+            ////签到数**************************
             if($this->type == 'check_in_alias' && $check_in >= 1){
                 $userAttrData['badge']['xianfeng'] = 1;//发放先锋勋章
             }
             if($this->type == 'check_in_alias' && $check_in >= 3){
                 $userAttrData['badge']['qinlao'] = 1;//发房 勤劳勋章
             }
-            //邀请注册数
-            if($this->type == 'check_invite' && $check_in >= 1){
-                $userAttrData['badge']['tashi'] = 1;//发房 踏实勋章
+            //红包使用数********************
+            if($this->type == 'check_red' && $check_in >= 1){
+                $userAttrData['badge']['xianjin'] = 1;//发房 先进勋章
             }
+            if($this->type == 'check_red' && $check_in >= 2){
+                $userAttrData['badge']['mofan'] = 1;//发房 先进勋章
+            }
+            if($this->type == 'check_red' && $check_in >= 3){
+                $userAttrData['badge']['aixin'] = 1;//发房 先进勋章
+            }
+            if($this->type == 'check_red' && $check_in >= 4){
+                $userAttrData['badge']['jingye'] = 1;//发房 先进勋章
+            }
+            //**********************************
             $updatestatus = UserAttribute::where(['key'=>$this->config['key'],'user_id'=>$this->user_id])
                 ->update(['text'=>json_encode($userAttrData)]);
             if(isset($updatestatus)){
