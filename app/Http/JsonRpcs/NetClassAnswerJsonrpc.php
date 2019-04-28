@@ -134,7 +134,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
             'answer' => $answer,
         ], [
             'plan' => 'required|integer',
-            'answer' => 'required|digits_between:1,7',
+            'answer' => 'required|digits_between:1,63',
         ]);
         if($validator->fails()){
             throw new OmgException(OmgException::PARAMS_ERROR);
