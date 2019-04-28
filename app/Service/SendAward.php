@@ -224,6 +224,54 @@ class SendAward
         }
 
         switch ($activityInfo['alias_name']) {
+            /** 51劳动 收获从 start **/
+            case 'result_work_investment':
+                if(isset($triggerData['tag']) && !empty($triggerData['tag'])
+                    && isset($triggerData['user_id']) && !empty($triggerData['user_id'])
+                    && $triggerData['tag'] == 'investment'
+                ){
+                    $key = 'result_work_loot';//活动标示
+                    $channel_config = Config::get('honor_work.let_blackList');
+                    //每满5000元即可获得1次挖宝机会
+                    $investmentNum = 0;
+                    $fromUserNum = 0;
+                    if($triggerData['novice_exclusive'] == 0){//非新手标
+                        if($triggerData['scatter_type'] == 2){
+                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/12/5000);
+                        }else if($triggerData['scatter_type'] == 1){
+                            $investmentNum = intval($triggerData['Investment_amount']*$triggerData['period']/360/5000);
+                        }
+                    }
+
+                    //邀请好友 首投》5000 邀请人获得一次
+                    if($triggerData['is_first']){
+                        //注册并首投 额外再加一次(前提条件：如果注册时间在活动区间内)
+                        $act_start = Carbon::parse($activityInfo['start_at'])->toDateTimeString();
+                        $act_end = Carbon::parse($activityInfo['end_at'])->toDateTimeString();
+                        if( $triggerData['register_time'] >= $act_start && $triggerData['register_time'] <= $act_end ){
+                            $fromUserNum = $triggerData['Investment_amount']>=5000?1:0;
+                        }
+                    }
+                    //非官方渠道不给机会
+                    $channel = Func::getUserBasicInfo($triggerData['user_id']);
+                    $channel = $channel['from_channel'];
+                    if(!in_array($channel ,$channel_config) ){
+                        Attributes::increment($triggerData['user_id'] ,$key ,$investmentNum);
+                    }
+
+                    if($triggerData['from_user_id']){
+                        $from_channel = Func::getUserBasicInfo($triggerData['from_user_id']);
+                        $from_channel = $from_channel['from_channel'];
+                        if(!in_array($from_channel ,$channel_config)){
+                            Attributes::increment($triggerData['from_user_id'] ,$key ,$fromUserNum);
+                        }
+                    }
+
+
+
+                }
+                break;
+            /** 51劳动 收获从 end **/
             /** 劳动光荣-劳动场 start **/
             case 'honor_work_check_in':
 
