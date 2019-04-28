@@ -89,7 +89,7 @@ class HonorWorkAwardJob extends Job implements ShouldQueue
             }
 
         }
-        dd($_data);
+        //dd($_data);
     }
 
 
