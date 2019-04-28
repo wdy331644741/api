@@ -136,9 +136,13 @@ class HonorWorkService
     }
 
     //绑卡发放 踏实勋章
-    public function updateHonorInviteAttr($user_id){
+    public function updateHonorInviteAttr($user_id ,$_actInfo){
 
         $from_user_id = Func::getUserBasicInfo($user_id);
+        //绑卡用户到注册时间 是否在活动期间内
+        if(!empty($_actInfo['start_at']) && $from_user_id['create_time'] < $_actInfo['start_at'] ){
+            return '注册时间不在活动时间范围内';
+        }
         DB::beginTransaction();
         $res = UserAttribute::where(['key'=> self::HONOR_CONFIG,'user_id'=>$from_user_id['from_user_id']])
             ->lockForUpdate()->first();

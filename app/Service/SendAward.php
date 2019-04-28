@@ -282,7 +282,7 @@ class SendAward
                     && !empty($triggerData['user_id']) ){
 
                     $ser = new HonorWorkService($triggerData['user_id'] );
-                    $ser->updateHonorInviteAttr($triggerData['user_id']);
+                    $ser->updateHonorInviteAttr($triggerData['user_id'] ,$activityInfo);
                 }
                 break;
             case 'honor_work_red_use':
