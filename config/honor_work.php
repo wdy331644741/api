@@ -48,5 +48,9 @@ return [
         'welfare2'=>['condition'=>5,'status'=>0],//福利二
         'welfare3'=>['condition'=>7,'status'=>0],//福利三
         'welfare4'=>['condition'=>8 ,'status'=>0],
-    ]
+    ],
+    // 设置渠道黑名单
+    'let_blackList' => ['tongdao', 'FJQJ', 'WHDL', 'jffl', 'flt', 'CYGJXJJL', 'htfl', 'ducaishe', 'wdtysw', 'wdtyfl', 'wangdaizhijia', 'gongzhonghao', 'zhijia', 'WLBcps3', 'WLBcps2', 'WLBcps', 'HEGS', 'QY5', 'QY4', 'QY3', 'QY2', 'QY1', 'HHJD', 'QZWL3', 'QZWL2', 'SHLD', 'BJYZ', 'QZWL', 'YD10', 'YD9', 'YD8', 'YD7', 'YD6', 'YD5', 'YD4', 'YD3', 'YD2', 'YD1', 'JG5', 'JG4', 'JG3', 'JG2', 'JG1', 'bdnb22', 'bdnb21', 'bdnb20', 'bdnb19', 'bdnb18', 'bdnb17', 'bdnb16', 'bdnb15', 'bdnb14', 'bdnb13', 'bdnb12', 'bdnb11', 'bdnb10', 'bdnb9', 'bdnb8', 'bdnb7', 'bdnb6', 'bdnb5', 'bdnb4', 'bdnb3', 'bdnb2', 'bdnb1']
+
+
 ];
