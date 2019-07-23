@@ -233,7 +233,7 @@ class JsonRpcServer
     private function doResponse($responseObject)
     {
         if (!empty($responseObject)) {
-            header('Content-Type: application/json');
+            //header('Content-Type: application/json');
             echo json_encode($responseObject);
         }
     }

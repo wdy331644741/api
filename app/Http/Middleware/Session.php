@@ -17,10 +17,10 @@ class Session
      */
     public function handle($request, Closure $next)
     {
-        ini_set("session.save_handler", Config::get('rpcsession.handler'));
-        ini_set("session.save_path", Config::get('rpcsession.path'));
-        ini_set("session.name", Config::get('rpcsession.name'));
-        ini_set("session.cookie_domain", Config::get('rpcsession.domain'));
+//        ini_set("session.save_handler", Config::get('rpcsession.handler'));
+//        ini_set("session.save_path", Config::get('rpcsession.path'));
+//        ini_set("session.name", Config::get('rpcsession.name'));
+//        ini_set("session.cookie_domain", Config::get('rpcsession.domain'));
 
         $sessionHandler = new SessionHandler();
         $sessionHandler->setGroup(env('ACCOUNT_BASE_HOST'));
