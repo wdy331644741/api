@@ -26,7 +26,7 @@ class NetClassAnswerJsonRpc extends JsonRpc {
      * @JsonRpcMethod
      */
     public function classAnswerStatus() {
-        global $userId;
+        global $userId;return $userId;
         $res = [];
         $done_res = [];//已经完成的攻略，用于排序
 
