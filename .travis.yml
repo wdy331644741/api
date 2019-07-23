@@ -3,14 +3,15 @@ php:
   - 7.2
 service:
   - mysql
+  - redis
 before_script:
   - composer install
   - composer dump-autoload
   - cp .env.travis .env
-  - php artisan jwt:generate
-  - php artisan key:generate
-  - php artisan vendor:publish
-  - mysql -e 'CREATE DATABASE IF NOT EXISTS jokes ;'
+  #- php artisan jwt:generate
+  #- php artisan key:generate
+  #- php artisan vendor:publish
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS omg ;'
   - php artisan migrate
-  - php artisan rsa:generate
+  #- php artisan rsa:generate
 script: phpunit
